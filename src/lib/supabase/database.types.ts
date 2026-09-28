@@ -443,6 +443,10 @@ export type Database = {
       }
     }
     Functions: {
+      can_manage_storage_folder: {
+        Args: { p_object_name: string }
+        Returns: boolean
+      }
       create_ingredient: {
         Args: {
           p_brand?: string
@@ -483,6 +487,19 @@ export type Database = {
         Returns: boolean
       }
       is_member: { Args: { org_id: string }; Returns: boolean }
+      save_product: {
+        Args: {
+          p_category_id?: string
+          p_image_url?: string
+          p_is_active: boolean
+          p_name: string
+          p_organization_id: string
+          p_price: number
+          p_product_id?: string
+          p_recipe: Json
+        }
+        Returns: string
+      }
     }
     Enums: {
       app_module:
