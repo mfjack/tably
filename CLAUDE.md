@@ -23,6 +23,7 @@ Stack: Next.js (App Router) · React · TypeScript · Tailwind · shadcn/ui · Z
 - Formulários: sempre React Hook Form + Zod via `zodResolver`, com feedback visual claro.
 - Client Components falam com Server Actions via TanStack Query, sempre por hooks customizados (um por query/mutation). Cada hook exporta uma função que retorna a query key ou a mutation key.
 - Inputs com máscara: sempre `react-number-format`.
+- Inputs nunca começam com valor preenchido (como "0" ou "R$ 0,00"): começam vazios, só com placeholder. Campos numéricos opcionais viram 0 no servidor.
 - Componente usado por uma única página fica em `components/` dentro da pasta da rota. Componentes compartilhados ficam em `src/components` ou `src/features/<domínio>/components`.
 - Sempre `Link` e `Image` do Next. `React.memo`, `useMemo`, `useCallback` e lazy loading com critério.
 - Estado no componente mais baixo possível; Zustand para estado de cliente complexo; TanStack Query para dados do servidor.
