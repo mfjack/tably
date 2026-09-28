@@ -1,4 +1,4 @@
-import { LayoutGrid, Plus } from "lucide-react";
+import { type LucideIcon, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Empty,
@@ -9,32 +9,37 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 
-type CategoriesEmptyStateProps = {
-  canManage: boolean;
+type ListEmptyStateProps = {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  createLabel: string;
+  canCreate: boolean;
   onCreate: () => void;
 };
 
-export function CategoriesEmptyState({
-  canManage,
+export function ListEmptyState({
+  icon: Icon,
+  title,
+  description,
+  createLabel,
+  canCreate,
   onCreate,
-}: CategoriesEmptyStateProps) {
+}: ListEmptyStateProps) {
   return (
     <Empty className="flex-1 border border-dashed">
       <EmptyHeader>
         <EmptyMedia variant="icon">
-          <LayoutGrid aria-hidden />
+          <Icon aria-hidden />
         </EmptyMedia>
-        <EmptyTitle>Nenhuma categoria ainda</EmptyTitle>
-        <EmptyDescription>
-          As categorias organizam os produtos no PDV, como Cafés, Salgados ou
-          Bebidas.
-        </EmptyDescription>
+        <EmptyTitle>{title}</EmptyTitle>
+        <EmptyDescription>{description}</EmptyDescription>
       </EmptyHeader>
-      {canManage && (
+      {canCreate && (
         <EmptyContent>
           <Button className="h-10" onClick={onCreate}>
             <Plus aria-hidden />
-            Criar primeira categoria
+            {createLabel}
           </Button>
         </EmptyContent>
       )}

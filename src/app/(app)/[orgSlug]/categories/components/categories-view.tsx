@@ -1,14 +1,14 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { LayoutGrid, Plus } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useCategoriesQuery } from "@/features/categories/hooks/use-categories-query";
 import type { Category } from "@/features/categories/types";
 import type { OrganizationId } from "@/features/organizations/types";
+import { ListEmptyState } from "../../components/list-empty-state";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
-import { CategoriesEmptyState } from "./categories-empty-state";
 import { CategoriesTable } from "./categories-table";
 import { CategoryFormDialog } from "./category-form-dialog";
 import { DeleteCategoryDialog } from "./delete-category-dialog";
@@ -68,8 +68,12 @@ export function CategoriesView({
           errorMessage={categoriesQuery.error?.message}
           canManage={canManage}
           emptyState={
-            <CategoriesEmptyState
-              canManage={canManage}
+            <ListEmptyState
+              icon={LayoutGrid}
+              title="Nenhuma categoria ainda"
+              description="As categorias organizam os produtos no PDV, como Cafés, Salgados ou Bebidas."
+              createLabel="Criar primeira categoria"
+              canCreate={canManage}
               onCreate={openCreateForm}
             />
           }

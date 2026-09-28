@@ -3,6 +3,7 @@
 import type { RowData } from "@tanstack/react-table";
 import { Search } from "lucide-react";
 import type { ReactNode } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   InputGroup,
   InputGroupAddon,
@@ -27,6 +28,7 @@ type DataTableProps<TData extends RowData> = {
   table: DataTableInstance<TData>;
   searchPlaceholder: string;
   isLoading?: boolean;
+  errorMessage?: string;
   emptyState: ReactNode;
   toolbarActions?: ReactNode;
 };
@@ -35,12 +37,21 @@ export function DataTable<TData extends RowData>({
   table,
   searchPlaceholder,
   isLoading = false,
+  errorMessage,
   emptyState,
   toolbarActions,
 }: DataTableProps<TData>) {
   const rows = table.getRowModel().rows;
   const columnCount = table.getAllLeafColumns().length;
   const hasData = table.getCoreRowModel().rows.length > 0;
+
+  if (errorMessage) {
+    return (
+      <Alert variant="destructive">
+        <AlertDescription>{errorMessage}</AlertDescription>
+      </Alert>
+    );
+  }
 
   if (!isLoading && !hasData) return emptyState;
 

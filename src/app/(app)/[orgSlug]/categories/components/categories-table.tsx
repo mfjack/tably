@@ -5,7 +5,6 @@ import { DataTable } from "@/components/data-table/data-table";
 import { createDataTableColumnHelper } from "@/components/data-table/data-table-features";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { useDataTable } from "@/components/data-table/use-data-table";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { Category } from "@/features/categories/types";
 
 const EMPTY_CATEGORIES: Category[] = [];
@@ -78,18 +77,11 @@ export function CategoriesTable({
     getRowId: getCategoryRowId,
   });
 
-  if (errorMessage) {
-    return (
-      <Alert variant="destructive">
-        <AlertDescription>{errorMessage}</AlertDescription>
-      </Alert>
-    );
-  }
-
   return (
     <DataTable
       table={table}
       isLoading={isLoading}
+      errorMessage={errorMessage}
       searchPlaceholder="Buscar categoria"
       emptyState={emptyState}
     />
