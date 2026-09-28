@@ -12,7 +12,8 @@ Stack: Next.js (App Router) · React · TypeScript · Tailwind · shadcn/ui · Z
 - Nunca escrever comentários no código (diretivas de ferramenta, como `biome-ignore`, são a exceção).
 - Código limpo, conciso, SOLID, DRY: extrair funções/componentes reutilizáveis quando houver repetição.
 - Sempre TypeScript. Nunca `any`. Preferir `type` a `interface`. Tipagem explícita.
-- Nomes descritivos em inglês (`isLoading`, `hasError`). Arquivos e pastas em kebab-case.
+- Todo o código em inglês: variáveis, funções, componentes, arquivos, pastas, rotas (URLs), tabelas, colunas e valores de enum. Só o texto exibido ao usuário fica em português.
+- Nomes descritivos (`isLoading`, `hasError`). Arquivos e pastas em kebab-case.
 - `as const` para arrays/objetos imutáveis, branded types para IDs, discriminated unions para estados complexos, `?.` e `??` quando apropriado, utility types (`Pick`, `Omit`, `Partial`).
 - Atualização de estado que depende do anterior: sempre na forma de callback.
 
