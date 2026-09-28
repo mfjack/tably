@@ -5,7 +5,6 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarRail,
 } from "@/components/ui/sidebar";
 import type { CurrentUser } from "@/features/auth/types";
 import type { UserOrganization } from "@/features/organizations/types";
@@ -43,7 +42,6 @@ export function AppSidebar({
         <SettingsNavigation organizationSlug={organization.slug} />
         <UserMenu currentUser={currentUser} />
       </SidebarFooter>
-      <SidebarRail />
     </Sidebar>
   );
 }
