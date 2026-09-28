@@ -1,10 +1,10 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
+import { useInvalidateCatalog } from "@/features/catalog/use-invalidate-catalog";
 import type { OrganizationId } from "@/features/organizations/types";
 import { unwrapActionResult } from "@/lib/action-result";
 import { createCategory, updateCategory } from "../actions";
 import type { CategoryFormInput } from "../schemas";
 import type { CategoryId } from "../types";
-import { getCategoriesQueryKey } from "./use-categories-query";
 
 export type SaveCategoryVariables = {
   categoryId?: CategoryId;
@@ -16,7 +16,7 @@ export function getSaveCategoryMutationKey(organizationId: OrganizationId) {
 }
 
 export function useSaveCategoryMutation(organizationId: OrganizationId) {
-  const queryClient = useQueryClient();
+  const invalidateCatalog = useInvalidateCatalog(organizationId);
 
   return useMutation({
     mutationKey: getSaveCategoryMutationKey(organizationId),
@@ -26,9 +26,6 @@ export function useSaveCategoryMutation(organizationId: OrganizationId) {
           ? await updateCategory(categoryId, values)
           : await createCategory(organizationId, values),
       ),
-    onSuccess: () =>
-      queryClient.invalidateQueries({
-        queryKey: getCategoriesQueryKey(organizationId),
-      }),
+    onSuccess: invalidateCatalog,
   });
 }

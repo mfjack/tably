@@ -1,24 +1,21 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
+import { useInvalidateCatalog } from "@/features/catalog/use-invalidate-catalog";
 import type { OrganizationId } from "@/features/organizations/types";
 import { unwrapActionResult } from "@/lib/action-result";
 import { deleteCategory } from "../actions";
 import type { CategoryId } from "../types";
-import { getCategoriesQueryKey } from "./use-categories-query";
 
 export function getDeleteCategoryMutationKey(organizationId: OrganizationId) {
   return ["organizations", organizationId, "categories", "delete"] as const;
 }
 
 export function useDeleteCategoryMutation(organizationId: OrganizationId) {
-  const queryClient = useQueryClient();
+  const invalidateCatalog = useInvalidateCatalog(organizationId);
 
   return useMutation({
     mutationKey: getDeleteCategoryMutationKey(organizationId),
     mutationFn: async (categoryId: CategoryId) =>
       unwrapActionResult(await deleteCategory(categoryId)),
-    onSuccess: () =>
-      queryClient.invalidateQueries({
-        queryKey: getCategoriesQueryKey(organizationId),
-      }),
+    onSuccess: invalidateCatalog,
   });
 }

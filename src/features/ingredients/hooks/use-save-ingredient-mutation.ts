@@ -1,10 +1,10 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
+import { useInvalidateCatalog } from "@/features/catalog/use-invalidate-catalog";
 import type { OrganizationId } from "@/features/organizations/types";
 import { unwrapActionResult } from "@/lib/action-result";
 import { createIngredient, updateIngredient } from "../actions";
 import type { IngredientFormInput } from "../schemas";
 import type { IngredientId } from "../types";
-import { getIngredientsQueryKey } from "./use-ingredients-query";
 
 export type SaveIngredientVariables = {
   ingredientId?: IngredientId;
@@ -16,7 +16,7 @@ export function getSaveIngredientMutationKey(organizationId: OrganizationId) {
 }
 
 export function useSaveIngredientMutation(organizationId: OrganizationId) {
-  const queryClient = useQueryClient();
+  const invalidateCatalog = useInvalidateCatalog(organizationId);
 
   return useMutation({
     mutationKey: getSaveIngredientMutationKey(organizationId),
@@ -26,9 +26,6 @@ export function useSaveIngredientMutation(organizationId: OrganizationId) {
           ? await updateIngredient(ingredientId, values)
           : await createIngredient(organizationId, values),
       ),
-    onSuccess: () =>
-      queryClient.invalidateQueries({
-        queryKey: getIngredientsQueryKey(organizationId),
-      }),
+    onSuccess: invalidateCatalog,
   });
 }
