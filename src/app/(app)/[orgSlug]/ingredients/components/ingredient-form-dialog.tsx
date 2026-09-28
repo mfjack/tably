@@ -22,14 +22,14 @@ import type { Ingredient } from "@/features/ingredients/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import { useSupplierOptions } from "@/features/suppliers/hooks/use-supplier-options";
 import {
-  NO_SUPPLIER_VALUE,
-  toSupplierFieldValue,
-} from "@/features/suppliers/supplier-options";
+  NONE_SELECT_VALUE,
+  toSelectFieldValue,
+} from "@/lib/optional-select-value";
 
 const EMPTY_INGREDIENT_FORM: DefaultValues<IngredientFormInput> = {
   name: "",
   brand: "",
-  supplierId: NO_SUPPLIER_VALUE,
+  supplierId: NONE_SELECT_VALUE,
   expiresAt: "",
 };
 
@@ -41,7 +41,7 @@ function toFormValues(
     brand: ingredient.brand ?? "",
     unit: ingredient.unit,
     minimumStock: ingredient.minimumStock,
-    supplierId: toSupplierFieldValue(ingredient.supplierId),
+    supplierId: toSelectFieldValue(ingredient.supplierId),
     expiresAt: ingredient.expiresAt ?? "",
   };
 }

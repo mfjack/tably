@@ -1,7 +1,6 @@
 "use server";
 
 import type { OrganizationId } from "@/features/organizations/types";
-import { toSupplierId } from "@/features/suppliers/supplier-options";
 import type { SupplierId } from "@/features/suppliers/types";
 import {
   type ActionResult,
@@ -12,6 +11,7 @@ import {
   isForeignKeyViolation,
   isUniqueViolation,
 } from "@/lib/database-errors";
+import { fromSelectFieldValue } from "@/lib/optional-select-value";
 import { createClient } from "@/lib/supabase/server";
 import {
   type IngredientFormInput,
@@ -81,7 +81,7 @@ export async function createIngredient(
     p_total_cost: totalCost ?? 0,
     p_minimum_stock: minimumStock ?? 0,
     p_brand: brand || undefined,
-    p_supplier_id: toSupplierId(supplierId),
+    p_supplier_id: fromSelectFieldValue<SupplierId>(supplierId),
     p_expires_at: expiresAt || undefined,
   });
 
@@ -106,7 +106,7 @@ export async function updateIngredient(
       name,
       brand: brand || null,
       minimum_stock: minimumStock ?? 0,
-      supplier_id: toSupplierId(supplierId) ?? null,
+      supplier_id: fromSelectFieldValue<SupplierId>(supplierId) ?? null,
       expires_at: expiresAt || null,
     })
     .eq("id", ingredientId);
@@ -149,7 +149,7 @@ export async function createStockEntry(
   const { error } = await supabase.from("stock_entries").insert({
     organization_id: organizationId,
     ingredient_id: ingredientId,
-    supplier_id: toSupplierId(supplierId) ?? null,
+    supplier_id: fromSelectFieldValue<SupplierId>(supplierId) ?? null,
     quantity,
     total_cost: totalCost,
     expires_at: expiresAt || null,

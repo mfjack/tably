@@ -18,14 +18,14 @@ import {
 import type { Ingredient } from "@/features/ingredients/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import { useSupplierOptions } from "@/features/suppliers/hooks/use-supplier-options";
-import { toSupplierFieldValue } from "@/features/suppliers/supplier-options";
+import { toSelectFieldValue } from "@/lib/optional-select-value";
 import { StockEntryProjectionSummary } from "./stock-entry-projection-summary";
 
 function buildDefaultValues(
   ingredient: Ingredient | null,
 ): DefaultValues<StockEntryFormInput> {
   return {
-    supplierId: toSupplierFieldValue(ingredient?.supplierId ?? null),
+    supplierId: toSelectFieldValue(ingredient?.supplierId ?? null),
     expiresAt: "",
   };
 }

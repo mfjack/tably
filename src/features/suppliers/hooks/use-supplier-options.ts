@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import type { SelectOption } from "@/components/form/select-field";
 import type { OrganizationId } from "@/features/organizations/types";
-import { NO_SUPPLIER_VALUE } from "../supplier-options";
+import { NONE_SELECT_VALUE } from "@/lib/optional-select-value";
 import { useSupplierSummariesQuery } from "./use-supplier-summaries-query";
 
 export function useSupplierOptions(
@@ -12,7 +12,7 @@ export function useSupplierOptions(
 
   const supplierOptions = useMemo<SelectOption[]>(
     () => [
-      { value: NO_SUPPLIER_VALUE, label: "Sem fornecedor" },
+      { value: NONE_SELECT_VALUE, label: "Sem fornecedor" },
       ...(suppliersQuery.data ?? []).map((supplier) => ({
         value: supplier.id,
         label: supplier.name,
