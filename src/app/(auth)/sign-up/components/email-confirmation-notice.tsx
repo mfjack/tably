@@ -1,5 +1,6 @@
 import { MailCheck } from "lucide-react";
 import Link from "next/link";
+import { ROUTES } from "@/lib/routes";
 
 type EmailConfirmationNoticeProps = {
   email: string;
@@ -19,7 +20,7 @@ export function EmailConfirmationNotice({
         o email para ativar sua conta.
       </p>
       <Link
-        href="/login"
+        href={ROUTES.login}
         className="font-medium text-primary text-sm hover:underline"
       >
         Voltar para o login

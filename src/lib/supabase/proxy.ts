@@ -1,11 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/env";
+import { AUTH_ROUTES, PUBLIC_ROUTES, ROUTES } from "@/lib/routes";
 import type { Database } from "./database.types";
-
-const AUTH_ROUTES = ["/login", "/criar-conta", "/esqueci-senha"] as const;
-
-const PUBLIC_ROUTES = [...AUTH_ROUTES, "/auth"] as const;
 
 function matchesAnyRoute(pathname: string, routes: readonly string[]) {
   return routes.some(
@@ -16,15 +13,15 @@ function matchesAnyRoute(pathname: string, routes: readonly string[]) {
 function buildLoginRedirectUrl(request: NextRequest) {
   const loginUrl = request.nextUrl.clone();
   const { pathname } = request.nextUrl;
-  loginUrl.pathname = "/login";
+  loginUrl.pathname = ROUTES.login;
   loginUrl.search =
-    pathname === "/" ? "" : `?next=${encodeURIComponent(pathname)}`;
+    pathname === ROUTES.home ? "" : `?next=${encodeURIComponent(pathname)}`;
   return loginUrl;
 }
 
 function buildHomeRedirectUrl(request: NextRequest) {
   const homeUrl = request.nextUrl.clone();
-  homeUrl.pathname = "/";
+  homeUrl.pathname = ROUTES.home;
   homeUrl.search = "";
   return homeUrl;
 }

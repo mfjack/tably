@@ -12,6 +12,7 @@ import { AuthSubmitButton } from "@/features/auth/components/auth-submit-button"
 import { GoogleSignIn } from "@/features/auth/components/google-sign-in";
 import { useSignUpMutation } from "@/features/auth/hooks/use-sign-up-mutation";
 import { type SignUpInput, signUpSchema } from "@/features/auth/schemas";
+import { ROUTES } from "@/lib/routes";
 import { EmailConfirmationNotice } from "./email-confirmation-notice";
 
 export function SignUpForm() {
@@ -25,7 +26,7 @@ export function SignUpForm() {
   const handleSubmit = form.handleSubmit((values) => {
     signUpMutation.mutate(values, {
       onSuccess: ({ requiresEmailConfirmation }) => {
-        if (!requiresEmailConfirmation) router.replace("/");
+        if (!requiresEmailConfirmation) router.replace(ROUTES.home);
       },
     });
   });
@@ -80,7 +81,7 @@ export function SignUpForm() {
       <div className="flex flex-col items-center gap-3">
         <AuthFooterLink
           question="Já tem conta?"
-          href="/login"
+          href={ROUTES.login}
           linkLabel="Entrar"
         />
         <p className="max-w-80 text-center text-[13px] text-muted-foreground">

@@ -13,6 +13,7 @@ import { AuthSubmitButton } from "@/features/auth/components/auth-submit-button"
 import { GoogleSignIn } from "@/features/auth/components/google-sign-in";
 import { useSignInMutation } from "@/features/auth/hooks/use-sign-in-mutation";
 import { type SignInInput, signInSchema } from "@/features/auth/schemas";
+import { ROUTES } from "@/lib/routes";
 import { getSafeRedirectPath } from "@/lib/safe-redirect";
 
 type SignInFormProps = {
@@ -55,7 +56,7 @@ export function SignInForm({ nextPath, initialErrorMessage }: SignInFormProps) {
             autoComplete="current-password"
             labelAction={
               <Link
-                href="/esqueci-senha"
+                href={ROUTES.forgotPassword}
                 className="font-medium text-primary text-sm hover:underline"
               >
                 Esqueci a senha
@@ -76,7 +77,7 @@ export function SignInForm({ nextPath, initialErrorMessage }: SignInFormProps) {
 
       <AuthFooterLink
         question="Ainda não tem conta?"
-        href="/criar-conta"
+        href={ROUTES.signUp}
         linkLabel="Criar conta"
       />
     </div>

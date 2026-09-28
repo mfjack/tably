@@ -1,12 +1,12 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import {
   type ActionResult,
   actionFailure,
   actionSuccess,
 } from "@/lib/action-result";
 import { env } from "@/lib/env";
+import { ROUTES } from "@/lib/routes";
 import { getSafeRedirectPath } from "@/lib/safe-redirect";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -30,7 +30,7 @@ export type SignUpResult = { requiresEmailConfirmation: boolean };
 export type OAuthRedirect = { url: string };
 
 function buildAuthCallbackUrl(nextPath: string): string {
-  const callbackUrl = new URL("/auth/callback", env.NEXT_PUBLIC_SITE_URL);
+  const callbackUrl = new URL(ROUTES.authCallback, env.NEXT_PUBLIC_SITE_URL);
   callbackUrl.searchParams.set("next", nextPath);
   return callbackUrl.toString();
 }
@@ -59,7 +59,7 @@ export async function signUp(
     password,
     options: {
       data: { full_name: name },
-      emailRedirectTo: buildAuthCallbackUrl("/"),
+      emailRedirectTo: buildAuthCallbackUrl(ROUTES.home),
     },
   });
   if (error) return actionFailure(getAuthErrorMessage(error));
@@ -76,7 +76,7 @@ export async function requestPasswordReset(
   const supabase = await createClient();
   const { error } = await supabase.auth.resetPasswordForEmail(
     parsedInput.data.email,
-    { redirectTo: buildAuthCallbackUrl("/redefinir-senha") },
+    { redirectTo: buildAuthCallbackUrl(ROUTES.resetPassword) },
   );
 
   if (error && isRateLimitError(error)) {
@@ -115,8 +115,10 @@ export async function getGoogleSignInUrl(
   return actionSuccess({ url: data.url });
 }
 
-export async function signOut(): Promise<void> {
+export async function signOut(): Promise<ActionResult> {
   const supabase = await createClient();
-  await supabase.auth.signOut();
-  redirect("/login");
+  const { error } = await supabase.auth.signOut();
+  if (error) return actionFailure(getAuthErrorMessage(error));
+
+  return actionSuccess();
 }

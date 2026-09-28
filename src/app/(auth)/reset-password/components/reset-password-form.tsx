@@ -13,6 +13,7 @@ import {
   type ResetPasswordInput,
   resetPasswordSchema,
 } from "@/features/auth/schemas";
+import { ROUTES } from "@/lib/routes";
 
 export function ResetPasswordForm() {
   const router = useRouter();
@@ -26,7 +27,7 @@ export function ResetPasswordForm() {
     resetPasswordMutation.mutate(values, {
       onSuccess: () => {
         toast.success("Senha atualizada.");
-        router.replace("/");
+        router.replace(ROUTES.home);
       },
     });
   });

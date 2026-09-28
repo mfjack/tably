@@ -1,8 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { LOGIN_ERROR_CODES, ROUTES } from "@/lib/routes";
 import { getSafeRedirectPath } from "@/lib/safe-redirect";
 import { createClient } from "@/lib/supabase/server";
 
-const INVALID_LINK_PATH = "/login?erro=link-invalido";
+const INVALID_LINK_PATH = `${ROUTES.login}?error=${LOGIN_ERROR_CODES.invalidLink}`;
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl;
