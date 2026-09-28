@@ -72,23 +72,23 @@ export const APP_MODULE_GROUPS = [
     label: "Cardápio",
     modules: [
       {
-        id: "categories",
-        label: "Categorias",
-        description: "Organização dos produtos no PDV.",
-        path: "categories",
-        icon: LayoutGrid,
-      },
-      {
         id: "products",
         label: "Produtos",
         description: "Preços, ficha técnica e CMV de cada produto.",
         path: "products",
         icon: Tag,
       },
+      {
+        id: "categories",
+        label: "Categorias",
+        description: "Organização dos produtos no PDV.",
+        path: "categories",
+        icon: LayoutGrid,
+      },
     ],
   },
   {
-    label: "Custos",
+    label: "Estoque",
     modules: [
       {
         id: "ingredients",
@@ -97,18 +97,18 @@ export const APP_MODULE_GROUPS = [
         path: "ingredients",
         icon: Package,
       },
-      {
-        id: "suppliers",
-        label: "Fornecedores",
-        description: "Fornecedores e registro de compras.",
-        path: "suppliers",
-        icon: Truck,
-      },
     ],
   },
   {
     label: "Gestão",
     modules: [
+      {
+        id: "suppliers",
+        label: "Fornecedores",
+        description: "Cadastro de fornecedores e contatos.",
+        path: "suppliers",
+        icon: Truck,
+      },
       {
         id: "sales_report",
         label: "Relatório de vendas",
