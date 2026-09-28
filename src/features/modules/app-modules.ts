@@ -1,0 +1,156 @@
+import {
+  BookUser,
+  ChartColumn,
+  ChefHat,
+  ClipboardList,
+  LayoutGrid,
+  ListChecks,
+  type LucideIcon,
+  MonitorSmartphone,
+  Package,
+  Settings,
+  Tag,
+  Truck,
+} from "lucide-react";
+import type { AppModuleId } from "@/features/organizations/types";
+
+export type AppModule = {
+  id: AppModuleId;
+  label: string;
+  description: string;
+  path: string;
+  icon: LucideIcon;
+};
+
+export type AppModuleGroup = {
+  label: string;
+  modules: readonly AppModule[];
+};
+
+export const APP_MODULE_GROUPS = [
+  {
+    label: "Operação",
+    modules: [
+      {
+        id: "pos",
+        label: "PDV",
+        description: "Venda no balcão com carrinho e pagamento.",
+        path: "pos",
+        icon: MonitorSmartphone,
+      },
+      {
+        id: "order_tabs",
+        label: "Comandas",
+        description: "Contas abertas por mesa ou cliente até o fechamento.",
+        path: "order-tabs",
+        icon: ClipboardList,
+      },
+      {
+        id: "kitchen",
+        label: "Cozinha",
+        description: "Fila de preparo e impressão dos pedidos.",
+        path: "kitchen",
+        icon: ChefHat,
+      },
+      {
+        id: "customer_accounts",
+        label: "Contas",
+        description: "Compras no fiado e pagamentos de cada cliente.",
+        path: "customer-accounts",
+        icon: BookUser,
+      },
+      {
+        id: "tasks",
+        label: "Tarefas",
+        description: "Checklists de abertura e fechamento por período.",
+        path: "tasks",
+        icon: ListChecks,
+      },
+    ],
+  },
+  {
+    label: "Cardápio",
+    modules: [
+      {
+        id: "categories",
+        label: "Categorias",
+        description: "Organização dos produtos no PDV.",
+        path: "categories",
+        icon: LayoutGrid,
+      },
+      {
+        id: "products",
+        label: "Produtos",
+        description: "Preços, ficha técnica e CMV de cada produto.",
+        path: "products",
+        icon: Tag,
+      },
+    ],
+  },
+  {
+    label: "Custos",
+    modules: [
+      {
+        id: "ingredients",
+        label: "Insumos",
+        description: "Matérias-primas, estoque e custo por unidade.",
+        path: "ingredients",
+        icon: Package,
+      },
+      {
+        id: "suppliers",
+        label: "Fornecedores",
+        description: "Fornecedores e registro de compras.",
+        path: "suppliers",
+        icon: Truck,
+      },
+    ],
+  },
+  {
+    label: "Gestão",
+    modules: [
+      {
+        id: "sales_report",
+        label: "Relatório de vendas",
+        description: "Faturamento, mais vendidos, CMV e margem.",
+        path: "sales-report",
+        icon: ChartColumn,
+      },
+    ],
+  },
+] as const satisfies readonly AppModuleGroup[];
+
+export const SETTINGS_PAGE = {
+  label: "Configurações",
+  description: "Dados do estabelecimento, equipe e módulos.",
+  path: "settings",
+  icon: Settings,
+} as const;
+
+export const DEFAULT_MODULE_PATH = "pos";
+
+const APP_MODULES = APP_MODULE_GROUPS.flatMap(
+  (group): readonly AppModule[] => group.modules,
+);
+
+export function getAppModule(moduleId: AppModuleId): AppModule {
+  const appModule = APP_MODULES.find(({ id }) => id === moduleId);
+  if (!appModule) throw new Error(`Unknown module: ${moduleId}`);
+  return appModule;
+}
+
+export function getVisibleModuleGroups(
+  hiddenModules: readonly AppModuleId[],
+): AppModuleGroup[] {
+  return APP_MODULE_GROUPS.map((group) => ({
+    label: group.label,
+    modules: group.modules.filter(({ id }) => !hiddenModules.includes(id)),
+  })).filter((group) => group.modules.length > 0);
+}
+
+export function buildOrganizationPath(
+  organizationSlug: string,
+  path: string,
+): string {
+  return `/${organizationSlug}/${path}`;
+}
