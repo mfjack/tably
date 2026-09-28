@@ -76,34 +76,43 @@ export type Database = {
       }
       ingredients: {
         Row: {
+          brand: string | null
           created_at: string
           current_stock: number
+          expires_at: string | null
           id: string
           minimum_stock: number
           name: string
           organization_id: string
+          supplier_id: string | null
           unit: Database["public"]["Enums"]["measure_unit"]
           unit_cost: number
           updated_at: string
         }
         Insert: {
+          brand?: string | null
           created_at?: string
           current_stock?: number
+          expires_at?: string | null
           id?: string
           minimum_stock?: number
           name: string
           organization_id: string
+          supplier_id?: string | null
           unit: Database["public"]["Enums"]["measure_unit"]
           unit_cost?: number
           updated_at?: string
         }
         Update: {
+          brand?: string | null
           created_at?: string
           current_stock?: number
+          expires_at?: string | null
           id?: string
           minimum_stock?: number
           name?: string
           organization_id?: string
+          supplier_id?: string | null
           unit?: Database["public"]["Enums"]["measure_unit"]
           unit_cost?: number
           updated_at?: string
@@ -115,6 +124,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ingredients_supplier_id_organization_id_fkey"
+            columns: ["supplier_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id", "organization_id"]
           },
         ]
       }
@@ -307,6 +323,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           entered_at: string
+          expires_at: string | null
           id: string
           ingredient_id: string
           organization_id: string
@@ -318,6 +335,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           entered_at?: string
+          expires_at?: string | null
           id?: string
           ingredient_id: string
           organization_id: string
@@ -329,6 +347,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           entered_at?: string
+          expires_at?: string | null
           id?: string
           ingredient_id?: string
           organization_id?: string
@@ -424,6 +443,20 @@ export type Database = {
       }
     }
     Functions: {
+      create_ingredient: {
+        Args: {
+          p_brand?: string
+          p_expires_at?: string
+          p_minimum_stock: number
+          p_name: string
+          p_organization_id: string
+          p_quantity: number
+          p_supplier_id?: string
+          p_total_cost: number
+          p_unit: Database["public"]["Enums"]["measure_unit"]
+        }
+        Returns: string
+      }
       create_organization: {
         Args: { p_name: string; p_slug: string }
         Returns: {
