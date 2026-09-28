@@ -46,15 +46,6 @@ export function ConfirmDialog({
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
       <AlertDialogContent className={DIALOG_CONTENT_CLASS_NAME}>
-        <AlertDialogCancel
-          size="icon"
-          aria-label="Fechar"
-          disabled={isConfirming}
-          className={DIALOG_CLOSE_BUTTON_CLASS_NAME}
-        >
-          <X aria-hidden />
-        </AlertDialogCancel>
-
         <AlertDialogHeader className={DIALOG_HEADER_CLASS_NAME}>
           <AlertDialogTitle className={DIALOG_TITLE_CLASS_NAME}>
             {title}
@@ -80,6 +71,15 @@ export function ConfirmDialog({
             {confirmLabel}
           </Button>
         </AlertDialogFooter>
+
+        <AlertDialogCancel
+          size="icon"
+          aria-label="Fechar"
+          disabled={isConfirming}
+          className={DIALOG_CLOSE_BUTTON_CLASS_NAME}
+        >
+          <X aria-hidden />
+        </AlertDialogCancel>
       </AlertDialogContent>
     </AlertDialog>
   );

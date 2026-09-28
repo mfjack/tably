@@ -61,19 +61,6 @@ export function FormDialog({
           DIALOG_SIZE_CLASS_NAMES[size],
         )}
       >
-        <DialogClose
-          render={
-            <Button
-              variant="outline"
-              size="icon"
-              aria-label="Fechar"
-              className={DIALOG_CLOSE_BUTTON_CLASS_NAME}
-            />
-          }
-        >
-          <X aria-hidden />
-        </DialogClose>
-
         <form
           onSubmit={onSubmit}
           noValidate
@@ -113,6 +100,19 @@ export function FormDialog({
             </Button>
           </DialogFooter>
         </form>
+
+        <DialogClose
+          render={
+            <Button
+              variant="outline"
+              size="icon"
+              aria-label="Fechar"
+              className={DIALOG_CLOSE_BUTTON_CLASS_NAME}
+            />
+          }
+        >
+          <X aria-hidden />
+        </DialogClose>
       </DialogContent>
     </Dialog>
   );
