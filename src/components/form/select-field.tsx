@@ -33,6 +33,7 @@ export function SelectField<TFieldValues extends FieldValues>({
   label,
   description,
   labelAction,
+  isLabelHidden,
   placeholder = "Selecione",
   options,
   isDisabled = false,
@@ -49,6 +50,7 @@ export function SelectField<TFieldValues extends FieldValues>({
           label={label}
           description={description}
           labelAction={labelAction}
+          isLabelHidden={isLabelHidden}
           error={fieldState.error}
         >
           <Select

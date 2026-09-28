@@ -28,6 +28,7 @@ export function NumberField<TFieldValues extends FieldValues>({
   label,
   description,
   labelAction,
+  isLabelHidden,
   placeholder,
   format,
   suffix,
@@ -46,6 +47,7 @@ export function NumberField<TFieldValues extends FieldValues>({
           label={label}
           description={description}
           labelAction={labelAction}
+          isLabelHidden={isLabelHidden}
           error={fieldState.error}
         >
           <NumericFormat
@@ -53,7 +55,7 @@ export function NumberField<TFieldValues extends FieldValues>({
             getInputRef={field.ref}
             id={inputId}
             name={field.name}
-            value={field.value ?? ""}
+            value={Number.isFinite(field.value) ? field.value : ""}
             onValueChange={({ floatValue }) => field.onChange(floatValue)}
             onBlur={field.onBlur}
             disabled={isDisabled}

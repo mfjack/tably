@@ -12,6 +12,7 @@ type FormFieldShellProps = {
   label: string;
   description?: string;
   labelAction?: ReactNode;
+  isLabelHidden?: boolean;
   error?: FormFieldError;
   children: ReactNode;
 };
@@ -25,6 +26,7 @@ export function FormFieldShell({
   label,
   description,
   labelAction,
+  isLabelHidden = false,
   error,
   children,
 }: FormFieldShellProps) {
@@ -32,7 +34,11 @@ export function FormFieldShell({
 
   return (
     <Field>
-      <div className="flex items-center justify-between">
+      <div
+        className={
+          isLabelHidden ? "sr-only" : "flex h-5 items-center justify-between"
+        }
+      >
         <FieldLabel htmlFor={inputId}>{label}</FieldLabel>
         {labelAction}
       </div>

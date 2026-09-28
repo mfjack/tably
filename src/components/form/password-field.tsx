@@ -29,6 +29,7 @@ export function PasswordField<TFieldValues extends FieldValues>({
   label,
   description,
   labelAction,
+  isLabelHidden,
   placeholder = "••••••••",
   autoComplete,
 }: PasswordFieldProps<TFieldValues>) {
@@ -46,6 +47,7 @@ export function PasswordField<TFieldValues extends FieldValues>({
           label={label}
           description={description}
           labelAction={labelAction}
+          isLabelHidden={isLabelHidden}
           error={fieldState.error}
         >
           <InputGroup className={FORM_INPUT_GROUP_CLASS_NAME}>

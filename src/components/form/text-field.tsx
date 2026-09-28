@@ -18,6 +18,7 @@ export function TextField<TFieldValues extends FieldValues>({
   label,
   description,
   labelAction,
+  isLabelHidden,
   type = "text",
   placeholder,
   autoComplete,
@@ -34,6 +35,7 @@ export function TextField<TFieldValues extends FieldValues>({
           label={label}
           description={description}
           labelAction={labelAction}
+          isLabelHidden={isLabelHidden}
           error={fieldState.error}
         >
           <Input
