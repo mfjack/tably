@@ -70,27 +70,27 @@ export type Database = {
       }
       organizations: {
         Row: {
-          business_type: Database["public"]["Enums"]["business_type"]
           created_at: string
           created_by: string | null
+          hidden_modules: Database["public"]["Enums"]["app_module"][]
           id: string
           name: string
           slug: string
           updated_at: string
         }
         Insert: {
-          business_type?: Database["public"]["Enums"]["business_type"]
           created_at?: string
           created_by?: string | null
+          hidden_modules?: Database["public"]["Enums"]["app_module"][]
           id?: string
           name: string
           slug: string
           updated_at?: string
         }
         Update: {
-          business_type?: Database["public"]["Enums"]["business_type"]
           created_at?: string
           created_by?: string | null
+          hidden_modules?: Database["public"]["Enums"]["app_module"][]
           id?: string
           name?: string
           slug?: string
@@ -128,15 +128,11 @@ export type Database = {
     }
     Functions: {
       create_organization: {
-        Args: {
-          p_business_type: Database["public"]["Enums"]["business_type"]
-          p_name: string
-          p_slug: string
-        }
+        Args: { p_name: string; p_slug: string }
         Returns: {
-          business_type: Database["public"]["Enums"]["business_type"]
           created_at: string
           created_by: string | null
+          hidden_modules: Database["public"]["Enums"]["app_module"][]
           id: string
           name: string
           slug: string
@@ -159,15 +155,17 @@ export type Database = {
       is_member: { Args: { org_id: string }; Returns: boolean }
     }
     Enums: {
-      business_type:
-        | "coffee_shop"
-        | "restaurant"
-        | "acai_shop"
-        | "snack_bar"
-        | "bakery"
-        | "bar"
-        | "ice_cream_shop"
-        | "other"
+      app_module:
+        | "pos"
+        | "order_tabs"
+        | "kitchen"
+        | "customer_accounts"
+        | "tasks"
+        | "categories"
+        | "products"
+        | "ingredients"
+        | "suppliers"
+        | "sales_report"
       member_role: "owner" | "manager" | "cashier" | "kitchen" | "waiter"
     }
     CompositeTypes: {
@@ -299,15 +297,17 @@ export const Constants = {
   },
   public: {
     Enums: {
-      business_type: [
-        "coffee_shop",
-        "restaurant",
-        "acai_shop",
-        "snack_bar",
-        "bakery",
-        "bar",
-        "ice_cream_shop",
-        "other",
+      app_module: [
+        "pos",
+        "order_tabs",
+        "kitchen",
+        "customer_accounts",
+        "tasks",
+        "categories",
+        "products",
+        "ingredients",
+        "suppliers",
+        "sales_report",
       ],
       member_role: ["owner", "manager", "cashier", "kitchen", "waiter"],
     },
