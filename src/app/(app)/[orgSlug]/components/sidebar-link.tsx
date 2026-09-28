@@ -20,6 +20,7 @@ export function SidebarLink({ href, label, icon: Icon }: SidebarLinkProps) {
       <SidebarMenuButton
         isActive={isActive}
         tooltip={label}
+        className="h-10 gap-3 px-3 data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground data-active:hover:bg-sidebar-primary"
         render={
           <Link href={href} aria-current={isActive ? "page" : undefined} />
         }

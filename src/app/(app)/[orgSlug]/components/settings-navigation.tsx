@@ -15,7 +15,7 @@ export function SettingsNavigation({
   organizationSlug,
 }: SettingsNavigationProps) {
   return (
-    <SidebarMenu>
+    <SidebarMenu className="gap-1.5">
       <SidebarLink
         href={buildOrganizationPath(organizationSlug, SETTINGS_PAGE.path)}
         label={SETTINGS_PAGE.label}

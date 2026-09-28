@@ -29,10 +29,10 @@ export function ModuleNavigation({
   );
 
   return moduleGroups.map((group) => (
-    <SidebarGroup key={group.label}>
+    <SidebarGroup key={group.label} className="py-1">
       <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
       <SidebarGroupContent>
-        <SidebarMenu>
+        <SidebarMenu className="gap-1.5">
           {group.modules.map((appModule) => (
             <SidebarLink
               key={appModule.id}
