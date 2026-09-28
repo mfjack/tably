@@ -1,0 +1,161 @@
+"use server";
+
+import type { OrganizationId } from "@/features/organizations/types";
+import { toSupplierId } from "@/features/suppliers/supplier-options";
+import type { SupplierId } from "@/features/suppliers/types";
+import {
+  type ActionResult,
+  actionFailure,
+  actionSuccess,
+} from "@/lib/action-result";
+import {
+  isForeignKeyViolation,
+  isUniqueViolation,
+} from "@/lib/database-errors";
+import { createClient } from "@/lib/supabase/server";
+import {
+  type IngredientFormInput,
+  ingredientFormSchema,
+  type StockEntryFormInput,
+  stockEntryFormSchema,
+} from "./schemas";
+import type { Ingredient, IngredientId } from "./types";
+
+const DUPLICATE_NAME_MESSAGE = "Já existe um insumo com esse nome.";
+const INVALID_FORM_MESSAGE = "Confira os campos e tente novamente.";
+const GENERIC_ERROR_MESSAGE = "Não foi possível salvar. Tente novamente.";
+
+export async function listIngredients(
+  organizationId: OrganizationId,
+): Promise<ActionResult<Ingredient[]>> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("ingredients")
+    .select(
+      "id, name, brand, unit, current_stock, minimum_stock, unit_cost, supplier_id, expires_at, product_ingredients(count)",
+    )
+    .eq("organization_id", organizationId)
+    .order("name");
+
+  if (error) return actionFailure("Não foi possível carregar os insumos.");
+
+  return actionSuccess(
+    data.map((ingredient) => ({
+      id: ingredient.id as IngredientId,
+      name: ingredient.name,
+      brand: ingredient.brand,
+      unit: ingredient.unit,
+      currentStock: ingredient.current_stock,
+      minimumStock: ingredient.minimum_stock,
+      unitCost: ingredient.unit_cost,
+      supplierId: ingredient.supplier_id as SupplierId | null,
+      expiresAt: ingredient.expires_at,
+      recipeCount: ingredient.product_ingredients[0]?.count ?? 0,
+    })),
+  );
+}
+
+export async function createIngredient(
+  organizationId: OrganizationId,
+  input: IngredientFormInput,
+): Promise<ActionResult> {
+  const parsedInput = ingredientFormSchema.safeParse(input);
+  if (!parsedInput.success) return actionFailure(INVALID_FORM_MESSAGE);
+
+  const {
+    name,
+    brand,
+    unit,
+    quantity,
+    totalCost,
+    minimumStock,
+    supplierId,
+    expiresAt,
+  } = parsedInput.data;
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("create_ingredient", {
+    p_organization_id: organizationId,
+    p_name: name,
+    p_unit: unit,
+    p_quantity: quantity ?? 0,
+    p_total_cost: totalCost ?? 0,
+    p_minimum_stock: minimumStock ?? 0,
+    p_brand: brand || undefined,
+    p_supplier_id: toSupplierId(supplierId),
+    p_expires_at: expiresAt || undefined,
+  });
+
+  if (isUniqueViolation(error)) return actionFailure(DUPLICATE_NAME_MESSAGE);
+  if (error) return actionFailure(GENERIC_ERROR_MESSAGE);
+
+  return actionSuccess();
+}
+
+export async function updateIngredient(
+  ingredientId: IngredientId,
+  input: IngredientFormInput,
+): Promise<ActionResult> {
+  const parsedInput = ingredientFormSchema.safeParse(input);
+  if (!parsedInput.success) return actionFailure(INVALID_FORM_MESSAGE);
+
+  const { name, brand, minimumStock, supplierId, expiresAt } = parsedInput.data;
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("ingredients")
+    .update({
+      name,
+      brand: brand || null,
+      minimum_stock: minimumStock ?? 0,
+      supplier_id: toSupplierId(supplierId) ?? null,
+      expires_at: expiresAt || null,
+    })
+    .eq("id", ingredientId);
+
+  if (isUniqueViolation(error)) return actionFailure(DUPLICATE_NAME_MESSAGE);
+  if (error) return actionFailure(GENERIC_ERROR_MESSAGE);
+
+  return actionSuccess();
+}
+
+export async function deleteIngredient(
+  ingredientId: IngredientId,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("ingredients")
+    .delete()
+    .eq("id", ingredientId);
+
+  if (isForeignKeyViolation(error)) {
+    return actionFailure(
+      "Esse insumo está na ficha técnica de algum produto. Remova-o dos produtos antes de excluir.",
+    );
+  }
+  if (error) return actionFailure("Não foi possível excluir o insumo.");
+
+  return actionSuccess();
+}
+
+export async function createStockEntry(
+  organizationId: OrganizationId,
+  ingredientId: IngredientId,
+  input: StockEntryFormInput,
+): Promise<ActionResult> {
+  const parsedInput = stockEntryFormSchema.safeParse(input);
+  if (!parsedInput.success) return actionFailure(INVALID_FORM_MESSAGE);
+
+  const { quantity, totalCost, supplierId, expiresAt } = parsedInput.data;
+  const supabase = await createClient();
+  const { error } = await supabase.from("stock_entries").insert({
+    organization_id: organizationId,
+    ingredient_id: ingredientId,
+    supplier_id: toSupplierId(supplierId) ?? null,
+    quantity,
+    total_cost: totalCost,
+    expires_at: expiresAt || null,
+  });
+
+  if (error) return actionFailure("Não foi possível registrar a entrada.");
+
+  return actionSuccess();
+}
