@@ -163,12 +163,125 @@ export type Database = {
           },
         ]
       }
+      order_items: {
+        Row: {
+          id: string
+          order_id: string
+          organization_id: string
+          product_id: string | null
+          product_name: string
+          quantity: number
+          unit_price: number
+        }
+        Insert: {
+          id?: string
+          order_id: string
+          organization_id: string
+          product_id?: string | null
+          product_name: string
+          quantity: number
+          unit_price: number
+        }
+        Update: {
+          id?: string
+          order_id?: string
+          organization_id?: string
+          product_id?: string | null
+          product_name?: string
+          quantity?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_organization_id_fkey"
+            columns: ["order_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "order_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_product_id_organization_id_fkey"
+            columns: ["product_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "product_costs"
+            referencedColumns: ["product_id", "organization_id"]
+          },
+          {
+            foreignKeyName: "order_items_product_id_organization_id_fkey"
+            columns: ["product_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          amount_received: number | null
+          created_at: string
+          created_by: string | null
+          id: string
+          note: string | null
+          number: number
+          organization_id: string
+          paid_at: string | null
+          payment_method: Database["public"]["Enums"]["payment_method"] | null
+          status: Database["public"]["Enums"]["order_status"]
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          amount_received?: number | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string | null
+          number: number
+          organization_id: string
+          paid_at?: string | null
+          payment_method?: Database["public"]["Enums"]["payment_method"] | null
+          status: Database["public"]["Enums"]["order_status"]
+          total: number
+          updated_at?: string
+        }
+        Update: {
+          amount_received?: number | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string | null
+          number?: number
+          organization_id?: string
+          paid_at?: string | null
+          payment_method?: Database["public"]["Enums"]["payment_method"] | null
+          status?: Database["public"]["Enums"]["order_status"]
+          total?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           created_at: string
           created_by: string | null
           hidden_modules: Database["public"]["Enums"]["app_module"][]
           id: string
+          last_order_number: number
           name: string
           slug: string
           updated_at: string
@@ -178,6 +291,7 @@ export type Database = {
           created_by?: string | null
           hidden_modules?: Database["public"]["Enums"]["app_module"][]
           id?: string
+          last_order_number?: number
           name: string
           slug: string
           updated_at?: string
@@ -187,6 +301,7 @@ export type Database = {
           created_by?: string | null
           hidden_modules?: Database["public"]["Enums"]["app_module"][]
           id?: string
+          last_order_number?: number
           name?: string
           slug?: string
           updated_at?: string
@@ -379,6 +494,55 @@ export type Database = {
           },
         ]
       }
+      stock_movements: {
+        Row: {
+          created_at: string
+          id: string
+          ingredient_id: string
+          order_id: string | null
+          organization_id: string
+          quantity: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ingredient_id: string
+          order_id?: string | null
+          organization_id: string
+          quantity: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ingredient_id?: string
+          order_id?: string | null
+          organization_id?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_ingredient_id_organization_id_fkey"
+            columns: ["ingredient_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "stock_movements_order_id_organization_id_fkey"
+            columns: ["order_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "stock_movements_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suppliers: {
         Row: {
           created_at: string
@@ -468,6 +632,7 @@ export type Database = {
           created_by: string | null
           hidden_modules: Database["public"]["Enums"]["app_module"][]
           id: string
+          last_order_number: number
           name: string
           slug: string
           updated_at: string
@@ -487,6 +652,20 @@ export type Database = {
         Returns: boolean
       }
       is_member: { Args: { org_id: string }; Returns: boolean }
+      place_order: {
+        Args: {
+          p_amount_received?: number
+          p_items: Json
+          p_note?: string
+          p_organization_id: string
+          p_payment_method?: Database["public"]["Enums"]["payment_method"]
+        }
+        Returns: {
+          order_id: string
+          order_number: number
+          order_total: number
+        }[]
+      }
       save_product: {
         Args: {
           p_category_id?: string
@@ -515,6 +694,8 @@ export type Database = {
         | "sales_report"
       measure_unit: "unit" | "g" | "kg" | "ml" | "l"
       member_role: "owner" | "manager" | "cashier" | "kitchen" | "waiter"
+      order_status: "in_kitchen" | "ready" | "completed" | "canceled"
+      payment_method: "cash" | "pix" | "credit_card" | "debit_card"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -659,6 +840,8 @@ export const Constants = {
       ],
       measure_unit: ["unit", "g", "kg", "ml", "l"],
       member_role: ["owner", "manager", "cashier", "kitchen", "waiter"],
+      order_status: ["in_kitchen", "ready", "completed", "canceled"],
+      payment_method: ["cash", "pix", "credit_card", "debit_card"],
     },
   },
 } as const
