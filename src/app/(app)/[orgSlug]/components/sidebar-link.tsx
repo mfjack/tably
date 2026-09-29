@@ -4,6 +4,11 @@ import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
+import {
+  SIDEBAR_ACTIVE_ITEM_CLASS_NAME,
+  SIDEBAR_ITEM_CLASS_NAME,
+} from "./sidebar-item-styles";
 
 type SidebarLinkProps = {
   href: string;
@@ -20,7 +25,7 @@ export function SidebarLink({ href, label, icon: Icon }: SidebarLinkProps) {
       <SidebarMenuButton
         isActive={isActive}
         tooltip={label}
-        className="h-10 gap-3 px-3 data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground data-active:hover:bg-sidebar-primary"
+        className={cn(SIDEBAR_ITEM_CLASS_NAME, SIDEBAR_ACTIVE_ITEM_CLASS_NAME)}
         render={
           <Link href={href} aria-current={isActive ? "page" : undefined} />
         }
