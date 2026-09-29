@@ -18,7 +18,8 @@ export type CheckoutStep =
   | { step: "idle" }
   | { step: "customer" }
   | { step: "kitchen-payment"; customer: OrderCustomerInput }
-  | { step: "quick-payment" };
+  | { step: "quick-payment" }
+  | { step: "tab-name" };
 
 type UsePosCheckoutOptions = {
   organizationId: OrganizationId;
@@ -210,6 +211,24 @@ export function usePosCheckout({
     confirmQuickPayment(payment);
   }
 
+  function createTab(customerName: string) {
+    placeOrderMutation.mutate(
+      {
+        items: buildOrderItems(),
+        note: cart.note,
+        customer: { customerName, isTakeaway: false },
+        sendToKitchen: false,
+      },
+      {
+        onSuccess: () => {
+          finishCheckout();
+          toast.success(`Comanda de ${customerName} criada.`);
+        },
+        onError: (error) => toast.error(error.message),
+      },
+    );
+  }
+
   function openTab(customer: OrderCustomerInput) {
     sendToKitchen(customer, undefined);
   }
@@ -223,6 +242,8 @@ export function usePosCheckout({
     addToTab,
     startKitchenCheckout: () => setCheckoutStep({ step: "customer" }),
     startQuickPayment: () => setCheckoutStep({ step: "quick-payment" }),
+    startTabCreation: () => setCheckoutStep({ step: "tab-name" }),
+    createTab,
     confirmCustomer: (customer: OrderCustomerInput) =>
       setCheckoutStep({ step: "kitchen-payment", customer }),
     confirmPayment,

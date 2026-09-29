@@ -22,6 +22,7 @@ import { CustomerDialog } from "./customer-dialog";
 import { PosHeaderDescription } from "./pos-header-description";
 import { ProductGrid } from "./product-grid";
 import { ProductSearchInput } from "./product-search-input";
+import { TabNameDialog } from "./tab-name-dialog";
 
 type PosViewProps = {
   organizationId: OrganizationId;
@@ -75,6 +76,7 @@ export function PosView({
     useState<CategoryId | null>(null);
 
   const isKitchenPayment = checkout.checkoutStep.step === "kitchen-payment";
+  const isQuickPayment = checkout.checkoutStep.step === "quick-payment";
 
   const categoryOptions = useMemo<CategoryFilterOption[]>(() => {
     const productCountByCategory = new Map<CategoryId, number>();
@@ -177,9 +179,7 @@ export function PosView({
         onOpenTab={checkout.openTab}
       />
       <PaymentDialog
-        isOpen={
-          isKitchenPayment || checkout.checkoutStep.step === "quick-payment"
-        }
+        isOpen={isKitchenPayment || isQuickPayment}
         title="Pagamento"
         submitLabel={
           isKitchenPayment ? "Pagamento recebido" : "Confirmar pagamento"
@@ -188,6 +188,22 @@ export function PosView({
         isSubmitting={checkout.isPlacingOrder}
         onClose={checkout.cancelCheckout}
         onConfirm={checkout.confirmPayment}
+        secondaryAction={
+          isQuickPayment
+            ? {
+                label: "Criar comanda",
+                isPending: false,
+                onClick: checkout.startTabCreation,
+              }
+            : undefined
+        }
+      />
+      <TabNameDialog
+        organizationId={organizationId}
+        isOpen={checkout.checkoutStep.step === "tab-name"}
+        isCreatingTab={checkout.isPlacingOrder}
+        onClose={checkout.startQuickPayment}
+        onConfirm={checkout.createTab}
       />
     </div>
   );

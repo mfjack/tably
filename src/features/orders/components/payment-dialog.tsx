@@ -3,7 +3,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { FormDialog } from "@/components/dialog/form-dialog";
+import {
+  FormDialog,
+  type FormDialogSecondaryAction,
+} from "@/components/dialog/form-dialog";
 import { NumberField } from "@/components/form/number-field";
 import { FieldGroup } from "@/components/ui/field";
 import {
@@ -23,6 +26,7 @@ type PaymentDialogProps = {
   isSubmitting: boolean;
   onClose: () => void;
   onConfirm: (payment: OrderPaymentInput) => void;
+  secondaryAction?: FormDialogSecondaryAction;
 };
 
 export function PaymentDialog({
@@ -33,6 +37,7 @@ export function PaymentDialog({
   onConfirm,
   title,
   submitLabel,
+  secondaryAction,
 }: PaymentDialogProps) {
   const orderTotal = summary.total;
   const quickPaymentSchema = useMemo(
@@ -65,6 +70,7 @@ export function PaymentDialog({
       submitLabel={submitLabel}
       isSubmitting={isSubmitting}
       onSubmit={handleSubmit}
+      secondaryAction={secondaryAction}
     >
       <FieldGroup>
         <OrderSummary summary={summary} />
