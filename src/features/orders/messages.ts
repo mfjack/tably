@@ -1,5 +1,5 @@
 export const CUSTOMER_NAME_IN_USE_MESSAGE =
-  "Já existe um pedido em aberto com esse nome hoje. Use outro nome ou um sobrenome.";
+  "Já existe uma comanda aberta ou um pedido na cozinha com esse nome. Use outro nome ou um sobrenome.";
 
 const ORDER_ERROR_MESSAGES: Readonly<Record<string, string>> = {
   P0002: "Algum produto não está mais disponível. Atualize a tela.",
