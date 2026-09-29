@@ -934,6 +934,7 @@ export type Database = {
           id: string
           operator_name: string | null
           organization_id: string
+          period_start: string
           task_id: string
         }
         Insert: {
@@ -943,6 +944,7 @@ export type Database = {
           id?: string
           operator_name?: string | null
           organization_id: string
+          period_start: string
           task_id: string
         }
         Update: {
@@ -952,6 +954,7 @@ export type Database = {
           id?: string
           operator_name?: string | null
           organization_id?: string
+          period_start?: string
           task_id?: string
         }
         Relationships: [
@@ -1008,7 +1011,11 @@ export type Database = {
       }
       tasks: {
         Row: {
+          assigned_operator_id: string | null
           created_at: string
+          due_day: number | null
+          due_weekday: number | null
+          frequency: Database["public"]["Enums"]["task_frequency"]
           id: string
           list_id: string
           organization_id: string
@@ -1017,7 +1024,11 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          assigned_operator_id?: string | null
           created_at?: string
+          due_day?: number | null
+          due_weekday?: number | null
+          frequency?: Database["public"]["Enums"]["task_frequency"]
           id?: string
           list_id: string
           organization_id: string
@@ -1026,7 +1037,11 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          assigned_operator_id?: string | null
           created_at?: string
+          due_day?: number | null
+          due_weekday?: number | null
+          frequency?: Database["public"]["Enums"]["task_frequency"]
           id?: string
           list_id?: string
           organization_id?: string
@@ -1035,6 +1050,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "tasks_assigned_operator_fkey"
+            columns: ["assigned_operator_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "operators"
+            referencedColumns: ["id", "organization_id"]
+          },
           {
             foreignKeyName: "tasks_list_id_organization_id_fkey"
             columns: ["list_id", "organization_id"]
@@ -1341,6 +1363,13 @@ export type Database = {
         Args: { p_is_done: boolean; p_task_id: string }
         Returns: undefined
       }
+      task_period_start: {
+        Args: {
+          p_day: string
+          p_frequency: Database["public"]["Enums"]["task_frequency"]
+        }
+        Returns: string
+      }
       verify_operator_pin: {
         Args: { p_operator_id: string; p_pin: string }
         Returns: boolean
@@ -1376,6 +1405,7 @@ export type Database = {
         | "last_30_days"
         | "this_month"
         | "last_month"
+      task_frequency: "daily" | "weekly" | "monthly"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1538,6 +1568,7 @@ export const Constants = {
         "this_month",
         "last_month",
       ],
+      task_frequency: ["daily", "weekly", "monthly"],
     },
   },
 } as const
