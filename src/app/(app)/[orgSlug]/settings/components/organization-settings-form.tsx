@@ -116,7 +116,7 @@ export function OrganizationSettingsForm({
             label="Taxa para levar"
             description="Somada ao pedido para levar. Deixe vazio para não cobrar."
             format="currency"
-            placeholder="Ex.: R$ 2,00"
+            placeholder="Ex.: $ 2,00"
           />
         )}
       </FieldGroup>

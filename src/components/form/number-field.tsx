@@ -4,12 +4,17 @@ import { useId } from "react";
 import { Controller, type FieldValues } from "react-hook-form";
 import { NumericFormat } from "react-number-format";
 import { Input } from "@/components/ui/input";
+import { CURRENCY_SYMBOL } from "@/lib/format";
 import { FormFieldShell, getFieldDescriptionId } from "./form-field-shell";
 import { FORM_INPUT_CLASS_NAME } from "./form-field-styles";
 import type { FormFieldProps } from "./form-field-types";
 
 const NUMBER_FORMAT_PRESETS = {
-  currency: { prefix: "R$ ", decimalScale: 2, fixedDecimalScale: true },
+  currency: {
+    prefix: `${CURRENCY_SYMBOL} `,
+    decimalScale: 2,
+    fixedDecimalScale: true,
+  },
   quantity: { prefix: undefined, decimalScale: 3, fixedDecimalScale: false },
 } as const;
 

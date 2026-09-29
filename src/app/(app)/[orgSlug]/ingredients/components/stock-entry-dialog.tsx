@@ -105,7 +105,7 @@ export function StockEntryDialog({
             name="totalCost"
             label="Valor total pago"
             format="currency"
-            placeholder="Ex.: R$ 60,00"
+            placeholder="Ex.: $ 60,00"
           />
         </div>
         <SelectField

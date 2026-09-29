@@ -144,7 +144,7 @@ export function ProductFormDialog({
                 name="price"
                 label="Preço de venda"
                 format="currency"
-                placeholder="Ex.: R$ 12,00"
+                placeholder="Ex.: $ 12,00"
               />
             </div>
           </FieldGroup>
