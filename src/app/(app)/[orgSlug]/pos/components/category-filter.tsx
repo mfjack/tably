@@ -6,7 +6,6 @@ import { cn } from "@/lib/utils";
 export type CategoryFilterOption = {
   id: CategoryId | null;
   label: string;
-  productCount: number;
 };
 
 type CategoryFilterProps = {
@@ -31,21 +30,13 @@ export function CategoryFilter({
             aria-pressed={isSelected}
             onClick={() => onSelect(option.id)}
             className={cn(
-              "flex h-10 items-center gap-2 rounded-lg border px-4 font-medium text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/40",
+              "flex h-9 items-center rounded-lg border px-3 font-medium text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/40",
               isSelected
                 ? "border-foreground bg-foreground text-background"
                 : "bg-background hover:bg-muted",
             )}
           >
             {option.label}
-            <span
-              className={cn(
-                "text-xs tabular-nums",
-                isSelected ? "text-background/70" : "text-muted-foreground",
-              )}
-            >
-              {option.productCount}
-            </span>
           </button>
         );
       })}

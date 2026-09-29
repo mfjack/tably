@@ -88,24 +88,17 @@ export function PosView({
   const isQuickPayment = checkout.checkoutStep.step === "quick-payment";
 
   const categoryOptions = useMemo<CategoryFilterOption[]>(() => {
-    const productCountByCategory = new Map<CategoryId, number>();
-    for (const product of posProducts) {
-      if (!product.categoryId) continue;
-      productCountByCategory.set(
-        product.categoryId,
-        (productCountByCategory.get(product.categoryId) ?? 0) + 1,
-      );
-    }
+    const categoryIdsWithProducts = new Set<CategoryId>(
+      posProducts.flatMap((product) =>
+        product.categoryId ? [product.categoryId] : [],
+      ),
+    );
 
     return [
-      { id: null, label: "Todos", productCount: posProducts.length },
+      { id: null, label: "Todos" },
       ...(categories ?? [])
-        .filter((category) => productCountByCategory.has(category.id))
-        .map((category) => ({
-          id: category.id,
-          label: category.name,
-          productCount: productCountByCategory.get(category.id) ?? 0,
-        })),
+        .filter((category) => categoryIdsWithProducts.has(category.id))
+        .map((category) => ({ id: category.id, label: category.name })),
     ];
   }, [categories, posProducts]);
 
