@@ -68,7 +68,7 @@ export function OperatorLockScreen({
   return (
     <main className="flex min-h-svh flex-col items-center justify-center gap-10 bg-muted/40 px-4 py-10">
       <header className="flex flex-col items-center gap-1.5 text-center">
-        <h1 className="font-semibold text-[22px]">{organizationName}</h1>
+        <h1 className="font-semibold text-[1.375rem]">{organizationName}</h1>
         <p className="text-muted-foreground text-sm">
           {selectedOperator
             ? `Digite o PIN de ${selectedOperator.name}`
@@ -111,7 +111,7 @@ export function OperatorLockScreen({
                 >
                   {getInitials(operator.name)}
                 </span>
-                <span className="w-full truncate text-center font-semibold text-[15px]">
+                <span className="w-full truncate text-center font-semibold text-[0.9375rem]">
                   {operator.name}
                 </span>
               </button>

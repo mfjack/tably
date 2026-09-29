@@ -70,7 +70,10 @@ export function PaymentMethodField<TFieldValues extends FieldValues>({
             })}
           </RadioGroup>
           {fieldState.error && (
-            <FieldError errors={[fieldState.error]} className="text-[13px]" />
+            <FieldError
+              errors={[fieldState.error]}
+              className="text-[0.8125rem]"
+            />
           )}
         </FieldSet>
       )}

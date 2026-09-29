@@ -20,7 +20,7 @@ export function KpiCard({ label, value, detail, change }: KpiCardProps) {
       <p className="font-bold text-2xl tabular-nums tracking-[-0.02em]">
         {value}
       </p>
-      <div className="flex min-h-5 flex-wrap items-center gap-x-2 gap-y-1 text-[13px]">
+      <div className="flex min-h-5 flex-wrap items-center gap-x-2 gap-y-1 text-[0.8125rem]">
         {hasChange && (
           <span
             className={cn(

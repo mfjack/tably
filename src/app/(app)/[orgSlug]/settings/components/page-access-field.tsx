@@ -88,7 +88,7 @@ export function PageAccessField({
       {allowedModulesField.fieldState.error && (
         <FieldError
           errors={[allowedModulesField.fieldState.error]}
-          className="text-[13px]"
+          className="text-[0.8125rem]"
         />
       )}
     </FieldSet>

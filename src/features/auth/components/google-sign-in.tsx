@@ -25,14 +25,14 @@ export function GoogleSignIn({ label, nextPath }: GoogleSignInProps) {
 
   return (
     <>
-      <FieldSeparator className="text-[13px]">ou</FieldSeparator>
+      <FieldSeparator className="text-[0.8125rem]">ou</FieldSeparator>
       <Button
         type="button"
         variant="outline"
         disabled={isRedirecting}
         aria-busy={isRedirecting}
         onClick={handleGoogleSignIn}
-        className="h-12 gap-2.5 rounded-lg text-[15px]"
+        className="h-12 gap-2.5 rounded-lg text-[0.9375rem]"
       >
         {isRedirecting ? <Spinner aria-hidden /> : <GoogleIcon />}
         {label}

@@ -50,7 +50,7 @@ function KitchenTicketCardComponent({
     >
       <header className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="truncate font-semibold text-[17px]">
+          <h3 className="truncate font-semibold text-[1.0625rem]">
             {ticket.customerName ?? "Sem nome"}
           </h3>
           <p
@@ -70,7 +70,7 @@ function KitchenTicketCardComponent({
 
       <ul className="flex flex-col gap-1.5">
         {ticket.items.map((item) => (
-          <li key={item.id} className="text-[15px]">
+          <li key={item.id} className="text-[0.9375rem]">
             <strong className="mr-1.5 font-bold tabular-nums">
               {item.quantity}x
             </strong>

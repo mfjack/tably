@@ -81,7 +81,7 @@ export function SelectField<TFieldValues extends FieldValues>({
                 <SelectItem
                   key={option.value}
                   value={option.value}
-                  className="py-2.5 text-[15px]"
+                  className="py-2.5 text-[0.9375rem]"
                 >
                   {option.label}
                 </SelectItem>

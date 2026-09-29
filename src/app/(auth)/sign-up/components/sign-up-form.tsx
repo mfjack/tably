@@ -84,7 +84,7 @@ export function SignUpForm() {
           href={ROUTES.login}
           linkLabel="Entrar"
         />
-        <p className="max-w-80 text-center text-[13px] text-muted-foreground">
+        <p className="max-w-80 text-center text-[0.8125rem] text-muted-foreground">
           Ao criar uma conta, você concorda com os Termos de Uso e a Política de
           Privacidade.
         </p>

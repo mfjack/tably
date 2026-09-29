@@ -15,7 +15,7 @@ export function PageHeader({ title, description, actions }: PageHeaderProps) {
         aria-label="Mostrar ou ocultar menu"
       />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <h1 className="truncate font-bold text-[22px] leading-7 tracking-[-0.02em]">
+        <h1 className="truncate font-bold text-[1.375rem] leading-7 tracking-[-0.02em]">
           {title}
         </h1>
         {description && (
