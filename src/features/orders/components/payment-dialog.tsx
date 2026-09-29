@@ -12,23 +12,29 @@ import {
 } from "@/features/orders/schemas";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { OrderSummary, type OrderSummaryData } from "./order-summary";
 import { PaymentMethodField } from "./payment-method-field";
 
-type QuickPaymentDialogProps = {
+type PaymentDialogProps = {
   isOpen: boolean;
-  orderTotal: number;
+  title: string;
+  submitLabel: string;
+  summary: OrderSummaryData;
   isSubmitting: boolean;
   onClose: () => void;
   onConfirm: (payment: OrderPaymentInput) => void;
 };
 
-export function QuickPaymentDialog({
+export function PaymentDialog({
   isOpen,
-  orderTotal,
+  summary,
   isSubmitting,
   onClose,
   onConfirm,
-}: QuickPaymentDialogProps) {
+  title,
+  submitLabel,
+}: PaymentDialogProps) {
+  const orderTotal = summary.total;
   const quickPaymentSchema = useMemo(
     () => createQuickPaymentSchema(orderTotal),
     [orderTotal],
@@ -55,13 +61,13 @@ export function QuickPaymentDialog({
     <FormDialog
       isOpen={isOpen}
       onOpenChange={(isDialogOpen) => !isDialogOpen && onClose()}
-      title="Pagamento rápido"
-      description={`Total do pedido: ${formatCurrency(orderTotal)}`}
-      submitLabel="Confirmar pagamento"
+      title={title}
+      submitLabel={submitLabel}
       isSubmitting={isSubmitting}
       onSubmit={handleSubmit}
     >
       <FieldGroup>
+        <OrderSummary summary={summary} />
         <PaymentMethodField control={form.control} />
         {isCashPayment && (
           <>
