@@ -59,6 +59,7 @@ function createEmptyPaymentTotals(): PaymentTotals {
     debit_card: { revenue: 0, orderCount: 0 },
     pix: { revenue: 0, orderCount: 0 },
     cash: { revenue: 0, orderCount: 0 },
+    customer_account: { revenue: 0, orderCount: 0 },
   };
 }
 
@@ -93,7 +94,7 @@ export function getOperatorName(operatorName: string | null): string {
 export function getOperatorNames(report: SalesReport): string[] {
   return [
     ...new Set(
-      report.byOperatorPayment.map((payment) =>
+      [...report.byOperatorPayment, ...report.accountReceipts].map((payment) =>
         getOperatorName(payment.operatorName),
       ),
     ),
@@ -109,6 +110,19 @@ export function getOperatorPayments(
       ? report.byOperatorPayment
       : report.byOperatorPayment.filter(
           (payment) => getOperatorName(payment.operatorName) === operatorName,
+        ),
+  );
+}
+
+export function getOperatorReceipts(
+  report: SalesReport,
+  operatorName: string | null,
+): PaymentTotals {
+  return buildPaymentTotals(
+    operatorName === null
+      ? report.accountReceipts
+      : report.accountReceipts.filter(
+          (receipt) => getOperatorName(receipt.operatorName) === operatorName,
         ),
   );
 }

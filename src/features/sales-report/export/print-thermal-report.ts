@@ -124,6 +124,7 @@ function buildReportHtml({
     </section>
     ${buildSection("Resumo", summaryRows)}
     ${buildSection("Formas de pagamento", buildPaymentRows(buildPaymentTotals(report.byPaymentMethod)))}
+    ${report.accountReceipts.length > 0 ? buildSection("Contas recebidas", buildPaymentRows(buildPaymentTotals(report.accountReceipts))) : ""}
     ${operatorClosings.length > 1 ? buildSection("Por operador", operatorRows) : ""}
     ${buildSection("Mais vendidos", buildProductRows(getBestSellers(report)))}
     ${buildSection("Menos vendidos", buildProductRows(getWorstSellers(report)))}

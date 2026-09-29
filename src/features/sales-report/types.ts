@@ -64,6 +64,7 @@ export type SalesReport = {
   canceled: CanceledSummary;
   byPaymentMethod: SalesByPaymentMethod[];
   byOperatorPayment: SalesByOperatorPayment[];
+  accountReceipts: SalesByOperatorPayment[];
   byDay: SalesByDay[];
   byHour: SalesByHour[];
   byWeekday: SalesByWeekday[];

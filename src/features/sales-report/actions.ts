@@ -38,6 +38,12 @@ const salesReportRowSchema = z.object({
       operator_name: z.string().nullable(),
     }),
   ),
+  account_receipts: z.array(
+    summarySchema.extend({
+      method: paymentMethodSchema,
+      operator_name: z.string().nullable(),
+    }),
+  ),
   by_day: z.array(summarySchema.extend({ date: z.string() })),
   by_hour: z.array(summarySchema.extend({ hour: z.number() })),
   by_weekday: z.array(summarySchema.extend({ weekday: z.number() })),
@@ -98,6 +104,12 @@ export async function getSalesReport(
       method: payment.method,
       revenue: payment.revenue,
       orderCount: payment.order_count,
+    })),
+    accountReceipts: report.account_receipts.map((receipt) => ({
+      operatorName: receipt.operator_name,
+      method: receipt.method,
+      revenue: receipt.revenue,
+      orderCount: receipt.order_count,
     })),
     byDay: report.by_day.map((day) => ({
       date: day.date,

@@ -2,6 +2,7 @@ import { format, parseISO } from "date-fns";
 import {
   PAYMENT_METHOD_VALUES,
   PAYMENT_METHODS,
+  RECEIVABLE_PAYMENT_METHOD_VALUES,
 } from "@/features/orders/payment-methods";
 import { formatCurrency, formatPercent } from "@/lib/format";
 import {
@@ -114,6 +115,26 @@ function buildPaymentsTable(report: SalesReport): ReportTable {
   };
 }
 
+function buildReceiptsTable(report: SalesReport): ReportTable {
+  const totals = buildPaymentTotals(report.accountReceipts);
+  const grandTotal = sumPaymentTotals(totals);
+
+  return {
+    title: "Contas recebidas",
+    headers: ["Forma de pagamento", "Recebimentos", "Valor"],
+    rows: RECEIVABLE_PAYMENT_METHOD_VALUES.map((method) => [
+      text(PAYMENT_METHODS[method].label),
+      count(totals[method].orderCount),
+      money(totals[method].revenue),
+    ]),
+    footer: [
+      text("Total"),
+      count(grandTotal.orderCount),
+      money(grandTotal.revenue),
+    ],
+  };
+}
+
 function buildOperatorsTable(report: SalesReport): ReportTable {
   return {
     title: "Fechamento por operador",
@@ -199,6 +220,7 @@ export function buildReportTables(report: SalesReport): ReportTable[] {
   return [
     buildSummaryTable(report),
     buildPaymentsTable(report),
+    ...(report.accountReceipts.length > 0 ? [buildReceiptsTable(report)] : []),
     buildOperatorsTable(report),
     buildProductsTable("Produtos mais vendidos", getBestSellers(report)),
     buildProductsTable("Produtos menos vendidos", getWorstSellers(report)),

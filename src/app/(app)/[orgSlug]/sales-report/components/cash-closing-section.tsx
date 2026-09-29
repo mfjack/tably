@@ -14,6 +14,7 @@ import type { PaymentMethod } from "@/features/orders/types";
 import {
   getOperatorNames,
   getOperatorPayments,
+  getOperatorReceipts,
   sumPaymentTotals,
 } from "@/features/sales-report/report-metrics";
 import type { SalesReport } from "@/features/sales-report/types";
@@ -91,6 +92,7 @@ type PaymentMethodTileProps = {
   revenue: number;
   orderCount: number;
   share: number;
+  receivedFromAccounts: number;
   children?: ReactNode;
 };
 
@@ -99,6 +101,7 @@ function PaymentMethodTile({
   revenue,
   orderCount,
   share,
+  receivedFromAccounts,
   children,
 }: PaymentMethodTileProps) {
   const { label, icon: Icon } = PAYMENT_METHODS[method];
@@ -113,11 +116,18 @@ function PaymentMethodTile({
       </div>
       <div className="flex flex-col gap-0.5">
         <span className="font-bold text-xl tabular-nums tracking-[-0.01em]">
-          {formatCurrency(revenue)}
+          {formatCurrency(revenue + receivedFromAccounts)}
         </span>
         <span className="text-muted-foreground text-xs tabular-nums">
-          {formatOrderCount(orderCount)} · {formatPercent(share)}
+          {method === "customer_account"
+            ? `${formatOrderCount(orderCount)} a receber`
+            : `${formatOrderCount(orderCount)} · ${formatPercent(share)}`}
         </span>
+        {receivedFromAccounts > 0 && (
+          <span className="text-muted-foreground text-xs tabular-nums">
+            Inclui {formatCurrency(receivedFromAccounts)} de contas recebidas
+          </span>
+        )}
       </div>
       {children && (
         <div className="flex flex-col gap-2 border-t pt-3">{children}</div>
@@ -140,12 +150,12 @@ export function CashClosingSection({ report }: CashClosingSectionProps) {
       label: operatorName,
     })),
   ];
-  const payments = getOperatorPayments(
-    report,
-    operatorFilter === ALL_OPERATORS_VALUE ? null : operatorFilter,
-  );
+  const selectedOperator =
+    operatorFilter === ALL_OPERATORS_VALUE ? null : operatorFilter;
+  const payments = getOperatorPayments(report, selectedOperator);
+  const receipts = getOperatorReceipts(report, selectedOperator);
   const total = sumPaymentTotals(payments);
-  const expectedCash = payments.cash.revenue;
+  const expectedCash = payments.cash.revenue + receipts.cash.revenue;
 
   return (
     <ReportSection
@@ -163,13 +173,14 @@ export function CashClosingSection({ report }: CashClosingSectionProps) {
         />
       }
     >
-      <div className="grid items-start gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid items-start gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {PAYMENT_METHOD_VALUES.map((method) => (
           <PaymentMethodTile
             key={method}
             method={method}
             revenue={payments[method].revenue}
             orderCount={payments[method].orderCount}
+            receivedFromAccounts={receipts[method].revenue}
             share={
               total.revenue > 0 ? payments[method].revenue / total.revenue : 0
             }
