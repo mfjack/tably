@@ -9,9 +9,9 @@ import { createDataTableColumnHelper } from "@/components/data-table/data-table-
 import { DataTableRowActionButton } from "@/components/data-table/data-table-row-action-button";
 import { useDataTable } from "@/components/data-table/use-data-table";
 import { Badge } from "@/components/ui/badge";
+import { WhatsAppLink } from "@/components/whatsapp-link";
 import type { CustomerAccount } from "@/features/customer-accounts/types";
 import { formatCurrency } from "@/lib/format";
-import { formatPhone } from "@/lib/masks";
 import { cn } from "@/lib/utils";
 
 const EMPTY_ACCOUNTS: CustomerAccount[] = [];
@@ -57,9 +57,10 @@ export function CustomerAccountsTable({
                 )}
               </span>
               {row.original.phone && (
-                <span className="text-muted-foreground text-xs">
-                  {formatPhone(row.original.phone)}
-                </span>
+                <WhatsAppLink
+                  phone={row.original.phone}
+                  className="text-muted-foreground text-xs"
+                />
               )}
             </div>
           ),

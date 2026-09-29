@@ -7,6 +7,7 @@ import { DIALOG_ACTION_BUTTON_CLASS_NAME } from "@/components/dialog/dialog-styl
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { WhatsAppLink } from "@/components/whatsapp-link";
 import { useAccountEntriesQuery } from "@/features/customer-accounts/hooks/use-account-entries-query";
 import type {
   AccountEntry,
@@ -15,7 +16,6 @@ import type {
 import { getPaymentMethodLabel } from "@/features/orders/payment-methods";
 import type { OrganizationId } from "@/features/organizations/types";
 import { formatCurrency } from "@/lib/format";
-import { formatPhone } from "@/lib/masks";
 import { cn } from "@/lib/utils";
 
 const LOADING_ROW_COUNT = 3;
@@ -108,7 +108,7 @@ export function AccountStatementDialog({
               </span>
             </div>
             <div className="flex flex-col items-end gap-0.5 text-muted-foreground text-xs">
-              {account.phone && <span>{formatPhone(account.phone)}</span>}
+              {account.phone && <WhatsAppLink phone={account.phone} />}
               <span>
                 {account.creditLimit === null
                   ? "Sem limite"
