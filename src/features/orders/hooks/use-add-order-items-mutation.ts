@@ -9,6 +9,7 @@ import { useInvalidateOrders } from "./use-invalidate-orders";
 type AddOrderItemsVariables = {
   orderId: OrderId;
   items: OrderItemInput[];
+  note?: string;
 };
 
 export function getAddOrderItemsMutationKey(organizationId: OrganizationId) {
@@ -20,8 +21,8 @@ export function useAddOrderItemsMutation(organizationId: OrganizationId) {
 
   return useMutation({
     mutationKey: getAddOrderItemsMutationKey(organizationId),
-    mutationFn: async ({ orderId, items }: AddOrderItemsVariables) =>
-      unwrapActionResult(await addOrderItems(orderId, items)),
+    mutationFn: async ({ orderId, items, note }: AddOrderItemsVariables) =>
+      unwrapActionResult(await addOrderItems(orderId, items, note)),
     onSuccess: invalidateOrders,
   });
 }

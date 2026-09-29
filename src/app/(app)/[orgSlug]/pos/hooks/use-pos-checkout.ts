@@ -114,7 +114,11 @@ export function usePosCheckout({
     const ticketNote = cart.note.trim() || undefined;
 
     addOrderItemsMutation.mutate(
-      { orderId: tabTarget.orderId, items: buildOrderItems() },
+      {
+        orderId: tabTarget.orderId,
+        items: buildOrderItems(),
+        note: cart.note,
+      },
       {
         onSuccess: () => {
           onItemsAddedToTab();

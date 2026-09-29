@@ -125,6 +125,7 @@ export async function listPaidOrders(
 export async function addOrderItems(
   orderId: OrderId,
   items: OrderItemInput[],
+  note?: string,
 ): Promise<ActionResult> {
   const parsedItems = orderItemSchema.array().min(1).safeParse(items);
   if (!parsedItems.success)
@@ -137,6 +138,7 @@ export async function addOrderItems(
       product_id: item.productId,
       quantity: item.quantity,
     })),
+    p_note: note?.trim().slice(0, 500),
   });
 
   if (error) {

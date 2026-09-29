@@ -134,6 +134,96 @@ export type Database = {
           },
         ]
       }
+      kitchen_ticket_items: {
+        Row: {
+          id: string
+          organization_id: string
+          product_name: string
+          quantity: number
+          ticket_id: string
+        }
+        Insert: {
+          id?: string
+          organization_id: string
+          product_name: string
+          quantity: number
+          ticket_id: string
+        }
+        Update: {
+          id?: string
+          organization_id?: string
+          product_name?: string
+          quantity?: number
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kitchen_ticket_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kitchen_ticket_items_ticket_id_organization_id_fkey"
+            columns: ["ticket_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "kitchen_tickets"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      kitchen_tickets: {
+        Row: {
+          created_at: string
+          delivered_at: string | null
+          id: string
+          is_addition: boolean
+          note: string | null
+          order_id: string
+          organization_id: string
+          ready_at: string | null
+          status: Database["public"]["Enums"]["kitchen_ticket_status"]
+        }
+        Insert: {
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          is_addition?: boolean
+          note?: string | null
+          order_id: string
+          organization_id: string
+          ready_at?: string | null
+          status?: Database["public"]["Enums"]["kitchen_ticket_status"]
+        }
+        Update: {
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          is_addition?: boolean
+          note?: string | null
+          order_id?: string
+          organization_id?: string
+          ready_at?: string | null
+          status?: Database["public"]["Enums"]["kitchen_ticket_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kitchen_tickets_order_id_organization_id_fkey"
+            columns: ["order_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "kitchen_tickets_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       memberships: {
         Row: {
           created_at: string
@@ -643,7 +733,7 @@ export type Database = {
     }
     Functions: {
       add_order_items: {
-        Args: { p_items: Json; p_order_id: string }
+        Args: { p_items: Json; p_note?: string; p_order_id: string }
         Returns: number
       }
       can_manage_storage_folder: {
@@ -651,6 +741,10 @@ export type Database = {
         Returns: boolean
       }
       cancel_order: { Args: { p_order_id: string }; Returns: undefined }
+      complete_order_if_done: {
+        Args: { p_order_id: string }
+        Returns: undefined
+      }
       create_ingredient: {
         Args: {
           p_brand?: string
@@ -662,6 +756,16 @@ export type Database = {
           p_supplier_id?: string
           p_total_cost: number
           p_unit: Database["public"]["Enums"]["measure_unit"]
+        }
+        Returns: string
+      }
+      create_kitchen_ticket: {
+        Args: {
+          p_is_addition: boolean
+          p_items: Json
+          p_note: string
+          p_order_id: string
+          p_organization_id: string
         }
         Returns: string
       }
@@ -777,6 +881,13 @@ export type Database = {
         }
         Returns: string
       }
+      set_kitchen_ticket_status: {
+        Args: {
+          p_status: Database["public"]["Enums"]["kitchen_ticket_status"]
+          p_ticket_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_module:
@@ -790,6 +901,7 @@ export type Database = {
         | "ingredients"
         | "suppliers"
         | "sales_report"
+      kitchen_ticket_status: "preparing" | "ready" | "delivered"
       measure_unit: "unit" | "g" | "kg" | "ml" | "l"
       member_role: "owner" | "manager" | "cashier" | "kitchen" | "waiter"
       order_status: "in_kitchen" | "ready" | "completed" | "canceled"
@@ -936,6 +1048,7 @@ export const Constants = {
         "suppliers",
         "sales_report",
       ],
+      kitchen_ticket_status: ["preparing", "ready", "delivered"],
       measure_unit: ["unit", "g", "kg", "ml", "l"],
       member_role: ["owner", "manager", "cashier", "kitchen", "waiter"],
       order_status: ["in_kitchen", "ready", "completed", "canceled"],
