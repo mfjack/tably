@@ -1,0 +1,89 @@
+"use client";
+
+import { format } from "date-fns";
+import { Printer } from "lucide-react";
+import { DetailsDialog } from "@/components/dialog/details-dialog";
+import { DIALOG_ACTION_BUTTON_CLASS_NAME } from "@/components/dialog/dialog-styles";
+import { Button } from "@/components/ui/button";
+import {
+  getOrderCustomerLabel,
+  getOrderPaymentChange,
+} from "@/features/orders/order-details-ticket";
+import { getPaymentMethodLabel } from "@/features/orders/payment-methods";
+import type { OrderDetails } from "@/features/orders/types";
+import { formatCurrency } from "@/lib/format";
+import { cn } from "@/lib/utils";
+import { OrderInfoList } from "./order-info-list";
+import { OrderItemsList } from "./order-items-list";
+
+type PaidOrderDialogProps = {
+  order: OrderDetails | null;
+  onClose: () => void;
+  onPrint: (order: OrderDetails) => void;
+};
+
+export function PaidOrderDialog({
+  order,
+  onClose,
+  onPrint,
+}: PaidOrderDialogProps) {
+  const change = order ? getOrderPaymentChange(order) : 0;
+
+  return (
+    <DetailsDialog
+      isOpen={order !== null}
+      onOpenChange={(isDialogOpen) => !isDialogOpen && onClose()}
+      title="Detalhes da comanda"
+      footer={
+        <Button
+          type="button"
+          className={cn(DIALOG_ACTION_BUTTON_CLASS_NAME, "col-span-2")}
+          onClick={() => order && onPrint(order)}
+        >
+          <Printer aria-hidden />
+          Imprimir
+        </Button>
+      }
+    >
+      {order && (
+        <div className="flex flex-col gap-5">
+          <OrderInfoList
+            rows={[
+              { label: "Cliente", value: getOrderCustomerLabel(order) },
+              {
+                label: "Data",
+                value: format(
+                  new Date(order.paidAt ?? order.createdAt),
+                  "dd/MM/yyyy, HH:mm:ss",
+                ),
+              },
+              {
+                label: "Atendente",
+                value: order.cashierName ?? order.attendantName ?? "—",
+              },
+              ...(order.note ? [{ label: "Obs", value: order.note }] : []),
+            ]}
+          />
+          <OrderItemsList order={order} />
+          {order.paymentMethod && (
+            <section className="flex flex-col gap-2">
+              <h3 className="font-semibold text-sm">Forma de pagamento</h3>
+              <p className="rounded-[10px] bg-muted px-4 py-3 text-sm">
+                {getPaymentMethodLabel(order.paymentMethod)} —{" "}
+                <span className="tabular-nums">
+                  {formatCurrency(order.amountReceived ?? order.total)}
+                </span>
+                {change > 0 && (
+                  <span className="text-muted-foreground">
+                    {" "}
+                    · Troco {formatCurrency(change)}
+                  </span>
+                )}
+              </p>
+            </section>
+          )}
+        </div>
+      )}
+    </DetailsDialog>
+  );
+}
