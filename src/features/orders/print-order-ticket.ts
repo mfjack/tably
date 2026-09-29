@@ -1,6 +1,7 @@
 import { format } from "date-fns";
 import { formatCurrency } from "@/lib/format";
 import { formatCnpj, formatPhone } from "@/lib/masks";
+import { escapeHtml, printHtml } from "@/lib/print-html";
 
 export type OrderTicketItem = {
   name: string;
@@ -33,19 +34,7 @@ export type OrderTicket = {
   payment?: OrderTicketPayment;
 };
 
-const HTML_ESCAPES: Readonly<Record<string, string>> = {
-  "&": "&amp;",
-  "<": "&lt;",
-  ">": "&gt;",
-  '"': "&quot;",
-  "'": "&#39;",
-};
-
-function escapeHtml(value: string): string {
-  return value.replace(/[&<>"']/g, (character) => HTML_ESCAPES[character]);
-}
-
-const TICKET_STYLES = `
+export const TICKET_STYLES = `
   @page { size: 80mm auto; margin: 4mm; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: Arial, Helvetica, sans-serif; color: #000; width: 72mm; font-size: 13px; }
@@ -62,11 +51,15 @@ const TICKET_STYLES = `
   .note { white-space: pre-wrap; }
 `;
 
-function buildRow(label: string, value: string, isStrong = false): string {
+export function buildRow(
+  label: string,
+  value: string,
+  isStrong = false,
+): string {
   return `<div class="row${isStrong ? " strong" : ""}"><span>${escapeHtml(label)}</span><span>${escapeHtml(value)}</span></div>`;
 }
 
-function buildBusinessHeader(business: OrderTicketBusiness): string {
+export function buildBusinessHeader(business: OrderTicketBusiness): string {
   const details = [
     business.taxId ? `CNPJ ${formatCnpj(business.taxId)}` : null,
     business.phone ? `Tel. ${formatPhone(business.phone)}` : null,
@@ -119,30 +112,8 @@ function buildTicketHtml(ticket: OrderTicket): string {
   </body></html>`;
 }
 
-const PRINT_CLEANUP_DELAY_IN_MS = 1000;
-
 export function printOrderTicket(ticket: OrderTicket): void {
-  const printFrame = document.createElement("iframe");
-  printFrame.setAttribute("aria-hidden", "true");
-  printFrame.style.position = "fixed";
-  printFrame.style.width = "0";
-  printFrame.style.height = "0";
-  printFrame.style.border = "0";
-  document.body.appendChild(printFrame);
-
-  const frameWindow = printFrame.contentWindow;
-  if (!frameWindow) {
-    printFrame.remove();
-    return;
-  }
-
-  frameWindow.document.open();
-  frameWindow.document.write(buildTicketHtml(ticket));
-  frameWindow.document.close();
-  frameWindow.focus();
-  frameWindow.print();
-
-  setTimeout(() => printFrame.remove(), PRINT_CLEANUP_DELAY_IN_MS);
+  printHtml(buildTicketHtml(ticket));
 }
 
 export function toOrderTicketBusiness(
