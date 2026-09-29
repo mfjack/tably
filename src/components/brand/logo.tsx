@@ -13,7 +13,7 @@ export function Logo({ className }: LogoProps) {
         className,
       )}
     >
-      <div className="size-3 rounded-[4px] bg-primary-foreground" />
+      <div className="size-3 rounded-sm bg-primary-foreground" />
     </div>
   );
 }

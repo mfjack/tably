@@ -48,7 +48,7 @@ export function OpenOrderTabsGrid({
         {Array.from({ length: LOADING_CARD_COUNT }, (_, cardIndex) => (
           <Skeleton
             key={`loading-${cardIndex.toString()}`}
-            className="h-[106px] rounded-2xl"
+            className="h-28 rounded-2xl"
           />
         ))}
       </div>

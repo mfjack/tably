@@ -71,7 +71,7 @@ export function PasswordField<TFieldValues extends FieldValues>({
                 aria-pressed={isPasswordVisible}
                 onClick={() => setIsPasswordVisible((isVisible) => !isVisible)}
               >
-                <VisibilityIcon className="size-[18px]" />
+                <VisibilityIcon className="size-4.5" />
               </InputGroupButton>
             </InputGroupAddon>
           </InputGroup>

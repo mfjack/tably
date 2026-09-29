@@ -23,6 +23,7 @@ import { DataTableSortableHeader } from "./data-table-sortable-header";
 import type { DataTableInstance } from "./use-data-table";
 
 const LOADING_ROW_COUNT = 5;
+const ACTIONS_COLUMN_ID = "actions";
 
 type DataTableProps<TData extends RowData> = {
   table: DataTableInstance<TData>;
@@ -44,6 +45,12 @@ export function DataTable<TData extends RowData>({
   const rows = table.getRowModel().rows;
   const columnCount = table.getAllLeafColumns().length;
   const hasData = table.getCoreRowModel().rows.length > 0;
+  const headersByColumnId = new Map(
+    table
+      .getHeaderGroups()
+      .flatMap((headerGroup) => headerGroup.headers)
+      .map((header) => [header.column.id, header]),
+  );
 
   if (errorMessage) {
     return (
@@ -73,7 +80,69 @@ export function DataTable<TData extends RowData>({
         {toolbarActions}
       </div>
 
-      <div className="overflow-hidden rounded-xl border">
+      <div className="flex flex-col gap-3 md:hidden">
+        {isLoading
+          ? Array.from({ length: LOADING_ROW_COUNT }, (_, rowIndex) => (
+              <Skeleton
+                key={`loading-card-${rowIndex.toString()}`}
+                className="h-28 rounded-xl"
+              />
+            ))
+          : rows.map((row) => {
+              const cells = row.getAllCells();
+              const actionsCell = cells.find(
+                (cell) => cell.column.id === ACTIONS_COLUMN_ID,
+              );
+              const [titleCell, ...detailCells] = cells.filter(
+                (cell) => cell.column.id !== ACTIONS_COLUMN_ID,
+              );
+
+              return (
+                <article
+                  key={row.id}
+                  className="flex flex-col gap-3 rounded-xl border bg-card p-4"
+                >
+                  {titleCell && (
+                    <div className="min-w-0">
+                      <table.FlexRender cell={titleCell} />
+                    </div>
+                  )}
+                  {detailCells.length > 0 && (
+                    <dl className="flex flex-col gap-1.5 text-sm">
+                      {detailCells.map((cell) => {
+                        const header = headersByColumnId.get(cell.column.id);
+                        return (
+                          <div
+                            key={cell.id}
+                            className="flex items-center justify-between gap-4"
+                          >
+                            <dt className="shrink-0 text-muted-foreground">
+                              {header && <table.FlexRender header={header} />}
+                            </dt>
+                            <dd className="min-w-0 text-right">
+                              <table.FlexRender cell={cell} />
+                            </dd>
+                          </div>
+                        );
+                      })}
+                    </dl>
+                  )}
+                  {actionsCell && (
+                    <div className="flex justify-end border-t pt-3">
+                      <table.FlexRender cell={actionsCell} />
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+        {!isLoading && rows.length === 0 && (
+          <p className="py-8 text-center text-muted-foreground text-sm">
+            Nenhum resultado para essa busca.
+          </p>
+        )}
+      </div>
+
+      <div className="hidden overflow-hidden rounded-xl border md:block">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
