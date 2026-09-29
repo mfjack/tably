@@ -36,6 +36,10 @@ export async function placeOrder(
       p_note: note || undefined,
       p_payment_method: payment?.method,
       p_amount_received: payment?.amountReceived,
+      p_customer_account_id:
+        payment?.method === "customer_account"
+          ? payment.customerAccountId
+          : undefined,
       p_customer_name: customer?.customerName,
       p_is_takeaway: customer?.isTakeaway ?? false,
       p_send_to_kitchen: sendToKitchen,

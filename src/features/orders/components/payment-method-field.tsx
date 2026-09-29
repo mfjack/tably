@@ -1,7 +1,12 @@
 "use client";
 
 import { useId } from "react";
-import { type Control, Controller } from "react-hook-form";
+import {
+  type Control,
+  Controller,
+  type FieldPath,
+  type FieldValues,
+} from "react-hook-form";
 import {
   Field,
   FieldError,
@@ -15,19 +20,25 @@ import {
   PAYMENT_METHOD_VALUES,
   PAYMENT_METHODS,
 } from "@/features/orders/payment-methods";
-import type { OrderPaymentInput } from "@/features/orders/schemas";
+import type { PaymentMethod } from "@/features/orders/types";
 
-type PaymentMethodFieldProps = {
-  control: Control<OrderPaymentInput>;
+type PaymentMethodFieldProps<TFieldValues extends FieldValues> = {
+  control: Control<TFieldValues>;
+  name: FieldPath<TFieldValues>;
+  methods?: readonly PaymentMethod[];
 };
 
-export function PaymentMethodField({ control }: PaymentMethodFieldProps) {
+export function PaymentMethodField<TFieldValues extends FieldValues>({
+  control,
+  name,
+  methods = PAYMENT_METHOD_VALUES,
+}: PaymentMethodFieldProps<TFieldValues>) {
   const fieldId = useId();
 
   return (
     <Controller
       control={control}
-      name="method"
+      name={name}
       render={({ field, fieldState }) => (
         <FieldSet>
           <FieldLegend variant="label">Forma de pagamento</FieldLegend>
@@ -37,7 +48,7 @@ export function PaymentMethodField({ control }: PaymentMethodFieldProps) {
             aria-invalid={fieldState.invalid}
             className="grid-cols-2"
           >
-            {PAYMENT_METHOD_VALUES.map((method) => {
+            {methods.map((method) => {
               const { label, icon: Icon } = PAYMENT_METHODS[method];
               const optionId = `${fieldId}-${method}`;
               return (

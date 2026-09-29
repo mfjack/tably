@@ -11,6 +11,7 @@ export const orderPaymentSchema = z.object({
     error: "Escolha a forma de pagamento.",
   }),
   amountReceived: z.number().min(0, "Não pode ser negativo.").optional(),
+  customerAccountId: z.string().optional(),
 });
 
 export const orderCustomerSchema = z.object({
@@ -37,6 +38,15 @@ export type PlaceOrderInput = z.infer<typeof placeOrderSchema>;
 
 export function createQuickPaymentSchema(orderTotal: number) {
   return orderPaymentSchema.superRefine((payment, context) => {
+    if (payment.method === "customer_account" && !payment.customerAccountId) {
+      context.addIssue({
+        code: "custom",
+        message: "Escolha a conta do cliente.",
+        path: ["customerAccountId"],
+      });
+      return;
+    }
+
     if (payment.method !== "cash") return;
 
     if (payment.amountReceived === undefined) {

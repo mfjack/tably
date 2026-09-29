@@ -183,6 +183,10 @@ export async function payOrder(
     p_order_id: orderId,
     p_payment_method: parsedPayment.data.method,
     p_amount_received: parsedPayment.data.amountReceived,
+    p_customer_account_id:
+      parsedPayment.data.method === "customer_account"
+        ? parsedPayment.data.customerAccountId
+        : undefined,
   });
 
   if (error) {

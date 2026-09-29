@@ -197,9 +197,14 @@ export function usePosCheckout({
       {
         onSuccess: (placedOrder) => {
           finishCheckout();
-          toast.success("Pagamento registrado.", {
-            description: getChangeMessage(payment, placedOrder),
-          });
+          toast.success(
+            payment.method === "customer_account"
+              ? "Venda lançada na conta do cliente."
+              : "Pagamento registrado.",
+            {
+              description: getChangeMessage(payment, placedOrder),
+            },
+          );
         },
         onError: (error) => toast.error(error.message),
       },

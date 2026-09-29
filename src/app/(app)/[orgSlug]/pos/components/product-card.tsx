@@ -72,7 +72,7 @@ function ProductCardComponent({ product, onAdd }: ProductCardProps) {
             className="object-cover"
           />
         ) : (
-          <ShoppingBag className="size-7.5" strokeWidth={1.5} aria-hidden />
+          <ShoppingBag className="size-5" strokeWidth={1.5} aria-hidden />
         )}
       </div>
 

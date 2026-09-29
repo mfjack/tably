@@ -196,6 +196,7 @@ export function PosView({
         onOpenTab={checkout.openTab}
       />
       <PaymentDialog
+        organizationId={organizationId}
         isOpen={isKitchenPayment || isQuickPayment}
         title="Pagamento"
         submitLabel={

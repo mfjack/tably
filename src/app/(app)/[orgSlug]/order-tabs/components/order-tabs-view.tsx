@@ -132,9 +132,14 @@ export function OrderTabsView({
       {
         onSuccess: () => {
           closeOpenTab();
-          toast.success(`Comanda de ${paidOrder.customerName} paga.`, {
-            description: getChangeMessage(payment, paidOrder.total),
-          });
+          toast.success(
+            payment.method === "customer_account"
+              ? `Comanda de ${paidOrder.customerName} lançada na conta.`
+              : `Comanda de ${paidOrder.customerName} paga.`,
+            {
+              description: getChangeMessage(payment, paidOrder.total),
+            },
+          );
         },
         onError: (error) => toast.error(error.message),
       },
@@ -224,6 +229,7 @@ export function OrderTabsView({
         }
       />
       <PaymentDialog
+        organizationId={organizationId}
         isOpen={openTabState.step === "payment" && selectedOrder !== null}
         title="Pagamento"
         submitLabel="Pagamento recebido"
