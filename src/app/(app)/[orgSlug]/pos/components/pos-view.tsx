@@ -1,53 +1,51 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
-import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { CategoryId } from "@/features/categories/types";
-import { usePlaceOrderMutation } from "@/features/orders/hooks/use-place-order-mutation";
-import type { OrderPaymentInput } from "@/features/orders/schemas";
-import type { PlacedOrder } from "@/features/orders/types";
+import { PaymentDialog } from "@/features/orders/components/payment-dialog";
 import type { OrganizationId } from "@/features/organizations/types";
 import {
   useCart,
   useCartStore,
   useHydratedCartStore,
+  useTabTarget,
 } from "@/features/pos/cart-store";
-import { printKitchenTicket } from "@/features/pos/print-kitchen-ticket";
 import type { ProductId } from "@/features/products/types";
-import { formatCurrency } from "@/lib/format";
 import { PageHeader } from "../../components/page-header";
 import { type PosProduct, usePosCatalog } from "../hooks/use-pos-catalog";
+import { usePosCheckout } from "../hooks/use-pos-checkout";
 import { CartPanel } from "./cart-panel";
 import { CategoryFilter, type CategoryFilterOption } from "./category-filter";
+import { CustomerDialog } from "./customer-dialog";
 import { PosHeaderDescription } from "./pos-header-description";
 import { ProductGrid } from "./product-grid";
 import { ProductSearchInput } from "./product-search-input";
-import { QuickPaymentDialog } from "./quick-payment-dialog";
 
 type PosViewProps = {
   organizationId: OrganizationId;
   organizationName: string;
+  takeawayFee: number;
+  orderTabsHref: string;
 };
 
 function matchesSearch(product: PosProduct, normalizedSearch: string) {
   return product.name.toLocaleLowerCase("pt-BR").includes(normalizedSearch);
 }
 
-function getChangeMessage(
-  payment: OrderPaymentInput,
-  placedOrder: PlacedOrder,
-) {
-  if (payment.method !== "cash" || payment.amountReceived === undefined) {
-    return undefined;
-  }
-  const change = payment.amountReceived - placedOrder.total;
-  return change > 0 ? `Troco: ${formatCurrency(change)}` : undefined;
-}
-
-export function PosView({ organizationId, organizationName }: PosViewProps) {
+export function PosView({
+  organizationId,
+  organizationName,
+  takeawayFee,
+  orderTabsHref,
+}: PosViewProps) {
+  const router = useRouter();
   const isCartHydrated = useHydratedCartStore();
   const cart = useCart(organizationId);
+  const storedTabTarget = useTabTarget(organizationId);
+  const tabTarget = isCartHydrated ? storedTabTarget : null;
+  const setTabTarget = useCartStore((state) => state.setTabTarget);
   const addProductToCart = useCartStore((state) => state.addProduct);
   const decrementProductInCart = useCartStore(
     (state) => state.decrementProduct,
@@ -57,12 +55,26 @@ export function PosView({ organizationId, organizationName }: PosViewProps) {
 
   const { posProducts, cartLines, categories, isLoading, errorMessage } =
     usePosCatalog(organizationId, cart);
-  const placeOrderMutation = usePlaceOrderMutation(organizationId);
+  const checkout = usePosCheckout({
+    organizationId,
+    organizationName,
+    takeawayFee,
+    cart,
+    cartLines,
+    tabTarget,
+    onOrderPlaced: () => clearCart(organizationId),
+    onItemsAddedToTab: () => {
+      clearCart(organizationId);
+      setTabTarget(organizationId, null);
+      router.push(orderTabsHref);
+    },
+  });
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategoryId, setSelectedCategoryId] =
     useState<CategoryId | null>(null);
-  const [isQuickPaymentOpen, setIsQuickPaymentOpen] = useState(false);
+
+  const isKitchenPayment = checkout.checkoutStep.step === "kitchen-payment";
 
   const categoryOptions = useMemo<CategoryFilterOption[]>(() => {
     const productCountByCategory = new Map<CategoryId, number>();
@@ -96,11 +108,6 @@ export function PosView({ organizationId, organizationName }: PosViewProps) {
     );
   }, [posProducts, searchTerm, selectedCategoryId]);
 
-  const orderTotal = cartLines.reduce(
-    (total, cartLine) => total + cartLine.total,
-    0,
-  );
-
   const handleAddProduct = useCallback(
     (productId: ProductId) => addProductToCart(organizationId, productId),
     [addProductToCart, organizationId],
@@ -110,57 +117,6 @@ export function PosView({ organizationId, organizationName }: PosViewProps) {
     (productId: ProductId) => decrementProductInCart(organizationId, productId),
     [decrementProductInCart, organizationId],
   );
-
-  function buildOrderItems() {
-    return cartLines.map((cartLine) => ({
-      productId: cartLine.product.id,
-      quantity: cartLine.quantity,
-    }));
-  }
-
-  function handleSendToKitchen() {
-    const ticketItems = cartLines.map((cartLine) => ({
-      name: cartLine.product.name,
-      quantity: cartLine.quantity,
-    }));
-    const ticketNote = cart.note.trim() || undefined;
-
-    placeOrderMutation.mutate(
-      { items: buildOrderItems(), note: cart.note },
-      {
-        onSuccess: (placedOrder) => {
-          clearCart(organizationId);
-          toast.success(
-            `Pedido #${placedOrder.number} enviado para a cozinha.`,
-          );
-          printKitchenTicket({
-            organizationName,
-            orderNumber: placedOrder.number,
-            items: ticketItems,
-            note: ticketNote,
-            createdAt: new Date(),
-          });
-        },
-        onError: (error) => toast.error(error.message),
-      },
-    );
-  }
-
-  function handleQuickPayment(payment: OrderPaymentInput) {
-    placeOrderMutation.mutate(
-      { items: buildOrderItems(), note: cart.note, payment },
-      {
-        onSuccess: (placedOrder) => {
-          clearCart(organizationId);
-          setIsQuickPaymentOpen(false);
-          toast.success(`Pedido #${placedOrder.number} pago.`, {
-            description: getChangeMessage(payment, placedOrder),
-          });
-        },
-        onError: (error) => toast.error(error.message),
-      },
-    );
-  }
 
   return (
     <div className="flex h-svh min-h-0 flex-col lg:flex-row">
@@ -200,19 +156,38 @@ export function PosView({ organizationId, organizationName }: PosViewProps) {
       <CartPanel
         cartLines={isCartHydrated ? cartLines : []}
         note={cart.note}
-        isSendingToKitchen={placeOrderMutation.isPending}
+        isSendingToKitchen={checkout.isPlacingOrder}
         onNoteChange={(note) => setCartNote(organizationId, note)}
         onDecrement={handleDecrementProduct}
-        onSendToKitchen={handleSendToKitchen}
-        onQuickPayment={() => setIsQuickPaymentOpen(true)}
+        onSendToKitchen={checkout.startKitchenCheckout}
+        onQuickPayment={checkout.startQuickPayment}
+        tabTarget={tabTarget}
+        isAddingToTab={checkout.isAddingToTab}
+        onAddToTab={checkout.addToTab}
+        onExitTabMode={() => setTabTarget(organizationId, null)}
       />
 
-      <QuickPaymentDialog
-        isOpen={isQuickPaymentOpen}
-        orderTotal={orderTotal}
-        isSubmitting={placeOrderMutation.isPending}
-        onClose={() => setIsQuickPaymentOpen(false)}
-        onConfirm={handleQuickPayment}
+      <CustomerDialog
+        organizationId={organizationId}
+        isOpen={checkout.checkoutStep.step === "customer"}
+        takeawayFee={takeawayFee}
+        onClose={checkout.cancelCheckout}
+        isOpeningTab={checkout.isOpeningTab}
+        onConfirm={checkout.confirmCustomer}
+        onOpenTab={checkout.openTab}
+      />
+      <PaymentDialog
+        isOpen={
+          isKitchenPayment || checkout.checkoutStep.step === "quick-payment"
+        }
+        title="Pagamento"
+        submitLabel={
+          isKitchenPayment ? "Pagamento recebido" : "Confirmar pagamento"
+        }
+        summary={checkout.paymentSummary}
+        isSubmitting={checkout.isPlacingOrder}
+        onClose={checkout.cancelCheckout}
+        onConfirm={checkout.confirmPayment}
       />
     </div>
   );

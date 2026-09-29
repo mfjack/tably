@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
-import { getAppModule } from "@/features/modules/app-modules";
+import {
+  buildOrganizationPath,
+  getAppModule,
+} from "@/features/modules/app-modules";
 import { requireVisibleModule } from "@/features/modules/require-visible-module";
 import { PosView } from "./components/pos-view";
 
@@ -15,6 +18,11 @@ export default async function PosPage({ params }: PageProps<"/[orgSlug]/pos">) {
     <PosView
       organizationId={organization.id}
       organizationName={organization.name}
+      takeawayFee={organization.takeawayFee}
+      orderTabsHref={buildOrganizationPath(
+        organization.slug,
+        getAppModule("order_tabs").path,
+      )}
     />
   );
 }

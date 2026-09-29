@@ -1,6 +1,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import type { OrderTabTarget } from "@/features/orders/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import type { ProductId } from "@/features/products/types";
 
@@ -16,6 +17,7 @@ export type Cart = {
 
 type CartState = {
   cartsByOrganization: Partial<Record<OrganizationId, Cart>>;
+  tabTargetsByOrganization: Partial<Record<OrganizationId, OrderTabTarget>>;
   addProduct: (organizationId: OrganizationId, productId: ProductId) => void;
   decrementProduct: (
     organizationId: OrganizationId,
@@ -23,6 +25,10 @@ type CartState = {
   ) => void;
   setNote: (organizationId: OrganizationId, note: string) => void;
   clearCart: (organizationId: OrganizationId) => void;
+  setTabTarget: (
+    organizationId: OrganizationId,
+    tabTarget: OrderTabTarget | null,
+  ) => void;
 };
 
 export const EMPTY_CART: Cart = { items: [], note: "" };
@@ -71,6 +77,7 @@ export const useCartStore = create<CartState>()(
 
       return {
         cartsByOrganization: {},
+        tabTargetsByOrganization: {},
         addProduct: (organizationId, productId) =>
           updateCart(organizationId, (cart) => ({
             ...cart,
@@ -85,6 +92,13 @@ export const useCartStore = create<CartState>()(
           updateCart(organizationId, (cart) => ({ ...cart, note })),
         clearCart: (organizationId) =>
           updateCart(organizationId, () => EMPTY_CART),
+        setTabTarget: (organizationId, tabTarget) =>
+          set((state) => ({
+            tabTargetsByOrganization: {
+              ...state.tabTargetsByOrganization,
+              [organizationId]: tabTarget ?? undefined,
+            },
+          })),
       };
     },
     {
@@ -92,6 +106,7 @@ export const useCartStore = create<CartState>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         cartsByOrganization: state.cartsByOrganization,
+        tabTargetsByOrganization: state.tabTargetsByOrganization,
       }),
       skipHydration: true,
     },
@@ -101,6 +116,14 @@ export const useCartStore = create<CartState>()(
 export function useCart(organizationId: OrganizationId): Cart {
   return useCartStore(
     (state) => state.cartsByOrganization[organizationId] ?? EMPTY_CART,
+  );
+}
+
+export function useTabTarget(
+  organizationId: OrganizationId,
+): OrderTabTarget | null {
+  return useCartStore(
+    (state) => state.tabTargetsByOrganization[organizationId] ?? null,
   );
 }
 

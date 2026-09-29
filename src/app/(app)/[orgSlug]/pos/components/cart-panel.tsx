@@ -1,6 +1,6 @@
 "use client";
 
-import { Printer, ShoppingCart, Zap } from "lucide-react";
+import { ClipboardPlus, CreditCard, Printer, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Empty,
@@ -10,11 +10,13 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { Spinner } from "@/components/ui/spinner";
+import type { OrderTabTarget } from "@/features/orders/types";
 import type { ProductId } from "@/features/products/types";
 import { formatCurrency } from "@/lib/format";
 import type { CartLine } from "../hooks/use-pos-catalog";
 import { CartItemCard } from "./cart-item-card";
 import { OrderNoteInput } from "./order-note-input";
+import { TabModeBanner } from "./tab-mode-banner";
 
 type CartPanelProps = {
   cartLines: readonly CartLine[];
@@ -24,6 +26,10 @@ type CartPanelProps = {
   onDecrement: (productId: ProductId) => void;
   onSendToKitchen: () => void;
   onQuickPayment: () => void;
+  tabTarget: OrderTabTarget | null;
+  isAddingToTab: boolean;
+  onAddToTab: () => void;
+  onExitTabMode: () => void;
 };
 
 export function CartPanel({
@@ -34,6 +40,10 @@ export function CartPanel({
   onDecrement,
   onSendToKitchen,
   onQuickPayment,
+  tabTarget,
+  isAddingToTab,
+  onAddToTab,
+  onExitTabMode,
 }: CartPanelProps) {
   const orderTotal = cartLines.reduce(
     (total, cartLine) => total + cartLine.total,
@@ -46,6 +56,13 @@ export function CartPanel({
       aria-label="Pedido atual"
       className="flex h-svh w-full shrink-0 flex-col border-l bg-muted/40 lg:w-[380px] xl:w-[400px]"
     >
+      {tabTarget && (
+        <TabModeBanner
+          customerName={tabTarget.customerName}
+          isDisabled={isAddingToTab}
+          onExit={onExitTabMode}
+        />
+      )}
       <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
         {isEmpty ? (
           <Empty className="h-full">
@@ -81,30 +98,49 @@ export function CartPanel({
           </span>
         </div>
         <div className="flex flex-col gap-2.5">
-          <Button
-            type="button"
-            className="h-12 rounded-xl font-semibold text-[15px]"
-            disabled={isEmpty || isSendingToKitchen}
-            aria-busy={isSendingToKitchen}
-            onClick={onSendToKitchen}
-          >
-            {isSendingToKitchen ? (
-              <Spinner aria-hidden />
-            ) : (
-              <Printer aria-hidden />
-            )}
-            Imprimir na cozinha
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            className="h-12 rounded-xl border-primary font-semibold text-[15px] text-primary hover:text-primary"
-            disabled={isEmpty || isSendingToKitchen}
-            onClick={onQuickPayment}
-          >
-            <Zap aria-hidden />
-            Pagamento rápido
-          </Button>
+          {tabTarget ? (
+            <Button
+              type="button"
+              className="h-12 rounded-xl font-semibold text-[15px]"
+              disabled={isEmpty || isAddingToTab}
+              aria-busy={isAddingToTab}
+              onClick={onAddToTab}
+            >
+              {isAddingToTab ? (
+                <Spinner aria-hidden />
+              ) : (
+                <ClipboardPlus aria-hidden />
+              )}
+              Adicionar à comanda
+            </Button>
+          ) : (
+            <>
+              <Button
+                type="button"
+                className="h-12 rounded-xl font-semibold text-[15px]"
+                disabled={isEmpty || isSendingToKitchen}
+                aria-busy={isSendingToKitchen}
+                onClick={onSendToKitchen}
+              >
+                {isSendingToKitchen ? (
+                  <Spinner aria-hidden />
+                ) : (
+                  <Printer aria-hidden />
+                )}
+                Imprimir pedido
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-12 rounded-xl border-primary font-semibold text-[15px] text-primary hover:text-primary"
+                disabled={isEmpty || isSendingToKitchen}
+                onClick={onQuickPayment}
+              >
+                <CreditCard aria-hidden />
+                Pagamento
+              </Button>
+            </>
+          )}
         </div>
       </footer>
     </aside>
