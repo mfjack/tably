@@ -6,6 +6,12 @@ import { createDataTableColumnHelper } from "@/components/data-table/data-table-
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { useDataTable } from "@/components/data-table/use-data-table";
 import { Badge } from "@/components/ui/badge";
+import type { Ingredient } from "@/features/ingredients/types";
+import {
+  getAvailableQuantity,
+  getProductAvailability,
+  type ProductAvailability,
+} from "@/features/products/availability";
 import { CostValue } from "@/features/products/components/cost-value";
 import { MarginValue } from "@/features/products/components/margin-value";
 import { ProductThumbnail } from "@/features/products/components/product-thumbnail";
@@ -15,15 +21,21 @@ import {
 } from "@/features/products/pricing";
 import type { Product } from "@/features/products/types";
 import { formatCurrency } from "@/lib/format";
+import { ProductStockCell } from "./product-stock-cell";
 
 const EMPTY_PRODUCTS: Product[] = [];
 
-type ProductRow = Product & Pick<ProductPricing, "costRatio" | "margin">;
+type ProductRow = Product &
+  Pick<ProductPricing, "costRatio" | "margin"> & {
+    availability: ProductAvailability;
+    availableQuantity: number;
+  };
 
 const columnHelper = createDataTableColumnHelper<ProductRow>();
 
 type ProductsTableProps = {
   products: Product[] | undefined;
+  ingredientsById: ReadonlyMap<string, Ingredient>;
   isLoading: boolean;
   errorMessage?: string;
   canManage: boolean;
@@ -38,6 +50,7 @@ function getProductRowId(product: ProductRow) {
 
 export function ProductsTable({
   products,
+  ingredientsById,
   isLoading,
   errorMessage,
   canManage,
@@ -52,9 +65,16 @@ export function ProductsTable({
           product.price,
           product.unitCost,
         );
-        return { ...product, costRatio, margin };
+        const availability = getProductAvailability(product, ingredientsById);
+        return {
+          ...product,
+          costRatio,
+          margin,
+          availability,
+          availableQuantity: getAvailableQuantity(availability),
+        };
       }),
-    [products],
+    [products, ingredientsById],
   );
 
   const columns = useMemo(
@@ -98,6 +118,13 @@ export function ProductsTable({
           header: "Margem",
           enableGlobalFilter: false,
           cell: ({ getValue }) => <MarginValue margin={getValue()} />,
+        }),
+        columnHelper.accessor("availableQuantity", {
+          header: "Estoque",
+          enableGlobalFilter: false,
+          cell: ({ row }) => (
+            <ProductStockCell availability={row.original.availability} />
+          ),
         }),
         columnHelper.accessor("isActive", {
           header: "Status",

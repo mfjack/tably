@@ -3,6 +3,7 @@
 import { Plus, Tag } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useIngredientsMap } from "@/features/ingredients/hooks/use-ingredients-map";
 import type { OrganizationId } from "@/features/organizations/types";
 import { useProductsQuery } from "@/features/products/hooks/use-products-query";
 import type { Product } from "@/features/products/types";
@@ -32,6 +33,8 @@ export function ProductsView({
   canManage,
 }: ProductsViewProps) {
   const productsQuery = useProductsQuery(organizationId);
+  const { ingredientsById, isPending: isLoadingIngredients } =
+    useIngredientsMap(organizationId);
   const [formState, setFormState] = useState<ProductFormState>({
     mode: "closed",
   });
@@ -62,7 +65,8 @@ export function ProductsView({
       <PageContent>
         <ProductsTable
           products={productsQuery.data}
-          isLoading={productsQuery.isPending}
+          ingredientsById={ingredientsById}
+          isLoading={productsQuery.isPending || isLoadingIngredients}
           errorMessage={productsQuery.error?.message}
           canManage={canManage}
           emptyState={
