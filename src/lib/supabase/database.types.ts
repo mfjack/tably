@@ -926,6 +926,131 @@ export type Database = {
           },
         ]
       }
+      task_completions: {
+        Row: {
+          completed_at: string
+          completed_by: string | null
+          completed_on: string
+          id: string
+          operator_name: string | null
+          organization_id: string
+          task_id: string
+        }
+        Insert: {
+          completed_at?: string
+          completed_by?: string | null
+          completed_on: string
+          id?: string
+          operator_name?: string | null
+          organization_id: string
+          task_id: string
+        }
+        Update: {
+          completed_at?: string
+          completed_by?: string | null
+          completed_on?: string
+          id?: string
+          operator_name?: string | null
+          organization_id?: string
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_completions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_completions_task_id_organization_id_fkey"
+            columns: ["task_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      task_lists: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          organization_id: string
+          position: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          organization_id: string
+          position?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          organization_id?: string
+          position?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_lists_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          created_at: string
+          id: string
+          list_id: string
+          organization_id: string
+          position: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          list_id: string
+          organization_id: string
+          position?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          list_id?: string
+          organization_id?: string
+          position?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_list_id_organization_id_fkey"
+            columns: ["list_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "task_lists"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "tasks_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       customer_account_balances: {
@@ -1125,6 +1250,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      organization_today: {
+        Args: { p_organization_id: string }
+        Returns: string
+      }
       pay_order: {
         Args: {
           p_amount_received?: number
@@ -1206,6 +1335,10 @@ export type Database = {
           p_status: Database["public"]["Enums"]["kitchen_ticket_status"]
           p_ticket_id: string
         }
+        Returns: undefined
+      }
+      set_task_done: {
+        Args: { p_is_done: boolean; p_task_id: string }
         Returns: undefined
       }
       verify_operator_pin: {
