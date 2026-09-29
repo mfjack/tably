@@ -227,13 +227,18 @@ export type Database = {
           amount_received: number | null
           created_at: string
           created_by: string | null
+          customer_name: string | null
           id: string
+          is_takeaway: boolean
           note: string | null
           number: number
           organization_id: string
           paid_at: string | null
+          paid_by: string | null
           payment_method: Database["public"]["Enums"]["payment_method"] | null
           status: Database["public"]["Enums"]["order_status"]
+          subtotal: number
+          takeaway_fee: number
           total: number
           updated_at: string
         }
@@ -241,13 +246,18 @@ export type Database = {
           amount_received?: number | null
           created_at?: string
           created_by?: string | null
+          customer_name?: string | null
           id?: string
+          is_takeaway?: boolean
           note?: string | null
           number: number
           organization_id: string
           paid_at?: string | null
+          paid_by?: string | null
           payment_method?: Database["public"]["Enums"]["payment_method"] | null
           status: Database["public"]["Enums"]["order_status"]
+          subtotal: number
+          takeaway_fee?: number
           total: number
           updated_at?: string
         }
@@ -255,22 +265,41 @@ export type Database = {
           amount_received?: number | null
           created_at?: string
           created_by?: string | null
+          customer_name?: string | null
           id?: string
+          is_takeaway?: boolean
           note?: string | null
           number?: number
           organization_id?: string
           paid_at?: string | null
+          paid_by?: string | null
           payment_method?: Database["public"]["Enums"]["payment_method"] | null
           status?: Database["public"]["Enums"]["order_status"]
+          subtotal?: number
+          takeaway_fee?: number
           total?: number
           updated_at?: string
         }
         Relationships: [
           {
+            foreignKeyName: "orders_created_by_profile_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "orders_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_paid_by_profile_fkey"
+            columns: ["paid_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -284,6 +313,8 @@ export type Database = {
           last_order_number: number
           name: string
           slug: string
+          takeaway_fee: number
+          timezone: string
           updated_at: string
         }
         Insert: {
@@ -294,6 +325,8 @@ export type Database = {
           last_order_number?: number
           name: string
           slug: string
+          takeaway_fee?: number
+          timezone?: string
           updated_at?: string
         }
         Update: {
@@ -304,6 +337,8 @@ export type Database = {
           last_order_number?: number
           name?: string
           slug?: string
+          takeaway_fee?: number
+          timezone?: string
           updated_at?: string
         }
         Relationships: []
@@ -607,10 +642,15 @@ export type Database = {
       }
     }
     Functions: {
+      add_order_items: {
+        Args: { p_items: Json; p_order_id: string }
+        Returns: number
+      }
       can_manage_storage_folder: {
         Args: { p_object_name: string }
         Returns: boolean
       }
+      cancel_order: { Args: { p_order_id: string }; Returns: undefined }
       create_ingredient: {
         Args: {
           p_brand?: string
@@ -635,6 +675,8 @@ export type Database = {
           last_order_number: number
           name: string
           slug: string
+          takeaway_fee: number
+          timezone: string
           updated_at: string
         }
         SetofOptions: {
@@ -651,20 +693,76 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_customer_name_in_use: {
+        Args: { p_customer_name: string; p_organization_id: string }
+        Returns: boolean
+      }
       is_member: { Args: { org_id: string }; Returns: boolean }
+      lock_open_order: {
+        Args: { p_order_id: string }
+        Returns: {
+          amount_received: number | null
+          created_at: string
+          created_by: string | null
+          customer_name: string | null
+          id: string
+          is_takeaway: boolean
+          note: string | null
+          number: number
+          organization_id: string
+          paid_at: string | null
+          paid_by: string | null
+          payment_method: Database["public"]["Enums"]["payment_method"] | null
+          status: Database["public"]["Enums"]["order_status"]
+          subtotal: number
+          takeaway_fee: number
+          total: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      move_order_stock: {
+        Args: {
+          p_is_return: boolean
+          p_items: Json
+          p_order_id: string
+          p_organization_id: string
+        }
+        Returns: undefined
+      }
+      pay_order: {
+        Args: {
+          p_amount_received?: number
+          p_order_id: string
+          p_payment_method: Database["public"]["Enums"]["payment_method"]
+        }
+        Returns: number
+      }
       place_order: {
         Args: {
           p_amount_received?: number
+          p_customer_name?: string
+          p_is_takeaway?: boolean
           p_items: Json
           p_note?: string
           p_organization_id: string
           p_payment_method?: Database["public"]["Enums"]["payment_method"]
+          p_send_to_kitchen?: boolean
         }
         Returns: {
           order_id: string
           order_number: number
           order_total: number
         }[]
+      }
+      remove_order_item: {
+        Args: { p_order_item_id: string; p_quantity?: number }
+        Returns: number
       }
       save_product: {
         Args: {

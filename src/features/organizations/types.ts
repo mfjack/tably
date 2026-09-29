@@ -13,4 +13,5 @@ export type UserOrganization = {
   slug: string;
   role: MemberRole;
   hiddenModules: AppModuleId[];
+  takeawayFee: number;
 };
