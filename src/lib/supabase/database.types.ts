@@ -247,6 +247,13 @@ export type Database = {
             foreignKeyName: "ingredients_supplier_id_organization_id_fkey"
             columns: ["supplier_id", "organization_id"]
             isOneToOne: false
+            referencedRelation: "supplier_purchase_summaries"
+            referencedColumns: ["supplier_id", "organization_id"]
+          },
+          {
+            foreignKeyName: "ingredients_supplier_id_organization_id_fkey"
+            columns: ["supplier_id", "organization_id"]
+            isOneToOne: false
             referencedRelation: "suppliers"
             referencedColumns: ["id", "organization_id"]
           },
@@ -811,6 +818,13 @@ export type Database = {
             foreignKeyName: "stock_entries_supplier_id_organization_id_fkey"
             columns: ["supplier_id", "organization_id"]
             isOneToOne: false
+            referencedRelation: "supplier_purchase_summaries"
+            referencedColumns: ["supplier_id", "organization_id"]
+          },
+          {
+            foreignKeyName: "stock_entries_supplier_id_organization_id_fkey"
+            columns: ["supplier_id", "organization_id"]
+            isOneToOne: false
             referencedRelation: "suppliers"
             referencedColumns: ["id", "organization_id"]
           },
@@ -867,36 +881,39 @@ export type Database = {
       }
       suppliers: {
         Row: {
+          contact_name: string | null
           created_at: string
-          document: string | null
-          email: string | null
           id: string
           name: string
           notes: string | null
           organization_id: string
           phone: string | null
+          purchase_url: string | null
+          supplied_items: string | null
           updated_at: string
         }
         Insert: {
+          contact_name?: string | null
           created_at?: string
-          document?: string | null
-          email?: string | null
           id?: string
           name: string
           notes?: string | null
           organization_id: string
           phone?: string | null
+          purchase_url?: string | null
+          supplied_items?: string | null
           updated_at?: string
         }
         Update: {
+          contact_name?: string | null
           created_at?: string
-          document?: string | null
-          email?: string | null
           id?: string
           name?: string
           notes?: string | null
           organization_id?: string
           phone?: string | null
+          purchase_url?: string | null
+          supplied_items?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -937,6 +954,24 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "products_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      supplier_purchase_summaries: {
+        Row: {
+          entry_count: number | null
+          last_entry_at: string | null
+          organization_id: string | null
+          supplier_id: string | null
+          total_spent: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suppliers_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
