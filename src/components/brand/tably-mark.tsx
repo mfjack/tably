@@ -21,7 +21,7 @@ export function TablyMark({ size, isMaskable = false }: TablyMarkProps) {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#1f5a43",
+        background: "#0a0a0a",
         borderRadius: cornerRadius,
       }}
     >
@@ -34,7 +34,7 @@ export function TablyMark({ size, isMaskable = false }: TablyMarkProps) {
           justifyContent: "center",
           background: "#ffffff",
           borderRadius: Math.round(glyphSize * 0.28),
-          color: "#1f5a43",
+          color: "#0a0a0a",
           fontSize: Math.round(glyphSize * 0.66),
           fontWeight: 800,
           fontFamily: "sans-serif",

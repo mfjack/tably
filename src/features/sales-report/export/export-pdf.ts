@@ -19,7 +19,7 @@ const PAGE_MARGIN_IN_MM = 14;
 const TABLE_GAP_IN_MM = 8;
 const MIN_SPACE_FOR_TABLE_IN_MM = 40;
 const PAGE_TOP_IN_MM = 20;
-const PRIMARY_COLOR: [number, number, number] = [31, 90, 67];
+const PRIMARY_COLOR: [number, number, number] = [10, 10, 10];
 const MUTED_TEXT_COLOR: [number, number, number] = [94, 107, 102];
 
 type DocumentWithLastTable = {

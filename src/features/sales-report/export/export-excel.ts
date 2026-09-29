@@ -16,7 +16,7 @@ import {
 
 const EXCEL_MIME_TYPE =
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-const HEADER_FILL_COLOR = "FF1F5A43";
+const HEADER_FILL_COLOR = "FF0A0A0A";
 const MIN_COLUMN_WIDTH = 12;
 const MAX_COLUMN_WIDTH = 40;
 

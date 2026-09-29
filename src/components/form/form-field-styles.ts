@@ -1,5 +1,5 @@
 const FORM_INPUT_TEXT_CLASS_NAME =
-  "text-[15px] md:text-[15px] placeholder:text-[#76827d]";
+  "text-[0.9375rem] md:text-[0.9375rem] placeholder:text-muted-foreground";
 
 const FORM_INPUT_FOCUS_CLASS_NAME =
   "focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/15";
