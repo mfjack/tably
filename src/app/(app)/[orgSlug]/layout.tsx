@@ -1,4 +1,3 @@
-import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { getCurrentUser } from "@/features/auth/queries";
@@ -14,21 +13,18 @@ import {
 import { AppSidebar } from "./components/app-sidebar";
 import { OperatorLockScreen } from "./components/operator-lock-screen";
 import { ServerDataRefresher } from "./components/server-data-refresher";
-
-const SIDEBAR_STATE_COOKIE = "sidebar_state";
+import { SidebarOverlay } from "./components/sidebar-overlay";
 
 export default async function OrganizationLayout({
   children,
   params,
 }: LayoutProps<"/[orgSlug]">) {
   const { orgSlug } = await params;
-  const [organization, organizations, currentUser, cookieStore] =
-    await Promise.all([
-      getUserOrganizationBySlug(orgSlug),
-      getUserOrganizations(),
-      getCurrentUser(),
-      cookies(),
-    ]);
+  const [organization, organizations, currentUser] = await Promise.all([
+    getUserOrganizationBySlug(orgSlug),
+    getUserOrganizations(),
+    getCurrentUser(),
+  ]);
 
   if (!organization || !currentUser) notFound();
 
@@ -47,11 +43,11 @@ export default async function OrganizationLayout({
     );
   }
 
-  const isSidebarOpen =
-    cookieStore.get(SIDEBAR_STATE_COOKIE)?.value !== "false";
-
   return (
-    <SidebarProvider defaultOpen={isSidebarOpen}>
+    <SidebarProvider
+      defaultOpen={false}
+      className="[&_[data-slot=sidebar-gap]]:w-(--sidebar-width-icon)!"
+    >
       <AppSidebar
         organization={organization}
         organizations={organizations}
@@ -66,6 +62,7 @@ export default async function OrganizationLayout({
         }
       />
       <SidebarInset>{children}</SidebarInset>
+      <SidebarOverlay />
       <ServerDataRefresher />
     </SidebarProvider>
   );

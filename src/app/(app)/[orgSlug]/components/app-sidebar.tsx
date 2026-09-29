@@ -34,7 +34,10 @@ export function AppSidebar({
   activeOperatorName,
 }: AppSidebarProps) {
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar
+      collapsible="icon"
+      className="group-data-[state=expanded]:z-40 group-data-[state=expanded]:shadow-2xl"
+    >
       <SidebarHeader>
         <OrganizationSwitcher
           activeOrganization={organization}

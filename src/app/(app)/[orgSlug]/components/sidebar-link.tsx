@@ -3,7 +3,11 @@
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
+import {
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import {
   SIDEBAR_ACTIVE_ITEM_CLASS_NAME,
@@ -18,6 +22,7 @@ type SidebarLinkProps = {
 
 export function SidebarLink({ href, label, icon: Icon }: SidebarLinkProps) {
   const pathname = usePathname();
+  const { setOpen, setOpenMobile } = useSidebar();
   const isActive = pathname === href || pathname.startsWith(`${href}/`);
 
   return (
@@ -27,7 +32,14 @@ export function SidebarLink({ href, label, icon: Icon }: SidebarLinkProps) {
         tooltip={label}
         className={cn(SIDEBAR_ITEM_CLASS_NAME, SIDEBAR_ACTIVE_ITEM_CLASS_NAME)}
         render={
-          <Link href={href} aria-current={isActive ? "page" : undefined} />
+          <Link
+            href={href}
+            aria-current={isActive ? "page" : undefined}
+            onClick={() => {
+              setOpen(false);
+              setOpenMobile(false);
+            }}
+          />
         }
       >
         <Icon aria-hidden />
