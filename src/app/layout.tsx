@@ -29,7 +29,10 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="pt-BR" className={`${poppins.variable} h-full antialiased select-none`}>
+    <html
+      lang="pt-BR"
+      className={`${poppins.variable} h-full antialiased select-none`}
+    >
       <body className="flex min-h-full flex-col">
         <Providers>{children}</Providers>
       </body>
