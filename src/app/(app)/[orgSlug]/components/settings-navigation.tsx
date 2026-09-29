@@ -10,18 +10,22 @@ import { SidebarLink } from "./sidebar-link";
 
 type SettingsNavigationProps = {
   organizationSlug: string;
+  canAccessSettings: boolean;
 };
 
 export function SettingsNavigation({
   organizationSlug,
+  canAccessSettings,
 }: SettingsNavigationProps) {
   return (
     <SidebarMenu className="gap-1.5">
-      <SidebarLink
-        href={buildOrganizationPath(organizationSlug, SETTINGS_PAGE.path)}
-        label={SETTINGS_PAGE.label}
-        icon={SETTINGS_PAGE.icon}
-      />
+      {canAccessSettings && (
+        <SidebarLink
+          href={buildOrganizationPath(organizationSlug, SETTINGS_PAGE.path)}
+          label={SETTINGS_PAGE.label}
+          icon={SETTINGS_PAGE.icon}
+        />
+      )}
       <SidebarCollapseButton />
     </SidebarMenu>
   );

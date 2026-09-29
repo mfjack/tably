@@ -7,7 +7,10 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import type { CurrentUser } from "@/features/auth/types";
-import type { UserOrganization } from "@/features/organizations/types";
+import type {
+  AppModuleId,
+  UserOrganization,
+} from "@/features/organizations/types";
 import { ModuleNavigation } from "./module-navigation";
 import { OrganizationSwitcher } from "./organization-switcher";
 import { SettingsNavigation } from "./settings-navigation";
@@ -17,12 +20,18 @@ type AppSidebarProps = {
   organization: UserOrganization;
   organizations: UserOrganization[];
   currentUser: CurrentUser;
+  hiddenModules: AppModuleId[];
+  canAccessSettings: boolean;
+  activeOperatorName: string | null;
 };
 
 export function AppSidebar({
   organization,
   organizations,
   currentUser,
+  hiddenModules,
+  canAccessSettings,
+  activeOperatorName,
 }: AppSidebarProps) {
   return (
     <Sidebar collapsible="icon">
@@ -35,12 +44,19 @@ export function AppSidebar({
       <SidebarContent>
         <ModuleNavigation
           organizationSlug={organization.slug}
-          hiddenModules={organization.hiddenModules}
+          hiddenModules={hiddenModules}
         />
       </SidebarContent>
       <SidebarFooter>
-        <SettingsNavigation organizationSlug={organization.slug} />
-        <UserMenu currentUser={currentUser} />
+        <SettingsNavigation
+          organizationSlug={organization.slug}
+          canAccessSettings={canAccessSettings}
+        />
+        <UserMenu
+          organizationId={organization.id}
+          currentUser={currentUser}
+          activeOperatorName={activeOperatorName}
+        />
       </SidebarFooter>
     </Sidebar>
   );

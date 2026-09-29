@@ -1,7 +1,8 @@
 "use client";
 
-import { ChevronsUpDown, LogOut } from "lucide-react";
+import { ChevronsUpDown, LockKeyhole, LogOut } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -22,16 +23,37 @@ import {
 import { getUserDisplayName } from "@/features/auth/display-name";
 import { useSignOutMutation } from "@/features/auth/hooks/use-sign-out-mutation";
 import type { CurrentUser } from "@/features/auth/types";
+import { useLockOperatorMutation } from "@/features/operators/hooks/use-lock-operator-mutation";
+import type { OrganizationId } from "@/features/organizations/types";
 import { getInitials } from "@/lib/get-initials";
 
 type UserMenuProps = {
+  organizationId: OrganizationId;
   currentUser: CurrentUser;
+  activeOperatorName: string | null;
 };
 
-export function UserMenu({ currentUser }: UserMenuProps) {
+export function UserMenu({
+  organizationId,
+  currentUser,
+  activeOperatorName,
+}: UserMenuProps) {
+  const router = useRouter();
   const { isMobile } = useSidebar();
   const signOutMutation = useSignOutMutation();
-  const displayName = getUserDisplayName(currentUser);
+  const lockOperatorMutation = useLockOperatorMutation(organizationId);
+  const accountName = getUserDisplayName(currentUser);
+  const displayName = activeOperatorName ?? accountName;
+  const secondaryLabel = activeOperatorName
+    ? accountName
+    : currentUser.fullName && currentUser.email;
+
+  function handleLockOperator() {
+    lockOperatorMutation.mutate(undefined, {
+      onSuccess: () => router.refresh(),
+      onError: (error) => toast.error(error.message),
+    });
+  }
 
   function handleSignOut() {
     signOutMutation.mutate(undefined, {
@@ -48,13 +70,20 @@ export function UserMenu({ currentUser }: UserMenuProps) {
               <SidebarMenuButton size="lg" aria-label="Menu do usuário" />
             }
           >
-            <UserAvatar currentUser={currentUser} displayName={displayName} />
+            <UserAvatar
+              currentUser={
+                activeOperatorName
+                  ? { ...currentUser, avatarUrl: null }
+                  : currentUser
+              }
+              displayName={displayName}
+            />
             <div className="grid flex-1 text-left leading-tight">
               <span className="truncate font-medium text-sidebar-accent-foreground">
                 {displayName}
               </span>
-              {currentUser.fullName && (
-                <span className="truncate text-xs">{currentUser.email}</span>
+              {secondaryLabel && (
+                <span className="truncate text-xs">{secondaryLabel}</span>
               )}
             </div>
             <ChevronsUpDown className="ml-auto" aria-hidden />
@@ -71,6 +100,15 @@ export function UserMenu({ currentUser }: UserMenuProps) {
               </DropdownMenuLabel>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
+            {activeOperatorName && (
+              <DropdownMenuItem
+                disabled={lockOperatorMutation.isPending}
+                onClick={handleLockOperator}
+              >
+                <LockKeyhole aria-hidden />
+                Trocar operador
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem
               disabled={signOutMutation.isPending}
               onClick={handleSignOut}
