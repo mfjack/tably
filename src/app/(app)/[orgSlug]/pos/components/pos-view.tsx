@@ -1,5 +1,6 @@
 "use client";
 
+import { ClipboardList } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -14,6 +15,7 @@ import {
   useTabTarget,
 } from "@/features/pos/cart-store";
 import type { ProductId } from "@/features/products/types";
+import { ModuleLinkButton } from "../../components/module-link-button";
 import { PageHeader } from "../../components/page-header";
 import { type PosProduct, usePosCatalog } from "../hooks/use-pos-catalog";
 import { usePosCheckout } from "../hooks/use-pos-checkout";
@@ -32,6 +34,7 @@ type PosViewProps = {
   isTakeawayEnabled: boolean;
   takeawayFee: number;
   orderTabsHref: string;
+  canOpenOrderTabs: boolean;
 };
 
 function matchesSearch(product: PosProduct, normalizedSearch: string) {
@@ -45,6 +48,7 @@ export function PosView({
   isTakeawayEnabled,
   takeawayFee,
   orderTabsHref,
+  canOpenOrderTabs,
 }: PosViewProps) {
   const router = useRouter();
   const isCartHydrated = useHydratedCartStore();
@@ -132,10 +136,19 @@ export function PosView({
           title={organizationName}
           description={<PosHeaderDescription />}
           actions={
-            <ProductSearchInput
-              searchTerm={searchTerm}
-              onSearchTermChange={setSearchTerm}
-            />
+            <>
+              <ProductSearchInput
+                searchTerm={searchTerm}
+                onSearchTermChange={setSearchTerm}
+              />
+              {canOpenOrderTabs && (
+                <ModuleLinkButton
+                  href={orderTabsHref}
+                  label="Comandas"
+                  icon={ClipboardList}
+                />
+              )}
+            </>
           }
         />
         <div className="px-4 pt-5 md:px-8">

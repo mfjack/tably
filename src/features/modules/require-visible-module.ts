@@ -8,7 +8,7 @@ import type {
   AppModuleId,
   UserOrganization,
 } from "@/features/organizations/types";
-import { buildOrganizationHomePath } from "./app-modules";
+import { APP_MODULES, buildOrganizationHomePath } from "./app-modules";
 
 export async function requireVisibleModule(
   organizationSlug: string,
@@ -31,4 +31,17 @@ export async function requireVisibleModule(
   }
 
   return organization;
+}
+
+export async function getAccessibleModuleIds(
+  organization: UserOrganization,
+): Promise<AppModuleId[]> {
+  const access = await getOperatorAccess(organization.id);
+  const hiddenModules = getEffectiveHiddenModules(
+    organization.hiddenModules,
+    access,
+  );
+  return APP_MODULES.map(({ id }) => id).filter(
+    (moduleId) => !hiddenModules.includes(moduleId),
+  );
 }

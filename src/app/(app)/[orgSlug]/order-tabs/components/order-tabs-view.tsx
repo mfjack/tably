@@ -1,5 +1,6 @@
 "use client";
 
+import { MonitorSmartphone } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
@@ -24,6 +25,7 @@ import type { OrderDetails, OrderId, OrderItem } from "@/features/orders/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import { useCartStore } from "@/features/pos/cart-store";
 import { formatCurrency } from "@/lib/format";
+import { ModuleLinkButton } from "../../components/module-link-button";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
 import { OpenOrderTabDialog } from "./open-order-tab-dialog";
@@ -43,6 +45,7 @@ type OrderTabsViewProps = {
   title: string;
   description: string;
   posHref: string;
+  canOpenPos: boolean;
 };
 
 function getChangeMessage(payment: OrderPaymentInput, orderTotal: number) {
@@ -59,6 +62,7 @@ export function OrderTabsView({
   title,
   description,
   posHref,
+  canOpenPos,
 }: OrderTabsViewProps) {
   const router = useRouter();
   const setTabTarget = useCartStore((state) => state.setTabTarget);
@@ -154,7 +158,19 @@ export function OrderTabsView({
 
   return (
     <>
-      <PageHeader title={title} description={description} />
+      <PageHeader
+        title={title}
+        description={description}
+        actions={
+          canOpenPos && (
+            <ModuleLinkButton
+              href={posHref}
+              label="PDV"
+              icon={MonitorSmartphone}
+            />
+          )
+        }
+      />
       <PageContent>
         <Tabs defaultValue="open" className="flex-1 gap-6">
           <TabsList className="group-data-horizontal/tabs:h-10">

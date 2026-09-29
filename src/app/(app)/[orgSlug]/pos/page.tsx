@@ -3,7 +3,10 @@ import {
   buildOrganizationPath,
   getAppModule,
 } from "@/features/modules/app-modules";
-import { requireVisibleModule } from "@/features/modules/require-visible-module";
+import {
+  getAccessibleModuleIds,
+  requireVisibleModule,
+} from "@/features/modules/require-visible-module";
 import { toOrderTicketBusiness } from "@/features/orders/print-order-ticket";
 import { PosView } from "./components/pos-view";
 
@@ -14,6 +17,7 @@ export const metadata: Metadata = { title: posModule.label };
 export default async function PosPage({ params }: PageProps<"/[orgSlug]/pos">) {
   const { orgSlug } = await params;
   const organization = await requireVisibleModule(orgSlug, "pos");
+  const accessibleModuleIds = await getAccessibleModuleIds(organization);
 
   return (
     <PosView
@@ -22,6 +26,7 @@ export default async function PosPage({ params }: PageProps<"/[orgSlug]/pos">) {
       ticketBusiness={toOrderTicketBusiness(organization)}
       isTakeawayEnabled={organization.isTakeawayEnabled}
       takeawayFee={organization.takeawayFee}
+      canOpenOrderTabs={accessibleModuleIds.includes("order_tabs")}
       orderTabsHref={buildOrganizationPath(
         organization.slug,
         getAppModule("order_tabs").path,
