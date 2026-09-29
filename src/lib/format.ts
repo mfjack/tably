@@ -5,12 +5,14 @@ const currencyFormatter = new Intl.NumberFormat(LOCALE, {
   currency: "BRL",
 });
 
-const preciseCurrencyFormatter = new Intl.NumberFormat(LOCALE, {
+const smallUnitCostFormatter = new Intl.NumberFormat(LOCALE, {
   style: "currency",
   currency: "BRL",
   minimumFractionDigits: 2,
   maximumFractionDigits: 4,
 });
+
+const SMALL_UNIT_COST_THRESHOLD = 0.1;
 
 const quantityFormatter = new Intl.NumberFormat(LOCALE, {
   maximumFractionDigits: 3,
@@ -25,8 +27,11 @@ export function formatCurrency(value: number): string {
   return currencyFormatter.format(value);
 }
 
-export function formatPreciseCurrency(value: number): string {
-  return preciseCurrencyFormatter.format(value);
+export function formatUnitCost(value: number): string {
+  const isSmallUnitCost = value > 0 && value < SMALL_UNIT_COST_THRESHOLD;
+  return isSmallUnitCost
+    ? smallUnitCostFormatter.format(value)
+    : currencyFormatter.format(value);
 }
 
 export function formatQuantity(value: number): string {

@@ -9,7 +9,7 @@ import { DataTableRowActions } from "@/components/data-table/data-table-row-acti
 import { useDataTable } from "@/components/data-table/use-data-table";
 import { getUnitSymbol } from "@/features/ingredients/measure-units";
 import type { Ingredient } from "@/features/ingredients/types";
-import { formatPreciseCurrency, formatQuantity } from "@/lib/format";
+import { formatQuantity, formatUnitCost } from "@/lib/format";
 import { ExpiryCell } from "./expiry-cell";
 import { StockStatusBadge } from "./stock-status-badge";
 
@@ -76,7 +76,7 @@ export function IngredientsTable({
           enableGlobalFilter: false,
           cell: ({ row }) => (
             <span className="text-muted-foreground tabular-nums">
-              {formatPreciseCurrency(row.original.unitCost)} /{" "}
+              {formatUnitCost(row.original.unitCost)} /{" "}
               {getUnitSymbol(row.original.unit)}
             </span>
           ),

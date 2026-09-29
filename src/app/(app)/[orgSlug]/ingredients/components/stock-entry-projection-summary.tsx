@@ -1,7 +1,7 @@
 import { getUnitSymbol } from "@/features/ingredients/measure-units";
 import { projectStockEntry } from "@/features/ingredients/stock-cost";
 import type { Ingredient } from "@/features/ingredients/types";
-import { formatPreciseCurrency, formatQuantity } from "@/lib/format";
+import { formatQuantity, formatUnitCost } from "@/lib/format";
 
 type StockEntryProjectionSummaryProps = {
   ingredient: Ingredient;
@@ -31,7 +31,7 @@ export function StockEntryProjectionSummary({
       <div className="flex flex-col gap-0.5">
         <dt className="text-muted-foreground">Novo custo médio</dt>
         <dd className="font-semibold tabular-nums">
-          {formatPreciseCurrency(projection.unitCost)} / {unitSymbol}
+          {formatUnitCost(projection.unitCost)} / {unitSymbol}
         </dd>
       </div>
     </dl>
