@@ -16,7 +16,7 @@ type OrderNoteInputProps = {
 
 export function OrderNoteInput({ note, onNoteChange }: OrderNoteInputProps) {
   return (
-    <InputGroup className="h-11 rounded-[10px] bg-background">
+    <InputGroup className="h-11 rounded-lg bg-background">
       <InputGroupAddon>
         <NotebookPen aria-hidden />
       </InputGroupAddon>

@@ -29,7 +29,7 @@ export function ProductSearchInput({
   });
 
   return (
-    <InputGroup className="h-11 w-64 rounded-[10px] bg-muted lg:w-80">
+    <InputGroup className="h-11 w-64 rounded-lg bg-muted lg:w-80">
       <InputGroupAddon>
         <Search aria-hidden />
       </InputGroupAddon>

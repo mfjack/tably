@@ -47,7 +47,7 @@ export function RecipeEditor({
 
   if (ingredients.length === 0) {
     return (
-      <p className="rounded-[10px] border border-dashed px-4 py-5 text-center text-muted-foreground text-sm">
+      <p className="rounded-lg border border-dashed px-4 py-5 text-center text-muted-foreground text-sm">
         Cadastre insumos em{" "}
         <Link
           href={buildOrganizationPath(

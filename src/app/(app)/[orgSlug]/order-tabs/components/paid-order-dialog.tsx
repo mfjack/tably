@@ -68,7 +68,7 @@ export function PaidOrderDialog({
           {order.paymentMethod && (
             <section className="flex flex-col gap-2">
               <h3 className="font-semibold text-sm">Forma de pagamento</h3>
-              <p className="rounded-[10px] bg-muted px-4 py-3 text-sm">
+              <p className="rounded-lg bg-muted px-4 py-3 text-sm">
                 {getPaymentMethodLabel(order.paymentMethod)} —{" "}
                 <span className="tabular-nums">
                   {formatCurrency(order.amountReceived ?? order.total)}

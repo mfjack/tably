@@ -20,7 +20,7 @@ export function StockEntryProjectionSummary({
   return (
     <dl
       aria-live="polite"
-      className="grid grid-cols-2 gap-4 rounded-[10px] bg-muted px-4 py-3 text-sm"
+      className="grid grid-cols-2 gap-4 rounded-lg bg-muted px-4 py-3 text-sm"
     >
       <div className="flex flex-col gap-0.5">
         <dt className="text-muted-foreground">Estoque após a entrada</dt>

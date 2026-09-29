@@ -16,7 +16,7 @@ export function AuthSubmitButton({
       type="submit"
       disabled={isPending}
       aria-busy={isPending}
-      className="h-12 rounded-[10px] font-semibold text-[15px]"
+      className="h-12 rounded-lg font-semibold text-[15px]"
     >
       {isPending && <Spinner aria-hidden />}
       {children}

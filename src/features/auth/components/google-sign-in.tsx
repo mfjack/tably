@@ -32,7 +32,7 @@ export function GoogleSignIn({ label, nextPath }: GoogleSignInProps) {
         disabled={isRedirecting}
         aria-busy={isRedirecting}
         onClick={handleGoogleSignIn}
-        className="h-12 gap-2.5 rounded-[10px] text-[15px]"
+        className="h-12 gap-2.5 rounded-lg text-[15px]"
       >
         {isRedirecting ? <Spinner aria-hidden /> : <GoogleIcon />}
         {label}

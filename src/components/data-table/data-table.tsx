@@ -58,7 +58,7 @@ export function DataTable<TData extends RowData>({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <InputGroup className="h-10 w-full rounded-[10px] sm:max-w-xs">
+        <InputGroup className="h-10 w-full rounded-lg sm:max-w-xs">
           <InputGroupAddon>
             <Search aria-hidden />
           </InputGroupAddon>

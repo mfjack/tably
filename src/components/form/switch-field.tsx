@@ -29,10 +29,7 @@ export function SwitchField<TFieldValues extends FieldValues>({
       control={control}
       name={name}
       render={({ field }) => (
-        <Field
-          orientation="horizontal"
-          className="rounded-[10px] border px-4 py-3"
-        >
+        <Field orientation="horizontal" className="rounded-lg border px-4 py-3">
           <FieldContent>
             <FieldLabel htmlFor={switchId}>{label}</FieldLabel>
             {description && <FieldDescription>{description}</FieldDescription>}

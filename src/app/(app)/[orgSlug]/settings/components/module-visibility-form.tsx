@@ -88,7 +88,7 @@ export function ModuleVisibilityForm({
                       <Field
                         key={appModule.id}
                         orientation="horizontal"
-                        className="items-center rounded-[10px] border px-4 py-3"
+                        className="items-center rounded-lg border px-4 py-3"
                       >
                         <Icon
                           aria-hidden

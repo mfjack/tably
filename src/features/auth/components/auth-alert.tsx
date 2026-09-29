@@ -17,7 +17,7 @@ export function AuthAlert({ variant = "error", children }: AuthAlertProps) {
       variant={isError ? "destructive" : "default"}
       role={isError ? "alert" : "status"}
       className={cn(
-        "rounded-[10px] border-0 px-3.5 py-3",
+        "rounded-lg border-0 px-3.5 py-3",
         isError ? "bg-destructive/8" : "bg-primary/8 text-primary",
       )}
     >

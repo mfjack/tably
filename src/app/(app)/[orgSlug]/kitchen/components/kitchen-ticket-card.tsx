@@ -80,7 +80,7 @@ function KitchenTicketCardComponent({
       </ul>
 
       {ticket.note && (
-        <p className="whitespace-pre-wrap rounded-[10px] bg-muted px-3 py-2 text-sm">
+        <p className="whitespace-pre-wrap rounded-lg bg-muted px-3 py-2 text-sm">
           <strong className="font-semibold">Obs:</strong> {ticket.note}
         </p>
       )}

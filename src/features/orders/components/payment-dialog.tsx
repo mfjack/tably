@@ -84,7 +84,7 @@ export function PaymentDialog({
               format="currency"
               placeholder={`Ex.: ${formatCurrency(Math.ceil(orderTotal / 10) * 10)}`}
             />
-            <div className="flex items-baseline justify-between rounded-[10px] bg-muted px-4 py-3">
+            <div className="flex items-baseline justify-between rounded-lg bg-muted px-4 py-3">
               <span className="text-muted-foreground text-sm">Troco</span>
               <span
                 aria-live="polite"

@@ -75,7 +75,7 @@ export function SelectField<TFieldValues extends FieldValues>({
             <SelectContent
               alignItemWithTrigger={false}
               align="start"
-              className="rounded-[10px]"
+              className="rounded-lg"
             >
               {options.map((option) => (
                 <SelectItem
