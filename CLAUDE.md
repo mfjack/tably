@@ -32,6 +32,7 @@ Stack: Next.js (App Router) · React · TypeScript · Tailwind · shadcn/ui · Z
 ## Estilo
 - Não alterar nem adicionar estilização sem pedido explícito.
 - Tailwind primeiro, cores via variáveis CSS do tema, variantes com `cva`/`cn`.
+- Todo elemento clicável usa `cursor-pointer` (regra global em `globals.css`; não sobrescrever com `cursor-default`).
 
 ## Git
 - Commits pequenos e focados com Conventional Commits, em branches `feature/`, `fix/` ou `chore/`.
