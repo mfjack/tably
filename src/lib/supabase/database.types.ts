@@ -39,6 +39,77 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_entries: {
+        Row: {
+          account_id: string
+          amount: number
+          created_at: string
+          created_by: string | null
+          id: string
+          kind: Database["public"]["Enums"]["account_entry_kind"]
+          note: string | null
+          operator_name: string | null
+          order_id: string | null
+          organization_id: string
+          payment_method: Database["public"]["Enums"]["payment_method"] | null
+        }
+        Insert: {
+          account_id: string
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["account_entry_kind"]
+          note?: string | null
+          operator_name?: string | null
+          order_id?: string | null
+          organization_id: string
+          payment_method?: Database["public"]["Enums"]["payment_method"] | null
+        }
+        Update: {
+          account_id?: string
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["account_entry_kind"]
+          note?: string | null
+          operator_name?: string | null
+          order_id?: string | null
+          organization_id?: string
+          payment_method?: Database["public"]["Enums"]["payment_method"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_entries_account_id_organization_id_fkey"
+            columns: ["account_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "customer_account_balances"
+            referencedColumns: ["account_id", "organization_id"]
+          },
+          {
+            foreignKeyName: "account_entries_account_id_organization_id_fkey"
+            columns: ["account_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "customer_accounts"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "account_entries_order_id_organization_id_fkey"
+            columns: ["order_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "account_entries_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           created_at: string
@@ -67,6 +138,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "categories_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_accounts: {
+        Row: {
+          created_at: string
+          credit_limit: number | null
+          id: string
+          is_active: boolean
+          name: string
+          note: string | null
+          organization_id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          credit_limit?: number | null
+          id?: string
+          is_active?: boolean
+          name: string
+          note?: string | null
+          organization_id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          credit_limit?: number | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          note?: string | null
+          organization_id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_accounts_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -362,6 +477,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           created_by_operator_name: string | null
+          customer_account_id: string | null
           customer_name: string | null
           id: string
           is_takeaway: boolean
@@ -383,6 +499,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           created_by_operator_name?: string | null
+          customer_account_id?: string | null
           customer_name?: string | null
           id?: string
           is_takeaway?: boolean
@@ -404,6 +521,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           created_by_operator_name?: string | null
+          customer_account_id?: string | null
           customer_name?: string | null
           id?: string
           is_takeaway?: boolean
@@ -427,6 +545,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_customer_account_fkey"
+            columns: ["customer_account_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "customer_account_balances"
+            referencedColumns: ["account_id", "organization_id"]
+          },
+          {
+            foreignKeyName: "orders_customer_account_fkey"
+            columns: ["customer_account_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "customer_accounts"
+            referencedColumns: ["id", "organization_id"]
           },
           {
             foreignKeyName: "orders_organization_id_fkey"
@@ -776,6 +908,23 @@ export type Database = {
       }
     }
     Views: {
+      customer_account_balances: {
+        Row: {
+          account_id: string | null
+          balance: number | null
+          last_entry_at: string | null
+          organization_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_accounts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_costs: {
         Row: {
           organization_id: string | null
@@ -803,6 +952,15 @@ export type Database = {
         Returns: boolean
       }
       cancel_order: { Args: { p_order_id: string }; Returns: undefined }
+      charge_customer_account: {
+        Args: {
+          p_account_id: string
+          p_amount: number
+          p_order_id: string
+          p_organization_id: string
+        }
+        Returns: undefined
+      }
       complete_order_if_done: {
         Args: { p_order_id: string }
         Returns: undefined
@@ -865,6 +1023,7 @@ export type Database = {
         Args: { p_organization_id: string }
         Returns: undefined
       }
+      get_account_balance: { Args: { p_account_id: string }; Returns: number }
       get_sales_report: {
         Args: {
           p_organization_id: string
@@ -891,6 +1050,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           created_by_operator_name: string | null
+          customer_account_id: string | null
           customer_name: string | null
           id: string
           is_takeaway: boolean
@@ -926,6 +1086,7 @@ export type Database = {
       pay_order: {
         Args: {
           p_amount_received?: number
+          p_customer_account_id?: string
           p_order_id: string
           p_payment_method: Database["public"]["Enums"]["payment_method"]
         }
@@ -934,6 +1095,7 @@ export type Database = {
       place_order: {
         Args: {
           p_amount_received?: number
+          p_customer_account_id?: string
           p_customer_name?: string
           p_is_takeaway?: boolean
           p_items: Json
@@ -948,9 +1110,30 @@ export type Database = {
           order_total: number
         }[]
       }
+      register_account_payment: {
+        Args: {
+          p_account_id: string
+          p_amount: number
+          p_note?: string
+          p_payment_method: Database["public"]["Enums"]["payment_method"]
+        }
+        Returns: number
+      }
       remove_order_item: {
         Args: { p_order_item_id: string; p_quantity?: number }
         Returns: number
+      }
+      save_customer_account: {
+        Args: {
+          p_account_id?: string
+          p_credit_limit?: number
+          p_is_active?: boolean
+          p_name: string
+          p_note?: string
+          p_organization_id: string
+          p_phone?: string
+        }
+        Returns: string
       }
       save_operator: {
         Args: {
@@ -989,6 +1172,7 @@ export type Database = {
       }
     }
     Enums: {
+      account_entry_kind: "charge" | "payment"
       app_module:
         | "pos"
         | "order_tabs"
@@ -1004,7 +1188,12 @@ export type Database = {
       measure_unit: "unit" | "g" | "kg" | "ml" | "l"
       member_role: "owner" | "manager" | "cashier" | "kitchen" | "waiter"
       order_status: "in_kitchen" | "ready" | "completed" | "canceled"
-      payment_method: "cash" | "pix" | "credit_card" | "debit_card"
+      payment_method:
+        | "cash"
+        | "pix"
+        | "credit_card"
+        | "debit_card"
+        | "customer_account"
       sales_report_period:
         | "today"
         | "yesterday"
@@ -1142,6 +1331,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      account_entry_kind: ["charge", "payment"],
       app_module: [
         "pos",
         "order_tabs",
@@ -1158,7 +1348,13 @@ export const Constants = {
       measure_unit: ["unit", "g", "kg", "ml", "l"],
       member_role: ["owner", "manager", "cashier", "kitchen", "waiter"],
       order_status: ["in_kitchen", "ready", "completed", "canceled"],
-      payment_method: ["cash", "pix", "credit_card", "debit_card"],
+      payment_method: [
+        "cash",
+        "pix",
+        "credit_card",
+        "debit_card",
+        "customer_account",
+      ],
       sales_report_period: [
         "today",
         "yesterday",
