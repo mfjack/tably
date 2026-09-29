@@ -1,5 +1,5 @@
 export const DIALOG_CONTENT_CLASS_NAME =
-  "max-h-[calc(100dvh-2rem)] gap-6 p-6 sm:max-w-md";
+  "max-h-[calc(100dvh-2rem)] gap-6 p-5 sm:max-w-md sm:p-6";
 
 export const DIALOG_CLOSE_BUTTON_CLASS_NAME =
   "absolute top-4 right-4 shadow-xs";

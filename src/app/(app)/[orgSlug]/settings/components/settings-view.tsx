@@ -34,21 +34,21 @@ export function SettingsView({
           defaultValue={canManageOrganization ? "organization" : "profile"}
           className="gap-6"
         >
-          <TabsList className="group-data-horizontal/tabs:h-10">
+          <TabsList className="w-full justify-start overflow-x-auto group-data-horizontal/tabs:h-10 sm:w-fit">
             {canManageOrganization && (
               <>
-                <TabsTrigger value="organization" className="px-4">
+                <TabsTrigger value="organization" className="shrink-0 px-4">
                   Estabelecimento
                 </TabsTrigger>
-                <TabsTrigger value="modules" className="px-4">
+                <TabsTrigger value="modules" className="shrink-0 px-4">
                   Módulos
                 </TabsTrigger>
-                <TabsTrigger value="operators" className="px-4">
+                <TabsTrigger value="operators" className="shrink-0 px-4">
                   Operadores
                 </TabsTrigger>
               </>
             )}
-            <TabsTrigger value="profile" className="px-4">
+            <TabsTrigger value="profile" className="shrink-0 px-4">
               Meu perfil
             </TabsTrigger>
           </TabsList>
