@@ -1,5 +1,5 @@
 import { getPaymentMethodLabel } from "./payment-methods";
-import type { OrderTicket } from "./print-order-ticket";
+import type { OrderTicket, OrderTicketBusiness } from "./print-order-ticket";
 import type { OrderDetails } from "./types";
 
 const UNNAMED_CUSTOMER_LABEL = "Sem nome";
@@ -15,12 +15,12 @@ export function getOrderPaymentChange(order: OrderDetails): number {
 
 export function buildOrderDetailsTicket(
   order: OrderDetails,
-  organizationName: string,
+  business: OrderTicketBusiness,
 ): OrderTicket {
   const change = getOrderPaymentChange(order);
 
   return {
-    organizationName,
+    business,
     customerName: getOrderCustomerLabel(order),
     items: order.items.map((item) => ({
       name: item.productName,

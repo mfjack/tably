@@ -5,6 +5,7 @@ import { useCallback, useMemo, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { CategoryId } from "@/features/categories/types";
 import { PaymentDialog } from "@/features/orders/components/payment-dialog";
+import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
 import type { OrganizationId } from "@/features/organizations/types";
 import {
   useCart,
@@ -27,6 +28,8 @@ import { TabNameDialog } from "./tab-name-dialog";
 type PosViewProps = {
   organizationId: OrganizationId;
   organizationName: string;
+  ticketBusiness: OrderTicketBusiness;
+  isTakeawayEnabled: boolean;
   takeawayFee: number;
   orderTabsHref: string;
 };
@@ -38,6 +41,8 @@ function matchesSearch(product: PosProduct, normalizedSearch: string) {
 export function PosView({
   organizationId,
   organizationName,
+  ticketBusiness,
+  isTakeawayEnabled,
   takeawayFee,
   orderTabsHref,
 }: PosViewProps) {
@@ -58,7 +63,7 @@ export function PosView({
     usePosCatalog(organizationId, cart);
   const checkout = usePosCheckout({
     organizationId,
-    organizationName,
+    ticketBusiness,
     takeawayFee,
     cart,
     cartLines,
@@ -173,6 +178,7 @@ export function PosView({
         organizationId={organizationId}
         isOpen={checkout.checkoutStep.step === "customer"}
         takeawayFee={takeawayFee}
+        isTakeawayEnabled={isTakeawayEnabled}
         onClose={checkout.cancelCheckout}
         isOpeningTab={checkout.isOpeningTab}
         onConfirm={checkout.confirmCustomer}

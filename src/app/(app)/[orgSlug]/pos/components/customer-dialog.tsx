@@ -25,6 +25,7 @@ type CustomerDialogProps = {
   organizationId: OrganizationId;
   isOpen: boolean;
   takeawayFee: number;
+  isTakeawayEnabled: boolean;
   onClose: () => void;
   isOpeningTab: boolean;
   onConfirm: (customer: OrderCustomerInput) => void;
@@ -37,6 +38,7 @@ export function CustomerDialog({
   organizationId,
   isOpen,
   takeawayFee,
+  isTakeawayEnabled,
   onClose,
   isOpeningTab,
   onConfirm,
@@ -105,12 +107,18 @@ export function CustomerDialog({
           placeholder="Ex.: Diego"
           autoComplete="off"
         />
-        <SwitchField
-          control={form.control}
-          name="isTakeaway"
-          label="Para levar"
-          description={`Acrescenta ${formatCurrency(takeawayFee)} ao total.`}
-        />
+        {isTakeawayEnabled && (
+          <SwitchField
+            control={form.control}
+            name="isTakeaway"
+            label="Para levar"
+            description={
+              takeawayFee > 0
+                ? `Acrescenta ${formatCurrency(takeawayFee)} ao total.`
+                : undefined
+            }
+          />
+        )}
       </FieldGroup>
     </FormDialog>
   );

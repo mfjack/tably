@@ -15,7 +15,10 @@ import { usePaidOrdersQuery } from "@/features/orders/hooks/use-paid-orders-quer
 import { usePayOrderMutation } from "@/features/orders/hooks/use-pay-order-mutation";
 import { useRemoveOrderItemMutation } from "@/features/orders/hooks/use-remove-order-item-mutation";
 import { buildOrderDetailsTicket } from "@/features/orders/order-details-ticket";
-import { printOrderTicket } from "@/features/orders/print-order-ticket";
+import {
+  type OrderTicketBusiness,
+  printOrderTicket,
+} from "@/features/orders/print-order-ticket";
 import type { OrderPaymentInput } from "@/features/orders/schemas";
 import type { OrderDetails, OrderId, OrderItem } from "@/features/orders/types";
 import type { OrganizationId } from "@/features/organizations/types";
@@ -36,7 +39,7 @@ type OpenTabState =
 
 type OrderTabsViewProps = {
   organizationId: OrganizationId;
-  organizationName: string;
+  ticketBusiness: OrderTicketBusiness;
   title: string;
   description: string;
   posHref: string;
@@ -52,7 +55,7 @@ function getChangeMessage(payment: OrderPaymentInput, orderTotal: number) {
 
 export function OrderTabsView({
   organizationId,
-  organizationName,
+  ticketBusiness,
   title,
   description,
   posHref,
@@ -113,7 +116,7 @@ export function OrderTabsView({
   }
 
   function printOrder(order: OrderDetails) {
-    printOrderTicket(buildOrderDetailsTicket(order, organizationName));
+    printOrderTicket(buildOrderDetailsTicket(order, ticketBusiness));
   }
 
   function confirmPayment(payment: OrderPaymentInput) {

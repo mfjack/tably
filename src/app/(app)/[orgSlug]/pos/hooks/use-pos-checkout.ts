@@ -3,7 +3,10 @@ import { toast } from "sonner";
 import type { OrderSummaryData } from "@/features/orders/components/order-summary";
 import { useAddOrderItemsMutation } from "@/features/orders/hooks/use-add-order-items-mutation";
 import { usePlaceOrderMutation } from "@/features/orders/hooks/use-place-order-mutation";
-import { printOrderTicket } from "@/features/orders/print-order-ticket";
+import {
+  type OrderTicketBusiness,
+  printOrderTicket,
+} from "@/features/orders/print-order-ticket";
 import type {
   OrderCustomerInput,
   OrderPaymentInput,
@@ -23,7 +26,7 @@ export type CheckoutStep =
 
 type UsePosCheckoutOptions = {
   organizationId: OrganizationId;
-  organizationName: string;
+  ticketBusiness: OrderTicketBusiness;
   takeawayFee: number;
   cart: Cart;
   cartLines: readonly CartLine[];
@@ -45,7 +48,7 @@ function getChangeMessage(
 
 export function usePosCheckout({
   organizationId,
-  organizationName,
+  ticketBusiness,
   takeawayFee,
   cart,
   cartLines,
@@ -127,7 +130,7 @@ export function usePosCheckout({
             `Produtos adicionados à comanda de ${tabTarget.customerName}.`,
           );
           printOrderTicket({
-            organizationName,
+            business: ticketBusiness,
             customerName: tabTarget.customerName,
             items: ticketItems,
             subtotal,
@@ -168,7 +171,7 @@ export function usePosCheckout({
             { description: getChangeMessage(payment, placedOrder) },
           );
           printOrderTicket({
-            organizationName,
+            business: ticketBusiness,
             customerName: customer.customerName,
             items: ticketItems,
             subtotal,

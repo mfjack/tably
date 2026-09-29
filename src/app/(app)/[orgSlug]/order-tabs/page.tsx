@@ -4,6 +4,7 @@ import {
   getAppModule,
 } from "@/features/modules/app-modules";
 import { requireVisibleModule } from "@/features/modules/require-visible-module";
+import { toOrderTicketBusiness } from "@/features/orders/print-order-ticket";
 import { OrderTabsView } from "./components/order-tabs-view";
 
 const orderTabsModule = getAppModule("order_tabs");
@@ -19,7 +20,7 @@ export default async function OrderTabsPage({
   return (
     <OrderTabsView
       organizationId={organization.id}
-      organizationName={organization.name}
+      ticketBusiness={toOrderTicketBusiness(organization)}
       title={orderTabsModule.label}
       description={orderTabsModule.description}
       posHref={buildOrganizationPath(

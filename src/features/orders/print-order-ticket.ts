@@ -1,10 +1,18 @@
 import { format } from "date-fns";
 import { formatCurrency } from "@/lib/format";
+import { formatCnpj, formatPhone } from "@/lib/masks";
 
 export type OrderTicketItem = {
   name: string;
   quantity: number;
   total: number;
+};
+
+export type OrderTicketBusiness = {
+  name: string;
+  taxId: string | null;
+  phone: string | null;
+  address: string | null;
 };
 
 export type OrderTicketPayment = {
@@ -14,7 +22,7 @@ export type OrderTicketPayment = {
 };
 
 export type OrderTicket = {
-  organizationName: string;
+  business: OrderTicketBusiness;
   customerName: string;
   items: readonly OrderTicketItem[];
   subtotal: number;
@@ -42,6 +50,8 @@ const TICKET_STYLES = `
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: Arial, Helvetica, sans-serif; color: #000; width: 72mm; font-size: 13px; }
   h1 { font-size: 17px; text-align: center; padding-bottom: 10px; }
+  .business { text-align: center; font-size: 11px; padding-bottom: 8px; display: flex; flex-direction: column; gap: 2px; }
+  .business-name { padding-bottom: 4px; }
   section { border-top: 1px solid #000; padding: 8px 0; display: flex; flex-direction: column; gap: 4px; }
   .row { display: flex; justify-content: space-between; gap: 8px; }
   .items { gap: 6px; }
@@ -54,6 +64,20 @@ const TICKET_STYLES = `
 
 function buildRow(label: string, value: string, isStrong = false): string {
   return `<div class="row${isStrong ? " strong" : ""}"><span>${escapeHtml(label)}</span><span>${escapeHtml(value)}</span></div>`;
+}
+
+function buildBusinessHeader(business: OrderTicketBusiness): string {
+  const details = [
+    business.taxId ? `CNPJ ${formatCnpj(business.taxId)}` : null,
+    business.phone ? `Tel. ${formatPhone(business.phone)}` : null,
+    business.address,
+  ].filter((detail) => detail !== null);
+
+  if (details.length === 0) return `<h1>${escapeHtml(business.name)}</h1>`;
+
+  return `<h1 class="business-name">${escapeHtml(business.name)}</h1><div class="business">${details
+    .map((detail) => `<p>${escapeHtml(detail)}</p>`)
+    .join("")}</div>`;
 }
 
 function buildTicketHtml(ticket: OrderTicket): string {
@@ -83,7 +107,7 @@ function buildTicketHtml(ticket: OrderTicket): string {
     : "";
 
   return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8" /><title>Pedido de ${escapeHtml(ticket.customerName)}</title><style>${TICKET_STYLES}</style></head><body>
-    <h1>${escapeHtml(ticket.organizationName)}</h1>
+    ${buildBusinessHeader(ticket.business)}
     <section>
       <p>Data: ${format(ticket.createdAt, "dd/MM/yyyy, HH:mm")}</p>
       <p>Cliente: <span class="customer">${escapeHtml(ticket.customerName)}</span></p>
@@ -119,4 +143,15 @@ export function printOrderTicket(ticket: OrderTicket): void {
   frameWindow.print();
 
   setTimeout(() => printFrame.remove(), PRINT_CLEANUP_DELAY_IN_MS);
+}
+
+export function toOrderTicketBusiness(
+  organization: OrderTicketBusiness,
+): OrderTicketBusiness {
+  return {
+    name: organization.name,
+    taxId: organization.taxId,
+    phone: organization.phone,
+    address: organization.address,
+  };
 }
