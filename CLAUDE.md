@@ -34,6 +34,7 @@ Stack: Next.js (App Router) · React · TypeScript · Tailwind · shadcn/ui · Z
 - Tailwind primeiro, cores via variáveis CSS do tema, variantes com `cva`/`cn`.
 - Todo elemento clicável usa `cursor-pointer` (regra global em `globals.css`; não sobrescrever com `cursor-default`).
 - Valores em dinheiro usam só `$` (ex.: `$ 18,00`), via `formatCurrency`/`CURRENCY_SYMBOL` de `src/lib/format.ts`.
+- Barras de rolagem ficam ocultas no app todo (regra global em `globals.css`); a rolagem continua funcionando.
 
 ## Git
 - Commits pequenos e focados com Conventional Commits, em branches `feature/`, `fix/` ou `chore/`.
