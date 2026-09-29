@@ -16,8 +16,7 @@ import {
   FieldSet,
 } from "@/components/ui/field";
 import { useCategoriesQuery } from "@/features/categories/hooks/use-categories-query";
-import { useIngredientsQuery } from "@/features/ingredients/hooks/use-ingredients-query";
-import type { Ingredient } from "@/features/ingredients/types";
+import { useIngredientsMap } from "@/features/ingredients/hooks/use-ingredients-map";
 import type { OrganizationId } from "@/features/organizations/types";
 import { buildCategoryOptions } from "@/features/products/category-options";
 import { useSaveProductMutation } from "@/features/products/hooks/use-save-product-mutation";
@@ -34,8 +33,6 @@ import {
 import { ProductImagePicker } from "./product-image-picker";
 import { ProductPricingSummary } from "./product-pricing-summary";
 import { RecipeEditor } from "./recipe-editor";
-
-const EMPTY_INGREDIENTS: Ingredient[] = [];
 
 const EMPTY_PRODUCT_FORM: DefaultValues<ProductFormInput> = {
   name: "",
@@ -71,7 +68,7 @@ export function ProductFormDialog({
 }: ProductFormDialogProps) {
   const saveProductMutation = useSaveProductMutation(organizationId);
   const categoriesQuery = useCategoriesQuery(organizationId);
-  const ingredientsQuery = useIngredientsQuery(organizationId);
+  const { ingredients, ingredientsById } = useIngredientsMap(organizationId);
   const form = useForm<ProductFormInput>({
     resolver: zodResolver(productFormSchema),
     defaultValues: EMPTY_PRODUCT_FORM,
@@ -81,16 +78,10 @@ export function ProductFormDialog({
     name: ["name", "price", "recipe"],
   });
   const isEditing = Boolean(product);
-  const ingredients = ingredientsQuery.data ?? EMPTY_INGREDIENTS;
 
   const categoryOptions = useMemo(
     () => buildCategoryOptions(categoriesQuery.data ?? []),
     [categoriesQuery.data],
-  );
-
-  const ingredientsById = useMemo(
-    () => new Map(ingredients.map((ingredient) => [ingredient.id, ingredient])),
-    [ingredients],
   );
 
   const pricing = calculateRecipePricing(
