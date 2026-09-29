@@ -2,8 +2,14 @@
 
 import { BookUser, Plus } from "lucide-react";
 import { useCallback, useState } from "react";
+import { toast } from "sonner";
+import {
+  ConfirmDialog,
+  IRREVERSIBLE_ACTION_MESSAGE,
+} from "@/components/dialog/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { useCustomerAccountsQuery } from "@/features/customer-accounts/hooks/use-customer-accounts-query";
+import { useDeleteCustomerAccountMutation } from "@/features/customer-accounts/hooks/use-delete-customer-account-mutation";
 import type {
   CustomerAccount,
   CustomerAccountId,
@@ -42,6 +48,10 @@ export function CustomerAccountsView({
     useState<CustomerAccountId | null>(null);
   const [paymentAccountId, setPaymentAccountId] =
     useState<CustomerAccountId | null>(null);
+  const [accountToDelete, setAccountToDelete] =
+    useState<CustomerAccount | null>(null);
+  const deleteAccountMutation =
+    useDeleteCustomerAccountMutation(organizationId);
 
   const accounts = accountsQuery.data;
   const findAccount = (accountId: CustomerAccountId | null) =>
@@ -67,6 +77,30 @@ export function CustomerAccountsView({
   const openPayment = useCallback((account: CustomerAccount) => {
     setPaymentAccountId(account.id);
   }, []);
+
+  const requestDelete = useCallback((account: CustomerAccount) => {
+    if (account.balance > 0) {
+      toast.error(
+        `${account.name} ainda deve ${formatCurrency(account.balance)}.`,
+        {
+          description: "Receba o saldo antes de excluir a conta.",
+        },
+      );
+      return;
+    }
+    setAccountToDelete(account);
+  }, []);
+
+  function confirmDelete() {
+    if (!accountToDelete) return;
+    deleteAccountMutation.mutate(accountToDelete.id, {
+      onSuccess: () => {
+        toast.success(`Conta de ${accountToDelete.name} excluída.`);
+        setAccountToDelete(null);
+      },
+      onError: (error) => toast.error(error.message),
+    });
+  }
 
   return (
     <>
@@ -102,6 +136,7 @@ export function CustomerAccountsView({
           onOpenStatement={openStatement}
           onReceivePayment={openPayment}
           onEdit={openEditForm}
+          onDelete={requestDelete}
         />
       </PageContent>
 
@@ -116,6 +151,19 @@ export function CustomerAccountsView({
         account={paymentAccountId ? null : findAccount(statementAccountId)}
         onClose={() => setStatementAccountId(null)}
         onReceivePayment={openPayment}
+      />
+      <ConfirmDialog
+        isOpen={accountToDelete !== null}
+        onOpenChange={(isOpen) => !isOpen && setAccountToDelete(null)}
+        title="Excluir conta?"
+        description={
+          accountToDelete?.lastEntryAt
+            ? `A conta de ${accountToDelete.name} some da lista e do PDV. As vendas e pagamentos dela continuam nos relatórios.`
+            : `A conta de ${accountToDelete?.name ?? ""} será apagada. ${IRREVERSIBLE_ACTION_MESSAGE}`
+        }
+        confirmLabel="Excluir"
+        isConfirming={deleteAccountMutation.isPending}
+        onConfirm={confirmDelete}
       />
       <AccountPaymentDialog
         organizationId={organizationId}

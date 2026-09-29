@@ -147,6 +147,7 @@ export type Database = {
       }
       customer_accounts: {
         Row: {
+          archived_at: string | null
           created_at: string
           credit_limit: number | null
           id: string
@@ -158,6 +159,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string
           credit_limit?: number | null
           id?: string
@@ -169,6 +171,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
           created_at?: string
           credit_limit?: number | null
           id?: string
@@ -1017,6 +1020,10 @@ export type Database = {
       current_operator_name: {
         Args: { p_organization_id: string }
         Returns: string
+      }
+      delete_customer_account: {
+        Args: { p_account_id: string }
+        Returns: undefined
       }
       delete_operator: { Args: { p_operator_id: string }; Returns: undefined }
       ensure_operator_with_settings: {

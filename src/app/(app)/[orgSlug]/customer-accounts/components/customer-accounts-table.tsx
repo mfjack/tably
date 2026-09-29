@@ -2,7 +2,7 @@
 
 import { formatDistanceToNowStrict } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { HandCoins, Pencil, ReceiptText } from "lucide-react";
+import { HandCoins, Pencil, ReceiptText, Trash2 } from "lucide-react";
 import { type ReactNode, useMemo } from "react";
 import { DataTable } from "@/components/data-table/data-table";
 import { createDataTableColumnHelper } from "@/components/data-table/data-table-features";
@@ -26,6 +26,7 @@ type CustomerAccountsTableProps = {
   onOpenStatement: (account: CustomerAccount) => void;
   onReceivePayment: (account: CustomerAccount) => void;
   onEdit: (account: CustomerAccount) => void;
+  onDelete: (account: CustomerAccount) => void;
 };
 
 function getAccountRowId(account: CustomerAccount) {
@@ -40,6 +41,7 @@ export function CustomerAccountsTable({
   onOpenStatement,
   onReceivePayment,
   onEdit,
+  onDelete,
 }: CustomerAccountsTableProps) {
   const columns = useMemo(
     () =>
@@ -129,11 +131,18 @@ export function CustomerAccountsTable({
                 icon={Pencil}
                 onClick={() => onEdit(row.original)}
               />
+              <DataTableRowActionButton
+                label="Excluir"
+                accessibleLabel={`Excluir ${row.original.name}`}
+                icon={Trash2}
+                variant="destructive"
+                onClick={() => onDelete(row.original)}
+              />
             </div>
           ),
         }),
       ]),
-    [onOpenStatement, onReceivePayment, onEdit],
+    [onOpenStatement, onReceivePayment, onEdit, onDelete],
   );
 
   const table = useDataTable({
