@@ -1,0 +1,19 @@
+export const CUSTOMER_NAME_IN_USE_MESSAGE =
+  "Já existe um pedido em aberto com esse nome hoje. Use outro nome ou um sobrenome.";
+
+const ORDER_ERROR_MESSAGES: Readonly<Record<string, string>> = {
+  P0002: "Algum produto não está mais disponível. Atualize a tela.",
+  TB001:
+    "Estoque insuficiente para algum produto. Registre a entrada dos insumos e tente de novo.",
+  TB002: CUSTOMER_NAME_IN_USE_MESSAGE,
+  TB003: "Essa comanda já foi fechada. Atualize a tela.",
+  "22023": "Confira o pedido e o valor recebido.",
+  "42501": "Você não tem permissão para vender neste estabelecimento.",
+};
+
+export function getOrderErrorMessage(
+  error: { code?: string },
+  fallbackMessage: string,
+): string {
+  return (error.code && ORDER_ERROR_MESSAGES[error.code]) ?? fallbackMessage;
+}

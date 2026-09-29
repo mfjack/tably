@@ -13,13 +13,26 @@ export const orderPaymentSchema = z.object({
   amountReceived: z.number().min(0, "Não pode ser negativo.").optional(),
 });
 
+export const orderCustomerSchema = z.object({
+  customerName: z
+    .string()
+    .trim()
+    .min(1, "Informe o nome do cliente.")
+    .max(60, "Nome muito longo."),
+  isTakeaway: z.boolean(),
+});
+
 export const placeOrderSchema = z.object({
   items: z.array(orderItemSchema).min(1, "Adicione produtos ao pedido."),
   note: z.string().trim().max(500, "Observação muito longa.").optional(),
   payment: orderPaymentSchema.optional(),
+  customer: orderCustomerSchema.optional(),
+  sendToKitchen: z.boolean(),
 });
 
+export type OrderItemInput = z.infer<typeof orderItemSchema>;
 export type OrderPaymentInput = z.infer<typeof orderPaymentSchema>;
+export type OrderCustomerInput = z.infer<typeof orderCustomerSchema>;
 export type PlaceOrderInput = z.infer<typeof placeOrderSchema>;
 
 export function createQuickPaymentSchema(orderTotal: number) {

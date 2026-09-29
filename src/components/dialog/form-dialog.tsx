@@ -28,6 +28,12 @@ const DIALOG_SIZE_CLASS_NAMES = {
   large: "sm:max-w-2xl",
 } as const;
 
+export type FormDialogSecondaryAction = {
+  label: string;
+  isPending: boolean;
+  onClick: () => void;
+};
+
 type FormDialogProps = {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
@@ -37,6 +43,8 @@ type FormDialogProps = {
   isSubmitting: boolean;
   onSubmit: FormEventHandler<HTMLFormElement>;
   size?: keyof typeof DIALOG_SIZE_CLASS_NAMES;
+  isTitleHidden?: boolean;
+  secondaryAction?: FormDialogSecondaryAction;
   children: ReactNode;
 };
 
@@ -49,8 +57,12 @@ export function FormDialog({
   isSubmitting,
   onSubmit,
   size = "default",
+  isTitleHidden = false,
+  secondaryAction,
   children,
 }: FormDialogProps) {
+  const isBusy = isSubmitting || (secondaryAction?.isPending ?? false);
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent
@@ -66,7 +78,9 @@ export function FormDialog({
           noValidate
           className="flex min-h-0 flex-col gap-6"
         >
-          <DialogHeader className={DIALOG_HEADER_CLASS_NAME}>
+          <DialogHeader
+            className={cn(DIALOG_HEADER_CLASS_NAME, isTitleHidden && "sr-only")}
+          >
             <DialogTitle className={DIALOG_TITLE_CLASS_NAME}>
               {title}
             </DialogTitle>
@@ -78,21 +92,35 @@ export function FormDialog({
           <div className="-m-1 min-h-0 overflow-y-auto p-1">{children}</div>
 
           <DialogFooter className={DIALOG_FOOTER_CLASS_NAME}>
-            <DialogClose
-              render={
-                <Button
-                  type="button"
-                  variant="outline"
-                  className={DIALOG_ACTION_BUTTON_CLASS_NAME}
-                />
-              }
-            >
-              Cancelar
-            </DialogClose>
+            {secondaryAction ? (
+              <Button
+                type="button"
+                variant="outline"
+                className={DIALOG_ACTION_BUTTON_CLASS_NAME}
+                disabled={isBusy}
+                aria-busy={secondaryAction.isPending}
+                onClick={secondaryAction.onClick}
+              >
+                {secondaryAction.isPending && <Spinner aria-hidden />}
+                {secondaryAction.label}
+              </Button>
+            ) : (
+              <DialogClose
+                render={
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className={DIALOG_ACTION_BUTTON_CLASS_NAME}
+                  />
+                }
+              >
+                Cancelar
+              </DialogClose>
+            )}
             <Button
               type="submit"
               className={DIALOG_ACTION_BUTTON_CLASS_NAME}
-              disabled={isSubmitting}
+              disabled={isBusy}
               aria-busy={isSubmitting}
             >
               {isSubmitting && <Spinner aria-hidden />}

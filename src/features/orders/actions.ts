@@ -7,16 +7,13 @@ import {
   actionSuccess,
 } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
-import { type PlaceOrderInput, placeOrderSchema } from "./schemas";
+import { getOrderErrorMessage } from "./messages";
+import {
+  orderCustomerSchema,
+  type PlaceOrderInput,
+  placeOrderSchema,
+} from "./schemas";
 import type { OrderId, PlacedOrder } from "./types";
-
-const PLACE_ORDER_ERROR_MESSAGES: Readonly<Record<string, string>> = {
-  P0002: "Algum produto do pedido não está mais disponível. Atualize a tela.",
-  TB001:
-    "Estoque insuficiente para algum produto do pedido. Registre a entrada dos insumos e tente de novo.",
-  "22023": "Confira o pedido e o valor recebido.",
-  "42501": "Você não tem permissão para vender neste estabelecimento.",
-};
 
 export async function placeOrder(
   organizationId: OrganizationId,
@@ -27,7 +24,7 @@ export async function placeOrder(
     return actionFailure("Confira o pedido e tente novamente.");
   }
 
-  const { items, note, payment } = parsedInput.data;
+  const { items, note, payment, customer, sendToKitchen } = parsedInput.data;
   const supabase = await createClient();
   const { data, error } = await supabase
     .rpc("place_order", {
@@ -39,13 +36,15 @@ export async function placeOrder(
       p_note: note || undefined,
       p_payment_method: payment?.method,
       p_amount_received: payment?.amountReceived,
+      p_customer_name: customer?.customerName,
+      p_is_takeaway: customer?.isTakeaway ?? false,
+      p_send_to_kitchen: sendToKitchen,
     })
     .single();
 
   if (error) {
     return actionFailure(
-      (error.code && PLACE_ORDER_ERROR_MESSAGES[error.code]) ??
-        "Não foi possível registrar o pedido.",
+      getOrderErrorMessage(error, "Não foi possível registrar o pedido."),
     );
   }
 
@@ -54,4 +53,23 @@ export async function placeOrder(
     number: data.order_number,
     total: data.order_total,
   });
+}
+
+export async function isCustomerNameAvailable(
+  organizationId: OrganizationId,
+  customerName: string,
+): Promise<ActionResult<boolean>> {
+  const parsedName =
+    orderCustomerSchema.shape.customerName.safeParse(customerName);
+  if (!parsedName.success) return actionFailure("Informe o nome do cliente.");
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("is_customer_name_in_use", {
+    p_organization_id: organizationId,
+    p_customer_name: parsedName.data,
+  });
+
+  if (error) return actionFailure("Não foi possível verificar o nome.");
+
+  return actionSuccess(!data);
 }
