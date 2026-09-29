@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { OrganizationId, UserOrganization } from "./types";
 
 const USER_ORGANIZATION_COLUMNS =
-  "id, name, slug, hidden_modules, takeaway_fee, memberships!inner(role, user_id)";
+  "id, name, slug, hidden_modules, takeaway_fee, is_takeaway_enabled, tax_id, phone, address, memberships!inner(role, user_id)";
 
 export const getUserOrganizations = cache(
   async (): Promise<UserOrganization[]> => {
@@ -29,6 +29,10 @@ export const getUserOrganizations = cache(
       role: organization.memberships[0].role,
       hiddenModules: organization.hidden_modules,
       takeawayFee: organization.takeaway_fee,
+      isTakeawayEnabled: organization.is_takeaway_enabled,
+      taxId: organization.tax_id,
+      phone: organization.phone,
+      address: organization.address,
     }));
   },
 );

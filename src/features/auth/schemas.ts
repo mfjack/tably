@@ -17,12 +17,14 @@ export const signInSchema = z.object({
   password: z.string().min(1, "Informe sua senha."),
 });
 
+const personNameSchema = z
+  .string()
+  .trim()
+  .min(2, "Informe seu nome.")
+  .max(80, "Nome muito longo.");
+
 export const signUpSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(2, "Informe seu nome.")
-    .max(80, "Nome muito longo."),
+  name: personNameSchema,
   email: emailSchema,
   password: newPasswordSchema,
 });
@@ -43,3 +45,7 @@ export type SignInInput = z.infer<typeof signInSchema>;
 export type SignUpInput = z.infer<typeof signUpSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+
+export const profileSchema = z.object({ fullName: personNameSchema });
+
+export type ProfileInput = z.infer<typeof profileSchema>;

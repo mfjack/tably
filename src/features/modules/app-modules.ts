@@ -122,14 +122,14 @@ export const APP_MODULE_GROUPS = [
 
 export const SETTINGS_PAGE = {
   label: "Configurações",
-  description: "Dados do estabelecimento, equipe e módulos.",
+  description: "Estabelecimento, módulos e seu perfil.",
   path: "settings",
   icon: Settings,
 } as const;
 
 export const DEFAULT_MODULE_PATH = "pos";
 
-const APP_MODULES = APP_MODULE_GROUPS.flatMap(
+export const APP_MODULES = APP_MODULE_GROUPS.flatMap(
   (group): readonly AppModule[] => group.modules,
 );
 
@@ -153,4 +153,17 @@ export function buildOrganizationPath(
   path: string,
 ): string {
   return `/${organizationSlug}/${path}`;
+}
+
+export function buildOrganizationHomePath(
+  organizationSlug: string,
+  hiddenModules: readonly AppModuleId[],
+): string {
+  const firstVisibleModule = APP_MODULES.find(
+    ({ id }) => !hiddenModules.includes(id),
+  );
+  return buildOrganizationPath(
+    organizationSlug,
+    firstVisibleModule?.path ?? SETTINGS_PAGE.path,
+  );
 }

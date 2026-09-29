@@ -1,15 +1,50 @@
 import type { Metadata } from "next";
-import { SETTINGS_PAGE } from "@/features/modules/app-modules";
-import { ModuleComingSoon } from "../components/module-coming-soon";
+import { notFound, redirect } from "next/navigation";
+import { getCurrentUser } from "@/features/auth/queries";
+import {
+  buildOrganizationHomePath,
+  SETTINGS_PAGE,
+} from "@/features/modules/app-modules";
+import {
+  canAccessSettings,
+  getEffectiveHiddenModules,
+} from "@/features/operators/access";
+import { getOperatorAccess } from "@/features/operators/queries";
+import { canManageOrganization } from "@/features/organizations/permissions";
+import { getUserOrganizationBySlug } from "@/features/organizations/queries";
+import { SettingsView } from "./components/settings-view";
 
 export const metadata: Metadata = { title: SETTINGS_PAGE.label };
 
-export default function SettingsPage() {
+export default async function SettingsPage({
+  params,
+}: PageProps<"/[orgSlug]/settings">) {
+  const { orgSlug } = await params;
+  const [organization, currentUser] = await Promise.all([
+    getUserOrganizationBySlug(orgSlug),
+    getCurrentUser(),
+  ]);
+
+  if (!organization || !currentUser) notFound();
+
+  const access = await getOperatorAccess(organization.id);
+
+  if (!canAccessSettings(access)) {
+    const homePath = buildOrganizationHomePath(
+      organization.slug,
+      getEffectiveHiddenModules(organization.hiddenModules, access),
+    );
+    if (homePath.endsWith(`/${SETTINGS_PAGE.path}`)) notFound();
+    redirect(homePath);
+  }
+
   return (
-    <ModuleComingSoon
-      label={SETTINGS_PAGE.label}
+    <SettingsView
+      title={SETTINGS_PAGE.label}
       description={SETTINGS_PAGE.description}
-      icon={SETTINGS_PAGE.icon}
+      organization={organization}
+      currentUser={currentUser}
+      canManageOrganization={canManageOrganization(organization.role)}
     />
   );
 }

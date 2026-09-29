@@ -14,4 +14,8 @@ export type UserOrganization = {
   role: MemberRole;
   hiddenModules: AppModuleId[];
   takeawayFee: number;
+  isTakeawayEnabled: boolean;
+  taxId: string | null;
+  phone: string | null;
+  address: string | null;
 };

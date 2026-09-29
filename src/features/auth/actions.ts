@@ -17,6 +17,8 @@ import {
 import {
   type ForgotPasswordInput,
   forgotPasswordSchema,
+  type ProfileInput,
+  profileSchema,
   type ResetPasswordInput,
   resetPasswordSchema,
   type SignInInput,
@@ -119,6 +121,27 @@ export async function signOut(): Promise<ActionResult> {
   const supabase = await createClient();
   const { error } = await supabase.auth.signOut();
   if (error) return actionFailure(getAuthErrorMessage(error));
+
+  return actionSuccess();
+}
+
+export async function updateProfile(
+  input: ProfileInput,
+): Promise<ActionResult> {
+  const parsedInput = profileSchema.safeParse(input);
+  if (!parsedInput.success) return actionFailure(INVALID_FORM_MESSAGE);
+
+  const supabase = await createClient();
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const userId = claimsData?.claims.sub;
+  if (!userId) return actionFailure("Sua sessão expirou. Entre novamente.");
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ full_name: parsedInput.data.fullName })
+    .eq("id", userId);
+
+  if (error) return actionFailure("Não foi possível salvar seu perfil.");
 
   return actionSuccess();
 }

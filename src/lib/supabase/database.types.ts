@@ -253,6 +253,47 @@ export type Database = {
           },
         ]
       }
+      operators: {
+        Row: {
+          allowed_modules: Database["public"]["Enums"]["app_module"][]
+          can_access_settings: boolean
+          created_at: string
+          id: string
+          name: string
+          organization_id: string
+          pin_hash: string
+          updated_at: string
+        }
+        Insert: {
+          allowed_modules?: Database["public"]["Enums"]["app_module"][]
+          can_access_settings?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          organization_id: string
+          pin_hash: string
+          updated_at?: string
+        }
+        Update: {
+          allowed_modules?: Database["public"]["Enums"]["app_module"][]
+          can_access_settings?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          organization_id?: string
+          pin_hash?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operators_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           id: string
@@ -396,38 +437,50 @@ export type Database = {
       }
       organizations: {
         Row: {
+          address: string | null
           created_at: string
           created_by: string | null
           hidden_modules: Database["public"]["Enums"]["app_module"][]
           id: string
+          is_takeaway_enabled: boolean
           last_order_number: number
           name: string
+          phone: string | null
           slug: string
           takeaway_fee: number
+          tax_id: string | null
           timezone: string
           updated_at: string
         }
         Insert: {
+          address?: string | null
           created_at?: string
           created_by?: string | null
           hidden_modules?: Database["public"]["Enums"]["app_module"][]
           id?: string
+          is_takeaway_enabled?: boolean
           last_order_number?: number
           name: string
+          phone?: string | null
           slug: string
           takeaway_fee?: number
+          tax_id?: string | null
           timezone?: string
           updated_at?: string
         }
         Update: {
+          address?: string | null
           created_at?: string
           created_by?: string | null
           hidden_modules?: Database["public"]["Enums"]["app_module"][]
           id?: string
+          is_takeaway_enabled?: boolean
           last_order_number?: number
           name?: string
+          phone?: string | null
           slug?: string
           takeaway_fee?: number
+          tax_id?: string | null
           timezone?: string
           updated_at?: string
         }
@@ -772,14 +825,18 @@ export type Database = {
       create_organization: {
         Args: { p_name: string; p_slug: string }
         Returns: {
+          address: string | null
           created_at: string
           created_by: string | null
           hidden_modules: Database["public"]["Enums"]["app_module"][]
           id: string
+          is_takeaway_enabled: boolean
           last_order_number: number
           name: string
+          phone: string | null
           slug: string
           takeaway_fee: number
+          tax_id: string | null
           timezone: string
           updated_at: string
         }
@@ -789,6 +846,11 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      delete_operator: { Args: { p_operator_id: string }; Returns: undefined }
+      ensure_operator_with_settings: {
+        Args: { p_organization_id: string }
+        Returns: undefined
       }
       has_role: {
         Args: {
@@ -868,6 +930,17 @@ export type Database = {
         Args: { p_order_item_id: string; p_quantity?: number }
         Returns: number
       }
+      save_operator: {
+        Args: {
+          p_allowed_modules: Database["public"]["Enums"]["app_module"][]
+          p_can_access_settings: boolean
+          p_name: string
+          p_operator_id?: string
+          p_organization_id: string
+          p_pin?: string
+        }
+        Returns: string
+      }
       save_product: {
         Args: {
           p_category_id?: string
@@ -887,6 +960,10 @@ export type Database = {
           p_ticket_id: string
         }
         Returns: undefined
+      }
+      verify_operator_pin: {
+        Args: { p_operator_id: string; p_pin: string }
+        Returns: boolean
       }
     }
     Enums: {

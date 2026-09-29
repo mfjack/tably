@@ -17,10 +17,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import {
-  buildOrganizationPath,
-  DEFAULT_MODULE_PATH,
-} from "@/features/modules/app-modules";
+import { buildOrganizationHomePath } from "@/features/modules/app-modules";
 import { MEMBER_ROLE_LABELS } from "@/features/organizations/constants";
 import type { UserOrganization } from "@/features/organizations/types";
 import { getInitials } from "@/lib/get-initials";
@@ -73,9 +70,9 @@ export function OrganizationSwitcher({
                   key={organization.id}
                   render={
                     <Link
-                      href={buildOrganizationPath(
+                      href={buildOrganizationHomePath(
                         organization.slug,
-                        DEFAULT_MODULE_PATH,
+                        organization.hiddenModules,
                       )}
                     />
                   }
