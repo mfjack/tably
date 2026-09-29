@@ -29,6 +29,14 @@ type AccountFormState =
   | { mode: "create" }
   | { mode: "edit"; account: CustomerAccount };
 
+function getDeleteDescription(account: CustomerAccount) {
+  const debtWarning =
+    account.balance > 0
+      ? `O saldo devedor de ${formatCurrency(account.balance)} deixa de ser cobrado. `
+      : "";
+  return `${debtWarning}A conta de ${account.name} sai da lista e do PDV. ${IRREVERSIBLE_ACTION_MESSAGE}`;
+}
+
 type CustomerAccountsViewProps = {
   organizationId: OrganizationId;
   title: string;
@@ -79,15 +87,6 @@ export function CustomerAccountsView({
   }, []);
 
   const requestDelete = useCallback((account: CustomerAccount) => {
-    if (account.balance > 0) {
-      toast.error(
-        `${account.name} ainda deve ${formatCurrency(account.balance)}.`,
-        {
-          description: "Receba o saldo antes de excluir a conta.",
-        },
-      );
-      return;
-    }
     setAccountToDelete(account);
   }, []);
 
@@ -157,9 +156,9 @@ export function CustomerAccountsView({
         onOpenChange={(isOpen) => !isOpen && setAccountToDelete(null)}
         title="Excluir conta?"
         description={
-          accountToDelete?.lastEntryAt
-            ? `A conta de ${accountToDelete.name} some da lista e do PDV. As vendas e pagamentos dela continuam nos relatórios.`
-            : `A conta de ${accountToDelete?.name ?? ""} será apagada. ${IRREVERSIBLE_ACTION_MESSAGE}`
+          accountToDelete
+            ? getDeleteDescription(accountToDelete)
+            : IRREVERSIBLE_ACTION_MESSAGE
         }
         confirmLabel="Excluir"
         isConfirming={deleteAccountMutation.isPending}

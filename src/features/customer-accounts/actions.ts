@@ -23,7 +23,6 @@ const ACCOUNT_ERROR_MESSAGES: Readonly<Record<string, string>> = {
   "42501": "Você não tem permissão para gerenciar contas.",
   P0002: "Essa conta não existe mais. Atualize a tela.",
   TB006: "O valor é maior que o saldo devedor.",
-  TB007: "Essa conta tem saldo devedor. Receba o saldo antes de excluir.",
   "22023": "Confira o valor e a forma de pagamento.",
 };
 
