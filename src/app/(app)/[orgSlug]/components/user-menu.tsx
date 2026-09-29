@@ -19,6 +19,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { getUserDisplayName } from "@/features/auth/display-name";
 import { useSignOutMutation } from "@/features/auth/hooks/use-sign-out-mutation";
 import type { CurrentUser } from "@/features/auth/types";
 import { getInitials } from "@/lib/get-initials";
@@ -30,7 +31,7 @@ type UserMenuProps = {
 export function UserMenu({ currentUser }: UserMenuProps) {
   const { isMobile } = useSidebar();
   const signOutMutation = useSignOutMutation();
-  const displayName = currentUser.fullName ?? currentUser.email;
+  const displayName = getUserDisplayName(currentUser);
 
   function handleSignOut() {
     signOutMutation.mutate(undefined, {
