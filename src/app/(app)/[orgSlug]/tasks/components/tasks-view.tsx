@@ -10,16 +10,19 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { OperatorId, OperatorSummary } from "@/features/operators/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import { useDeleteTaskListMutation } from "@/features/tasks/hooks/use-delete-task-list-mutation";
 import { useDeleteTaskMutation } from "@/features/tasks/hooks/use-delete-task-mutation";
 import { useSetTaskDoneMutation } from "@/features/tasks/hooks/use-set-task-done-mutation";
 import { useTaskListsQuery } from "@/features/tasks/hooks/use-task-lists-query";
-import type { Task, TaskList } from "@/features/tasks/types";
+import type { Task, TaskBoard, TaskList } from "@/features/tasks/types";
 import { ListEmptyState } from "../../components/list-empty-state";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
 import { PosHeaderDescription } from "../../pos/components/pos-header-description";
+import { TaskFormDialog } from "./task-form-dialog";
 import { TaskListCard } from "./task-list-card";
 import { TaskListFormDialog } from "./task-list-form-dialog";
 
@@ -31,16 +34,44 @@ type TaskListFormState =
   | { mode: "create" }
   | { mode: "edit"; taskList: TaskList };
 
+const TASK_FILTERS = ["all", "mine"] as const;
+
+type TaskFilter = (typeof TASK_FILTERS)[number];
+
+function isTaskFilter(value: string): value is TaskFilter {
+  return TASK_FILTERS.some((filter) => filter === value);
+}
+
+function filterTaskLists(
+  taskBoard: TaskBoard,
+  filter: TaskFilter,
+  activeOperatorId: OperatorId | null,
+): TaskList[] {
+  if (filter === "all" || !activeOperatorId) return taskBoard.taskLists;
+  return taskBoard.taskLists
+    .map((taskList) => ({
+      ...taskList,
+      tasks: taskList.tasks.filter(
+        (task) => task.assignee?.id === activeOperatorId,
+      ),
+    }))
+    .filter((taskList) => taskList.tasks.length > 0);
+}
+
 type TasksViewProps = {
   organizationId: OrganizationId;
   title: string;
   canManage: boolean;
+  operators: OperatorSummary[];
+  activeOperatorId: OperatorId | null;
 };
 
 export function TasksView({
   organizationId,
   title,
   canManage,
+  operators,
+  activeOperatorId,
 }: TasksViewProps) {
   const taskListsQuery = useTaskListsQuery(organizationId);
   const setTaskDoneMutation = useSetTaskDoneMutation(organizationId);
@@ -54,6 +85,8 @@ export function TasksView({
   const [taskListToDelete, setTaskListToDelete] = useState<TaskList | null>(
     null,
   );
+  const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
+  const [filter, setFilter] = useState<TaskFilter>("all");
 
   const openCreateForm = useCallback(() => {
     setFormState({ mode: "create" });
@@ -87,7 +120,10 @@ export function TasksView({
     });
   }
 
-  const taskLists = taskListsQuery.data;
+  const taskBoard = taskListsQuery.data;
+  const taskLists = taskBoard
+    ? filterTaskLists(taskBoard, filter, activeOperatorId)
+    : undefined;
 
   return (
     <>
@@ -108,7 +144,7 @@ export function TasksView({
           <Alert variant="destructive">
             <AlertDescription>{taskListsQuery.error.message}</AlertDescription>
           </Alert>
-        ) : !taskLists ? (
+        ) : !taskBoard || !taskLists ? (
           <div className={GRID_CLASS_NAME}>
             {Array.from({ length: LOADING_CARD_COUNT }, (_, cardIndex) => (
               <Skeleton
@@ -117,31 +153,58 @@ export function TasksView({
               />
             ))}
           </div>
-        ) : taskLists.length === 0 ? (
+        ) : taskBoard.taskLists.length === 0 ? (
           <ListEmptyState
             icon={ListChecks}
             title="Nenhuma lista de tarefas"
-            description="Crie checklists como abertura, fechamento e limpeza. Eles reiniciam todo dia e mostram quem marcou cada tarefa."
+            description="Crie checklists como abertura, fechamento e limpeza. As tarefas podem ser diárias, semanais ou mensais e mostram quem marcou cada uma."
             createLabel="Criar primeira lista"
             canCreate={canManage}
             onCreate={openCreateForm}
           />
         ) : (
-          <div className={GRID_CLASS_NAME}>
-            {taskLists.map((taskList) => (
-              <TaskListCard
-                key={taskList.id}
-                organizationId={organizationId}
-                taskList={taskList}
-                canManage={canManage}
-                onToggleTask={toggleTask}
-                onDeleteTask={deleteTask}
-                onRename={(list) =>
-                  setFormState({ mode: "edit", taskList: list })
-                }
-                onDelete={setTaskListToDelete}
-              />
-            ))}
+          <div className="flex flex-col gap-4">
+            {activeOperatorId && (
+              <Tabs
+                value={filter}
+                onValueChange={(value: string) => {
+                  if (isTaskFilter(value)) setFilter(value);
+                }}
+              >
+                <TabsList className="group-data-horizontal/tabs:h-10">
+                  <TabsTrigger value="all" className="px-4">
+                    Todas
+                  </TabsTrigger>
+                  <TabsTrigger value="mine" className="px-4">
+                    Minhas tarefas
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            )}
+            {taskLists.length === 0 ? (
+              <p className="py-10 text-center text-muted-foreground text-sm">
+                Nenhuma tarefa atribuída a você.
+              </p>
+            ) : (
+              <div className={GRID_CLASS_NAME}>
+                {taskLists.map((taskList) => (
+                  <TaskListCard
+                    key={taskList.id}
+                    organizationId={organizationId}
+                    taskList={taskList}
+                    today={taskBoard.today}
+                    canManage={canManage}
+                    onToggleTask={toggleTask}
+                    onEditTask={setTaskToEdit}
+                    onDeleteTask={deleteTask}
+                    onRename={(list) =>
+                      setFormState({ mode: "edit", taskList: list })
+                    }
+                    onDelete={setTaskListToDelete}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         )}
       </PageContent>
@@ -151,6 +214,12 @@ export function TasksView({
         isOpen={formState.mode !== "closed"}
         taskList={formState.mode === "edit" ? formState.taskList : undefined}
         onClose={() => setFormState({ mode: "closed" })}
+      />
+      <TaskFormDialog
+        organizationId={organizationId}
+        task={taskToEdit}
+        operators={operators}
+        onClose={() => setTaskToEdit(null)}
       />
       <ConfirmDialog
         isOpen={taskListToDelete !== null}

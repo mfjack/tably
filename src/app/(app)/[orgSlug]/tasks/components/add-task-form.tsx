@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import type { OrganizationId } from "@/features/organizations/types";
 import { useAddTaskMutation } from "@/features/tasks/hooks/use-add-task-mutation";
-import { type TaskInput, taskSchema } from "@/features/tasks/schemas";
+import { type NewTaskInput, newTaskSchema } from "@/features/tasks/schemas";
 import type { TaskListId } from "@/features/tasks/types";
 
 type AddTaskFormProps = {
@@ -24,8 +24,8 @@ export function AddTaskForm({
   listName,
 }: AddTaskFormProps) {
   const addTaskMutation = useAddTaskMutation(organizationId);
-  const form = useForm<TaskInput>({
-    resolver: zodResolver(taskSchema),
+  const form = useForm<NewTaskInput>({
+    resolver: zodResolver(newTaskSchema),
     defaultValues: { title: "" },
   });
 

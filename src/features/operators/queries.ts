@@ -4,7 +4,12 @@ import { cache } from "react";
 import type { OrganizationId } from "@/features/organizations/types";
 import { createClient } from "@/lib/supabase/server";
 import { readOperatorSession } from "./session";
-import type { Operator, OperatorAccess, OperatorId } from "./types";
+import type {
+  Operator,
+  OperatorAccess,
+  OperatorId,
+  OperatorSummary,
+} from "./types";
 
 export const OPERATOR_COLUMNS =
   "id, name, allowed_modules, can_access_settings";
@@ -51,5 +56,23 @@ export const getOperatorAccess = cache(
           mode: "locked",
           operators: operators.map(({ id, name }) => ({ id, name })),
         };
+  },
+);
+
+export const listOperatorSummaries = cache(
+  async (organizationId: OrganizationId): Promise<OperatorSummary[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("operators")
+      .select("id, name")
+      .eq("organization_id", organizationId)
+      .order("name");
+
+    if (error) throw error;
+
+    return data.map((operator) => ({
+      id: operator.id as OperatorId,
+      name: operator.name,
+    }));
   },
 );

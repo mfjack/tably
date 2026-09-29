@@ -17,8 +17,10 @@ import { TaskItem } from "./task-item";
 type TaskListCardProps = {
   organizationId: OrganizationId;
   taskList: TaskList;
+  today: string;
   canManage: boolean;
   onToggleTask: (task: Task) => void;
+  onEditTask: (task: Task) => void;
   onDeleteTask: (task: Task) => void;
   onRename: (taskList: TaskList) => void;
   onDelete: (taskList: TaskList) => void;
@@ -27,8 +29,10 @@ type TaskListCardProps = {
 export function TaskListCard({
   organizationId,
   taskList,
+  today,
   canManage,
   onToggleTask,
+  onEditTask,
   onDeleteTask,
   onRename,
   onDelete,
@@ -101,8 +105,10 @@ export function TaskListCard({
             <TaskItem
               key={task.id}
               task={task}
+              today={today}
               canManage={canManage}
               onToggle={onToggleTask}
+              onEdit={onEditTask}
               onDelete={onDeleteTask}
             />
           ))}

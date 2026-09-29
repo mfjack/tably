@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { OrganizationId } from "@/features/organizations/types";
 import { unwrapActionResult } from "@/lib/action-result";
 import { setTaskDone } from "../actions";
-import type { TaskId, TaskList } from "../types";
+import type { TaskBoard, TaskId } from "../types";
 import { getTaskListsQueryKey } from "./use-task-lists-query";
 
 type SetTaskDoneVariables = {
@@ -11,22 +11,29 @@ type SetTaskDoneVariables = {
 };
 
 function applyTaskDone(
-  taskLists: TaskList[],
+  taskBoard: TaskBoard,
   { taskId, isDone }: SetTaskDoneVariables,
-): TaskList[] {
-  return taskLists.map((taskList) => ({
-    ...taskList,
-    tasks: taskList.tasks.map((task) =>
-      task.id === taskId
-        ? {
-            ...task,
-            completion: isDone
-              ? { operatorName: null, completedAt: new Date().toISOString() }
-              : null,
-          }
-        : task,
-    ),
-  }));
+): TaskBoard {
+  return {
+    ...taskBoard,
+    taskLists: taskBoard.taskLists.map((taskList) => ({
+      ...taskList,
+      tasks: taskList.tasks.map((task) =>
+        task.id === taskId
+          ? {
+              ...task,
+              completion: isDone
+                ? {
+                    operatorName: null,
+                    completedAt: new Date().toISOString(),
+                    completedOn: taskBoard.today,
+                  }
+                : null,
+            }
+          : task,
+      ),
+    })),
+  };
 }
 
 export function getSetTaskDoneMutationKey(organizationId: OrganizationId) {
@@ -43,14 +50,14 @@ export function useSetTaskDoneMutation(organizationId: OrganizationId) {
       unwrapActionResult(await setTaskDone(taskId, isDone)),
     onMutate: async (variables) => {
       await queryClient.cancelQueries({ queryKey });
-      const previousTaskLists = queryClient.getQueryData<TaskList[]>(queryKey);
-      queryClient.setQueryData<TaskList[]>(queryKey, (taskLists) =>
-        taskLists ? applyTaskDone(taskLists, variables) : taskLists,
+      const previousTaskBoard = queryClient.getQueryData<TaskBoard>(queryKey);
+      queryClient.setQueryData<TaskBoard>(queryKey, (taskBoard) =>
+        taskBoard ? applyTaskDone(taskBoard, variables) : taskBoard,
       );
-      return { previousTaskLists };
+      return { previousTaskBoard };
     },
     onError: (_error, _variables, context) => {
-      queryClient.setQueryData(queryKey, context?.previousTaskLists);
+      queryClient.setQueryData(queryKey, context?.previousTaskBoard);
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey }),
   });

@@ -2,13 +2,13 @@ import { useMutation } from "@tanstack/react-query";
 import type { OrganizationId } from "@/features/organizations/types";
 import { unwrapActionResult } from "@/lib/action-result";
 import { addTask } from "../actions";
-import type { TaskInput } from "../schemas";
+import type { NewTaskInput } from "../schemas";
 import type { TaskListId } from "../types";
 import { useInvalidateTaskLists } from "./use-invalidate-task-lists";
 
 type AddTaskVariables = {
   listId: TaskListId;
-  input: TaskInput;
+  input: NewTaskInput;
 };
 
 export function getAddTaskMutationKey(organizationId: OrganizationId) {
