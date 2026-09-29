@@ -1,4 +1,5 @@
 import type { PaymentMethod } from "@/features/orders/types";
+import type { ProductId } from "@/features/products/types";
 import type { Database } from "@/lib/supabase/database.types";
 
 export type SalesReportPeriod =
@@ -12,10 +13,19 @@ export type SalesSummary = {
   itemCount: number;
 };
 
+export type CanceledSummary = {
+  orderCount: number;
+  total: number;
+};
+
 export type SalesByPaymentMethod = {
   method: PaymentMethod;
   revenue: number;
   orderCount: number;
+};
+
+export type SalesByOperatorPayment = SalesByPaymentMethod & {
+  operatorName: string | null;
 };
 
 export type SalesByDay = {
@@ -24,11 +34,26 @@ export type SalesByDay = {
   orderCount: number;
 };
 
-export type TopProduct = {
+export type SalesByHour = {
+  hour: number;
+  revenue: number;
+  orderCount: number;
+};
+
+export type SalesByWeekday = {
+  weekday: number;
+  revenue: number;
+  orderCount: number;
+};
+
+export type ProductSales = {
+  productId: ProductId | null;
   productName: string;
+  categoryName: string | null;
   quantity: number;
   revenue: number;
   cost: number;
+  orderCount: number;
 };
 
 export type SalesReport = {
@@ -36,7 +61,11 @@ export type SalesReport = {
   endDate: string;
   summary: SalesSummary;
   previousSummary: Pick<SalesSummary, "revenue" | "orderCount">;
+  canceled: CanceledSummary;
   byPaymentMethod: SalesByPaymentMethod[];
+  byOperatorPayment: SalesByOperatorPayment[];
   byDay: SalesByDay[];
-  topProducts: TopProduct[];
+  byHour: SalesByHour[];
+  byWeekday: SalesByWeekday[];
+  products: ProductSales[];
 };

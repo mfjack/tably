@@ -5,9 +5,15 @@ import { Controller, type FieldValues } from "react-hook-form";
 import { NumericFormat } from "react-number-format";
 import { Input } from "@/components/ui/input";
 import { CURRENCY_SYMBOL } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { FormFieldShell, getFieldDescriptionId } from "./form-field-shell";
 import { FORM_INPUT_CLASS_NAME } from "./form-field-styles";
 import type { FormFieldProps } from "./form-field-types";
+
+const INPUT_SIZE_CLASS_NAMES = {
+  default: "",
+  compact: "h-9 px-3 text-sm md:text-sm",
+} as const;
 
 const NUMBER_FORMAT_PRESETS = {
   currency: {
@@ -25,6 +31,7 @@ type NumberFieldProps<TFieldValues extends FieldValues> = Omit<
   format: keyof typeof NUMBER_FORMAT_PRESETS;
   suffix?: string;
   isDisabled?: boolean;
+  size?: keyof typeof INPUT_SIZE_CLASS_NAMES;
 };
 
 export function NumberField<TFieldValues extends FieldValues>({
@@ -38,6 +45,7 @@ export function NumberField<TFieldValues extends FieldValues>({
   format,
   suffix,
   isDisabled = false,
+  size = "default",
 }: NumberFieldProps<TFieldValues>) {
   const inputId = useId();
   const preset = NUMBER_FORMAT_PRESETS[format];
@@ -75,7 +83,7 @@ export function NumberField<TFieldValues extends FieldValues>({
             placeholder={placeholder}
             aria-invalid={fieldState.invalid}
             aria-describedby={getFieldDescriptionId(inputId)}
-            className={FORM_INPUT_CLASS_NAME}
+            className={cn(FORM_INPUT_CLASS_NAME, INPUT_SIZE_CLASS_NAMES[size])}
           />
         </FormFieldShell>
       )}

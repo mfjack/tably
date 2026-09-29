@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import type { OrganizationId } from "@/features/organizations/types";
+import type { ProductId } from "@/features/products/types";
 import {
   type ActionResult,
   actionFailure,
@@ -10,6 +11,8 @@ import {
 import { Constants } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
 import type { SalesReport, SalesReportPeriod } from "./types";
+
+const paymentMethodSchema = z.enum(Constants.public.Enums.payment_method);
 
 const summarySchema = z.object({
   revenue: z.number(),
@@ -25,18 +28,28 @@ const salesReportRowSchema = z.object({
     item_count: z.number(),
   }),
   previous_summary: summarySchema,
+  canceled: z.object({ order_count: z.number(), total: z.number() }),
   by_payment_method: z.array(
+    summarySchema.extend({ method: paymentMethodSchema }),
+  ),
+  by_operator_payment: z.array(
     summarySchema.extend({
-      method: z.enum(Constants.public.Enums.payment_method),
+      method: paymentMethodSchema,
+      operator_name: z.string().nullable(),
     }),
   ),
   by_day: z.array(summarySchema.extend({ date: z.string() })),
-  top_products: z.array(
+  by_hour: z.array(summarySchema.extend({ hour: z.number() })),
+  by_weekday: z.array(summarySchema.extend({ weekday: z.number() })),
+  products: z.array(
     z.object({
+      product_id: z.string().nullable(),
       product_name: z.string(),
+      category_name: z.string().nullable(),
       quantity: z.number(),
       revenue: z.number(),
       cost: z.number(),
+      order_count: z.number(),
     }),
   ),
 });
@@ -71,7 +84,17 @@ export async function getSalesReport(
       revenue: report.previous_summary.revenue,
       orderCount: report.previous_summary.order_count,
     },
+    canceled: {
+      orderCount: report.canceled.order_count,
+      total: report.canceled.total,
+    },
     byPaymentMethod: report.by_payment_method.map((payment) => ({
+      method: payment.method,
+      revenue: payment.revenue,
+      orderCount: payment.order_count,
+    })),
+    byOperatorPayment: report.by_operator_payment.map((payment) => ({
+      operatorName: payment.operator_name,
       method: payment.method,
       revenue: payment.revenue,
       orderCount: payment.order_count,
@@ -81,11 +104,24 @@ export async function getSalesReport(
       revenue: day.revenue,
       orderCount: day.order_count,
     })),
-    topProducts: report.top_products.map((product) => ({
+    byHour: report.by_hour.map((hour) => ({
+      hour: hour.hour,
+      revenue: hour.revenue,
+      orderCount: hour.order_count,
+    })),
+    byWeekday: report.by_weekday.map((weekday) => ({
+      weekday: weekday.weekday,
+      revenue: weekday.revenue,
+      orderCount: weekday.order_count,
+    })),
+    products: report.products.map((product) => ({
+      productId: product.product_id as ProductId | null,
       productName: product.product_name,
+      categoryName: product.category_name,
       quantity: product.quantity,
       revenue: product.revenue,
       cost: product.cost,
+      orderCount: product.order_count,
     })),
   });
 }

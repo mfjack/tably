@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getAppModule } from "@/features/modules/app-modules";
 import { requireVisibleModule } from "@/features/modules/require-visible-module";
+import { toOrderTicketBusiness } from "@/features/orders/print-order-ticket";
 import { SalesReportView } from "./components/sales-report-view";
 
 const salesReportModule = getAppModule("sales_report");
@@ -17,6 +18,7 @@ export default async function SalesReportPage({
     <SalesReportView
       organizationId={organization.id}
       title={salesReportModule.label}
+      ticketBusiness={toOrderTicketBusiness(organization)}
     />
   );
 }

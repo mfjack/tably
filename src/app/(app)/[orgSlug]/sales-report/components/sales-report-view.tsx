@@ -1,8 +1,6 @@
 "use client";
 
-import { format, parseISO } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { ChartColumn } from "lucide-react";
+import { ChartColumn, TrendingDown, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -14,6 +12,7 @@ import {
 } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
 import type { OrganizationId } from "@/features/organizations/types";
 import { useSalesReportQuery } from "@/features/sales-report/hooks/use-sales-report-query";
 import {
@@ -22,6 +21,15 @@ import {
   SALES_REPORT_PERIOD_LABELS,
   SALES_REPORT_PERIODS,
 } from "@/features/sales-report/periods";
+import {
+  formatReportPeriod,
+  getAverageTicket,
+  getBestSellers,
+  getChange,
+  getCostShare,
+  getGrossProfit,
+  getWorstSellers,
+} from "@/features/sales-report/report-metrics";
 import type {
   SalesReport,
   SalesReportPeriod,
@@ -30,31 +38,20 @@ import { formatCurrency, formatPercent } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
+import { CashClosingSection } from "./cash-closing-section";
 import { KpiCard } from "./kpi-card";
-import { PaymentMethodsBreakdown } from "./payment-methods-breakdown";
-import { ReportSection } from "./report-section";
-import { RevenueByDayChart } from "./revenue-by-day-chart";
-import { TopProductsTable } from "./top-products-table";
+import { ProductLookupSection } from "./product-lookup-section";
+import { ProductsRankingSection } from "./products-ranking-section";
+import { SalesCharts } from "./sales-charts";
+import { SalesReportExportMenu } from "./sales-report-export-menu";
 
 const KPI_CARD_COUNT = 4;
 
 type SalesReportViewProps = {
   organizationId: OrganizationId;
   title: string;
+  ticketBusiness: OrderTicketBusiness;
 };
-
-function getChange(current: number, previous: number) {
-  return previous > 0 ? (current - previous) / previous : null;
-}
-
-function formatPeriodRange(report: SalesReport) {
-  if (report.startDate === report.endDate) {
-    return format(parseISO(report.startDate), "EEEE, d 'de' MMMM", {
-      locale: ptBR,
-    });
-  }
-  return `${format(parseISO(report.startDate), "dd/MM")} a ${format(parseISO(report.endDate), "dd/MM/yyyy")}`;
-}
 
 function SalesReportSkeleton() {
   return (
@@ -77,11 +74,8 @@ type SalesReportContentProps = {
 };
 
 function SalesReportContent({ report }: SalesReportContentProps) {
-  const { summary, previousSummary } = report;
-  const averageTicket =
-    summary.orderCount > 0 ? summary.revenue / summary.orderCount : 0;
-  const grossProfit = summary.revenue - summary.cost;
-  const hasCost = summary.cost > 0;
+  const { summary, previousSummary, canceled } = report;
+  const costShare = getCostShare(summary.cost, summary.revenue);
 
   if (summary.orderCount === 0) {
     return (
@@ -112,36 +106,48 @@ function SalesReportContent({ report }: SalesReportContentProps) {
           label="Pedidos"
           value={summary.orderCount.toString()}
           change={getChange(summary.orderCount, previousSummary.orderCount)}
+          detail={
+            canceled.orderCount > 0
+              ? `${canceled.orderCount} ${canceled.orderCount === 1 ? "cancelado" : "cancelados"}`
+              : undefined
+          }
         />
-        <KpiCard label="Ticket médio" value={formatCurrency(averageTicket)} />
+        <KpiCard
+          label="Ticket médio"
+          value={formatCurrency(getAverageTicket(report))}
+        />
         <KpiCard
           label="Lucro bruto"
-          value={hasCost ? formatCurrency(grossProfit) : "—"}
+          value={
+            costShare === null ? "—" : formatCurrency(getGrossProfit(report))
+          }
           detail={
-            hasCost
-              ? `CMV ${formatPercent(summary.cost / summary.revenue)}`
-              : "Cadastre o custo dos insumos"
+            costShare === null
+              ? "Cadastre o custo dos insumos"
+              : `CMV ${formatPercent(costShare)}`
           }
         />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[3fr_2fr]">
-        {report.byDay.length > 1 && (
-          <ReportSection title="Faturamento por dia">
-            <RevenueByDayChart days={report.byDay} />
-          </ReportSection>
-        )}
-        <ReportSection title="Formas de pagamento">
-          <PaymentMethodsBreakdown
-            payments={report.byPaymentMethod}
-            totalRevenue={summary.revenue}
-          />
-        </ReportSection>
-      </div>
+      <ProductLookupSection key={report.startDate} report={report} />
+      <CashClosingSection report={report} />
 
-      <ReportSection title="Produtos mais vendidos">
-        <TopProductsTable products={report.topProducts} />
-      </ReportSection>
+      <SalesCharts report={report} />
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <ProductsRankingSection
+          title="Produtos mais vendidos"
+          icon={TrendingUp}
+          products={getBestSellers(report)}
+          emptyMessage="Nenhuma venda neste período."
+        />
+        <ProductsRankingSection
+          title="Produtos menos vendidos"
+          icon={TrendingDown}
+          products={getWorstSellers(report)}
+          emptyMessage="Nenhum produto ativo."
+        />
+      </div>
     </div>
   );
 }
@@ -149,6 +155,7 @@ function SalesReportContent({ report }: SalesReportContentProps) {
 export function SalesReportView({
   organizationId,
   title,
+  ticketBusiness,
 }: SalesReportViewProps) {
   const [period, setPeriod] = useState<SalesReportPeriod>(
     DEFAULT_SALES_REPORT_PERIOD,
@@ -160,7 +167,13 @@ export function SalesReportView({
     <>
       <PageHeader
         title={title}
-        description={report ? formatPeriodRange(report) : undefined}
+        description={report ? formatReportPeriod(report) : undefined}
+        actions={
+          <SalesReportExportMenu
+            report={salesReportQuery.isPlaceholderData ? undefined : report}
+            business={ticketBusiness}
+          />
+        }
       />
       <PageContent>
         <div className="flex flex-col gap-6">
