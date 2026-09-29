@@ -13,7 +13,7 @@ export function TabModeBanner({
   onExit,
 }: TabModeBannerProps) {
   return (
-    <div className="flex items-center gap-3 border-b bg-primary/10 px-6 py-3">
+    <div className="flex items-center gap-3 border-b bg-primary/10 px-4 py-3 lg:px-6">
       <ClipboardList aria-hidden className="size-5 shrink-0 text-primary" />
       <p className="min-w-0 flex-1 text-sm">
         <span className="block text-muted-foreground">

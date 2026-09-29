@@ -16,12 +16,13 @@ export function ModuleLinkButton({
   return (
     <Button
       variant="outline"
-      className="h-11 px-4"
+      className="h-11 px-3 sm:px-4"
+      aria-label={label}
       nativeButton={false}
       render={<Link href={href} />}
     >
       <Icon aria-hidden />
-      {label}
+      <span className="hidden sm:inline">{label}</span>
     </Button>
   );
 }

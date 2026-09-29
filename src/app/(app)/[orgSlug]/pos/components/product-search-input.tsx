@@ -29,7 +29,7 @@ export function ProductSearchInput({
   });
 
   return (
-    <InputGroup className="h-11 w-64 rounded-lg bg-muted lg:w-80">
+    <InputGroup className="h-11 w-full rounded-lg bg-muted sm:w-80">
       <InputGroupAddon>
         <Search aria-hidden />
       </InputGroupAddon>
@@ -43,7 +43,9 @@ export function ProductSearchInput({
         onChange={(event) => onSearchTermChange(event.target.value)}
       />
       <InputGroupAddon align="inline-end">
-        <Kbd className="border bg-background">{FOCUS_SEARCH_SHORTCUT}</Kbd>
+        <Kbd className="hidden border bg-background md:inline-flex">
+          {FOCUS_SEARCH_SHORTCUT}
+        </Kbd>
       </InputGroupAddon>
     </InputGroup>
   );

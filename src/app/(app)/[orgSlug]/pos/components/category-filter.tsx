@@ -20,7 +20,10 @@ export function CategoryFilter({
   onSelect,
 }: CategoryFilterProps) {
   return (
-    <nav aria-label="Categorias" className="flex flex-wrap gap-2">
+    <nav
+      aria-label="Categorias"
+      className="-mx-4 flex gap-2 overflow-x-auto px-4 md:mx-0 md:flex-wrap md:px-0"
+    >
       {options.map((option) => {
         const isSelected = option.id === selectedCategoryId;
         return (
@@ -30,7 +33,7 @@ export function CategoryFilter({
             aria-pressed={isSelected}
             onClick={() => onSelect(option.id)}
             className={cn(
-              "flex h-9 items-center rounded-lg border px-3 font-medium text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/40",
+              "flex h-9 shrink-0 items-center whitespace-nowrap rounded-lg border px-3 font-medium text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/40",
               isSelected
                 ? "border-foreground bg-foreground text-background"
                 : "bg-background hover:bg-muted",

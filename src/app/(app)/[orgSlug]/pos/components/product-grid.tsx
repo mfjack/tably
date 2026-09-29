@@ -14,7 +14,7 @@ import type { PosProduct } from "../hooks/use-pos-catalog";
 import { ProductCard } from "./product-card";
 
 const GRID_CLASS_NAME =
-  "grid grid-cols-[repeat(auto-fill,minmax(10.5rem,1fr))] gap-5";
+  "grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(12rem,1fr))] md:gap-5";
 
 const LOADING_CARD_COUNT = 10;
 
@@ -31,7 +31,7 @@ export function ProductGrid({ products, isLoading, onAdd }: ProductGridProps) {
         {Array.from({ length: LOADING_CARD_COUNT }, (_, index) => (
           <Skeleton
             key={`loading-${index.toString()}`}
-            className="h-36 rounded-xl"
+            className="h-40 rounded-xl"
           />
         ))}
       </div>

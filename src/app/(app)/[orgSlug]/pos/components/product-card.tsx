@@ -58,7 +58,7 @@ function ProductCardComponent({ product, onAdd }: ProductCardProps) {
     >
       <div
         className={cn(
-          "relative flex h-19 items-center justify-center overflow-hidden rounded-lg bg-foreground/5 text-muted-foreground/70",
+          "relative flex h-24 items-center justify-center overflow-hidden rounded-lg bg-foreground/5 text-muted-foreground/70",
           isLow && "bg-destructive/10",
           isOut && "text-muted-foreground/40",
         )}
@@ -72,14 +72,14 @@ function ProductCardComponent({ product, onAdd }: ProductCardProps) {
             className="object-cover"
           />
         ) : (
-          <ShoppingBag className="size-5" strokeWidth={1.5} aria-hidden />
+          <ShoppingBag className="size-6" strokeWidth={1.5} aria-hidden />
         )}
       </div>
 
       <div className="flex flex-col gap-0.5 px-1 pb-0.5">
         <span
           className={cn(
-            "truncate font-semibold text-[15px]",
+            "truncate font-semibold text-sm",
             isOut && "text-muted-foreground/80",
           )}
         >
@@ -88,7 +88,7 @@ function ProductCardComponent({ product, onAdd }: ProductCardProps) {
         <div className="flex items-center justify-between gap-2">
           <span
             className={cn(
-              "whitespace-nowrap text-[13px] text-muted-foreground tabular-nums",
+              "whitespace-nowrap text-muted-foreground text-sm tabular-nums",
               isOut && "text-muted-foreground/60",
             )}
           >
@@ -112,7 +112,7 @@ function ProductCardComponent({ product, onAdd }: ProductCardProps) {
       {isInCart && (
         <span
           aria-hidden
-          className="absolute -top-2.5 -right-2.5 flex size-7 items-center justify-center rounded-full border-2 border-background bg-primary font-bold text-[13px] text-primary-foreground tabular-nums"
+          className="absolute -top-2.5 -right-2.5 flex size-7 items-center justify-center rounded-full border-2 border-background bg-primary font-bold text-primary-foreground text-xs tabular-nums"
         >
           {cartQuantity}
         </span>

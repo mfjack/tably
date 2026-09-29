@@ -22,6 +22,7 @@ import { usePosCheckout } from "../hooks/use-pos-checkout";
 import { CartPanel } from "./cart-panel";
 import { CategoryFilter, type CategoryFilterOption } from "./category-filter";
 import { CustomerDialog } from "./customer-dialog";
+import { MobileCartSheet } from "./mobile-cart-sheet";
 import { PosHeaderDescription } from "./pos-header-description";
 import { ProductGrid } from "./product-grid";
 import { ProductSearchInput } from "./product-search-input";
@@ -123,7 +124,7 @@ export function PosView({
   );
 
   return (
-    <div className="flex h-svh min-h-0 flex-col lg:flex-row">
+    <div className="flex h-svh min-h-0 flex-col md:flex-row">
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <PageHeader
           title={organizationName}
@@ -149,7 +150,7 @@ export function PosView({
             onSearchTermChange={setSearchTerm}
           />
         </div>
-        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pt-6 pb-8 md:px-8">
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pt-6 pb-28 md:px-8 md:pb-8">
           {errorMessage ? (
             <Alert variant="destructive">
               <AlertDescription>{errorMessage}</AlertDescription>
@@ -165,6 +166,20 @@ export function PosView({
       </div>
 
       <CartPanel
+        variant="sidebar"
+        cartLines={isCartHydrated ? cartLines : []}
+        note={cart.note}
+        isSendingToKitchen={checkout.isPlacingOrder}
+        onNoteChange={(note) => setCartNote(organizationId, note)}
+        onDecrement={handleDecrementProduct}
+        onSendToKitchen={checkout.startKitchenCheckout}
+        onQuickPayment={checkout.startQuickPayment}
+        tabTarget={tabTarget}
+        isAddingToTab={checkout.isAddingToTab}
+        onAddToTab={checkout.addToTab}
+        onExitTabMode={() => setTabTarget(organizationId, null)}
+      />
+      <MobileCartSheet
         cartLines={isCartHydrated ? cartLines : []}
         note={cart.note}
         isSendingToKitchen={checkout.isPlacingOrder}
