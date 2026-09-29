@@ -302,6 +302,7 @@ export type Database = {
           product_id: string | null
           product_name: string
           quantity: number
+          unit_cost: number
           unit_price: number
         }
         Insert: {
@@ -311,6 +312,7 @@ export type Database = {
           product_id?: string | null
           product_name: string
           quantity: number
+          unit_cost?: number
           unit_price: number
         }
         Update: {
@@ -320,6 +322,7 @@ export type Database = {
           product_id?: string | null
           product_name?: string
           quantity?: number
+          unit_cost?: number
           unit_price?: number
         }
         Relationships: [
@@ -852,6 +855,13 @@ export type Database = {
         Args: { p_organization_id: string }
         Returns: undefined
       }
+      get_sales_report: {
+        Args: {
+          p_organization_id: string
+          p_period: Database["public"]["Enums"]["sales_report_period"]
+        }
+        Returns: Json
+      }
       has_role: {
         Args: {
           org_id: string
@@ -983,6 +993,13 @@ export type Database = {
       member_role: "owner" | "manager" | "cashier" | "kitchen" | "waiter"
       order_status: "in_kitchen" | "ready" | "completed" | "canceled"
       payment_method: "cash" | "pix" | "credit_card" | "debit_card"
+      sales_report_period:
+        | "today"
+        | "yesterday"
+        | "last_7_days"
+        | "last_30_days"
+        | "this_month"
+        | "last_month"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1130,6 +1147,14 @@ export const Constants = {
       member_role: ["owner", "manager", "cashier", "kitchen", "waiter"],
       order_status: ["in_kitchen", "ready", "completed", "canceled"],
       payment_method: ["cash", "pix", "credit_card", "debit_card"],
+      sales_report_period: [
+        "today",
+        "yesterday",
+        "last_7_days",
+        "last_30_days",
+        "this_month",
+        "last_month",
+      ],
     },
   },
 } as const
