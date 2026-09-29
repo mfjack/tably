@@ -25,6 +25,7 @@ import type {
 const ORDER_DETAILS_COLUMNS = `
   id, customer_name, is_takeaway, note, subtotal, takeaway_fee, total,
   created_at, paid_at, payment_method, amount_received,
+  created_by_operator_name, paid_by_operator_name,
   attendant:profiles!orders_created_by_profile_fkey(full_name),
   cashier:profiles!orders_paid_by_profile_fkey(full_name),
   order_items(id, product_id, product_name, quantity, unit_price)
@@ -44,6 +45,8 @@ type OrderDetailsRow = {
   paid_at: string | null;
   payment_method: PaymentMethod | null;
   amount_received: number | null;
+  created_by_operator_name: string | null;
+  paid_by_operator_name: string | null;
   attendant: { full_name: string | null } | null;
   cashier: { full_name: string | null } | null;
   order_items: Array<{
@@ -68,8 +71,9 @@ function toOrderDetails(row: OrderDetailsRow): OrderDetails {
     paidAt: row.paid_at,
     paymentMethod: row.payment_method,
     amountReceived: row.amount_received,
-    attendantName: row.attendant?.full_name ?? null,
-    cashierName: row.cashier?.full_name ?? null,
+    attendantName:
+      row.created_by_operator_name ?? row.attendant?.full_name ?? null,
+    cashierName: row.paid_by_operator_name ?? row.cashier?.full_name ?? null,
     items: row.order_items
       .map((item) => ({
         id: item.id as OrderItemId,

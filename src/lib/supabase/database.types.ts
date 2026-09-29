@@ -361,6 +361,7 @@ export type Database = {
           amount_received: number | null
           created_at: string
           created_by: string | null
+          created_by_operator_name: string | null
           customer_name: string | null
           id: string
           is_takeaway: boolean
@@ -369,6 +370,7 @@ export type Database = {
           organization_id: string
           paid_at: string | null
           paid_by: string | null
+          paid_by_operator_name: string | null
           payment_method: Database["public"]["Enums"]["payment_method"] | null
           status: Database["public"]["Enums"]["order_status"]
           subtotal: number
@@ -380,6 +382,7 @@ export type Database = {
           amount_received?: number | null
           created_at?: string
           created_by?: string | null
+          created_by_operator_name?: string | null
           customer_name?: string | null
           id?: string
           is_takeaway?: boolean
@@ -388,6 +391,7 @@ export type Database = {
           organization_id: string
           paid_at?: string | null
           paid_by?: string | null
+          paid_by_operator_name?: string | null
           payment_method?: Database["public"]["Enums"]["payment_method"] | null
           status: Database["public"]["Enums"]["order_status"]
           subtotal: number
@@ -399,6 +403,7 @@ export type Database = {
           amount_received?: number | null
           created_at?: string
           created_by?: string | null
+          created_by_operator_name?: string | null
           customer_name?: string | null
           id?: string
           is_takeaway?: boolean
@@ -407,6 +412,7 @@ export type Database = {
           organization_id?: string
           paid_at?: string | null
           paid_by?: string | null
+          paid_by_operator_name?: string | null
           payment_method?: Database["public"]["Enums"]["payment_method"] | null
           status?: Database["public"]["Enums"]["order_status"]
           subtotal?: number
@@ -850,6 +856,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      current_operator_name: {
+        Args: { p_organization_id: string }
+        Returns: string
+      }
       delete_operator: { Args: { p_operator_id: string }; Returns: undefined }
       ensure_operator_with_settings: {
         Args: { p_organization_id: string }
@@ -880,6 +890,7 @@ export type Database = {
           amount_received: number | null
           created_at: string
           created_by: string | null
+          created_by_operator_name: string | null
           customer_name: string | null
           id: string
           is_takeaway: boolean
@@ -888,6 +899,7 @@ export type Database = {
           organization_id: string
           paid_at: string | null
           paid_by: string | null
+          paid_by_operator_name: string | null
           payment_method: Database["public"]["Enums"]["payment_method"] | null
           status: Database["public"]["Enums"]["order_status"]
           subtotal: number

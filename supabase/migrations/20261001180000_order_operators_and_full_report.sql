@@ -1,0 +1,269 @@
+alter table public.orders
+  add column created_by_operator_name text,
+  add column paid_by_operator_name text;
+
+create function public.current_operator_name(p_organization_id uuid)
+returns text
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_headers json;
+  v_entry text;
+  v_operator_id uuid;
+  v_operator_name text;
+begin
+  v_headers := nullif(current_setting('request.headers', true), '')::json;
+
+  foreach v_entry in array string_to_array(coalesce(v_headers ->> 'x-tably-operators', ''), ',') loop
+    if split_part(v_entry, ':', 1) = p_organization_id::text then
+      begin
+        v_operator_id := split_part(v_entry, ':', 2)::uuid;
+      exception when invalid_text_representation then
+        return null;
+      end;
+
+      select name into v_operator_name
+        from public.operators
+       where id = v_operator_id
+         and organization_id = p_organization_id;
+
+      return v_operator_name;
+    end if;
+  end loop;
+
+  return null;
+end;
+$$;
+
+revoke execute on function public.current_operator_name from public, anon, authenticated;
+
+create function public.stamp_order_operator()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if tg_op = 'INSERT' then
+    new.created_by_operator_name := public.current_operator_name(new.organization_id);
+  end if;
+
+  if new.paid_at is not null and (tg_op = 'INSERT' or old.paid_at is null) then
+    new.paid_by_operator_name := public.current_operator_name(new.organization_id);
+  end if;
+
+  return new;
+end;
+$$;
+
+create trigger orders_stamp_operator
+  before insert or update on public.orders
+  for each row execute function public.stamp_order_operator();
+
+create or replace function public.get_sales_report(
+  p_organization_id uuid,
+  p_period public.sales_report_period
+)
+returns jsonb
+language plpgsql
+stable
+security invoker
+set search_path = ''
+as $$
+declare
+  v_timezone text;
+  v_today date;
+  v_start date;
+  v_end date;
+  v_previous_start date;
+  v_previous_end date;
+  v_result jsonb;
+begin
+  if not public.is_member(p_organization_id) then
+    raise exception 'not a member of this organization' using errcode = '42501';
+  end if;
+
+  select timezone into v_timezone from public.organizations where id = p_organization_id;
+  v_today := (now() at time zone v_timezone)::date;
+
+  case p_period
+    when 'today' then
+      v_start := v_today;
+      v_end := v_today;
+    when 'yesterday' then
+      v_start := v_today - 1;
+      v_end := v_today - 1;
+    when 'last_7_days' then
+      v_start := v_today - 6;
+      v_end := v_today;
+    when 'last_30_days' then
+      v_start := v_today - 29;
+      v_end := v_today;
+    when 'this_month' then
+      v_start := date_trunc('month', v_today)::date;
+      v_end := v_today;
+    when 'last_month' then
+      v_start := (date_trunc('month', v_today) - interval '1 month')::date;
+      v_end := (date_trunc('month', v_today) - interval '1 day')::date;
+  end case;
+
+  if p_period in ('this_month', 'last_month') then
+    v_previous_start := (v_start - interval '1 month')::date;
+    v_previous_end := (v_end - interval '1 month')::date;
+  else
+    v_previous_start := v_start - (v_end - v_start + 1);
+    v_previous_end := v_start - 1;
+  end if;
+
+  with paid_orders as (
+    select
+      o.id,
+      o.total,
+      o.takeaway_fee,
+      o.payment_method,
+      o.paid_by_operator_name,
+      (o.paid_at at time zone v_timezone)::date as paid_date
+    from public.orders as o
+    where o.organization_id = p_organization_id
+      and o.paid_at is not null
+      and o.status <> 'canceled'
+      and (o.paid_at at time zone v_timezone)::date between v_previous_start and v_end
+  ),
+  current_orders as (
+    select * from paid_orders where paid_date between v_start and v_end
+  ),
+  previous_orders as (
+    select * from paid_orders where paid_date between v_previous_start and v_previous_end
+  ),
+  current_items as (
+    select oi.order_id, oi.product_id, oi.product_name, oi.quantity, oi.unit_price, oi.unit_cost
+      from public.order_items as oi
+      join current_orders as co on co.id = oi.order_id
+  ),
+  sold_products as (
+    select
+      product_id,
+      max(product_name) as product_name,
+      sum(quantity) as quantity,
+      sum(quantity * unit_price) as revenue,
+      sum(quantity * unit_cost) as cost,
+      count(distinct order_id) as order_count
+    from current_items
+    group by product_id, case when product_id is null then product_name end
+  ),
+  report_products as (
+    select
+      sp.product_id,
+      coalesce(p.name, sp.product_name) as product_name,
+      c.name as category_name,
+      sp.quantity,
+      sp.revenue,
+      sp.cost,
+      sp.order_count
+    from sold_products as sp
+    left join public.products as p on p.id = sp.product_id
+    left join public.categories as c on c.id = p.category_id
+    union all
+    select p.id, p.name, c.name, 0, 0, 0, 0
+      from public.products as p
+      left join public.categories as c on c.id = p.category_id
+     where p.organization_id = p_organization_id
+       and p.is_active
+       and not exists (select 1 from sold_products as sp where sp.product_id = p.id)
+  )
+  select jsonb_build_object(
+    'start_date', v_start,
+    'end_date', v_end,
+    'summary', (
+      select jsonb_build_object(
+        'revenue', coalesce(sum(total), 0),
+        'order_count', count(*),
+        'takeaway_fees', coalesce(sum(takeaway_fee), 0),
+        'cost', (select coalesce(sum(quantity * unit_cost), 0) from current_items),
+        'item_count', (select coalesce(sum(quantity), 0) from current_items)
+      )
+      from current_orders
+    ),
+    'previous_summary', (
+      select jsonb_build_object(
+        'revenue', coalesce(sum(total), 0),
+        'order_count', count(*)
+      )
+      from previous_orders
+    ),
+    'canceled', (
+      select jsonb_build_object(
+        'order_count', count(*),
+        'total', coalesce(sum(o.total), 0)
+      )
+      from public.orders as o
+      where o.organization_id = p_organization_id
+        and o.status = 'canceled'
+        and (o.created_at at time zone v_timezone)::date between v_start and v_end
+    ),
+    'by_payment_method', (
+      select coalesce(jsonb_agg(
+        jsonb_build_object('method', payment_method, 'revenue', revenue, 'order_count', order_count)
+        order by revenue desc
+      ), '[]'::jsonb)
+      from (
+        select payment_method, sum(total) as revenue, count(*) as order_count
+          from current_orders
+         group by payment_method
+      ) as payments
+    ),
+    'by_operator_payment', (
+      select coalesce(jsonb_agg(
+        jsonb_build_object(
+          'operator_name', paid_by_operator_name,
+          'method', payment_method,
+          'revenue', revenue,
+          'order_count', order_count
+        )
+      ), '[]'::jsonb)
+      from (
+        select paid_by_operator_name, payment_method, sum(total) as revenue, count(*) as order_count
+          from current_orders
+         group by paid_by_operator_name, payment_method
+      ) as operator_payments
+    ),
+    'by_day', (
+      select jsonb_agg(
+        jsonb_build_object(
+          'date', day::date,
+          'revenue', coalesce(daily.revenue, 0),
+          'order_count', coalesce(daily.order_count, 0)
+        )
+        order by day
+      )
+      from generate_series(v_start, v_end, interval '1 day') as day
+      left join (
+        select paid_date, sum(total) as revenue, count(*) as order_count
+          from current_orders
+         group by paid_date
+      ) as daily on daily.paid_date = day::date
+    ),
+    'products', (
+      select coalesce(jsonb_agg(
+        jsonb_build_object(
+          'product_id', product_id,
+          'product_name', product_name,
+          'category_name', category_name,
+          'quantity', quantity,
+          'revenue', revenue,
+          'cost', cost,
+          'order_count', order_count
+        )
+        order by quantity desc, revenue desc, product_name
+      ), '[]'::jsonb)
+      from report_products
+    )
+  )
+  into v_result;
+
+  return v_result;
+end;
+$$;
