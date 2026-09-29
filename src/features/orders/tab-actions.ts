@@ -100,7 +100,7 @@ export async function listOpenOrderTabs(
     .is("paid_at", null)
     .neq("status", "canceled")
     .not("customer_name", "is", null)
-    .order("created_at")
+    .order("created_at", { ascending: false })
     .overrideTypes<OrderDetailsRow[], { merge: false }>();
 
   if (error) return actionFailure("Não foi possível carregar as comandas.");

@@ -4,7 +4,10 @@ import { MonitorSmartphone } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
-import { ConfirmDialog, IRREVERSIBLE_ACTION_MESSAGE } from "@/components/dialog/confirm-dialog";
+import {
+  ConfirmDialog,
+  IRREVERSIBLE_ACTION_MESSAGE,
+} from "@/components/dialog/confirm-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PaymentDialog } from "@/features/orders/components/payment-dialog";
 import { useCancelOrderMutation } from "@/features/orders/hooks/use-cancel-order-mutation";
@@ -13,7 +16,10 @@ import { usePaidOrdersQuery } from "@/features/orders/hooks/use-paid-orders-quer
 import { usePayOrderMutation } from "@/features/orders/hooks/use-pay-order-mutation";
 import { useRemoveOrderItemMutation } from "@/features/orders/hooks/use-remove-order-item-mutation";
 import { buildOrderDetailsTicket } from "@/features/orders/order-details-ticket";
-import { type OrderTicketBusiness, printOrderTicket } from "@/features/orders/print-order-ticket";
+import {
+  type OrderTicketBusiness,
+  printOrderTicket,
+} from "@/features/orders/print-order-ticket";
 import type { OrderPaymentInput } from "@/features/orders/schemas";
 import type { OrderDetails, OrderId, OrderItem } from "@/features/orders/types";
 import type { OrganizationId } from "@/features/organizations/types";
@@ -50,7 +56,14 @@ function getChangeMessage(payment: OrderPaymentInput, orderTotal: number) {
   return change > 0 ? `Troco: ${formatCurrency(change)}` : undefined;
 }
 
-export function OrderTabsView({ organizationId, ticketBusiness, title, description, posHref, canOpenPos }: OrderTabsViewProps) {
+export function OrderTabsView({
+  organizationId,
+  ticketBusiness,
+  title,
+  description,
+  posHref,
+  canOpenPos,
+}: OrderTabsViewProps) {
   const router = useRouter();
   const setTabTarget = useCartStore((state) => state.setTabTarget);
   const openOrderTabsQuery = useOpenOrderTabsQuery(organizationId);
@@ -62,11 +75,18 @@ export function OrderTabsView({ organizationId, ticketBusiness, title, descripti
   const [openTabState, setOpenTabState] = useState<OpenTabState>({
     step: "closed",
   });
-  const [selectedPaidOrder, setSelectedPaidOrder] = useState<OrderDetails | null>(null);
+  const [selectedPaidOrder, setSelectedPaidOrder] =
+    useState<OrderDetails | null>(null);
 
   const selectedOrder =
-    openTabState.step === "closed" ? null : (openOrderTabsQuery.data?.find((order) => order.id === openTabState.orderId) ?? null);
-  const removingItemId = removeOrderItemMutation.isPending ? (removeOrderItemMutation.variables ?? null) : null;
+    openTabState.step === "closed"
+      ? null
+      : (openOrderTabsQuery.data?.find(
+          (order) => order.id === openTabState.orderId,
+        ) ?? null);
+  const removingItemId = removeOrderItemMutation.isPending
+    ? (removeOrderItemMutation.variables ?? null)
+    : null;
 
   const selectOpenTab = useCallback((orderId: OrderId) => {
     setOpenTabState({ step: "details", orderId });
@@ -78,7 +98,9 @@ export function OrderTabsView({ organizationId, ticketBusiness, title, descripti
 
   function backToDetails() {
     setOpenTabState((currentState) =>
-      currentState.step === "closed" ? currentState : { step: "details", orderId: currentState.orderId },
+      currentState.step === "closed"
+        ? currentState
+        : { step: "details", orderId: currentState.orderId },
     );
   }
 
@@ -144,14 +166,26 @@ export function OrderTabsView({ organizationId, ticketBusiness, title, descripti
       <PageHeader
         title={title}
         description={description}
-        actions={canOpenPos && <ModuleLinkButton href={posHref} label="PDV" icon={MonitorSmartphone} />}
+        actions={
+          canOpenPos && (
+            <ModuleLinkButton
+              href={posHref}
+              label="PDV"
+              icon={MonitorSmartphone}
+            />
+          )
+        }
       />
       <PageContent>
         <Tabs defaultValue="open" className="flex-1 gap-6">
           <TabsList className="group-data-horizontal/tabs:h-10">
             <TabsTrigger value="open" className="px-4">
               Abertas
-              {openTabCount > 0 && <span className="text-muted-foreground tabular-nums">{openTabCount}</span>}
+              {openTabCount > 0 && (
+                <span className="text-muted-foreground tabular-nums">
+                  {openTabCount}
+                </span>
+              )}
             </TabsTrigger>
             <TabsTrigger value="history" className="px-4">
               Histórico
@@ -184,9 +218,15 @@ export function OrderTabsView({ organizationId, ticketBusiness, title, descripti
         onClose={closeOpenTab}
         onRemoveItem={removeItem}
         onAddProducts={addProducts}
-        onCharge={() => selectedOrder && setOpenTabState({ step: "payment", orderId: selectedOrder.id })}
+        onCharge={() =>
+          selectedOrder &&
+          setOpenTabState({ step: "payment", orderId: selectedOrder.id })
+        }
         onPrint={() => selectedOrder && printOrder(selectedOrder)}
-        onCancelOrder={() => selectedOrder && setOpenTabState({ step: "cancel", orderId: selectedOrder.id })}
+        onCancelOrder={() =>
+          selectedOrder &&
+          setOpenTabState({ step: "cancel", orderId: selectedOrder.id })
+        }
       />
       <PaymentDialog
         organizationId={organizationId}
@@ -217,7 +257,11 @@ export function OrderTabsView({ organizationId, ticketBusiness, title, descripti
         isConfirming={cancelOrderMutation.isPending}
         onConfirm={confirmCancel}
       />
-      <PaidOrderDialog order={selectedPaidOrder} onClose={() => setSelectedPaidOrder(null)} onPrint={printOrder} />
+      <PaidOrderDialog
+        order={selectedPaidOrder}
+        onClose={() => setSelectedPaidOrder(null)}
+        onPrint={printOrder}
+      />
     </>
   );
 }
