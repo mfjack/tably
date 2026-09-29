@@ -136,26 +136,24 @@ export function PosView({
           title={organizationName}
           description={<PosHeaderDescription />}
           actions={
-            <>
-              <ProductSearchInput
-                searchTerm={searchTerm}
-                onSearchTermChange={setSearchTerm}
+            canOpenOrderTabs && (
+              <ModuleLinkButton
+                href={orderTabsHref}
+                label="Comandas"
+                icon={ClipboardList}
               />
-              {canOpenOrderTabs && (
-                <ModuleLinkButton
-                  href={orderTabsHref}
-                  label="Comandas"
-                  icon={ClipboardList}
-                />
-              )}
-            </>
+            )
           }
         />
-        <div className="px-4 pt-5 md:px-8">
+        <div className="flex flex-col gap-4 px-4 pt-5 md:px-8">
           <CategoryFilter
             options={categoryOptions}
             selectedCategoryId={selectedCategoryId}
             onSelect={setSelectedCategoryId}
+          />
+          <ProductSearchInput
+            searchTerm={searchTerm}
+            onSearchTermChange={setSearchTerm}
           />
         </div>
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pt-6 pb-8 md:px-8">
