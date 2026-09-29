@@ -5,6 +5,7 @@ import type {
   KitchenTicketId,
   KitchenTicketStatus,
 } from "@/features/kitchen/types";
+import { cn } from "@/lib/utils";
 import { KitchenTicketCard } from "./kitchen-ticket-card";
 
 const LOADING_CARD_COUNT = 3;
@@ -16,6 +17,7 @@ type KitchenColumnProps = {
   tickets: readonly KitchenTicket[];
   isLoading: boolean;
   now: Date;
+  className?: string;
   onChangeStatus: (
     ticketId: KitchenTicketId,
     status: KitchenTicketStatus,
@@ -29,12 +31,16 @@ export function KitchenColumn({
   tickets,
   isLoading,
   now,
+  className,
   onChangeStatus,
 }: KitchenColumnProps) {
   return (
     <section
       aria-label={title}
-      className="flex min-h-0 flex-col rounded-2xl bg-muted/40 p-4"
+      className={cn(
+        "flex min-h-0 flex-col rounded-2xl bg-muted/40 p-3 md:p-4",
+        className,
+      )}
     >
       <h2 className="flex items-center gap-2 px-1 pb-4 font-semibold text-base">
         <Icon aria-hidden className="size-4 text-muted-foreground" />
