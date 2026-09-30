@@ -74,7 +74,10 @@ export function DataTable<TData extends RowData>({
             aria-label={searchPlaceholder}
             placeholder={searchPlaceholder}
             value={table.state.globalFilter ?? ""}
-            onChange={(event) => table.setGlobalFilter(event.target.value)}
+            onChange={(event) => {
+              table.setGlobalFilter(event.target.value);
+              table.setPageIndex(0);
+            }}
           />
         </InputGroup>
         {toolbarActions}

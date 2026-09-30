@@ -4,6 +4,7 @@ import {
   type RowData,
   useTable,
 } from "@tanstack/react-table";
+import { useEffect } from "react";
 import {
   type DataTableFeatures,
   dataTableFeatures,
@@ -27,14 +28,26 @@ export function useDataTable<TData extends RowData>({
   columns,
   getRowId,
 }: UseDataTableOptions<TData>): DataTableInstance<TData> {
-  return useTable({
+  const table = useTable({
     features: dataTableFeatures,
     data,
     columns,
     getRowId,
     globalFilterFn: "includesString",
+    autoResetPageIndex: false,
     initialState: {
       pagination: { pageIndex: 0, pageSize: DEFAULT_PAGE_SIZE },
     },
   });
+
+  const pageCount = table.getPageCount();
+  const pageIndex = table.state.pagination.pageIndex;
+
+  useEffect(() => {
+    if (pageCount > 0 && pageIndex >= pageCount) {
+      table.setPageIndex(pageCount - 1);
+    }
+  }, [table, pageCount, pageIndex]);
+
+  return table;
 }
