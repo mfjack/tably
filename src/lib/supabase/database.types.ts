@@ -2309,6 +2309,15 @@ export type Database = {
         Returns: undefined
       }
       get_account_balance: { Args: { p_account_id: string }; Returns: number }
+      get_financial_analysis: {
+        Args: {
+          p_from: string
+          p_horizon_days: number
+          p_organization_id: string
+          p_to: string
+        }
+        Returns: Json
+      }
       get_financial_overview: {
         Args: { p_from: string; p_organization_id: string; p_to: string }
         Returns: Json
