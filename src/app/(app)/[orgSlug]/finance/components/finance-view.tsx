@@ -173,7 +173,7 @@ export function FinanceView({
           className="gap-5"
         >
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <TabsList className="group-data-horizontal/tabs:h-10">
+            <TabsList className="max-w-full justify-start overflow-x-auto group-data-horizontal/tabs:h-10">
               <TabsTrigger value="overview" className="px-3">
                 Resumo
               </TabsTrigger>

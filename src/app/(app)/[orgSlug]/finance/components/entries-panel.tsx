@@ -76,7 +76,7 @@ export function EntriesPanel({
             if (nextFilter) setFilter(nextFilter);
           }}
         >
-          <TabsList className="group-data-horizontal/tabs:h-10">
+          <TabsList className="max-w-full justify-start overflow-x-auto group-data-horizontal/tabs:h-10">
             {ENTRY_LIST_FILTERS.map((listFilter) => (
               <TabsTrigger key={listFilter} value={listFilter} className="px-3">
                 {filterLabels[listFilter]}
