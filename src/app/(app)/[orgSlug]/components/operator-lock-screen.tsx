@@ -2,20 +2,22 @@
 
 import { ArrowLeft, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useSignOutMutation } from "@/features/auth/hooks/use-sign-out-mutation";
+import { useCreateOperatorPinMutation } from "@/features/operators/hooks/use-create-operator-pin-mutation";
 import { useUnlockOperatorMutation } from "@/features/operators/hooks/use-unlock-operator-mutation";
-import type { OperatorSummary } from "@/features/operators/types";
+import type { LockScreenOperator } from "@/features/operators/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import { getInitials } from "@/lib/get-initials";
 import { MAX_PIN_LENGTH, PinPad } from "./pin-pad";
+import { PinSetup } from "./pin-setup";
 
 type OperatorLockScreenProps = {
   organizationId: OrganizationId;
   organizationName: string;
-  operators: OperatorSummary[];
+  operators: LockScreenOperator[];
 };
 
 export function OperatorLockScreen({
@@ -25,41 +27,69 @@ export function OperatorLockScreen({
 }: OperatorLockScreenProps) {
   const router = useRouter();
   const unlockMutation = useUnlockOperatorMutation(organizationId);
+  const createPinMutation = useCreateOperatorPinMutation(organizationId);
   const signOutMutation = useSignOutMutation();
   const [selectedOperator, setSelectedOperator] =
-    useState<OperatorSummary | null>(null);
+    useState<LockScreenOperator | null>(null);
   const [pin, setPin] = useState("");
   const [hasError, setHasError] = useState(false);
+  const pinRef = useRef("");
+  const [pinSetupAttempt, setPinSetupAttempt] = useState(0);
 
-  function selectOperator(operator: OperatorSummary | null) {
+  function updatePin(nextPin: string) {
+    pinRef.current = nextPin;
+    setPin(nextPin);
+  }
+
+  function selectOperator(operator: LockScreenOperator | null) {
     setSelectedOperator(operator);
-    setPin("");
+    updatePin("");
     setHasError(false);
   }
 
-  function appendDigit(digit: string) {
-    setPin((currentPin) =>
-      currentPin.length < MAX_PIN_LENGTH ? currentPin + digit : currentPin,
-    );
-    setHasError(false);
-  }
-
-  function deleteDigit() {
-    setPin((currentPin) => currentPin.slice(0, -1));
-    setHasError(false);
-  }
-
-  function submitPin() {
-    if (!selectedOperator) return;
+  function submitPin(pinToSubmit: string) {
+    if (!selectedOperator || unlockMutation.isPending) return;
 
     unlockMutation.mutate(
-      { operatorId: selectedOperator.id, pin },
+      { operatorId: selectedOperator.id, pin: pinToSubmit },
       {
         onSuccess: () => router.refresh(),
         onError: (error) => {
-          setPin("");
+          updatePin("");
           setHasError(true);
           toast.error(error.message);
+        },
+      },
+    );
+  }
+
+  function appendDigit(digit: string) {
+    if (unlockMutation.isPending) return;
+    const currentPin = pinRef.current;
+    if (currentPin.length >= MAX_PIN_LENGTH) return;
+    const nextPin = currentPin + digit;
+    setHasError(false);
+    updatePin(nextPin);
+    if (nextPin.length === MAX_PIN_LENGTH) submitPin(nextPin);
+  }
+
+  function deleteDigit() {
+    updatePin(pinRef.current.slice(0, -1));
+    setHasError(false);
+  }
+
+  function createPin(newPin: string) {
+    if (!selectedOperator) return;
+    createPinMutation.mutate(
+      { operatorId: selectedOperator.id, pin: newPin },
+      {
+        onSuccess: () => {
+          toast.success("PIN criado. Bem-vindo!");
+          router.refresh();
+        },
+        onError: (error) => {
+          toast.error(error.message);
+          setPinSetupAttempt((attempt) => attempt + 1);
         },
       },
     );
@@ -71,25 +101,36 @@ export function OperatorLockScreen({
         <h1 className="font-semibold text-[1.375rem]">{organizationName}</h1>
         <p className="text-muted-foreground text-sm">
           {selectedOperator
-            ? `Digite o PIN de ${selectedOperator.name}`
+            ? selectedOperator.hasPin
+              ? `Digite o PIN de ${selectedOperator.name}`
+              : "Primeiro acesso"
             : "Quem está usando?"}
         </p>
       </header>
 
       {selectedOperator ? (
         <div className="flex w-full flex-col items-center gap-6">
-          <PinPad
-            pin={pin}
-            isSubmitting={unlockMutation.isPending}
-            hasError={hasError}
-            onAppendDigit={appendDigit}
-            onDeleteDigit={deleteDigit}
-            onSubmit={submitPin}
-          />
+          {selectedOperator.hasPin ? (
+            <PinPad
+              pin={pin}
+              isSubmitting={unlockMutation.isPending}
+              hasError={hasError}
+              onAppendDigit={appendDigit}
+              onDeleteDigit={deleteDigit}
+              onSubmit={() => submitPin(pinRef.current)}
+            />
+          ) : (
+            <PinSetup
+              key={`${selectedOperator.id}-${pinSetupAttempt}`}
+              personName={selectedOperator.name}
+              isSubmitting={createPinMutation.isPending}
+              onSubmit={createPin}
+            />
+          )}
           <Button
             type="button"
             variant="ghost"
-            disabled={unlockMutation.isPending}
+            disabled={unlockMutation.isPending || createPinMutation.isPending}
             onClick={() => selectOperator(null)}
           >
             <ArrowLeft aria-hidden />
@@ -111,8 +152,15 @@ export function OperatorLockScreen({
                 >
                   {getInitials(operator.name)}
                 </span>
-                <span className="w-full truncate text-center font-semibold text-[0.9375rem]">
-                  {operator.name}
+                <span className="flex w-full flex-col items-center">
+                  <span className="w-full truncate text-center font-semibold text-[0.9375rem]">
+                    {operator.name}
+                  </span>
+                  {!operator.hasPin && (
+                    <span className="text-muted-foreground text-xs">
+                      Criar PIN
+                    </span>
+                  )}
                 </span>
               </button>
             </li>

@@ -10,9 +10,9 @@ import { createClient } from "@/lib/supabase/server";
 import { canAccessSettings } from "./access";
 import { getOperatorAccess, OPERATOR_COLUMNS, toOperator } from "./queries";
 import {
-  createOperatorSchema,
   type OperatorInput,
   operatorPinSchema,
+  operatorSchema,
 } from "./schemas";
 import {
   endOperatorSession,
@@ -28,6 +28,7 @@ const OPERATOR_ERROR_MESSAGES: Readonly<Record<string, string>> = {
   "42501": "Só o dono ou um gerente pode gerenciar operadores.",
   P0002: "Esse operador não existe mais. Atualize a tela.",
   TB004: "Pelo menos um operador precisa ter acesso a Configurações.",
+  TB010: "Esse PIN já foi criado. Peça ao gerente para redefinir.",
 };
 
 function getOperatorErrorMessage(
@@ -65,9 +66,7 @@ export async function saveOperator(
   operatorId: OperatorId | null,
   input: OperatorInput,
 ): Promise<ActionResult> {
-  const parsedInput = createOperatorSchema(operatorId !== null).safeParse(
-    input,
-  );
+  const parsedInput = operatorSchema.safeParse(input);
   if (!parsedInput.success) {
     return actionFailure("Confira os campos e tente novamente.");
   }
@@ -149,5 +148,50 @@ export async function lockOperator(
   organizationId: OrganizationId,
 ): Promise<ActionResult> {
   await endOperatorSession(organizationId);
+  return actionSuccess();
+}
+
+export async function createOperatorPin(
+  organizationId: OrganizationId,
+  operatorId: OperatorId,
+  pin: string,
+): Promise<ActionResult> {
+  const parsedPin = operatorPinSchema.safeParse(pin);
+  if (!parsedPin.success) return actionFailure("O PIN deve ter 4 números.");
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("create_operator_pin", {
+    p_operator_id: operatorId,
+    p_pin: parsedPin.data,
+  });
+
+  if (error) {
+    return actionFailure(
+      getOperatorErrorMessage(error, "Não foi possível criar o PIN."),
+    );
+  }
+
+  await startOperatorSession(organizationId, operatorId);
+  return actionSuccess();
+}
+
+export async function resetOperatorPin(
+  organizationId: OrganizationId,
+  operatorId: OperatorId,
+): Promise<ActionResult> {
+  if (!(await canManageOperators(organizationId))) {
+    return actionFailure(OPERATOR_ERROR_MESSAGES["42501"]);
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("reset_person_pin", {
+    p_operator_id: operatorId,
+  });
+
+  if (error) {
+    return actionFailure(
+      getOperatorErrorMessage(error, "Não foi possível redefinir o PIN."),
+    );
+  }
   return actionSuccess();
 }

@@ -1,10 +1,8 @@
 "use client";
 
 import { Check } from "lucide-react";
-import { type Control, useController } from "react-hook-form";
 import { FieldError, FieldLegend, FieldSet } from "@/components/ui/field";
 import { APP_MODULES, SETTINGS_PAGE } from "@/features/modules/app-modules";
-import type { OperatorInput } from "@/features/operators/schemas";
 import type { AppModuleId } from "@/features/organizations/types";
 import { cn } from "@/lib/utils";
 
@@ -37,26 +35,28 @@ function PageChip({ label, isSelected, onToggle }: PageChipProps) {
 }
 
 type PageAccessFieldProps = {
-  control: Control<OperatorInput>;
+  allowedModules: readonly AppModuleId[];
+  canAccessSettings: boolean;
   visibleModuleIds: readonly AppModuleId[];
+  errorMessage?: string;
+  onAllowedModulesChange: (allowedModules: AppModuleId[]) => void;
+  onCanAccessSettingsChange: (canAccessSettings: boolean) => void;
 };
 
 export function PageAccessField({
-  control,
+  allowedModules,
+  canAccessSettings,
   visibleModuleIds,
+  errorMessage,
+  onAllowedModulesChange,
+  onCanAccessSettingsChange,
 }: PageAccessFieldProps) {
-  const allowedModulesField = useController({
-    control,
-    name: "allowedModules",
-  });
-  const settingsField = useController({ control, name: "canAccessSettings" });
-  const allowedModules = allowedModulesField.field.value;
   const modules = APP_MODULES.filter((appModule) =>
     visibleModuleIds.includes(appModule.id),
   );
 
   function toggleModule(moduleId: AppModuleId) {
-    allowedModulesField.field.onChange(
+    onAllowedModulesChange(
       allowedModules.includes(moduleId)
         ? allowedModules.filter(
             (allowedModuleId) => allowedModuleId !== moduleId,
@@ -79,15 +79,13 @@ export function PageAccessField({
         ))}
         <PageChip
           label={SETTINGS_PAGE.label}
-          isSelected={settingsField.field.value}
-          onToggle={() =>
-            settingsField.field.onChange(!settingsField.field.value)
-          }
+          isSelected={canAccessSettings}
+          onToggle={() => onCanAccessSettingsChange(!canAccessSettings)}
         />
       </div>
-      {allowedModulesField.fieldState.error && (
+      {errorMessage && (
         <FieldError
-          errors={[allowedModulesField.fieldState.error]}
+          errors={[{ message: errorMessage }]}
           className="text-[0.8125rem]"
         />
       )}

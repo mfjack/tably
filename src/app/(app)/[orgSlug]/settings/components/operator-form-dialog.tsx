@@ -2,8 +2,8 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo } from "react";
-import { type DefaultValues, useForm } from "react-hook-form";
+import { useEffect } from "react";
+import { type DefaultValues, useController, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { FormDialog } from "@/components/dialog/form-dialog";
 import { PasswordField } from "@/components/form/password-field";
@@ -11,15 +11,15 @@ import { TextField } from "@/components/form/text-field";
 import { FieldGroup } from "@/components/ui/field";
 import { useSaveOperatorMutation } from "@/features/operators/hooks/use-save-operator-mutation";
 import {
-  createOperatorSchema,
   type OperatorInput,
+  operatorSchema,
 } from "@/features/operators/schemas";
 import type { Operator } from "@/features/operators/types";
 import type {
   AppModuleId,
   OrganizationId,
 } from "@/features/organizations/types";
-import { PageAccessField } from "./page-access-field";
+import { PageAccessField } from "../../components/page-access-field";
 
 const EMPTY_OPERATOR_FORM: DefaultValues<OperatorInput> = {
   name: "",
@@ -56,14 +56,19 @@ export function OperatorFormDialog({
 }: OperatorFormDialogProps) {
   const router = useRouter();
   const isEditing = operator !== undefined;
-  const operatorSchema = useMemo(
-    () => createOperatorSchema(isEditing),
-    [isEditing],
-  );
   const saveOperatorMutation = useSaveOperatorMutation(organizationId);
   const form = useForm<OperatorInput>({
     resolver: zodResolver(operatorSchema),
     defaultValues: EMPTY_OPERATOR_FORM,
+  });
+
+  const allowedModulesField = useController({
+    control: form.control,
+    name: "allowedModules",
+  });
+  const settingsField = useController({
+    control: form.control,
+    name: "canAccessSettings",
   });
 
   useEffect(() => {
@@ -123,14 +128,18 @@ export function OperatorFormDialog({
             name="pin"
             label="PIN"
             placeholder={
-              isEditing ? "Deixe vazio para manter" : "4 a 6 números"
+              isEditing ? "Deixe vazio para manter" : "Vazio: cria no 1º acesso"
             }
             autoComplete="new-password"
           />
         </div>
         <PageAccessField
-          control={form.control}
+          allowedModules={allowedModulesField.field.value}
+          canAccessSettings={settingsField.field.value}
           visibleModuleIds={visibleModuleIds}
+          errorMessage={allowedModulesField.fieldState.error?.message}
+          onAllowedModulesChange={allowedModulesField.field.onChange}
+          onCanAccessSettingsChange={settingsField.field.onChange}
         />
       </FieldGroup>
     </FormDialog>

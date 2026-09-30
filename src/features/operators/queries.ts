@@ -1,6 +1,7 @@
 import "server-only";
 
 import { cache } from "react";
+import type { EmployeeId } from "@/features/employees/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import { createClient } from "@/lib/supabase/server";
 import { readOperatorSession } from "./session";
@@ -12,13 +13,15 @@ import type {
 } from "./types";
 
 export const OPERATOR_COLUMNS =
-  "id, name, allowed_modules, can_access_settings";
+  "id, name, allowed_modules, can_access_settings, employee_id, has_pin";
 
 type OperatorRow = {
   id: string;
   name: string;
   allowed_modules: Operator["allowedModules"];
   can_access_settings: boolean;
+  employee_id: string | null;
+  has_pin: boolean | null;
 };
 
 export function toOperator(row: OperatorRow): Operator {
@@ -27,6 +30,8 @@ export function toOperator(row: OperatorRow): Operator {
     name: row.name,
     allowedModules: row.allowed_modules,
     canAccessSettings: row.can_access_settings,
+    employeeId: row.employee_id as EmployeeId | null,
+    hasPin: row.has_pin ?? false,
   };
 }
 
@@ -54,7 +59,11 @@ export const getOperatorAccess = cache(
       ? { mode: "unlocked", operator: activeOperator }
       : {
           mode: "locked",
-          operators: operators.map(({ id, name }) => ({ id, name })),
+          operators: operators.map(({ id, name, hasPin }) => ({
+            id,
+            name,
+            hasPin,
+          })),
         };
   },
 );

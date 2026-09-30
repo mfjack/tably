@@ -1,6 +1,6 @@
 "use client";
 
-import { KeyRound, Pencil, Trash2 } from "lucide-react";
+import { KeyRound, Pencil, RotateCcwKey, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -16,6 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { APP_MODULES, SETTINGS_PAGE } from "@/features/modules/app-modules";
 import { useDeleteOperatorMutation } from "@/features/operators/hooks/use-delete-operator-mutation";
 import { useOperatorsQuery } from "@/features/operators/hooks/use-operators-query";
+import { useResetOperatorPinMutation } from "@/features/operators/hooks/use-reset-operator-pin-mutation";
 import type { Operator } from "@/features/operators/types";
 import type {
   AppModuleId,
@@ -49,6 +50,8 @@ export function OperatorsSettings({
   const router = useRouter();
   const operatorsQuery = useOperatorsQuery(organizationId);
   const deleteOperatorMutation = useDeleteOperatorMutation(organizationId);
+  const resetPinMutation = useResetOperatorPinMutation(organizationId);
+  const [operatorToReset, setOperatorToReset] = useState<Operator | null>(null);
   const [formState, setFormState] = useState<OperatorFormState>({
     mode: "closed",
   });
@@ -69,14 +72,28 @@ export function OperatorsSettings({
     });
   }
 
+  function confirmResetPin() {
+    if (!operatorToReset) return;
+    resetPinMutation.mutate(operatorToReset.id, {
+      onSuccess: () => {
+        toast.success(`PIN de ${operatorToReset.name} redefinido.`, {
+          description: "No próximo acesso, a pessoa cria um PIN novo.",
+        });
+        setOperatorToReset(null);
+      },
+      onError: (error) => toast.error(error.message),
+    });
+  }
+
   return (
     <section className="flex max-w-2xl flex-col gap-4">
       <header className="flex flex-col gap-1">
         <h2 className="font-semibold text-lg">Operadores</h2>
         <p className="text-muted-foreground text-sm">
-          Cadastre operadores com PIN para exigir login antes de usar o sistema
-          e escolha quais páginas cada um pode acessar. Sem operadores
-          cadastrados, o login fica desativado.
+          Cadastre operadores para exigir login por PIN e escolha quais páginas
+          cada um pode acessar. Cada pessoa cria o próprio PIN no primeiro
+          acesso. Funcionários com acesso ao sistema aparecem aqui
+          automaticamente. Sem operadores, o login fica desativado.
         </p>
       </header>
 
@@ -102,6 +119,14 @@ export function OperatorsSettings({
                   {operator.name}
                 </span>
                 <div className="flex gap-2">
+                  {operator.hasPin && (
+                    <DataTableRowActionButton
+                      label="Redefinir PIN"
+                      accessibleLabel={`Redefinir PIN de ${operator.name}`}
+                      icon={RotateCcwKey}
+                      onClick={() => setOperatorToReset(operator)}
+                    />
+                  )}
                   <DataTableRowActionButton
                     label="Editar"
                     accessibleLabel={`Editar ${operator.name}`}
@@ -118,6 +143,12 @@ export function OperatorsSettings({
                 </div>
               </div>
               <div className="flex flex-wrap gap-1.5">
+                {!operator.hasPin && (
+                  <Badge variant="destructive">PIN pendente</Badge>
+                )}
+                {operator.employeeId && (
+                  <Badge variant="secondary">Funcionário</Badge>
+                )}
                 {getPageLabels(operator).map((pageLabel) => (
                   <Badge key={pageLabel} variant="outline">
                     {pageLabel}
@@ -160,6 +191,15 @@ export function OperatorsSettings({
         confirmLabel="Excluir"
         isConfirming={deleteOperatorMutation.isPending}
         onConfirm={confirmDelete}
+      />
+      <ConfirmDialog
+        isOpen={operatorToReset !== null}
+        onOpenChange={(isOpen) => !isOpen && setOperatorToReset(null)}
+        title="Redefinir PIN?"
+        description={`O PIN atual de ${operatorToReset?.name ?? ""} deixa de funcionar, inclusive para bater o ponto. No próximo acesso, a pessoa cria um novo.`}
+        confirmLabel="Redefinir"
+        isConfirming={resetPinMutation.isPending}
+        onConfirm={confirmResetPin}
       />
     </section>
   );

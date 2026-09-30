@@ -7,7 +7,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 
 export const MIN_PIN_LENGTH = 4;
-export const MAX_PIN_LENGTH = 6;
+export const MAX_PIN_LENGTH = 4;
 
 const DIGIT_KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9"] as const;
 const PAD_BUTTON_CLASS_NAME =
@@ -20,6 +20,9 @@ type PinPadProps = {
   onAppendDigit: (digit: string) => void;
   onDeleteDigit: () => void;
   onSubmit: () => void;
+  minLength?: number;
+  maxLength?: number;
+  submitLabel?: string;
 };
 
 export function PinPad({
@@ -29,8 +32,11 @@ export function PinPad({
   onAppendDigit,
   onDeleteDigit,
   onSubmit,
+  minLength = MIN_PIN_LENGTH,
+  maxLength = MAX_PIN_LENGTH,
+  submitLabel = "Entrar",
 }: PinPadProps) {
-  const canSubmit = pin.length >= MIN_PIN_LENGTH && !isSubmitting;
+  const canSubmit = pin.length >= minLength && !isSubmitting;
   const latestRef = useRef({
     canSubmit,
     onAppendDigit,
@@ -62,10 +68,10 @@ export function PinPad({
     <div className="flex flex-col items-center gap-8">
       <div
         role="status"
-        aria-label={`${pin.length} de até ${MAX_PIN_LENGTH} dígitos digitados`}
+        aria-label={`${pin.length} de até ${maxLength} dígitos digitados`}
         className={cn("flex h-4 gap-3", hasError && "animate-pulse")}
       >
-        {Array.from({ length: MAX_PIN_LENGTH }, (_, dotIndex) => (
+        {Array.from({ length: maxLength }, (_, dotIndex) => (
           <span
             key={`pin-dot-${dotIndex.toString()}`}
             className={cn(
@@ -116,7 +122,7 @@ export function PinPad({
           aria-busy={isSubmitting}
           onClick={onSubmit}
         >
-          {isSubmitting ? <Spinner aria-hidden /> : "Entrar"}
+          {isSubmitting ? <Spinner aria-hidden /> : submitLabel}
         </Button>
       </div>
     </div>
