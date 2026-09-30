@@ -6,6 +6,7 @@ import {
   MoreHorizontal,
   Plus,
   Tags,
+  Zap,
 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ import { MonthNavigator } from "../../components/month-navigator";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
 import { AccountsDialog } from "./accounts-dialog";
+import { AutomationDialog } from "./automation-dialog";
 import { CategoriesDialog } from "./categories-dialog";
 import { DeleteEntryDialog } from "./delete-entry-dialog";
 import { EntriesPanel } from "./entries-panel";
@@ -47,7 +49,12 @@ const FINANCE_TABS = [
 
 type FinanceTab = (typeof FINANCE_TABS)[number];
 
-type OpenDialog = "none" | "accounts" | "categories" | "transfer";
+type OpenDialog =
+  | "none"
+  | "accounts"
+  | "categories"
+  | "transfer"
+  | "automation";
 
 type PaymentState = { entry: FinancialEntry; today: string } | null;
 
@@ -131,6 +138,10 @@ export function FinanceView({
                 <MoreHorizontal aria-hidden />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="min-w-52">
+                <DropdownMenuItem onClick={() => setOpenDialog("automation")}>
+                  <Zap aria-hidden />
+                  Lançamentos automáticos
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setOpenDialog("transfer")}>
                   <ArrowLeftRight aria-hidden />
                   Transferência entre contas
@@ -248,6 +259,12 @@ export function FinanceView({
         organizationId={organizationId}
         isOpen={openDialog === "categories"}
         categories={categories}
+        onClose={() => setOpenDialog("none")}
+      />
+      <AutomationDialog
+        organizationId={organizationId}
+        isOpen={openDialog === "automation"}
+        accounts={accounts}
         onClose={() => setOpenDialog("none")}
       />
       <TransferDialog

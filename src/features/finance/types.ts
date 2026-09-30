@@ -12,6 +12,9 @@ export type FinancialAccountKind =
   Database["public"]["Enums"]["financial_account_kind"];
 export type FinancialEntryKind =
   Database["public"]["Enums"]["financial_entry_kind"];
+export type FinancialEntrySource =
+  Database["public"]["Enums"]["financial_entry_source"];
+export type PaymentMethod = Database["public"]["Enums"]["payment_method"];
 export type RecurrenceFrequency =
   Database["public"]["Enums"]["recurrence_frequency"];
 
@@ -66,6 +69,7 @@ export type FinancialEntry = {
   notes: string | null;
   createdByName: string | null;
   paidByName: string | null;
+  source: FinancialEntrySource;
 };
 
 export type FinancialEntriesPage = {
@@ -115,4 +119,23 @@ export type FinancialStatement = {
   lines: StatementLine[];
   income: number;
   expense: number;
+};
+
+export type AutomatedPaymentMethod = Exclude<PaymentMethod, "customer_account">;
+
+export type PaymentMethodSettings = {
+  paymentMethod: AutomatedPaymentMethod;
+  accountId: FinancialAccountId | null;
+  feePercent: number;
+  settlementDays: number;
+};
+
+export type FinanceAutomationSettings = {
+  startDate: string;
+  isSalesEnabled: boolean;
+  isCustomerPaymentsEnabled: boolean;
+  isStockPurchasesEnabled: boolean;
+  stockPurchaseAccountId: FinancialAccountId | null;
+  isPayrollEnabled: boolean;
+  paymentMethods: PaymentMethodSettings[];
 };

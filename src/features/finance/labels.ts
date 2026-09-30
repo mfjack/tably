@@ -1,8 +1,10 @@
 import type {
+  AutomatedPaymentMethod,
   EntryStatus,
   FinancialAccountKind,
   FinancialEntry,
   FinancialEntryKind,
+  FinancialEntrySource,
   RecurrenceFrequency,
 } from "./types";
 
@@ -68,4 +70,36 @@ export function getEntryStatusLabel(
     case "open":
       return "Em aberto";
   }
+}
+
+export const AUTOMATED_PAYMENT_METHOD_LABELS = {
+  cash: "Dinheiro",
+  pix: "Pix",
+  debit_card: "Cartão de débito",
+  credit_card: "Cartão de crédito",
+} as const satisfies Record<AutomatedPaymentMethod, string>;
+
+export const ENTRY_SOURCE_LABELS = {
+  manual: "Manual",
+  sales: "Vendas",
+  sales_fee: "Taxa de vendas",
+  customer_payments: "Fiado recebido",
+  customer_payments_fee: "Taxa do fiado",
+  stock_purchase: "Compra de insumo",
+  payroll_salary: "Folha",
+  payroll_fgts: "Folha",
+  payroll_taxes: "Folha",
+} as const satisfies Record<FinancialEntrySource, string>;
+
+const SYSTEM_MANAGED_SOURCES: readonly FinancialEntrySource[] = [
+  "sales",
+  "sales_fee",
+  "customer_payments",
+  "customer_payments_fee",
+];
+
+export function isSystemManagedEntry(
+  entry: Pick<FinancialEntry, "source">,
+): boolean {
+  return SYSTEM_MANAGED_SOURCES.includes(entry.source);
 }

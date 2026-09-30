@@ -10,6 +10,7 @@ import {
   Repeat,
   Trash2,
   Undo2,
+  Zap,
 } from "lucide-react";
 import { useRef } from "react";
 import { toast } from "sonner";
@@ -29,8 +30,10 @@ import { useRemoveFinancialEntryDocumentMutation } from "@/features/finance/hook
 import { useUndoFinancialEntryPaymentMutation } from "@/features/finance/hooks/use-undo-financial-entry-payment-mutation";
 import { useUploadFinancialDocumentMutation } from "@/features/finance/hooks/use-upload-financial-document-mutation";
 import {
+  ENTRY_SOURCE_LABELS,
   getEntryStatus,
   getEntryStatusLabel,
+  isSystemManagedEntry,
   RECURRENCE_FREQUENCY_LABELS,
 } from "@/features/finance/labels";
 import type { FinancialEntry } from "@/features/finance/types";
@@ -59,6 +62,8 @@ export function EntryRow({
   onDelete,
 }: EntryRowProps) {
   const status = getEntryStatus(entry, today);
+  const isAutomatic = entry.source !== "manual";
+  const isSystemManaged = isSystemManagedEntry(entry);
   const isExpense = entry.kind === "expense";
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pendingFieldRef = useRef<DocumentField>("document");
@@ -124,6 +129,12 @@ export function EntryRow({
       <div className="flex min-w-0 flex-1 basis-48 flex-col gap-1">
         <span className="truncate font-medium">{entry.description}</span>
         <div className="flex flex-wrap items-center gap-1.5 text-muted-foreground text-xs">
+          {isAutomatic && (
+            <Badge variant="secondary">
+              <Zap aria-hidden />
+              {ENTRY_SOURCE_LABELS[entry.source]}
+            </Badge>
+          )}
           {entry.installmentNumber && entry.installmentCount && (
             <Badge variant="outline">
               Parcela {entry.installmentNumber}/{entry.installmentCount}
@@ -177,7 +188,14 @@ export function EntryRow({
           </Badge>
         </div>
 
-        {!entry.paidAt && (
+        {!entry.paidAt && isSystemManaged && (
+          <span className="max-w-28 text-right text-muted-foreground text-xs">
+            {entry.accountId
+              ? "Entra sozinho no vencimento"
+              : "Escolha a conta em Automação"}
+          </span>
+        )}
+        {!entry.paidAt && !isSystemManaged && (
           <Button
             variant="outline"
             className="h-9"
@@ -201,17 +219,19 @@ export function EntryRow({
             <MoreHorizontal aria-hidden />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="min-w-52">
-            <DropdownMenuItem onClick={() => onEdit(entry)}>
-              <Pencil aria-hidden />
-              Editar
-            </DropdownMenuItem>
+            {!isAutomatic && (
+              <DropdownMenuItem onClick={() => onEdit(entry)}>
+                <Pencil aria-hidden />
+                Editar
+              </DropdownMenuItem>
+            )}
             {entry.digitableLine && (
               <DropdownMenuItem onClick={copyDigitableLine}>
                 <Copy aria-hidden />
                 Copiar código do boleto
               </DropdownMenuItem>
             )}
-            {entry.paidAt && (
+            {entry.paidAt && !isSystemManaged && (
               <DropdownMenuItem
                 onClick={() =>
                   undoPaymentMutation.mutate(entry.id, {
@@ -281,14 +301,18 @@ export function EntryRow({
                 Anexar comprovante
               </DropdownMenuItem>
             )}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              variant="destructive"
-              onClick={() => onDelete(entry)}
-            >
-              <Trash2 aria-hidden />
-              Excluir
-            </DropdownMenuItem>
+            {!isAutomatic && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() => onDelete(entry)}
+                >
+                  <Trash2 aria-hidden />
+                  Excluir
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
         <input

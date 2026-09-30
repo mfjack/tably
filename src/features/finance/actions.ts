@@ -29,7 +29,10 @@ import { FINANCIAL_DOCUMENTS_BUCKET } from "./documents";
 import { DEFAULT_CATEGORIES } from "./labels";
 import {
   type AccountInput,
+  AUTOMATED_PAYMENT_METHODS,
+  type AutomationSettingsInput,
   accountSchema,
+  automationSettingsSchema,
   type CategoryInput,
   categorySchema,
   type EntryDeleteScope,
@@ -43,6 +46,7 @@ import {
   transferSchema,
 } from "./schemas";
 import type {
+  FinanceAutomationSettings,
   FinancialAccount,
   FinancialAccountId,
   FinancialCategory,
@@ -65,7 +69,7 @@ const UPCOMING_LIMIT = 60;
 const ACCESS_DENIED = actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
 
 const ENTRY_COLUMNS =
-  "id, kind, description, amount, due_date, category_id, supplier_id, account_id, paid_at, paid_amount, recurrence_id, installment_group_id, installment_number, installment_count, barcode, document_path, receipt_path, notes, created_by_name, paid_by_name, category:financial_categories(name), supplier:suppliers(name), account:financial_accounts(name), recurrence:financial_recurrences(frequency, end_date)";
+  "id, kind, description, amount, due_date, category_id, supplier_id, account_id, paid_at, paid_amount, recurrence_id, installment_group_id, installment_number, installment_count, barcode, document_path, receipt_path, notes, created_by_name, paid_by_name, source, category:financial_categories(name), supplier:suppliers(name), account:financial_accounts(name), recurrence:financial_recurrences(frequency, end_date)";
 
 type EntryRow = {
   id: string;
@@ -88,6 +92,7 @@ type EntryRow = {
   notes: string | null;
   created_by_name: string | null;
   paid_by_name: string | null;
+  source: FinancialEntry["source"];
   category: { name: string } | null;
   supplier: { name: string } | null;
   account: { name: string } | null;
@@ -124,6 +129,7 @@ function toFinancialEntry(row: EntryRow): FinancialEntry {
     notes: row.notes,
     createdByName: row.created_by_name,
     paidByName: row.paid_by_name,
+    source: row.source,
   };
 }
 
@@ -140,6 +146,20 @@ async function syncRecurrences(organizationId: OrganizationId, today: string) {
   await supabase.rpc("sync_financial_recurrences", {
     p_organization_id: organizationId,
     p_until: toDateKey(addDays(parseISO(today), SYNC_HORIZON_IN_DAYS)),
+  });
+}
+
+async function syncFinance(organizationId: OrganizationId, today: string) {
+  const supabase = await createClient();
+  await supabase
+    .from("finance_automation_settings")
+    .upsert(
+      { organization_id: organizationId, start_date: today },
+      { onConflict: "organization_id", ignoreDuplicates: true },
+    );
+  await syncRecurrences(organizationId, today);
+  await supabase.rpc("sync_financial_automations", {
+    p_organization_id: organizationId,
   });
 }
 
@@ -207,7 +227,7 @@ export async function getFinancialOverview(
   if (!clock) return actionFailure("Não foi possível carregar o financeiro.");
 
   await ensureFinanceDefaults(organizationId);
-  await syncRecurrences(organizationId, clock.today);
+  await syncFinance(organizationId, clock.today);
 
   const supabase = await createClient();
   const [overviewResult, upcomingResult] = await Promise.all([
@@ -258,7 +278,7 @@ export async function listFinancialEntries(
   if (!clock) return actionFailure("Não foi possível carregar os lançamentos.");
 
   await ensureFinanceDefaults(organizationId);
-  await syncRecurrences(organizationId, clock.today);
+  await syncFinance(organizationId, clock.today);
 
   const monthStart = getMonthStart(monthKey);
   const monthEnd = getMonthEnd(monthKey);
@@ -816,6 +836,9 @@ export async function getFinancialStatement(
   const clock = await getOrganizationClock(organizationId);
   if (!clock) return actionFailure("Não foi possível carregar o extrato.");
 
+  await ensureFinanceDefaults(organizationId);
+  await syncFinance(organizationId, clock.today);
+
   const monthStart = getMonthStart(monthKey);
   const monthEnd = getMonthEnd(monthKey);
   const supabase = await createClient();
@@ -1125,5 +1148,108 @@ export async function deleteFinancialTransfer(
     .eq("organization_id", organizationId);
 
   if (error) return actionFailure("Não foi possível excluir a transferência.");
+  return actionSuccess();
+}
+
+export async function getFinanceAutomationSettings(
+  organizationId: OrganizationId,
+): Promise<ActionResult<FinanceAutomationSettings>> {
+  if (!(await canUseFinance(organizationId))) return ACCESS_DENIED;
+
+  const clock = await getOrganizationClock(organizationId);
+  if (!clock) return actionFailure("Não foi possível carregar a automação.");
+
+  const supabase = await createClient();
+  await supabase
+    .from("finance_automation_settings")
+    .upsert(
+      { organization_id: organizationId, start_date: clock.today },
+      { onConflict: "organization_id", ignoreDuplicates: true },
+    );
+
+  const [settingsResult, methodsResult] = await Promise.all([
+    supabase
+      .from("finance_automation_settings")
+      .select(
+        "start_date, is_sales_enabled, is_customer_payments_enabled, is_stock_purchases_enabled, stock_purchase_account_id, is_payroll_enabled",
+      )
+      .eq("organization_id", organizationId)
+      .single(),
+    supabase
+      .from("finance_payment_method_settings")
+      .select("payment_method, account_id, fee_percent, settlement_days")
+      .eq("organization_id", organizationId),
+  ]);
+
+  if (settingsResult.error || methodsResult.error) {
+    return actionFailure("Não foi possível carregar a automação.");
+  }
+
+  const methodsByKey = new Map(
+    methodsResult.data.map((method) => [method.payment_method, method]),
+  );
+  const settings = settingsResult.data;
+
+  return actionSuccess({
+    startDate: settings.start_date,
+    isSalesEnabled: settings.is_sales_enabled,
+    isCustomerPaymentsEnabled: settings.is_customer_payments_enabled,
+    isStockPurchasesEnabled: settings.is_stock_purchases_enabled,
+    stockPurchaseAccountId:
+      settings.stock_purchase_account_id as FinancialAccountId | null,
+    isPayrollEnabled: settings.is_payroll_enabled,
+    paymentMethods: AUTOMATED_PAYMENT_METHODS.map((paymentMethod) => {
+      const method = methodsByKey.get(paymentMethod);
+      return {
+        paymentMethod,
+        accountId: (method?.account_id ?? null) as FinancialAccountId | null,
+        feePercent: method?.fee_percent ?? 0,
+        settlementDays: method?.settlement_days ?? 0,
+      };
+    }),
+  });
+}
+
+export async function saveFinanceAutomationSettings(
+  organizationId: OrganizationId,
+  input: AutomationSettingsInput,
+): Promise<ActionResult> {
+  if (!(await canUseFinance(organizationId))) return ACCESS_DENIED;
+
+  const parsedInput = automationSettingsSchema.safeParse(input);
+  if (!parsedInput.success) {
+    return actionFailure("Confira os campos e tente novamente.");
+  }
+
+  const settings = parsedInput.data;
+  const supabase = await createClient();
+  const [settingsResult, methodsResult] = await Promise.all([
+    supabase.from("finance_automation_settings").upsert({
+      organization_id: organizationId,
+      start_date: settings.startDate,
+      is_sales_enabled: settings.isSalesEnabled,
+      is_customer_payments_enabled: settings.isCustomerPaymentsEnabled,
+      is_stock_purchases_enabled: settings.isStockPurchasesEnabled,
+      stock_purchase_account_id:
+        fromSelectFieldValue<FinancialAccountId>(
+          settings.stockPurchaseAccountId,
+        ) ?? null,
+      is_payroll_enabled: settings.isPayrollEnabled,
+    }),
+    supabase.from("finance_payment_method_settings").upsert(
+      settings.paymentMethods.map((method) => ({
+        organization_id: organizationId,
+        payment_method: method.paymentMethod,
+        account_id:
+          fromSelectFieldValue<FinancialAccountId>(method.accountId) ?? null,
+        fee_percent: method.feePercent ?? 0,
+        settlement_days: method.settlementDays ?? 0,
+      })),
+    ),
+  ]);
+
+  if (settingsResult.error || methodsResult.error) {
+    return actionFailure("Não foi possível salvar a automação.");
+  }
   return actionSuccess();
 }
