@@ -3,6 +3,7 @@ import {
   ChartColumn,
   ChefHat,
   ClipboardList,
+  Clock,
   LayoutGrid,
   ListChecks,
   type LucideIcon,
@@ -11,6 +12,8 @@ import {
   Settings,
   Tag,
   Truck,
+  Users,
+  Wallet,
 } from "lucide-react";
 import type { AppModuleId } from "@/features/organizations/types";
 
@@ -66,6 +69,13 @@ export const APP_MODULE_GROUPS = [
         path: "tasks",
         icon: ListChecks,
       },
+      {
+        id: "time_clock",
+        label: "Ponto",
+        description: "Registro de entrada e saída da equipe com PIN.",
+        path: "time-clock",
+        icon: Clock,
+      },
     ],
   },
   {
@@ -115,6 +125,20 @@ export const APP_MODULE_GROUPS = [
         description: "Faturamento, mais vendidos, CMV e margem.",
         path: "sales-report",
         icon: ChartColumn,
+      },
+      {
+        id: "employees",
+        label: "Funcionários",
+        description: "Cadastro, jornadas e espelho de ponto.",
+        path: "employees",
+        icon: Users,
+      },
+      {
+        id: "payroll",
+        label: "Folha de pagamento",
+        description: "Holerites com horas extras, faltas e impostos.",
+        path: "payroll",
+        icon: Wallet,
       },
     ],
   },
