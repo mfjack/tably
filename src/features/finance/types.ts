@@ -88,54 +88,27 @@ export type FinancialOverview = {
   periodIncome: number;
   periodExpense: number;
   overduePayables: EntryTotals;
-  upcomingPayables: EntryTotals;
+  monthPayables: EntryTotals;
   overdueReceivables: EntryTotals;
-  upcomingReceivables: EntryTotals;
-};
-
-export type FinancialTransfer = {
-  id: FinancialTransferId;
-  fromAccountId: FinancialAccountId;
-  fromAccountName: string;
-  toAccountId: FinancialAccountId;
-  toAccountName: string;
-  amount: number;
-  transferredOn: string;
-  notes: string | null;
-  createdByName: string | null;
-};
-
-export type StatementLine =
-  | { type: "entry"; date: string; entry: FinancialEntry; signedAmount: number }
-  | {
-      type: "transfer";
-      date: string;
-      transfer: FinancialTransfer;
-      signedAmount: number;
-    };
-
-export type FinancialStatement = {
-  today: string;
-  lines: StatementLine[];
-  income: number;
-  expense: number;
+  monthReceivables: EntryTotals;
+  monthFixedExpenses: EntryTotals & { paidAmount: number; openCount: number };
 };
 
 export type AutomatedPaymentMethod = Exclude<PaymentMethod, "customer_account">;
 
 export type PaymentMethodSettings = {
   paymentMethod: AutomatedPaymentMethod;
-  accountId: FinancialAccountId | null;
   feePercent: number;
   settlementDays: number;
 };
 
 export type FinanceAutomationSettings = {
   startDate: string;
+  openingBalance: number;
   isSalesEnabled: boolean;
   isCustomerPaymentsEnabled: boolean;
   isStockPurchasesEnabled: boolean;
-  stockPurchaseAccountId: FinancialAccountId | null;
+
   isPayrollEnabled: boolean;
   paymentMethods: PaymentMethodSettings[];
 };

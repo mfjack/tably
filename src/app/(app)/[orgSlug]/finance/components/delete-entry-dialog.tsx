@@ -26,17 +26,17 @@ type DeleteEntryDialogProps = {
 function getScopeOptions(entry: FinancialEntry) {
   if (entry.recurrenceId) {
     return [
-      { value: "single", label: "Só este vencimento" },
       {
-        value: "following",
-        label: "Este e os próximos (encerra a repetição)",
+        value: "all",
+        label: "Excluir a conta (todos os meses em aberto)",
       },
+      { value: "single", label: "Só este mês" },
     ] as const;
   }
   if (entry.installmentGroupId) {
     return [
+      { value: "installments", label: "Excluir todas as parcelas em aberto" },
       { value: "single", label: "Só esta parcela" },
-      { value: "installments", label: "Todas as parcelas em aberto" },
     ] as const;
   }
   return [];
@@ -49,12 +49,17 @@ export function DeleteEntryDialog({
 }: DeleteEntryDialogProps) {
   const deleteMutation = useDeleteFinancialEntryMutation(organizationId);
   const [scope, setScope] = useState<EntryDeleteScope>("single");
+  const defaultScope: EntryDeleteScope = entry?.recurrenceId
+    ? "all"
+    : entry?.installmentGroupId
+      ? "installments"
+      : "single";
   const radioId = useId();
   const scopeOptions = entry ? getScopeOptions(entry) : [];
 
   useEffect(() => {
-    if (entry) setScope("single");
-  }, [entry]);
+    if (entry) setScope(defaultScope);
+  }, [entry, defaultScope]);
 
   function confirmDelete() {
     if (!entry) return;

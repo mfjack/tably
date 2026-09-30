@@ -19,10 +19,7 @@ import {
   actionFailure,
   actionSuccess,
 } from "@/lib/action-result";
-import {
-  isForeignKeyViolation,
-  isUniqueViolation,
-} from "@/lib/database-errors";
+import { isUniqueViolation } from "@/lib/database-errors";
 import { fromSelectFieldValue } from "@/lib/optional-select-value";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -33,10 +30,8 @@ import {
 import { FINANCIAL_DOCUMENTS_BUCKET } from "./documents";
 import { DEFAULT_CATEGORIES } from "./labels";
 import {
-  type AccountInput,
   AUTOMATED_PAYMENT_METHODS,
   type AutomationSettingsInput,
-  accountSchema,
   automationSettingsSchema,
   type CategoryInput,
   categorySchema,
@@ -47,12 +42,9 @@ import {
   entrySchema,
   type PayEntryInput,
   payEntrySchema,
-  type TransferInput,
-  transferSchema,
 } from "./schemas";
 import type {
   FinanceAutomationSettings,
-  FinancialAccount,
   FinancialAccountId,
   FinancialCategory,
   FinancialCategoryId,
@@ -62,10 +54,6 @@ import type {
   FinancialEntryKind,
   FinancialOverview,
   FinancialRecurrenceId,
-  FinancialStatement,
-  FinancialTransfer,
-  FinancialTransferId,
-  StatementLine,
 } from "./types";
 
 const SYNC_HORIZON_IN_DAYS = 90;
@@ -162,10 +150,52 @@ async function syncFinance(organizationId: OrganizationId, today: string) {
       { organization_id: organizationId, start_date: today },
       { onConflict: "organization_id", ignoreDuplicates: true },
     );
+  const accountId = await getDefaultAccountId(organizationId);
+  if (accountId) {
+    await Promise.all([
+      supabase.from("finance_payment_method_settings").upsert(
+        AUTOMATED_PAYMENT_METHODS.map((paymentMethod) => ({
+          organization_id: organizationId,
+          payment_method: paymentMethod,
+          account_id: accountId,
+        })),
+        {
+          onConflict: "organization_id,payment_method",
+          ignoreDuplicates: true,
+        },
+      ),
+      supabase
+        .from("finance_payment_method_settings")
+        .update({ account_id: accountId })
+        .eq("organization_id", organizationId)
+        .is("account_id", null),
+      supabase
+        .from("finance_automation_settings")
+        .update({ stock_purchase_account_id: accountId })
+        .eq("organization_id", organizationId)
+        .is("stock_purchase_account_id", null),
+    ]);
+  }
   await syncRecurrences(organizationId, today);
   await supabase.rpc("sync_financial_automations", {
     p_organization_id: organizationId,
   });
+}
+
+async function getDefaultAccountId(
+  organizationId: OrganizationId,
+): Promise<FinancialAccountId | null> {
+  await ensureFinanceDefaults(organizationId);
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("financial_accounts")
+    .select("id")
+    .eq("organization_id", organizationId)
+    .eq("is_archived", false)
+    .order("created_at")
+    .limit(1)
+    .maybeSingle();
+  return (data?.id ?? null) as FinancialAccountId | null;
 }
 
 async function ensureFinanceDefaults(organizationId: OrganizationId) {
@@ -216,9 +246,15 @@ const overviewSchema = z.object({
   periodIncome: z.number(),
   periodExpense: z.number(),
   overduePayables: z.object({ count: z.number(), amount: z.number() }),
-  upcomingPayables: z.object({ count: z.number(), amount: z.number() }),
+  monthPayables: z.object({ count: z.number(), amount: z.number() }),
   overdueReceivables: z.object({ count: z.number(), amount: z.number() }),
-  upcomingReceivables: z.object({ count: z.number(), amount: z.number() }),
+  monthReceivables: z.object({ count: z.number(), amount: z.number() }),
+  monthFixedExpenses: z.object({
+    count: z.number(),
+    amount: z.number(),
+    paidAmount: z.number(),
+    openCount: z.number(),
+  }),
 });
 
 export async function getFinancialOverview(
@@ -333,8 +369,6 @@ function toEntryValues(input: EntryInput) {
       input.kind === "expense"
         ? (fromSelectFieldValue<SupplierId>(input.supplierId) ?? null)
         : null,
-    account_id:
-      fromSelectFieldValue<FinancialAccountId>(input.accountId) ?? null,
     notes: input.notes || null,
   };
 }
@@ -351,7 +385,9 @@ export async function createFinancialEntry(
   }
 
   const entry = parsedInput.data;
-  const values = toEntryValues(entry);
+  const accountId = await getDefaultAccountId(organizationId);
+  if (!accountId) return actionFailure("Não foi possível salvar o lançamento.");
+  const values = { ...toEntryValues(entry), account_id: accountId };
   const payment = entry.isPaid
     ? { paid_at: entry.paidAt, paid_amount: entry.amount }
     : { paid_at: null, paid_amount: null };
@@ -459,14 +495,10 @@ export async function updateFinancialEntry(
     if (installmentResult.status === "error") return installmentResult;
   }
 
-  const accountId = current.paid_at
-    ? (values.account_id ?? undefined)
-    : values.account_id;
   const { error } = await supabase
     .from("financial_entries")
     .update({
       ...values,
-      account_id: accountId,
       due_date: entry.dueDate,
       barcode: entry.digitableLine || null,
     })
@@ -481,7 +513,6 @@ export async function updateFinancialEntry(
     amount: values.amount,
     category_id: values.category_id,
     supplier_id: values.supplier_id,
-    account_id: values.account_id,
     notes: values.notes,
   };
 
@@ -668,13 +699,17 @@ export async function payFinancialEntry(
     return actionFailure("Confira os campos e tente novamente.");
   }
 
+  const accountId = await getDefaultAccountId(organizationId);
+  if (!accountId)
+    return actionFailure("Não foi possível registrar o pagamento.");
+
   const supabase = await createClient();
   const { error } = await supabase
     .from("financial_entries")
     .update({
       paid_at: parsedInput.data.paidAt,
       paid_amount: parsedInput.data.paidAmount,
-      account_id: parsedInput.data.accountId,
+      account_id: accountId,
     })
     .eq("id", entryId)
     .eq("organization_id", organizationId);
@@ -725,6 +760,31 @@ export async function deleteFinancialEntry(
     .single();
 
   if (currentError) return actionFailure("Lançamento não encontrado.");
+
+  if (scope === "all" && current.recurrence_id) {
+    const { data: removed, error } = await supabase
+      .from("financial_entries")
+      .delete()
+      .eq("recurrence_id", current.recurrence_id)
+      .or(`paid_at.is.null,id.eq.${entryId}`)
+      .select("document_path, receipt_path");
+
+    if (error) return actionFailure("Não foi possível excluir a conta.");
+
+    const { error: recurrenceError } = await supabase
+      .from("financial_recurrences")
+      .delete()
+      .eq("id", current.recurrence_id);
+
+    if (recurrenceError) {
+      return actionFailure("Não foi possível excluir a repetição.");
+    }
+
+    await removeDocuments(
+      removed.flatMap((row) => [row.document_path, row.receipt_path]),
+    );
+    return actionSuccess();
+  }
 
   if (scope === "following" && current.recurrence_id) {
     const { data: recurrence } = await supabase
@@ -830,213 +890,6 @@ export async function setFinancialEntryDocument(
   return actionSuccess();
 }
 
-export async function getFinancialStatement(
-  organizationId: OrganizationId,
-  monthKey: string,
-  accountId: FinancialAccountId | null,
-): Promise<ActionResult<FinancialStatement>> {
-  if (!(await canUseFinance(organizationId))) return ACCESS_DENIED;
-  if (!isMonthKey(monthKey)) return actionFailure("Mês inválido.");
-
-  const clock = await getOrganizationClock(organizationId);
-  if (!clock) return actionFailure("Não foi possível carregar o extrato.");
-
-  await ensureFinanceDefaults(organizationId);
-  await syncFinance(organizationId, clock.today);
-
-  const monthStart = getMonthStart(monthKey);
-  const monthEnd = getMonthEnd(monthKey);
-  const supabase = await createClient();
-
-  let entriesQuery = supabase
-    .from("financial_entries")
-    .select(ENTRY_COLUMNS)
-    .eq("organization_id", organizationId)
-    .gte("paid_at", monthStart)
-    .lte("paid_at", monthEnd);
-  let transfersQuery = supabase
-    .from("financial_transfers")
-    .select(
-      "id, from_account_id, to_account_id, amount, transferred_on, notes, created_by_name, from:financial_accounts!financial_transfers_from_account_id_organization_id_fkey(name), to:financial_accounts!financial_transfers_to_account_id_organization_id_fkey(name)",
-    )
-    .eq("organization_id", organizationId)
-    .gte("transferred_on", monthStart)
-    .lte("transferred_on", monthEnd);
-
-  if (accountId) {
-    entriesQuery = entriesQuery.eq("account_id", accountId);
-    transfersQuery = transfersQuery.or(
-      `from_account_id.eq.${accountId},to_account_id.eq.${accountId}`,
-    );
-  }
-
-  const [entriesResult, transfersResult] = await Promise.all([
-    entriesQuery,
-    transfersQuery,
-  ]);
-
-  if (entriesResult.error || transfersResult.error) {
-    return actionFailure("Não foi possível carregar o extrato.");
-  }
-
-  const entryLines: StatementLine[] = entriesResult.data.map((row) => {
-    const entry = toFinancialEntry(row);
-    const paidAmount = entry.paidAmount ?? 0;
-    return {
-      type: "entry",
-      date: entry.paidAt ?? entry.dueDate,
-      entry,
-      signedAmount: entry.kind === "income" ? paidAmount : -paidAmount,
-    };
-  });
-
-  const transferLines: StatementLine[] = transfersResult.data.map((row) => {
-    const transfer: FinancialTransfer = {
-      id: row.id as FinancialTransferId,
-      fromAccountId: row.from_account_id as FinancialAccountId,
-      fromAccountName: row.from?.name ?? "",
-      toAccountId: row.to_account_id as FinancialAccountId,
-      toAccountName: row.to?.name ?? "",
-      amount: row.amount,
-      transferredOn: row.transferred_on,
-      notes: row.notes,
-      createdByName: row.created_by_name,
-    };
-    const signedAmount = !accountId
-      ? 0
-      : transfer.toAccountId === accountId
-        ? transfer.amount
-        : -transfer.amount;
-    return {
-      type: "transfer",
-      date: transfer.transferredOn,
-      transfer,
-      signedAmount,
-    };
-  });
-
-  const lines = [...entryLines, ...transferLines].sort((first, second) =>
-    second.date.localeCompare(first.date),
-  );
-
-  return actionSuccess({
-    today: clock.today,
-    lines,
-    income: entryLines
-      .filter((line) => line.signedAmount > 0)
-      .reduce((total, line) => total + line.signedAmount, 0),
-    expense: entryLines
-      .filter((line) => line.signedAmount < 0)
-      .reduce((total, line) => total - line.signedAmount, 0),
-  });
-}
-
-export async function listFinancialAccounts(
-  organizationId: OrganizationId,
-): Promise<ActionResult<FinancialAccount[]>> {
-  if (!(await canUseFinance(organizationId))) return ACCESS_DENIED;
-
-  await ensureFinanceDefaults(organizationId);
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("financial_accounts")
-    .select("id, name, kind, opening_balance, is_archived")
-    .eq("organization_id", organizationId)
-    .order("is_archived")
-    .order("name");
-
-  if (error) return actionFailure("Não foi possível carregar as contas.");
-
-  return actionSuccess(
-    data.map((account) => ({
-      id: account.id as FinancialAccountId,
-      name: account.name,
-      kind: account.kind,
-      openingBalance: account.opening_balance,
-      isArchived: account.is_archived,
-    })),
-  );
-}
-
-export async function saveFinancialAccount(
-  organizationId: OrganizationId,
-  accountId: FinancialAccountId | null,
-  input: AccountInput,
-): Promise<ActionResult> {
-  if (!(await canUseFinance(organizationId))) return ACCESS_DENIED;
-
-  const parsedInput = accountSchema.safeParse(input);
-  if (!parsedInput.success) {
-    return actionFailure("Confira os campos e tente novamente.");
-  }
-
-  const values = {
-    name: parsedInput.data.name,
-    kind: parsedInput.data.kind,
-    opening_balance: parsedInput.data.openingBalance ?? 0,
-  };
-  const supabase = await createClient();
-  const { error } = accountId
-    ? await supabase
-        .from("financial_accounts")
-        .update(values)
-        .eq("id", accountId)
-        .eq("organization_id", organizationId)
-    : await supabase
-        .from("financial_accounts")
-        .insert({ ...values, organization_id: organizationId });
-
-  if (error) {
-    return actionFailure(
-      isUniqueViolation(error)
-        ? "Já existe uma conta com esse nome."
-        : "Não foi possível salvar a conta.",
-    );
-  }
-  return actionSuccess();
-}
-
-export async function setFinancialAccountArchived(
-  organizationId: OrganizationId,
-  accountId: FinancialAccountId,
-  isArchived: boolean,
-): Promise<ActionResult> {
-  if (!(await canUseFinance(organizationId))) return ACCESS_DENIED;
-
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("financial_accounts")
-    .update({ is_archived: isArchived })
-    .eq("id", accountId)
-    .eq("organization_id", organizationId);
-
-  if (error) return actionFailure("Não foi possível atualizar a conta.");
-  return actionSuccess();
-}
-
-export async function deleteFinancialAccount(
-  organizationId: OrganizationId,
-  accountId: FinancialAccountId,
-): Promise<ActionResult> {
-  if (!(await canUseFinance(organizationId))) return ACCESS_DENIED;
-
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("financial_accounts")
-    .delete()
-    .eq("id", accountId)
-    .eq("organization_id", organizationId);
-
-  if (error) {
-    return actionFailure(
-      isForeignKeyViolation(error)
-        ? "Essa conta já tem movimentações. Arquive em vez de excluir."
-        : "Não foi possível excluir a conta.",
-    );
-  }
-  return actionSuccess();
-}
-
 export async function listFinancialCategories(
   organizationId: OrganizationId,
 ): Promise<ActionResult<FinancialCategory[]>> {
@@ -1114,48 +967,6 @@ export async function deleteFinancialCategory(
   return actionSuccess();
 }
 
-export async function createFinancialTransfer(
-  organizationId: OrganizationId,
-  input: TransferInput,
-): Promise<ActionResult> {
-  if (!(await canUseFinance(organizationId))) return ACCESS_DENIED;
-
-  const parsedInput = transferSchema.safeParse(input);
-  if (!parsedInput.success) {
-    return actionFailure("Confira os campos e tente novamente.");
-  }
-
-  const supabase = await createClient();
-  const { error } = await supabase.from("financial_transfers").insert({
-    organization_id: organizationId,
-    from_account_id: parsedInput.data.fromAccountId,
-    to_account_id: parsedInput.data.toAccountId,
-    amount: parsedInput.data.amount,
-    transferred_on: parsedInput.data.transferredOn,
-    notes: parsedInput.data.notes || null,
-  });
-
-  if (error) return actionFailure("Não foi possível salvar a transferência.");
-  return actionSuccess();
-}
-
-export async function deleteFinancialTransfer(
-  organizationId: OrganizationId,
-  transferId: FinancialTransferId,
-): Promise<ActionResult> {
-  if (!(await canUseFinance(organizationId))) return ACCESS_DENIED;
-
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("financial_transfers")
-    .delete()
-    .eq("id", transferId)
-    .eq("organization_id", organizationId);
-
-  if (error) return actionFailure("Não foi possível excluir a transferência.");
-  return actionSuccess();
-}
-
 export async function getFinanceAutomationSettings(
   organizationId: OrganizationId,
 ): Promise<ActionResult<FinanceAutomationSettings>> {
@@ -1176,13 +987,13 @@ export async function getFinanceAutomationSettings(
     supabase
       .from("finance_automation_settings")
       .select(
-        "start_date, is_sales_enabled, is_customer_payments_enabled, is_stock_purchases_enabled, stock_purchase_account_id, is_payroll_enabled",
+        "start_date, is_sales_enabled, is_customer_payments_enabled, is_stock_purchases_enabled, is_payroll_enabled",
       )
       .eq("organization_id", organizationId)
       .single(),
     supabase
       .from("finance_payment_method_settings")
-      .select("payment_method, account_id, fee_percent, settlement_days")
+      .select("payment_method, fee_percent, settlement_days")
       .eq("organization_id", organizationId),
   ]);
 
@@ -1194,20 +1005,28 @@ export async function getFinanceAutomationSettings(
     methodsResult.data.map((method) => [method.payment_method, method]),
   );
   const settings = settingsResult.data;
+  const accountId = await getDefaultAccountId(organizationId);
+  const { data: account } = accountId
+    ? await supabase
+        .from("financial_accounts")
+        .select("opening_balance")
+        .eq("id", accountId)
+        .single()
+    : { data: null };
 
   return actionSuccess({
     startDate: settings.start_date,
+    openingBalance: account?.opening_balance ?? 0,
     isSalesEnabled: settings.is_sales_enabled,
     isCustomerPaymentsEnabled: settings.is_customer_payments_enabled,
     isStockPurchasesEnabled: settings.is_stock_purchases_enabled,
-    stockPurchaseAccountId:
-      settings.stock_purchase_account_id as FinancialAccountId | null,
+
     isPayrollEnabled: settings.is_payroll_enabled,
     paymentMethods: AUTOMATED_PAYMENT_METHODS.map((paymentMethod) => {
       const method = methodsByKey.get(paymentMethod);
       return {
         paymentMethod,
-        accountId: (method?.account_id ?? null) as FinancialAccountId | null,
+
         feePercent: method?.fee_percent ?? 0,
         settlementDays: method?.settlement_days ?? 0,
       };
@@ -1227,33 +1046,37 @@ export async function saveFinanceAutomationSettings(
   }
 
   const settings = parsedInput.data;
+  const accountId = await getDefaultAccountId(organizationId);
+  if (!accountId)
+    return actionFailure("Não foi possível salvar a configuração.");
+
   const supabase = await createClient();
-  const [settingsResult, methodsResult] = await Promise.all([
+  const [settingsResult, methodsResult, accountResult] = await Promise.all([
     supabase.from("finance_automation_settings").upsert({
       organization_id: organizationId,
       start_date: settings.startDate,
       is_sales_enabled: settings.isSalesEnabled,
       is_customer_payments_enabled: settings.isCustomerPaymentsEnabled,
       is_stock_purchases_enabled: settings.isStockPurchasesEnabled,
-      stock_purchase_account_id:
-        fromSelectFieldValue<FinancialAccountId>(
-          settings.stockPurchaseAccountId,
-        ) ?? null,
+      stock_purchase_account_id: accountId,
       is_payroll_enabled: settings.isPayrollEnabled,
     }),
     supabase.from("finance_payment_method_settings").upsert(
       settings.paymentMethods.map((method) => ({
         organization_id: organizationId,
         payment_method: method.paymentMethod,
-        account_id:
-          fromSelectFieldValue<FinancialAccountId>(method.accountId) ?? null,
+        account_id: accountId,
         fee_percent: method.feePercent ?? 0,
         settlement_days: method.settlementDays ?? 0,
       })),
     ),
+    supabase
+      .from("financial_accounts")
+      .update({ opening_balance: settings.openingBalance ?? 0 })
+      .eq("id", accountId),
   ]);
 
-  if (settingsResult.error || methodsResult.error) {
+  if (settingsResult.error || methodsResult.error || accountResult.error) {
     return actionFailure("Não foi possível salvar a automação.");
   }
   return actionSuccess();

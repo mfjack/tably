@@ -6,10 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFinancialEntriesQuery } from "@/features/finance/hooks/use-financial-entries-query";
-import {
-  ENTRY_LIST_FILTERS,
-  type EntryListFilter,
-} from "@/features/finance/schemas";
+import type { EntryListFilter } from "@/features/finance/schemas";
 import type {
   FinancialEntry,
   FinancialEntryKind,
@@ -20,6 +17,13 @@ import { ListEmptyState } from "../../components/list-empty-state";
 import { EntryRow } from "./entry-row";
 
 const LOADING_ROW_COUNT = 4;
+
+const VISIBLE_FILTERS = [
+  "open",
+  "paid",
+] as const satisfies readonly EntryListFilter[];
+
+type VisibleFilter = (typeof VISIBLE_FILTERS)[number];
 
 type EntriesPanelProps = {
   organizationId: OrganizationId;
@@ -40,7 +44,7 @@ export function EntriesPanel({
   onEdit,
   onDelete,
 }: EntriesPanelProps) {
-  const [filter, setFilter] = useState<EntryListFilter>("open");
+  const [filter, setFilter] = useState<VisibleFilter>("open");
   const entriesQuery = useFinancialEntriesQuery(
     organizationId,
     kind,
@@ -61,8 +65,7 @@ export function EntriesPanel({
   const filterLabels = {
     open: "Em aberto",
     paid: isExpense ? "Pagas no mês" : "Recebidas no mês",
-    all: "Todas do mês",
-  } as const satisfies Record<EntryListFilter, string>;
+  } as const satisfies Record<VisibleFilter, string>;
 
   return (
     <div className="flex flex-col gap-4">
@@ -70,14 +73,14 @@ export function EntriesPanel({
         <Tabs
           value={filter}
           onValueChange={(value: string) => {
-            const nextFilter = ENTRY_LIST_FILTERS.find(
+            const nextFilter = VISIBLE_FILTERS.find(
               (listFilter) => listFilter === value,
             );
             if (nextFilter) setFilter(nextFilter);
           }}
         >
           <TabsList className="max-w-full justify-start overflow-x-auto group-data-horizontal/tabs:h-10">
-            {ENTRY_LIST_FILTERS.map((listFilter) => (
+            {VISIBLE_FILTERS.map((listFilter) => (
               <TabsTrigger key={listFilter} value={listFilter} className="px-3">
                 {filterLabels[listFilter]}
               </TabsTrigger>

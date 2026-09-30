@@ -28,7 +28,6 @@ import {
   entrySchema,
 } from "@/features/finance/schemas";
 import type {
-  FinancialAccount,
   FinancialCategory,
   FinancialEntry,
   FinancialEntryKind,
@@ -62,7 +61,6 @@ type EntryFormDialogProps = {
   organizationId: OrganizationId;
   state: EntryFormState;
   today: string;
-  accounts: readonly FinancialAccount[];
   categories: readonly FinancialCategory[];
   onClose: () => void;
 };
@@ -75,17 +73,16 @@ function getEmptyValues(
     kind,
     description: "",
     amount: undefined,
-    dueDate: "",
+    dueDate: kind === "income" ? today : "",
     categoryId: NONE_SELECT_VALUE,
     supplierId: NONE_SELECT_VALUE,
-    accountId: NONE_SELECT_VALUE,
     digitableLine: "",
     notes: "",
     repeat: "none",
     installmentCount: undefined,
     frequency: undefined,
     endDate: "",
-    isPaid: false,
+    isPaid: kind === "income",
     paidAt: today,
   };
 }
@@ -98,7 +95,6 @@ function toFormValues(entry: FinancialEntry): DefaultValues<EntryInput> {
     dueDate: entry.dueDate,
     categoryId: toSelectFieldValue(entry.categoryId),
     supplierId: toSelectFieldValue(entry.supplierId),
-    accountId: toSelectFieldValue(entry.accountId),
     digitableLine: entry.digitableLine ?? "",
     notes: entry.notes ?? "",
     repeat: "none",
@@ -114,7 +110,6 @@ export function EntryFormDialog({
   organizationId,
   state,
   today,
-  accounts,
   categories,
   onClose,
 }: EntryFormDialogProps) {
@@ -156,19 +151,6 @@ export function EntryFormDialog({
         .map((category) => ({ value: category.id, label: category.name })),
     ],
     [categories, kind, editingEntry?.categoryId],
-  );
-
-  const accountOptions = useMemo(
-    () => [
-      { value: NONE_SELECT_VALUE, label: "Definir no pagamento" },
-      ...accounts
-        .filter(
-          (account) =>
-            !account.isArchived || account.id === editingEntry?.accountId,
-        )
-        .map((account) => ({ value: account.id, label: account.name })),
-    ],
-    [accounts, editingEntry?.accountId],
   );
 
   useEffect(() => {
@@ -236,7 +218,12 @@ export function EntryFormDialog({
       );
       return;
     }
-    createMutation.mutate(values, callbacks);
+    createMutation.mutate(
+      kind === "income"
+        ? { ...values, repeat: "none", isPaid: true, paidAt: values.dueDate }
+        : values,
+      callbacks,
+    );
   });
 
   return (
@@ -247,7 +234,7 @@ export function EntryFormDialog({
       description={
         kind === "expense"
           ? "Conta a pagar. Cole o código do boleto para preencher valor e vencimento."
-          : "Dinheiro a receber ou que já entrou."
+          : "Dinheiro que entrou. Fica registrado como recebido nessa data e nessa conta."
       }
       submitLabel={editingEntry ? "Salvar" : "Criar"}
       isSubmitting={isSubmitting}
@@ -291,9 +278,11 @@ export function EntryFormDialog({
             control={form.control}
             name="dueDate"
             label={
-              repeat === "none" || editingEntry
-                ? "Vencimento"
-                : "Primeiro vencimento"
+              kind === "income"
+                ? "Data do recebimento"
+                : repeat === "none" || editingEntry
+                  ? "Vencimento"
+                  : "Primeiro vencimento"
             }
             type="date"
           />
@@ -302,12 +291,6 @@ export function EntryFormDialog({
             name="categoryId"
             label="Categoria"
             options={categoryOptions}
-          />
-          <SelectField
-            control={form.control}
-            name="accountId"
-            label="Conta"
-            options={accountOptions}
           />
           {kind === "expense" && hasSuppliers && (
             <SelectField
@@ -319,7 +302,7 @@ export function EntryFormDialog({
           )}
         </div>
 
-        {!editingEntry && (
+        {!editingEntry && kind === "expense" && (
           <>
             <div className="grid gap-5 sm:grid-cols-2">
               <SelectField

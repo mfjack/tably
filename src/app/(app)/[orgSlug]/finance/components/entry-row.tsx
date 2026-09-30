@@ -159,7 +159,6 @@ export function EntryRow({
         {entry.paidAt && (
           <span className="text-muted-foreground text-xs">
             {isExpense ? "Paga" : "Recebida"} em {formatDateKey(entry.paidAt)}
-            {entry.accountName ? ` · ${entry.accountName}` : ""}
             {entry.paidByName ? ` · ${entry.paidByName}` : ""}
           </span>
         )}

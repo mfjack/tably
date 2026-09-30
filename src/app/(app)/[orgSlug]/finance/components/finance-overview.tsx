@@ -1,10 +1,8 @@
 "use client";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFinancialOverviewQuery } from "@/features/finance/hooks/use-financial-overview-query";
-import { ACCOUNT_KIND_LABELS } from "@/features/finance/labels";
 import type { EntryTotals, FinancialEntry } from "@/features/finance/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import { formatCurrency } from "@/lib/format";
@@ -17,7 +15,6 @@ type FinanceOverviewProps = {
   onPay: (entry: FinancialEntry, today: string) => void;
   onEdit: (entry: FinancialEntry) => void;
   onDelete: (entry: FinancialEntry) => void;
-  onOpenAccounts: () => void;
 };
 
 type StatCardProps = {
@@ -55,7 +52,6 @@ export function FinanceOverview({
   onPay,
   onEdit,
   onDelete,
-  onOpenAccounts,
 }: FinanceOverviewProps) {
   const overviewQuery = useFinancialOverviewQuery(organizationId, monthKey);
   const overview = overviewQuery.data;
@@ -92,7 +88,7 @@ export function FinanceOverview({
         <StatCard
           label="Saldo hoje"
           value={formatCurrency(totalBalance)}
-          detail={`Somando ${activeAccounts.length} ${activeAccounts.length === 1 ? "conta" : "contas"}`}
+          detail="Saldo inicial + entradas − saídas"
           isAlert={totalBalance < 0}
         />
         <StatCard
@@ -111,6 +107,9 @@ export function FinanceOverview({
           detail="Entradas menos saídas"
           isAlert={monthResult < 0}
         />
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-3">
         <StatCard
           label="A pagar atrasado"
           value={formatCurrency(overview.overduePayables.amount)}
@@ -118,81 +117,43 @@ export function FinanceOverview({
           isAlert={overview.overduePayables.count > 0}
         />
         <StatCard
-          label="A pagar em 7 dias"
-          value={formatCurrency(overview.upcomingPayables.amount)}
-          detail={describeTotals(overview.upcomingPayables, "Nada vencendo")}
+          label="A pagar no mês"
+          value={formatCurrency(overview.monthPayables.amount)}
+          detail={describeTotals(overview.monthPayables, "Tudo pago")}
         />
         <StatCard
-          label="A receber atrasado"
-          value={formatCurrency(overview.overdueReceivables.amount)}
-          detail={describeTotals(overview.overdueReceivables, "Nada atrasado")}
-          isAlert={overview.overdueReceivables.count > 0}
-        />
-        <StatCard
-          label="A receber em 7 dias"
-          value={formatCurrency(overview.upcomingReceivables.amount)}
-          detail={describeTotals(overview.upcomingReceivables, "Nada previsto")}
+          label="Contas fixas do mês"
+          value={formatCurrency(overview.monthFixedExpenses.amount)}
+          detail={
+            overview.monthFixedExpenses.count === 0
+              ? "Nenhuma conta fixa"
+              : `${formatCurrency(overview.monthFixedExpenses.paidAmount)} pago · ${overview.monthFixedExpenses.openCount} em aberto`
+          }
         />
       </div>
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
-        <section className="flex flex-col gap-3">
-          <h2 className="font-semibold">Vencidas e próximos 30 dias</h2>
-          {overview.upcoming.length === 0 ? (
-            <p className="rounded-2xl border border-dashed px-4 py-8 text-center text-muted-foreground text-sm">
-              Nenhuma conta vencida ou vencendo nos próximos 30 dias.
-            </p>
-          ) : (
-            <ul className="flex flex-col divide-y rounded-2xl border bg-card">
-              {overview.upcoming.map((entry) => (
-                <EntryRow
-                  key={entry.id}
-                  organizationId={organizationId}
-                  entry={entry}
-                  today={overview.today}
-                  onPay={(entryToPay) => onPay(entryToPay, overview.today)}
-                  onEdit={onEdit}
-                  onDelete={onDelete}
-                />
-              ))}
-            </ul>
-          )}
-        </section>
-
-        <section className="flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <h2 className="font-semibold">Contas</h2>
-            <Button variant="ghost" size="sm" onClick={onOpenAccounts}>
-              Gerenciar
-            </Button>
-          </div>
+      <section className="flex flex-col gap-3">
+        <h2 className="font-semibold">Vencidas e próximos 30 dias</h2>
+        {overview.upcoming.length === 0 ? (
+          <p className="rounded-2xl border border-dashed px-4 py-8 text-center text-muted-foreground text-sm">
+            Nenhuma conta vencida ou vencendo nos próximos 30 dias.
+          </p>
+        ) : (
           <ul className="flex flex-col divide-y rounded-2xl border bg-card">
-            {activeAccounts.map((account) => (
-              <li
-                key={account.id}
-                className="flex items-center gap-3 px-4 py-3"
-              >
-                <div className="flex min-w-0 flex-1 flex-col">
-                  <span className="truncate font-medium text-sm">
-                    {account.name}
-                  </span>
-                  <span className="text-muted-foreground text-xs">
-                    {ACCOUNT_KIND_LABELS[account.kind]}
-                  </span>
-                </div>
-                <span
-                  className={cn(
-                    "font-semibold text-sm tabular-nums",
-                    account.balance < 0 && "text-destructive",
-                  )}
-                >
-                  {formatCurrency(account.balance)}
-                </span>
-              </li>
+            {overview.upcoming.map((entry) => (
+              <EntryRow
+                key={entry.id}
+                organizationId={organizationId}
+                entry={entry}
+                today={overview.today}
+                onPay={(entryToPay) => onPay(entryToPay, overview.today)}
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
             ))}
           </ul>
-        </section>
-      </div>
+        )}
+      </section>
     </div>
   );
 }

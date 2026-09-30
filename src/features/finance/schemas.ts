@@ -29,6 +29,7 @@ export const ENTRY_EDIT_SCOPES = ["single", "following"] as const;
 export type EntryEditScope = (typeof ENTRY_EDIT_SCOPES)[number];
 
 export const ENTRY_DELETE_SCOPES = [
+  "all",
   "single",
   "following",
   "installments",
@@ -52,7 +53,6 @@ export const entrySchema = z
     dueDate: dateSchema("Informe o vencimento."),
     categoryId: z.string().optional(),
     supplierId: z.string().optional(),
-    accountId: z.string().optional(),
     digitableLine: z
       .string()
       .refine(
@@ -93,35 +93,17 @@ export const entrySchema = z
   .refine((entry) => !entry.isPaid || entry.paidAt !== "", {
     message: "Informe a data do pagamento.",
     path: ["paidAt"],
-  })
-  .refine(
-    (entry) =>
-      !entry.isPaid ||
-      (entry.accountId !== undefined && entry.accountId !== "none"),
-    { message: "Escolha a conta.", path: ["accountId"] },
-  );
+  });
 
 export type EntryInput = z.infer<typeof entrySchema>;
 
 export const payEntrySchema = z.object({
   paidAt: dateSchema("Informe a data."),
-  accountId: z.string().min(1, "Escolha a conta."),
+
   paidAmount: moneySchema,
 });
 
 export type PayEntryInput = z.infer<typeof payEntrySchema>;
-
-export const accountSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, "Informe o nome da conta.")
-    .max(40, "Nome muito longo."),
-  kind: z.enum(Constants.public.Enums.financial_account_kind),
-  openingBalance: z.number().optional(),
-});
-
-export type AccountInput = z.infer<typeof accountSchema>;
 
 export const categorySchema = z.object({
   name: z
@@ -133,21 +115,6 @@ export const categorySchema = z.object({
 });
 
 export type CategoryInput = z.infer<typeof categorySchema>;
-
-export const transferSchema = z
-  .object({
-    fromAccountId: z.string().min(1, "Escolha a conta de origem."),
-    toAccountId: z.string().min(1, "Escolha a conta de destino."),
-    amount: moneySchema,
-    transferredOn: dateSchema("Informe a data."),
-    notes: z.string().trim().max(200, "Observação muito longa."),
-  })
-  .refine((transfer) => transfer.fromAccountId !== transfer.toAccountId, {
-    message: "Escolha contas diferentes.",
-    path: ["toAccountId"],
-  });
-
-export type TransferInput = z.infer<typeof transferSchema>;
 
 export const AUTOMATED_PAYMENT_METHODS = [
   "cash",
@@ -161,13 +128,12 @@ export const automationSettingsSchema = z.object({
   isSalesEnabled: z.boolean(),
   isCustomerPaymentsEnabled: z.boolean(),
   isStockPurchasesEnabled: z.boolean(),
-  stockPurchaseAccountId: z.string().optional(),
+  openingBalance: z.number().optional(),
   isPayrollEnabled: z.boolean(),
   paymentMethods: z
     .array(
       z.object({
         paymentMethod: z.enum(AUTOMATED_PAYMENT_METHODS),
-        accountId: z.string().optional(),
         feePercent: z.number().min(0).max(100, "No máximo 100%.").optional(),
         settlementDays: z
           .number()
