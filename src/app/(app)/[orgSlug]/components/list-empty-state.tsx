@@ -1,4 +1,5 @@
 import { type LucideIcon, Plus } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   Empty,
@@ -15,8 +16,10 @@ type ListEmptyStateProps = {
   description: string;
   createLabel: string;
   canCreate: boolean;
-  onCreate: () => void;
-};
+} & (
+  | { onCreate: () => void; createHref?: never }
+  | { createHref: string; onCreate?: never }
+);
 
 export function ListEmptyState({
   icon: Icon,
@@ -25,6 +28,7 @@ export function ListEmptyState({
   createLabel,
   canCreate,
   onCreate,
+  createHref,
 }: ListEmptyStateProps) {
   return (
     <Empty className="flex-1 border border-dashed">
@@ -37,10 +41,21 @@ export function ListEmptyState({
       </EmptyHeader>
       {canCreate && (
         <EmptyContent>
-          <Button className="h-10" onClick={onCreate}>
-            <Plus aria-hidden />
-            {createLabel}
-          </Button>
+          {createHref ? (
+            <Button
+              className="h-10"
+              nativeButton={false}
+              render={<Link href={createHref} />}
+            >
+              <Plus aria-hidden />
+              {createLabel}
+            </Button>
+          ) : (
+            <Button className="h-10" onClick={onCreate}>
+              <Plus aria-hidden />
+              {createLabel}
+            </Button>
+          )}
         </EmptyContent>
       )}
     </Empty>

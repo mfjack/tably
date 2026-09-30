@@ -8,7 +8,6 @@ import {
   Settings2,
   Wallet,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -67,7 +66,6 @@ export function PayrollView({
   initialMonthKey,
   employeesHref,
 }: PayrollViewProps) {
-  const router = useRouter();
   const [monthKey, setMonthKey] = useState(initialMonthKey);
   const [tab, setTab] = useState<PayrollTab>("monthly");
   const payrollQuery = usePayrollMonthQuery(organizationId, monthKey);
@@ -255,7 +253,7 @@ export function PayrollView({
                   description="Cadastre funcionários com data de admissão para gerar a folha."
                   createLabel="Ir para Funcionários"
                   canCreate
-                  onCreate={() => router.push(employeesHref)}
+                  createHref={employeesHref}
                 />
               ) : (
                 <ul className="flex flex-col divide-y rounded-2xl border bg-card">

@@ -1,6 +1,7 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -13,8 +14,7 @@ type DataTableRowActionButtonProps = {
   accessibleLabel: string;
   icon: LucideIcon;
   variant?: "outline" | "destructive";
-  onClick: () => void;
-};
+} & ({ onClick: () => void; href?: never } | { href: string; onClick?: never });
 
 export function DataTableRowActionButton({
   label,
@@ -22,18 +22,32 @@ export function DataTableRowActionButton({
   icon: Icon,
   variant = "outline",
   onClick,
+  href,
 }: DataTableRowActionButtonProps) {
+  const className = variant === "outline" ? "shadow-xs" : undefined;
+
   return (
     <Tooltip>
       <TooltipTrigger
         render={
-          <Button
-            variant={variant}
-            size="icon-lg"
-            aria-label={accessibleLabel}
-            className={variant === "outline" ? "shadow-xs" : undefined}
-            onClick={onClick}
-          />
+          href ? (
+            <Button
+              variant={variant}
+              size="icon-lg"
+              aria-label={accessibleLabel}
+              className={className}
+              nativeButton={false}
+              render={<Link href={href} />}
+            />
+          ) : (
+            <Button
+              variant={variant}
+              size="icon-lg"
+              aria-label={accessibleLabel}
+              className={className}
+              onClick={onClick}
+            />
+          )
         }
       >
         <Icon aria-hidden />

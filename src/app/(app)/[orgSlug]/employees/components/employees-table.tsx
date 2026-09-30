@@ -37,7 +37,6 @@ type EmployeesTableProps = {
   isLoading: boolean;
   errorMessage?: string;
   emptyState: ReactNode;
-  onOpenTimesheet: (employee: EmployeeWithAccess) => void;
   onEdit: (employee: EmployeeWithAccess) => void;
   onResetPin: (employee: EmployeeWithAccess) => void;
   onDelete: (employee: EmployeeWithAccess) => void;
@@ -55,7 +54,6 @@ export function EmployeesTable({
   isLoading,
   errorMessage,
   emptyState,
-  onOpenTimesheet,
   onEdit,
   onResetPin,
   onDelete,
@@ -164,7 +162,7 @@ export function EmployeesTable({
               label="Espelho de ponto"
               accessibleLabel={`Espelho de ponto de ${row.original.name}`}
               icon={CalendarClock}
-              onClick={() => onOpenTimesheet(row.original)}
+              href={getTimesheetHref(row.original)}
             />
             {row.original.hasPin && (
               <DataTableRowActionButton
@@ -191,15 +189,7 @@ export function EmployeesTable({
         ),
       }),
     ]);
-  }, [
-    workSchedules,
-    today,
-    getTimesheetHref,
-    onOpenTimesheet,
-    onEdit,
-    onResetPin,
-    onDelete,
-  ]);
+  }, [workSchedules, today, getTimesheetHref, onEdit, onResetPin, onDelete]);
 
   const table = useDataTable({
     data: employees ?? EMPTY_EMPLOYEES,

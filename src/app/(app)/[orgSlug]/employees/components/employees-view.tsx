@@ -1,7 +1,6 @@
 "use client";
 
 import { CalendarClock, Flag, Plus, Users } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/dialog/confirm-dialog";
@@ -53,7 +52,6 @@ export function EmployeesView({
   today,
   visibleModuleIds,
 }: EmployeesViewProps) {
-  const router = useRouter();
   const employeesQuery = useEmployeesQuery(organizationId);
   const workSchedulesQuery = useWorkSchedulesQuery(organizationId);
   const deleteEmployeeMutation = useDeleteEmployeeMutation(organizationId);
@@ -71,11 +69,6 @@ export function EmployeesView({
     (employee: EmployeeWithAccess) =>
       buildOrganizationPath(organizationSlug, `employees/${employee.id}`),
     [organizationSlug],
-  );
-
-  const openTimesheet = useCallback(
-    (employee: EmployeeWithAccess) => router.push(getTimesheetHref(employee)),
-    [router, getTimesheetHref],
   );
 
   const openCreateForm = useCallback(() => {
@@ -158,7 +151,6 @@ export function EmployeesView({
               onCreate={openCreateForm}
             />
           }
-          onOpenTimesheet={openTimesheet}
           onEdit={openEditForm}
           onResetPin={setEmployeeToResetPin}
           onDelete={setEmployeeToDelete}
