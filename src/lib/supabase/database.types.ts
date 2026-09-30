@@ -384,6 +384,93 @@ export type Database = {
           },
         ]
       }
+      finance_automation_settings: {
+        Row: {
+          is_customer_payments_enabled: boolean
+          is_payroll_enabled: boolean
+          is_sales_enabled: boolean
+          is_stock_purchases_enabled: boolean
+          organization_id: string
+          start_date: string
+          stock_purchase_account_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          is_customer_payments_enabled?: boolean
+          is_payroll_enabled?: boolean
+          is_sales_enabled?: boolean
+          is_stock_purchases_enabled?: boolean
+          organization_id: string
+          start_date: string
+          stock_purchase_account_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          is_customer_payments_enabled?: boolean
+          is_payroll_enabled?: boolean
+          is_sales_enabled?: boolean
+          is_stock_purchases_enabled?: boolean
+          organization_id?: string
+          start_date?: string
+          stock_purchase_account_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_automation_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_automation_settings_stock_purchase_account_id_orga_fkey"
+            columns: ["stock_purchase_account_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "financial_accounts"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      finance_payment_method_settings: {
+        Row: {
+          account_id: string | null
+          fee_percent: number
+          organization_id: string
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          settlement_days: number
+        }
+        Insert: {
+          account_id?: string | null
+          fee_percent?: number
+          organization_id: string
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          settlement_days?: number
+        }
+        Update: {
+          account_id?: string | null
+          fee_percent?: number
+          organization_id?: string
+          payment_method?: Database["public"]["Enums"]["payment_method"]
+          settlement_days?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_payment_method_settings_account_id_organization_id_fkey"
+            columns: ["account_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "financial_accounts"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "finance_payment_method_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financial_accounts: {
         Row: {
           created_at: string
@@ -483,6 +570,9 @@ export type Database = {
           paid_by_name: string | null
           receipt_path: string | null
           recurrence_id: string | null
+          source: Database["public"]["Enums"]["financial_entry_source"]
+          source_date: string | null
+          source_key: string | null
           supplier_id: string | null
           updated_at: string
         }
@@ -508,6 +598,9 @@ export type Database = {
           paid_by_name?: string | null
           receipt_path?: string | null
           recurrence_id?: string | null
+          source?: Database["public"]["Enums"]["financial_entry_source"]
+          source_date?: string | null
+          source_key?: string | null
           supplier_id?: string | null
           updated_at?: string
         }
@@ -533,6 +626,9 @@ export type Database = {
           paid_by_name?: string | null
           receipt_path?: string | null
           recurrence_id?: string | null
+          source?: Database["public"]["Enums"]["financial_entry_source"]
+          source_date?: string | null
+          source_key?: string | null
           supplier_id?: string | null
           updated_at?: string
         }
@@ -2289,6 +2385,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      nth_business_day: {
+        Args: {
+          p_count: number
+          p_month_start: string
+          p_organization_id: string
+        }
+        Returns: string
+      }
       organization_today: {
         Args: { p_organization_id: string }
         Returns: string
@@ -2301,6 +2405,10 @@ export type Database = {
           p_payment_method: Database["public"]["Enums"]["payment_method"]
         }
         Returns: number
+      }
+      payment_method_label: {
+        Args: { p_method: Database["public"]["Enums"]["payment_method"] }
+        Returns: string
       }
       place_order: {
         Args: {
@@ -2408,6 +2516,10 @@ export type Database = {
         Args: { p_is_done: boolean; p_task_id: string }
         Returns: undefined
       }
+      sync_financial_automations: {
+        Args: { p_organization_id: string }
+        Returns: undefined
+      }
       sync_financial_recurrences: {
         Args: { p_organization_id: string; p_until: string }
         Returns: undefined
@@ -2418,6 +2530,24 @@ export type Database = {
           p_frequency: Database["public"]["Enums"]["task_frequency"]
         }
         Returns: string
+      }
+      upsert_automatic_entry: {
+        Args: {
+          p_account_id: string
+          p_amount: number
+          p_category_id: string
+          p_description: string
+          p_due_date: string
+          p_keep_when_paid: boolean
+          p_kind: Database["public"]["Enums"]["financial_entry_kind"]
+          p_mark_paid_until: string
+          p_organization_id: string
+          p_source: Database["public"]["Enums"]["financial_entry_source"]
+          p_source_date: string
+          p_source_key: string
+          p_supplier_id: string
+        }
+        Returns: undefined
       }
       verify_operator_pin: {
         Args: { p_operator_id: string; p_pin: string }
@@ -2452,6 +2582,16 @@ export type Database = {
         | "card_acquirer"
         | "digital_wallet"
       financial_entry_kind: "income" | "expense"
+      financial_entry_source:
+        | "manual"
+        | "sales"
+        | "sales_fee"
+        | "customer_payments"
+        | "customer_payments_fee"
+        | "stock_purchase"
+        | "payroll_salary"
+        | "payroll_fgts"
+        | "payroll_taxes"
       kitchen_ticket_status: "preparing" | "ready" | "delivered"
       measure_unit: "unit" | "g" | "kg" | "ml" | "l"
       member_role: "owner" | "manager" | "cashier" | "kitchen" | "waiter"
@@ -2641,6 +2781,17 @@ export const Constants = {
         "digital_wallet",
       ],
       financial_entry_kind: ["income", "expense"],
+      financial_entry_source: [
+        "manual",
+        "sales",
+        "sales_fee",
+        "customer_payments",
+        "customer_payments_fee",
+        "stock_purchase",
+        "payroll_salary",
+        "payroll_fgts",
+        "payroll_taxes",
+      ],
       kitchen_ticket_status: ["preparing", "ready", "delivered"],
       measure_unit: ["unit", "g", "kg", "ml", "l"],
       member_role: ["owner", "manager", "cashier", "kitchen", "waiter"],
