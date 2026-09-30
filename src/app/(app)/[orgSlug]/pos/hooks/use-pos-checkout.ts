@@ -237,8 +237,9 @@ export function usePosCheckout({
     );
   }
 
-  function openTab(customer: OrderCustomerInput) {
-    sendToKitchen(customer, undefined);
+  function openKitchenTab() {
+    if (checkoutStep.step !== "kitchen-payment") return;
+    sendToKitchen(checkoutStep.customer, undefined);
   }
 
   return {
@@ -255,7 +256,7 @@ export function usePosCheckout({
     confirmCustomer: (customer: OrderCustomerInput) =>
       setCheckoutStep({ step: "kitchen-payment", customer }),
     confirmPayment,
-    openTab,
+    openKitchenTab,
     cancelCheckout: () => setCheckoutStep({ step: "idle" }),
   };
 }

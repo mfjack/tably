@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { type DefaultValues, useForm } from "react-hook-form";
 import { FormDialog } from "@/components/dialog/form-dialog";
 import { SwitchField } from "@/components/form/switch-field";
@@ -27,12 +27,8 @@ type CustomerDialogProps = {
   takeawayFee: number;
   isTakeawayEnabled: boolean;
   onClose: () => void;
-  isOpeningTab: boolean;
   onConfirm: (customer: OrderCustomerInput) => void;
-  onOpenTab: (customer: OrderCustomerInput) => void;
 };
-
-type SubmitIntent = "continue" | "open-tab";
 
 export function CustomerDialog({
   organizationId,
@@ -40,11 +36,8 @@ export function CustomerDialog({
   takeawayFee,
   isTakeawayEnabled,
   onClose,
-  isOpeningTab,
   onConfirm,
-  onOpenTab,
 }: CustomerDialogProps) {
-  const [submitIntent, setSubmitIntent] = useState<SubmitIntent | null>(null);
   const form = useForm<OrderCustomerInput>({
     resolver: zodResolver(orderCustomerSchema),
     defaultValues: EMPTY_CUSTOMER_FORM,
@@ -59,29 +52,21 @@ export function CustomerDialog({
     checkCustomerNameMutation.reset();
   }, [isOpen, form, checkCustomerNameMutation.reset]);
 
-  function buildSubmitHandler(
-    intent: SubmitIntent,
-    onValidCustomer: (customer: OrderCustomerInput) => void,
-  ) {
-    return form.handleSubmit((customer) => {
-      setSubmitIntent(intent);
-      checkCustomerNameMutation.mutate(customer.customerName, {
-        onSuccess: (isAvailable) => {
-          if (isAvailable) {
-            onValidCustomer(customer);
-            return;
-          }
-          form.setError("customerName", {
-            message: CUSTOMER_NAME_IN_USE_MESSAGE,
-          });
-        },
-        onError: (error) =>
-          form.setError("customerName", { message: error.message }),
-      });
-    });
-  }
-
-  const isCheckingName = checkCustomerNameMutation.isPending;
+  const handleSubmit = form.handleSubmit((customer) =>
+    checkCustomerNameMutation.mutate(customer.customerName, {
+      onSuccess: (isAvailable) => {
+        if (isAvailable) {
+          onConfirm(customer);
+          return;
+        }
+        form.setError("customerName", {
+          message: CUSTOMER_NAME_IN_USE_MESSAGE,
+        });
+      },
+      onError: (error) =>
+        form.setError("customerName", { message: error.message }),
+    }),
+  );
 
   return (
     <FormDialog
@@ -90,14 +75,8 @@ export function CustomerDialog({
       title="Nome do cliente"
       isTitleHidden
       submitLabel="Pagamento"
-      isSubmitting={isCheckingName && submitIntent === "continue"}
-      onSubmit={buildSubmitHandler("continue", onConfirm)}
-      secondaryAction={{
-        label: "Abrir comanda",
-        isPending:
-          isOpeningTab || (isCheckingName && submitIntent === "open-tab"),
-        onClick: buildSubmitHandler("open-tab", onOpenTab),
-      }}
+      isSubmitting={checkCustomerNameMutation.isPending}
+      onSubmit={handleSubmit}
     >
       <FieldGroup>
         <TextField

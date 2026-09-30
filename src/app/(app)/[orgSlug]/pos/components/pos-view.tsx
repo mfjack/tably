@@ -199,9 +199,7 @@ export function PosView({
         takeawayFee={takeawayFee}
         isTakeawayEnabled={isTakeawayEnabled}
         onClose={checkout.cancelCheckout}
-        isOpeningTab={checkout.isOpeningTab}
         onConfirm={checkout.confirmCustomer}
-        onOpenTab={checkout.openTab}
       />
       <PaymentDialog
         organizationId={organizationId}
@@ -211,7 +209,7 @@ export function PosView({
           isKitchenPayment ? "Pagamento recebido" : "Confirmar pagamento"
         }
         summary={checkout.paymentSummary}
-        isSubmitting={checkout.isPlacingOrder}
+        isSubmitting={checkout.isPlacingOrder && !checkout.isOpeningTab}
         onClose={checkout.cancelCheckout}
         onConfirm={checkout.confirmPayment}
         secondaryAction={
@@ -221,7 +219,11 @@ export function PosView({
                 isPending: false,
                 onClick: checkout.startTabCreation,
               }
-            : undefined
+            : {
+                label: "Abrir comanda",
+                isPending: checkout.isOpeningTab,
+                onClick: checkout.openKitchenTab,
+              }
         }
       />
       <TabNameDialog
