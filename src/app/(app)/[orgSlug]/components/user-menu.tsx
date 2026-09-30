@@ -144,7 +144,7 @@ function UserAvatar({ currentUser, displayName }: UserAvatarProps) {
   }
 
   return (
-    <Avatar className="size-8 rounded-lg">
+    <Avatar className="size-8 rounded-lg after:hidden">
       <AvatarFallback className="rounded-lg bg-sidebar-primary text-sidebar-primary-foreground text-xs">
         {getInitials(displayName)}
       </AvatarFallback>
