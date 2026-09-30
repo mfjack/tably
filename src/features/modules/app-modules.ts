@@ -5,6 +5,7 @@ import {
   ChefHat,
   ClipboardList,
   Clock,
+  House,
   LayoutGrid,
   ListChecks,
   type LucideIcon,
@@ -35,6 +36,13 @@ export const APP_MODULE_GROUPS = [
   {
     label: "Operação",
     modules: [
+      {
+        id: "dashboard",
+        label: "Hoje",
+        description: "Resumo do dia: vendas, contas, estoque e equipe.",
+        path: "today",
+        icon: House,
+      },
       {
         id: "pos",
         label: "PDV",
