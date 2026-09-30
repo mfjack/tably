@@ -9,7 +9,7 @@ export function useRefreshOnVisible() {
 
   useEffect(() => {
     function handleVisibilityChange() {
-      if (document.visibilityState !== "visible") return;
+      if (document.visibilityState !== "visible" || !navigator.onLine) return;
       const now = Date.now();
       if (now - lastRefreshAtRef.current < MIN_REFRESH_INTERVAL_IN_MS) return;
       lastRefreshAtRef.current = now;

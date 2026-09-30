@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { unwrapActionResult } from "@/lib/action-result";
+import { clearOfflineCaches } from "@/lib/offline-cache";
 import { ROUTES } from "@/lib/routes";
 import { deleteMyAccount } from "../actions";
 import type { DeleteAccountInput } from "../schemas";
@@ -17,8 +18,9 @@ export function useDeleteAccountMutation() {
     mutationKey: getDeleteAccountMutationKey(),
     mutationFn: async (input: DeleteAccountInput) =>
       unwrapActionResult(await deleteMyAccount(input)),
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.clear();
+      await clearOfflineCaches();
       router.replace(ROUTES.login);
       router.refresh();
     },
