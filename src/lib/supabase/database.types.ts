@@ -1159,6 +1159,42 @@ export type Database = {
           },
         ]
       }
+      order_requests: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string
+          organization_id: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          order_id: string
+          organization_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_requests_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           amount_received: number | null
@@ -2198,7 +2234,13 @@ export type Database = {
         Returns: number
       }
       add_order_items: {
-        Args: { p_items: Json; p_note?: string; p_order_id: string }
+        Args: {
+          p_items: Json
+          p_note?: string
+          p_order_id: string
+          p_placed_at?: string
+          p_request_id?: string
+        }
         Returns: number
       }
       append_time_punch: {
@@ -2324,6 +2366,10 @@ export type Database = {
       }
       delete_my_account: { Args: never; Returns: undefined }
       delete_operator: { Args: { p_operator_id: string }; Returns: undefined }
+      deliver_offline_kitchen_ticket: {
+        Args: { p_delivered_at: string; p_ticket_id: string }
+        Returns: undefined
+      }
       ensure_operator_with_settings: {
         Args: { p_organization_id: string }
         Returns: undefined
@@ -2414,6 +2460,7 @@ export type Database = {
       }
       move_order_stock: {
         Args: {
+          p_allow_negative?: boolean
           p_is_return: boolean
           p_items: Json
           p_order_id: string
@@ -2456,6 +2503,8 @@ export type Database = {
           p_note?: string
           p_organization_id: string
           p_payment_method?: Database["public"]["Enums"]["payment_method"]
+          p_placed_at?: string
+          p_request_id?: string
           p_send_to_kitchen?: boolean
         }
         Returns: {
@@ -2491,6 +2540,10 @@ export type Database = {
       reset_person_pin: {
         Args: { p_employee_id?: string; p_operator_id?: string }
         Returns: undefined
+      }
+      resolve_offline_customer_name: {
+        Args: { p_customer_name: string; p_organization_id: string }
+        Returns: string
       }
       save_customer_account: {
         Args: {
