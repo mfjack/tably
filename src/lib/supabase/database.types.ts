@@ -2322,6 +2322,7 @@ export type Database = {
         Args: { p_account_id: string }
         Returns: undefined
       }
+      delete_my_account: { Args: never; Returns: undefined }
       delete_operator: { Args: { p_operator_id: string }; Returns: undefined }
       ensure_operator_with_settings: {
         Args: { p_organization_id: string }
@@ -2374,6 +2375,13 @@ export type Database = {
       is_operator_employee_active: {
         Args: { p_operator_id: string }
         Returns: boolean
+      }
+      list_my_owned_organizations: {
+        Args: never
+        Returns: {
+          id: string
+          name: string
+        }[]
       }
       list_time_clock_employees: {
         Args: { p_organization_id: string }

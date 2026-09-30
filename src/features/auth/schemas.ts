@@ -49,3 +49,16 @@ export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export const profileSchema = z.object({ fullName: personNameSchema });
 
 export type ProfileInput = z.infer<typeof profileSchema>;
+
+export const DELETE_ACCOUNT_CONFIRMATION = "EXCLUIR";
+
+export const deleteAccountSchema = z.object({
+  confirmation: z
+    .string()
+    .refine(
+      (value) => value.trim().toUpperCase() === DELETE_ACCOUNT_CONFIRMATION,
+      `Digite ${DELETE_ACCOUNT_CONFIRMATION} para confirmar.`,
+    ),
+});
+
+export type DeleteAccountInput = z.infer<typeof deleteAccountSchema>;

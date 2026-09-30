@@ -6,6 +6,7 @@ import { APP_MODULES } from "@/features/modules/app-modules";
 import type { UserOrganization } from "@/features/organizations/types";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
+import { DeleteAccountSection } from "./delete-account-section";
 import { OperatorsSettings } from "./operators-settings";
 import { OrganizationSettingsForm } from "./organization-settings-form";
 import { ProfileForm } from "./profile-form";
@@ -69,11 +70,12 @@ export function SettingsView({
               </TabsContent>
             </>
           )}
-          <TabsContent value="profile">
+          <TabsContent value="profile" className="flex flex-col gap-6">
             <ProfileForm
               email={currentUser.email}
               fullName={currentUser.fullName}
             />
+            <DeleteAccountSection email={currentUser.email} />
           </TabsContent>
         </Tabs>
       </PageContent>
