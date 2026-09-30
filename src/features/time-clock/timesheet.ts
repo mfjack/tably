@@ -86,6 +86,7 @@ export type TimesheetSummary = {
   businessDays: number;
   restDays: number;
   monthlyHours: number;
+  vacationDays: number;
 };
 
 export type Timesheet = {
@@ -386,6 +387,9 @@ export function buildTimesheet(input: TimesheetInput): Timesheet {
       businessDays: monthDates.length - restDays,
       restDays,
       monthlyHours: getMonthlyHours(input.schedule),
+      vacationDays: days.filter(
+        (day) => day.kind === "time_off" && day.timeOffKind === "vacation",
+      ).length,
     },
   };
 }

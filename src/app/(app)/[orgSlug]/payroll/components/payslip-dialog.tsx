@@ -1,7 +1,15 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FileDown, Lock, LockOpen, Plus, RefreshCw, X } from "lucide-react";
+import {
+  FileDown,
+  Lock,
+  LockOpen,
+  Plus,
+  RefreshCw,
+  Trash2,
+  X,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { type DefaultValues, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -17,10 +25,15 @@ import { Spinner } from "@/components/ui/spinner";
 import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
 import type { OrganizationId } from "@/features/organizations/types";
 import { useAddManualPayslipItemMutation } from "@/features/payroll/hooks/use-add-manual-payslip-item-mutation";
+import { useDeleteExtraPayslipMutation } from "@/features/payroll/hooks/use-delete-extra-payslip-mutation";
 import { useGeneratePayslipMutation } from "@/features/payroll/hooks/use-generate-payslip-mutation";
 import { useIssuePayslipMutation } from "@/features/payroll/hooks/use-issue-payslip-mutation";
 import { useRemoveManualPayslipItemMutation } from "@/features/payroll/hooks/use-remove-manual-payslip-item-mutation";
 import { useReopenPayslipMutation } from "@/features/payroll/hooks/use-reopen-payslip-mutation";
+import {
+  describePayslipPeriod,
+  PAYSLIP_KIND_TITLES,
+} from "@/features/payroll/payslip-labels";
 import {
   type ManualPayslipItemInput,
   manualPayslipItemSchema,
@@ -28,7 +41,6 @@ import {
 import type { Payslip } from "@/features/payroll/types";
 import {
   formatMinutes,
-  formatMonthLabel,
   formatSignedMinutes,
 } from "@/features/time-clock/time-utils";
 import { formatCurrency } from "@/lib/format";
@@ -60,6 +72,7 @@ export function PayslipDialog({
   onClose,
 }: PayslipDialogProps) {
   const generateMutation = useGeneratePayslipMutation(organizationId);
+  const deleteExtraMutation = useDeleteExtraPayslipMutation(organizationId);
   const issueMutation = useIssuePayslipMutation(organizationId);
   const reopenMutation = useReopenPayslipMutation(organizationId);
   const addItemMutation = useAddManualPayslipItemMutation(organizationId);
@@ -130,12 +143,28 @@ export function PayslipDialog({
 
   const isToggling = issueMutation.isPending || reopenMutation.isPending;
   const summary = payslip?.timesheetSummary;
+  const isMonthly = payslip?.kind === "monthly";
+
+  function deleteDraft() {
+    if (!payslip) return;
+    deleteExtraMutation.mutate(payslip.id, {
+      onSuccess: () => {
+        toast.success("Rascunho excluído.");
+        onClose();
+      },
+      onError: (error) => toast.error(error.message),
+    });
+  }
 
   return (
     <DetailsDialog
       isOpen={payslip !== null}
       onOpenChange={(isOpen) => !isOpen && onClose()}
-      title={payslip ? `Holerite · ${payslip.employee.name}` : "Holerite"}
+      title={
+        payslip
+          ? `${PAYSLIP_KIND_TITLES[payslip.kind]} · ${payslip.employee.name}`
+          : "Holerite"
+      }
       size="large"
       footer={
         <>
@@ -173,7 +202,7 @@ export function PayslipDialog({
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex flex-col">
               <span className="font-medium text-sm">
-                {formatMonthLabel(payslip.monthKey)}
+                {describePayslipPeriod(payslip)}
               </span>
               <span className="text-muted-foreground text-xs">
                 {payslip.employee.jobTitle} · salário{" "}
@@ -186,7 +215,19 @@ export function PayslipDialog({
                   ? `Emitido${payslip.issuedByName ? ` por ${payslip.issuedByName}` : ""}`
                   : "Rascunho"}
               </Badge>
-              {!isIssued && (
+              {!isIssued && !isMonthly && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-destructive"
+                  disabled={deleteExtraMutation.isPending}
+                  onClick={deleteDraft}
+                >
+                  <Trash2 aria-hidden />
+                  Excluir
+                </Button>
+              )}
+              {!isIssued && isMonthly && (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -203,42 +244,44 @@ export function PayslipDialog({
             </div>
           </div>
 
-          <dl className="grid grid-cols-2 gap-x-4 gap-y-1 rounded-xl bg-muted/50 p-3 text-xs sm:grid-cols-4">
-            <div>
-              <dt className="text-muted-foreground">Trabalhado</dt>
-              <dd className="font-medium tabular-nums">
-                {formatMinutes(summary.workedMinutes)}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-muted-foreground">Extras</dt>
-              <dd className="font-medium tabular-nums">
-                {formatMinutes(
-                  summary.overtimeMinutes + summary.restDayWorkedMinutes,
-                )}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-muted-foreground">Faltas</dt>
-              <dd className="font-medium tabular-nums">
-                {summary.absenceDays}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-muted-foreground">
-                {payslip.employee.overtimePolicy === "hour_bank"
-                  ? "Banco de horas"
-                  : "Saldo"}
-              </dt>
-              <dd className="font-medium tabular-nums">
-                {formatSignedMinutes(
-                  payslip.employee.overtimePolicy === "hour_bank"
-                    ? payslip.hourBankBalanceMinutes
-                    : summary.balanceMinutes,
-                )}
-              </dd>
-            </div>
-          </dl>
+          {isMonthly && (
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-1 rounded-xl bg-muted/50 p-3 text-xs sm:grid-cols-4">
+              <div>
+                <dt className="text-muted-foreground">Trabalhado</dt>
+                <dd className="font-medium tabular-nums">
+                  {formatMinutes(summary.workedMinutes)}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">Extras</dt>
+                <dd className="font-medium tabular-nums">
+                  {formatMinutes(
+                    summary.overtimeMinutes + summary.restDayWorkedMinutes,
+                  )}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">Faltas</dt>
+                <dd className="font-medium tabular-nums">
+                  {summary.absenceDays}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">
+                  {payslip.employee.overtimePolicy === "hour_bank"
+                    ? "Banco de horas"
+                    : "Saldo"}
+                </dt>
+                <dd className="font-medium tabular-nums">
+                  {formatSignedMinutes(
+                    payslip.employee.overtimePolicy === "hour_bank"
+                      ? payslip.hourBankBalanceMinutes
+                      : summary.balanceMinutes,
+                  )}
+                </dd>
+              </div>
+            </dl>
+          )}
 
           <div className="overflow-hidden rounded-xl border">
             <table className="w-full text-sm">
@@ -343,7 +386,7 @@ export function PayslipDialog({
             {formatCurrency(payslip.irrfBase)}
           </p>
 
-          {!isIssued && (
+          {!isIssued && isMonthly && (
             <form
               onSubmit={handleAddItem}
               noValidate

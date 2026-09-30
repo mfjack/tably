@@ -165,3 +165,36 @@ export const storedPayslipItemsSchema = z.array(
     amount: z.number(),
   }),
 );
+
+const MIN_VACATION_DAYS = 5;
+const MAX_VACATION_DAYS = 30;
+export const SOLD_VACATION_DAYS = 10;
+
+export const vacationSchema = z
+  .object({
+    employeeId: z.string().min(1, "Escolha o funcionário."),
+    startDate: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Informe o primeiro dia de férias."),
+    days: z
+      .number({ error: "Informe os dias de férias." })
+      .int()
+      .min(MIN_VACATION_DAYS, `No mínimo ${MIN_VACATION_DAYS} dias.`)
+      .max(MAX_VACATION_DAYS, `No máximo ${MAX_VACATION_DAYS} dias.`),
+    sellsDays: z.boolean(),
+  })
+  .refine(
+    (vacation) =>
+      !vacation.sellsDays ||
+      vacation.days <= MAX_VACATION_DAYS - SOLD_VACATION_DAYS,
+    {
+      message: `Vendendo ${SOLD_VACATION_DAYS} dias, sobram no máximo ${MAX_VACATION_DAYS - SOLD_VACATION_DAYS} de descanso.`,
+      path: ["days"],
+    },
+  );
+
+export type VacationInput = z.infer<typeof vacationSchema>;
+
+export const THIRTEENTH_INSTALLMENTS = ["first", "second"] as const;
+
+export type ThirteenthInstallment = (typeof THIRTEENTH_INSTALLMENTS)[number];

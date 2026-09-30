@@ -4,6 +4,7 @@ import { formatMonthLabel } from "@/features/time-clock/time-utils";
 import { downloadFile } from "@/lib/download-file";
 import { formatCurrency, formatDateKey } from "@/lib/format";
 import { formatCbo, formatCnpj, formatCpf, formatPis } from "@/lib/masks";
+import { describePayslipPeriod, PAYSLIP_KIND_TITLES } from "./payslip-labels";
 import type { Payslip } from "./types";
 
 const PAGE_MARGIN_IN_MM = 14;
@@ -50,7 +51,9 @@ export async function exportPayslipPdf(
   document.setFont("helvetica", "bold");
   document.setFontSize(11);
   document.text(
-    "Recibo de pagamento de salário",
+    payslip.kind === "monthly"
+      ? "Recibo de pagamento de salário"
+      : PAYSLIP_KIND_TITLES[payslip.kind],
     pageWidth - PAGE_MARGIN_IN_MM,
     18,
     { align: "right" },
@@ -58,7 +61,7 @@ export async function exportPayslipPdf(
   document.setFont("helvetica", "normal");
   document.setFontSize(9);
   document.text(
-    `Referência: ${formatMonthLabel(payslip.monthKey)}`,
+    `Referência: ${describePayslipPeriod(payslip)}`,
     pageWidth - PAGE_MARGIN_IN_MM,
     23,
     { align: "right" },

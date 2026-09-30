@@ -133,7 +133,8 @@ export function calculatePayslip({
   const taxableEarnings: number[] = [];
   const baseReductions: number[] = [];
   const isHourBank = employee.overtimePolicy === "hour_bank";
-  const paidDays = getPaidDays(employee, monthKey);
+  const vacationDays = Math.min(summary.vacationDays, COMMERCIAL_MONTH_DAYS);
+  const paidDays = Math.max(0, getPaidDays(employee, monthKey) - vacationDays);
   const dailySalary = employee.salary / COMMERCIAL_MONTH_DAYS;
   const hourlyRate = employee.salary / summary.monthlyHours;
   const baseSalary = roundCurrency(dailySalary * paidDays);
@@ -153,7 +154,10 @@ export function calculatePayslip({
     {
       code: "salary",
       description: "Salário base",
-      reference: `${paidDays} dias`,
+      reference:
+        vacationDays > 0
+          ? `${paidDays} dias (${vacationDays} de férias)`
+          : `${paidDays} dias`,
       kind: "earning",
       amount: baseSalary,
     },

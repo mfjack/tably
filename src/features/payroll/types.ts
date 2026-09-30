@@ -7,10 +7,25 @@ import type {
 import type { TimesheetSummary } from "@/features/time-clock/timesheet";
 import type { Brand } from "@/lib/brand";
 import type { Database } from "@/lib/supabase/database.types";
+import type { VacationEntitlement } from "./vacation-entitlement";
 
 export type PayslipId = Brand<string, "PayslipId">;
 
 export type PayslipStatus = Database["public"]["Enums"]["payslip_status"];
+
+export type PayslipKind = Database["public"]["Enums"]["payslip_kind"];
+
+export type PayslipDetails = {
+  startDate?: string;
+  endDate?: string;
+  days?: number;
+  soldDays?: number;
+  acquisitionStart?: string;
+  acquisitionEnd?: string;
+  year?: number;
+  months?: number;
+  variableAverage?: number;
+};
 
 export type InssBracket = { upTo: number; rate: number };
 
@@ -83,6 +98,9 @@ export type Payslip = PayslipTotals & {
   id: PayslipId;
   employeeId: EmployeeId;
   monthKey: string;
+  kind: PayslipKind;
+  details: PayslipDetails;
+  paymentDueDate: string | null;
   status: PayslipStatus;
   employee: PayslipEmployeeSnapshot;
   manualItems: ManualPayslipItem[];
@@ -103,4 +121,32 @@ export type PayrollRow = {
 export type PayrollMonth = {
   monthKey: string;
   rows: PayrollRow[];
+};
+
+export type VacationEmployee = {
+  employeeId: EmployeeId;
+  name: string;
+  jobTitle: string;
+  admissionDate: string;
+  entitlement: VacationEntitlement;
+};
+
+export type VacationsOverview = {
+  today: string;
+  vacations: Payslip[];
+  employees: VacationEmployee[];
+};
+
+export type ThirteenthRow = {
+  employeeId: EmployeeId;
+  name: string;
+  jobTitle: string;
+  months: number;
+  first: Payslip | null;
+  second: Payslip | null;
+};
+
+export type ThirteenthYear = {
+  year: number;
+  rows: ThirteenthRow[];
 };

@@ -1,6 +1,5 @@
 "use server";
 
-import { z } from "zod";
 import { getEmployeeStatus } from "@/features/employees/labels";
 import { EMPLOYEE_COLUMNS, toEmployee } from "@/features/employees/mappers";
 import type { EmployeeId } from "@/features/employees/types";
@@ -19,9 +18,16 @@ import {
   actionFailure,
   actionSuccess,
 } from "@/lib/action-result";
-import type { Json, Tables } from "@/lib/supabase/database.types";
+import type { Json } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
 import { calculatePayslip } from "./calculate-payslip";
+import {
+  PAYSLIP_COLUMNS,
+  PAYSLIP_ERROR_MESSAGES,
+  readPayrollSettings,
+  toEmployeeSnapshot,
+  toPayslip,
+} from "./payslip-data";
 import {
   fromPayrollSettingsInput,
   type ManualPayslipItemInput,
@@ -29,163 +35,14 @@ import {
   monthKeySchema,
   type PayrollSettingsInput,
   payrollSettingsSchema,
-  storedInssBracketsSchema,
-  storedIrrfBracketsSchema,
-  storedManualItemsSchema,
-  storedPayslipItemsSchema,
 } from "./schemas";
 import type {
   ManualPayslipItem,
   PayrollMonth,
   PayrollSettings,
   Payslip,
-  PayslipEmployeeSnapshot,
   PayslipId,
 } from "./types";
-
-const PAYSLIP_COLUMNS =
-  "id, employee_id, reference_month, status, employee_snapshot, items, manual_items, timesheet_summary, gross_amount, deduction_amount, net_amount, inss_base, irrf_base, fgts_base, fgts_amount, hour_bank_balance_minutes, issued_at, issued_by_name, updated_at";
-
-const PAYSLIP_ERROR_MESSAGES: Readonly<Record<string, string>> = {
-  TB009: "Esse holerite já foi emitido. Reabra antes de alterar.",
-};
-
-const employeeSnapshotSchema = z.object({
-  name: z.string(),
-  cpf: z.string(),
-  pis: z.string().nullable(),
-  jobTitle: z.string(),
-  cbo: z.string().nullable().optional(),
-  admissionDate: z.string(),
-  salary: z.number(),
-  employmentType: z.enum(["clt", "apprentice", "intern"]),
-  overtimePolicy: z.enum(["paid", "hour_bank"]),
-  dependents: z.number(),
-});
-
-const timesheetSummarySchema = z.object({
-  expectedMinutes: z.number(),
-  workedMinutes: z.number(),
-  overtimeMinutes: z.number(),
-  restDayWorkedMinutes: z.number(),
-  shortfallMinutes: z.number(),
-  absenceDays: z.number(),
-  absenceMinutes: z.number(),
-  lostRestDays: z.number(),
-  nightMinutes: z.number(),
-  breakShortfallMinutes: z.number(),
-  balanceMinutes: z.number(),
-  lateDays: z.number(),
-  inconsistentDays: z.number(),
-  businessDays: z.number(),
-  restDays: z.number(),
-  monthlyHours: z.number(),
-});
-
-type PayslipRow = Pick<
-  Tables<"payslips">,
-  | "id"
-  | "employee_id"
-  | "reference_month"
-  | "status"
-  | "employee_snapshot"
-  | "items"
-  | "manual_items"
-  | "timesheet_summary"
-  | "gross_amount"
-  | "deduction_amount"
-  | "net_amount"
-  | "inss_base"
-  | "irrf_base"
-  | "fgts_base"
-  | "fgts_amount"
-  | "hour_bank_balance_minutes"
-  | "issued_at"
-  | "issued_by_name"
-  | "updated_at"
->;
-
-function toPayslip(row: PayslipRow): Payslip | null {
-  const employee = employeeSnapshotSchema.safeParse(row.employee_snapshot);
-  const items = storedPayslipItemsSchema.safeParse(row.items);
-  const manualItems = storedManualItemsSchema.safeParse(row.manual_items);
-  const summary = timesheetSummarySchema.safeParse(row.timesheet_summary);
-  if (
-    !employee.success ||
-    !items.success ||
-    !manualItems.success ||
-    !summary.success
-  ) {
-    return null;
-  }
-
-  return {
-    id: row.id as PayslipId,
-    employeeId: row.employee_id as EmployeeId,
-    monthKey: row.reference_month.slice(0, 7),
-    status: row.status,
-    employee: employee.data,
-    items: items.data,
-    manualItems: manualItems.data,
-    timesheetSummary: summary.data,
-    grossAmount: row.gross_amount,
-    deductionAmount: row.deduction_amount,
-    netAmount: row.net_amount,
-    inssBase: row.inss_base,
-    irrfBase: row.irrf_base,
-    fgtsBase: row.fgts_base,
-    fgtsAmount: row.fgts_amount,
-    hourBankBalanceMinutes: row.hour_bank_balance_minutes,
-    issuedAt: row.issued_at,
-    issuedByName: row.issued_by_name,
-    updatedAt: row.updated_at,
-  };
-}
-
-async function readPayrollSettings(
-  organizationId: OrganizationId,
-): Promise<PayrollSettings | null> {
-  const supabase = await createClient();
-  const { data: existingRow, error } = await supabase
-    .from("payroll_settings")
-    .select("*")
-    .eq("organization_id", organizationId)
-    .maybeSingle();
-
-  if (error) return null;
-
-  const row =
-    existingRow ??
-    (
-      await supabase
-        .from("payroll_settings")
-        .insert({ organization_id: organizationId })
-        .select("*")
-        .single()
-    ).data;
-
-  if (!row) return null;
-
-  const inssBrackets = storedInssBracketsSchema.safeParse(row.inss_brackets);
-  const irrfBrackets = storedIrrfBracketsSchema.safeParse(row.irrf_brackets);
-  if (!inssBrackets.success || !irrfBrackets.success) return null;
-
-  return {
-    inssBrackets: inssBrackets.data,
-    irrfBrackets: irrfBrackets.data,
-    irrfDependentDeduction: row.irrf_dependent_deduction,
-    irrfSimplifiedDeduction: row.irrf_simplified_deduction,
-    irrfExemptUpTo: row.irrf_exempt_up_to,
-    irrfReductionUpTo: row.irrf_reduction_up_to,
-    irrfReductionConstant: row.irrf_reduction_constant,
-    irrfReductionFactor: row.irrf_reduction_factor,
-    overtimeRate: row.overtime_rate,
-    restDayOvertimeRate: row.rest_day_overtime_rate,
-    nightShiftRate: row.night_shift_rate,
-    transportVoucherRate: row.transport_voucher_rate,
-    updatedAt: row.updated_at,
-  };
-}
 
 export async function getPayrollSettings(
   organizationId: OrganizationId,
@@ -254,7 +111,8 @@ export async function getPayrollMonth(
       .from("payslips")
       .select(PAYSLIP_COLUMNS)
       .eq("organization_id", organizationId)
-      .eq("reference_month", monthStart),
+      .eq("reference_month", monthStart)
+      .eq("kind", "monthly"),
   ]);
 
   if (employeesResult.error || payslipsResult.error) {
@@ -300,6 +158,7 @@ async function writePayslip(
     .select(PAYSLIP_COLUMNS)
     .eq("employee_id", employeeId)
     .eq("reference_month", getMonthStart(monthKey))
+    .eq("kind", "monthly")
     .maybeSingle();
 
   if (existingError)
@@ -320,24 +179,14 @@ async function writePayslip(
     manualItems,
     previousHourBankMinutes,
   });
-  const snapshot: PayslipEmployeeSnapshot = {
-    name: employee.name,
-    cpf: employee.cpf,
-    pis: employee.pis,
-    jobTitle: employee.jobTitle,
-    cbo: employee.cbo,
-    admissionDate: employee.admissionDate,
-    salary: employee.salary,
-    employmentType: employee.employmentType,
-    overtimePolicy: employee.overtimePolicy,
-    dependents: employee.dependents,
-  };
+  const snapshot = toEmployeeSnapshot(employee);
 
   const { error } = await supabase.from("payslips").upsert(
     {
       organization_id: organizationId,
       employee_id: employeeId,
       reference_month: getMonthStart(monthKey),
+      kind: "monthly",
       status: "draft",
       employee_snapshot: snapshot satisfies Json,
       items: totals.items satisfies Json,
@@ -352,7 +201,7 @@ async function writePayslip(
       fgts_amount: totals.fgtsAmount,
       hour_bank_balance_minutes: totals.hourBankBalanceMinutes,
     },
-    { onConflict: "employee_id,reference_month" },
+    { onConflict: "employee_id,reference_month,kind" },
   );
 
   if (error) {
