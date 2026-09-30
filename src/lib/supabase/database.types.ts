@@ -2349,17 +2349,6 @@ export type Database = {
         }
         Returns: Json
       }
-      get_today_dashboard: {
-        Args: {
-          p_include_finance: boolean
-          p_include_operations: boolean
-          p_include_sales: boolean
-          p_include_stock: boolean
-          p_include_team: boolean
-          p_organization_id: string
-        }
-        Returns: Json
-      }
       has_role: {
         Args: {
           org_id: string
