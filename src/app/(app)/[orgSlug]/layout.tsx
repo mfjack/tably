@@ -12,6 +12,7 @@ import {
 } from "@/features/organizations/queries";
 import { AppSidebar } from "./components/app-sidebar";
 import { OfflineOrderSync } from "./components/offline-order-sync";
+import { OperatorAutoLock } from "./components/operator-auto-lock";
 import { OperatorLockScreen } from "./components/operator-lock-screen";
 import { ServerDataRefresher } from "./components/server-data-refresher";
 import { SidebarOverlay } from "./components/sidebar-overlay";
@@ -41,6 +42,7 @@ export default async function OrganizationLayout({
         />
         <ServerDataRefresher />
         <OfflineOrderSync />
+        <OperatorAutoLock organizationId={organization.id} isUnlocked={false} />
       </>
     );
   }
@@ -67,6 +69,9 @@ export default async function OrganizationLayout({
       <SidebarOverlay />
       <ServerDataRefresher />
       <OfflineOrderSync />
+      {access.mode === "unlocked" && (
+        <OperatorAutoLock organizationId={organization.id} isUnlocked />
+      )}
     </SidebarProvider>
   );
 }
