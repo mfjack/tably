@@ -20,11 +20,17 @@ import {
   DIALOG_TITLE_CLASS_NAME,
 } from "./dialog-styles";
 
+const DIALOG_SIZE_CLASS_NAMES = {
+  default: "sm:max-w-md",
+  large: "sm:max-w-2xl",
+} as const;
+
 type DetailsDialogProps = {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   title: string;
   footer: ReactNode;
+  size?: keyof typeof DIALOG_SIZE_CLASS_NAMES;
   children: ReactNode;
 };
 
@@ -33,13 +39,18 @@ export function DetailsDialog({
   onOpenChange,
   title,
   footer,
+  size = "default",
   children,
 }: DetailsDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className={cn(DIALOG_CONTENT_CLASS_NAME, "flex flex-col")}
+        className={cn(
+          DIALOG_CONTENT_CLASS_NAME,
+          "flex flex-col",
+          DIALOG_SIZE_CLASS_NAMES[size],
+        )}
       >
         <DialogHeader className={DIALOG_HEADER_CLASS_NAME}>
           <DialogTitle className={DIALOG_TITLE_CLASS_NAME}>{title}</DialogTitle>

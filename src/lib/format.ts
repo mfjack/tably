@@ -50,3 +50,8 @@ export function formatQuantity(value: number): string {
 export function formatPercent(value: number): string {
   return percentFormatter.format(value);
 }
+
+export function formatDateKey(date: string): string {
+  const [year, month, day] = date.split("-");
+  return `${day}/${month}/${year}`;
+}

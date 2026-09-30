@@ -22,6 +22,7 @@ const NUMBER_FORMAT_PRESETS = {
     fixedDecimalScale: true,
   },
   quantity: { prefix: undefined, decimalScale: 3, fixedDecimalScale: false },
+  integer: { prefix: undefined, decimalScale: 0, fixedDecimalScale: false },
 } as const;
 
 type NumberFieldProps<TFieldValues extends FieldValues> = Omit<
