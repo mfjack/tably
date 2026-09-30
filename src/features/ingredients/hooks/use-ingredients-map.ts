@@ -18,6 +18,8 @@ export function useIngredientsMap(organizationId: OrganizationId) {
     ingredients,
     ingredientsById,
     isPending: ingredientsQuery.isPending,
-    errorMessage: ingredientsQuery.error?.message,
+    errorMessage: ingredientsQuery.data
+      ? undefined
+      : ingredientsQuery.error?.message,
   };
 }

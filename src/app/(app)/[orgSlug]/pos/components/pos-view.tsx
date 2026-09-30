@@ -15,6 +15,7 @@ import {
   useTabTarget,
 } from "@/features/pos/cart-store";
 import type { ProductId } from "@/features/products/types";
+import { useIsOnline } from "@/hooks/use-is-online";
 import { ModuleLinkButton } from "../../components/module-link-button";
 import { PageHeader } from "../../components/page-header";
 import { type PosProduct, usePosCatalog } from "../hooks/use-pos-catalog";
@@ -23,6 +24,7 @@ import { CartPanel } from "./cart-panel";
 import { CategoryFilter, type CategoryFilterOption } from "./category-filter";
 import { CustomerDialog } from "./customer-dialog";
 import { MobileCartSheet } from "./mobile-cart-sheet";
+import { OfflineStatus } from "./offline-status";
 import { PosHeaderDescription } from "./pos-header-description";
 import { ProductGrid } from "./product-grid";
 import { ProductSearchInput } from "./product-search-input";
@@ -37,6 +39,9 @@ type PosViewProps = {
   orderTabsHref: string;
   canOpenOrderTabs: boolean;
 };
+
+const OFFLINE_CATALOG_MESSAGE =
+  "Sem internet e o cardápio ainda não foi salvo neste aparelho. Abra o PDV com internet uma vez para vender offline.";
 
 function matchesSearch(product: PosProduct, normalizedSearch: string) {
   return product.name.toLocaleLowerCase("pt-BR").includes(normalizedSearch);
@@ -66,6 +71,10 @@ export function PosView({
 
   const { posProducts, cartLines, categories, isLoading, errorMessage } =
     usePosCatalog(organizationId, cart);
+  const isOnline = useIsOnline();
+  const catalogErrorMessage =
+    errorMessage ??
+    (!isOnline && isLoading ? OFFLINE_CATALOG_MESSAGE : undefined);
   const checkout = usePosCheckout({
     organizationId,
     ticketBusiness,
@@ -130,13 +139,16 @@ export function PosView({
           title={organizationName}
           description={<PosHeaderDescription />}
           actions={
-            canOpenOrderTabs && (
-              <ModuleLinkButton
-                href={orderTabsHref}
-                label="Comandas"
-                icon={ClipboardList}
-              />
-            )
+            <>
+              <OfflineStatus organizationId={organizationId} />
+              {canOpenOrderTabs && (
+                <ModuleLinkButton
+                  href={orderTabsHref}
+                  label="Comandas"
+                  icon={ClipboardList}
+                />
+              )}
+            </>
           }
         />
         <div className="flex flex-col gap-4 px-4 pt-5 md:px-8">
@@ -151,9 +163,9 @@ export function PosView({
           />
         </div>
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pt-6 pb-28 md:px-8 md:pb-8">
-          {errorMessage ? (
+          {catalogErrorMessage ? (
             <Alert variant="destructive">
-              <AlertDescription>{errorMessage}</AlertDescription>
+              <AlertDescription>{catalogErrorMessage}</AlertDescription>
             </Alert>
           ) : (
             <ProductGrid

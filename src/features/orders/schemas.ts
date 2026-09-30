@@ -31,10 +31,16 @@ export const placeOrderSchema = z.object({
   sendToKitchen: z.boolean(),
 });
 
+export const orderRequestSchema = z.object({
+  requestId: z.uuid(),
+  placedAt: z.iso.datetime({ offset: true }).optional(),
+});
+
 export type OrderItemInput = z.infer<typeof orderItemSchema>;
 export type OrderPaymentInput = z.infer<typeof orderPaymentSchema>;
 export type OrderCustomerInput = z.infer<typeof orderCustomerSchema>;
 export type PlaceOrderInput = z.infer<typeof placeOrderSchema>;
+export type OrderRequestInput = z.infer<typeof orderRequestSchema>;
 
 export function createQuickPaymentSchema(orderTotal: number) {
   return orderPaymentSchema.superRefine((payment, context) => {

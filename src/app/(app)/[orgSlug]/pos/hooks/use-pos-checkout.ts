@@ -1,3 +1,4 @@
+import { onlineManager } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import type { OrderSummaryData } from "@/features/orders/components/order-summary";
@@ -10,11 +11,17 @@ import {
 import type {
   OrderCustomerInput,
   OrderPaymentInput,
+  PlaceOrderInput,
 } from "@/features/orders/schemas";
-import type { OrderTabTarget, PlacedOrder } from "@/features/orders/types";
+import type { OrderTabTarget } from "@/features/orders/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import type { Cart } from "@/features/pos/cart-store";
+import {
+  createOrderRequestId,
+  useOfflineOrderQueue,
+} from "@/features/pos/offline-order-queue";
 import { formatCurrency } from "@/lib/format";
+import { isNetworkError } from "@/lib/network-error";
 import type { CartLine } from "./use-pos-catalog";
 
 export type CheckoutStep =
@@ -35,15 +42,41 @@ type UsePosCheckoutOptions = {
   onItemsAddedToTab: () => void;
 };
 
+type OrderPlacement = {
+  total: number;
+  isQueued: boolean;
+};
+
+type OrderSubmission = {
+  input: PlaceOrderInput;
+  customerName: string | null;
+  localTotal: number;
+  onPlaced: (placement: OrderPlacement) => void;
+};
+
+const QUEUED_ORDER_MESSAGE =
+  "Sem internet: a venda será enviada quando a conexão voltar.";
+
 function getChangeMessage(
   payment: OrderPaymentInput | undefined,
-  placedOrder: PlacedOrder,
+  orderTotal: number,
 ) {
   if (payment?.method !== "cash" || payment.amountReceived === undefined) {
     return undefined;
   }
-  const change = payment.amountReceived - placedOrder.total;
+  const change = payment.amountReceived - orderTotal;
   return change > 0 ? `Troco: ${formatCurrency(change)}` : undefined;
+}
+
+function buildToastDescription(
+  placement: OrderPlacement,
+  changeMessage?: string,
+) {
+  const messages = [
+    changeMessage,
+    placement.isQueued ? QUEUED_ORDER_MESSAGE : undefined,
+  ].filter(Boolean);
+  return messages.length > 0 ? messages.join(" ") : undefined;
 }
 
 export function usePosCheckout({
@@ -58,6 +91,7 @@ export function usePosCheckout({
 }: UsePosCheckoutOptions) {
   const placeOrderMutation = usePlaceOrderMutation(organizationId);
   const addOrderItemsMutation = useAddOrderItemsMutation(organizationId);
+  const enqueueOrder = useOfflineOrderQueue((state) => state.enqueueOrder);
   const [checkoutStep, setCheckoutStep] = useState<CheckoutStep>({
     step: "idle",
   });
@@ -88,8 +122,8 @@ export function usePosCheckout({
 
   const isOpeningTab =
     placeOrderMutation.isPending &&
-    placeOrderMutation.variables?.sendToKitchen === true &&
-    !placeOrderMutation.variables.payment;
+    placeOrderMutation.variables?.input.sendToKitchen === true &&
+    !placeOrderMutation.variables.input.payment;
 
   function buildOrderItems() {
     return cartLines.map((cartLine) => ({
@@ -111,36 +145,113 @@ export function usePosCheckout({
     }));
   }
 
+  function submitOrder({
+    input,
+    customerName,
+    localTotal,
+    onPlaced,
+  }: OrderSubmission) {
+    const requestId = createOrderRequestId();
+
+    function queueOrder() {
+      enqueueOrder({
+        kind: "place-order",
+        requestId,
+        organizationId,
+        placedAt: new Date().toISOString(),
+        customerName,
+        total: localTotal,
+        input,
+      });
+      onPlaced({ total: localTotal, isQueued: true });
+    }
+
+    if (!onlineManager.isOnline()) {
+      queueOrder();
+      return;
+    }
+
+    placeOrderMutation.mutate(
+      { input, request: { requestId } },
+      {
+        onSuccess: (placedOrder) =>
+          onPlaced({ total: placedOrder.total, isQueued: false }),
+        onError: (error) => {
+          if (isNetworkError(error)) {
+            queueOrder();
+            return;
+          }
+          toast.error(error.message);
+        },
+      },
+    );
+  }
+
   function addToTab() {
     if (!tabTarget) return;
 
     const ticketItems = buildTicketItems();
     const ticketNote = cart.note.trim() || undefined;
+    const items = buildOrderItems();
+    const requestId = createOrderRequestId();
+
+    function finishAddingToTab(placement: OrderPlacement) {
+      if (!tabTarget) return;
+      onItemsAddedToTab();
+      toast.success(
+        `Produtos adicionados à comanda de ${tabTarget.customerName}.`,
+        { description: buildToastDescription(placement) },
+      );
+      printOrderTicket({
+        business: ticketBusiness,
+        customerName: tabTarget.customerName,
+        items: ticketItems,
+        subtotal,
+        takeawayFee: 0,
+        total: subtotal,
+        note: ticketNote,
+        createdAt: new Date(),
+      });
+    }
+
+    function queueTabItems() {
+      if (!tabTarget) return;
+      enqueueOrder({
+        kind: "add-items",
+        requestId,
+        organizationId,
+        placedAt: new Date().toISOString(),
+        customerName: tabTarget.customerName,
+        total: subtotal,
+        orderId: tabTarget.orderId,
+        items,
+        note: cart.note,
+      });
+      finishAddingToTab({ total: subtotal, isQueued: true });
+    }
+
+    if (!onlineManager.isOnline()) {
+      queueTabItems();
+      return;
+    }
 
     addOrderItemsMutation.mutate(
       {
         orderId: tabTarget.orderId,
-        items: buildOrderItems(),
+        items,
         note: cart.note,
+        request: { requestId },
       },
       {
-        onSuccess: () => {
-          onItemsAddedToTab();
-          toast.success(
-            `Produtos adicionados à comanda de ${tabTarget.customerName}.`,
-          );
-          printOrderTicket({
-            business: ticketBusiness,
-            customerName: tabTarget.customerName,
-            items: ticketItems,
-            subtotal,
-            takeawayFee: 0,
-            total: subtotal,
-            note: ticketNote,
-            createdAt: new Date(),
-          });
+        onSuccess: () =>
+          finishAddingToTab({ total: subtotal, isQueued: false }),
+        onError: (error) => {
+          if (isNetworkError(error)) {
+            queueTabItems();
+            return;
+          }
+          toast.error(error.message);
         },
-        onError: (error) => toast.error(error.message),
       },
     );
   }
@@ -153,62 +264,68 @@ export function usePosCheckout({
     const ticketNote = cart.note.trim() || undefined;
     const ticketTakeawayFee = customer.isTakeaway ? takeawayFee : 0;
 
-    placeOrderMutation.mutate(
-      {
+    submitOrder({
+      input: {
         items: buildOrderItems(),
         note: cart.note,
         customer,
         payment,
         sendToKitchen: true,
       },
-      {
-        onSuccess: (placedOrder) => {
-          finishCheckout();
-          toast.success(
-            payment
-              ? `Pedido de ${customer.customerName} pago e enviado para a cozinha.`
-              : `Comanda de ${customer.customerName} aberta.`,
-            { description: getChangeMessage(payment, placedOrder) },
-          );
-          printOrderTicket({
-            business: ticketBusiness,
-            customerName: customer.customerName,
-            items: ticketItems,
-            subtotal,
-            takeawayFee: ticketTakeawayFee,
-            total: placedOrder.total,
-            note: ticketNote,
-            createdAt: new Date(),
-          });
-        },
-        onError: (error) => toast.error(error.message),
+      customerName: customer.customerName,
+      localTotal: subtotal + ticketTakeawayFee,
+      onPlaced: (placement) => {
+        finishCheckout();
+        toast.success(
+          payment
+            ? `Pedido de ${customer.customerName} pago e enviado para a cozinha.`
+            : `Comanda de ${customer.customerName} aberta.`,
+          {
+            description: buildToastDescription(
+              placement,
+              getChangeMessage(payment, placement.total),
+            ),
+          },
+        );
+        printOrderTicket({
+          business: ticketBusiness,
+          customerName: customer.customerName,
+          items: ticketItems,
+          subtotal,
+          takeawayFee: ticketTakeawayFee,
+          total: placement.total,
+          note: ticketNote,
+          createdAt: new Date(),
+        });
       },
-    );
+    });
   }
 
   function confirmQuickPayment(payment: OrderPaymentInput) {
-    placeOrderMutation.mutate(
-      {
+    submitOrder({
+      input: {
         items: buildOrderItems(),
         note: cart.note,
         payment,
         sendToKitchen: false,
       },
-      {
-        onSuccess: (placedOrder) => {
-          finishCheckout();
-          toast.success(
-            payment.method === "customer_account"
-              ? "Venda lançada na conta do cliente."
-              : "Pagamento registrado.",
-            {
-              description: getChangeMessage(payment, placedOrder),
-            },
-          );
-        },
-        onError: (error) => toast.error(error.message),
+      customerName: null,
+      localTotal: subtotal,
+      onPlaced: (placement) => {
+        finishCheckout();
+        toast.success(
+          payment.method === "customer_account"
+            ? "Venda lançada na conta do cliente."
+            : "Pagamento registrado.",
+          {
+            description: buildToastDescription(
+              placement,
+              getChangeMessage(payment, placement.total),
+            ),
+          },
+        );
       },
-    );
+    });
   }
 
   function confirmPayment(payment: OrderPaymentInput) {
@@ -220,21 +337,22 @@ export function usePosCheckout({
   }
 
   function createTab(customerName: string) {
-    placeOrderMutation.mutate(
-      {
+    submitOrder({
+      input: {
         items: buildOrderItems(),
         note: cart.note,
         customer: { customerName, isTakeaway: false },
         sendToKitchen: false,
       },
-      {
-        onSuccess: () => {
-          finishCheckout();
-          toast.success(`Comanda de ${customerName} criada.`);
-        },
-        onError: (error) => toast.error(error.message),
+      customerName,
+      localTotal: subtotal,
+      onPlaced: (placement) => {
+        finishCheckout();
+        toast.success(`Comanda de ${customerName} criada.`, {
+          description: buildToastDescription(placement),
+        });
       },
-    );
+    });
   }
 
   function openKitchenTab() {

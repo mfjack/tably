@@ -95,8 +95,8 @@ export function usePosCatalog(organizationId: OrganizationId, cart: Cart) {
       isLoadingIngredients ||
       categoriesQuery.isPending,
     errorMessage:
-      productsQuery.error?.message ??
+      (productsQuery.data ? undefined : productsQuery.error?.message) ??
       ingredientsErrorMessage ??
-      categoriesQuery.error?.message,
+      (categoriesQuery.data ? undefined : categoriesQuery.error?.message),
   };
 }

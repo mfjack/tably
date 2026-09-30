@@ -12,8 +12,10 @@ import { getOrderErrorMessage } from "./messages";
 import {
   type OrderItemInput,
   type OrderPaymentInput,
+  type OrderRequestInput,
   orderItemSchema,
   orderPaymentSchema,
+  orderRequestSchema,
 } from "./schemas";
 import type {
   OrderDetails,
@@ -130,10 +132,15 @@ export async function addOrderItems(
   orderId: OrderId,
   items: OrderItemInput[],
   note?: string,
+  request?: OrderRequestInput,
 ): Promise<ActionResult> {
   const parsedItems = orderItemSchema.array().min(1).safeParse(items);
   if (!parsedItems.success)
     return actionFailure("Adicione produtos à comanda.");
+
+  const parsedRequest = orderRequestSchema.optional().safeParse(request);
+  if (!parsedRequest.success)
+    return actionFailure("Confira o pedido e tente novamente.");
 
   const supabase = await createClient();
   const { error } = await supabase.rpc("add_order_items", {
@@ -143,6 +150,8 @@ export async function addOrderItems(
       quantity: item.quantity,
     })),
     p_note: note?.trim().slice(0, 500),
+    p_request_id: parsedRequest.data?.requestId,
+    p_placed_at: parsedRequest.data?.placedAt,
   });
 
   if (error) {

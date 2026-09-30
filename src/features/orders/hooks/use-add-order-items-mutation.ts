@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import type { OrganizationId } from "@/features/organizations/types";
 import { unwrapActionResult } from "@/lib/action-result";
-import type { OrderItemInput } from "../schemas";
+import type { OrderItemInput, OrderRequestInput } from "../schemas";
 import { addOrderItems } from "../tab-actions";
 import type { OrderId } from "../types";
 import { useInvalidateOrders } from "./use-invalidate-orders";
@@ -10,6 +10,7 @@ type AddOrderItemsVariables = {
   orderId: OrderId;
   items: OrderItemInput[];
   note?: string;
+  request: OrderRequestInput;
 };
 
 export function getAddOrderItemsMutationKey(organizationId: OrganizationId) {
@@ -21,8 +22,13 @@ export function useAddOrderItemsMutation(organizationId: OrganizationId) {
 
   return useMutation({
     mutationKey: getAddOrderItemsMutationKey(organizationId),
-    mutationFn: async ({ orderId, items, note }: AddOrderItemsVariables) =>
-      unwrapActionResult(await addOrderItems(orderId, items, note)),
+    mutationFn: async ({
+      orderId,
+      items,
+      note,
+      request,
+    }: AddOrderItemsVariables) =>
+      unwrapActionResult(await addOrderItems(orderId, items, note, request)),
     onSuccess: invalidateOrders,
   });
 }

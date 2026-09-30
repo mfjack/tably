@@ -9,7 +9,9 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { getOrderErrorMessage } from "./messages";
 import {
+  type OrderRequestInput,
   orderCustomerSchema,
+  orderRequestSchema,
   type PlaceOrderInput,
   placeOrderSchema,
 } from "./schemas";
@@ -18,9 +20,11 @@ import type { OrderId, PlacedOrder } from "./types";
 export async function placeOrder(
   organizationId: OrganizationId,
   input: PlaceOrderInput,
+  request?: OrderRequestInput,
 ): Promise<ActionResult<PlacedOrder>> {
   const parsedInput = placeOrderSchema.safeParse(input);
-  if (!parsedInput.success) {
+  const parsedRequest = orderRequestSchema.optional().safeParse(request);
+  if (!parsedInput.success || !parsedRequest.success) {
     return actionFailure("Confira o pedido e tente novamente.");
   }
 
@@ -43,6 +47,8 @@ export async function placeOrder(
       p_customer_name: customer?.customerName,
       p_is_takeaway: customer?.isTakeaway ?? false,
       p_send_to_kitchen: sendToKitchen,
+      p_request_id: parsedRequest.data?.requestId,
+      p_placed_at: parsedRequest.data?.placedAt,
     })
     .single();
 

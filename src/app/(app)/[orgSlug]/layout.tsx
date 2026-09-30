@@ -11,6 +11,7 @@ import {
   getUserOrganizations,
 } from "@/features/organizations/queries";
 import { AppSidebar } from "./components/app-sidebar";
+import { OfflineOrderSync } from "./components/offline-order-sync";
 import { OperatorLockScreen } from "./components/operator-lock-screen";
 import { ServerDataRefresher } from "./components/server-data-refresher";
 import { SidebarOverlay } from "./components/sidebar-overlay";
@@ -39,6 +40,7 @@ export default async function OrganizationLayout({
           operators={access.operators}
         />
         <ServerDataRefresher />
+        <OfflineOrderSync />
       </>
     );
   }
@@ -64,6 +66,7 @@ export default async function OrganizationLayout({
       <SidebarInset>{children}</SidebarInset>
       <SidebarOverlay />
       <ServerDataRefresher />
+      <OfflineOrderSync />
     </SidebarProvider>
   );
 }
