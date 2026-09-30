@@ -20,6 +20,12 @@ export default async function IngredientsPage({
       title={ingredientsModule.label}
       description={ingredientsModule.description}
       canManage={canManageCatalog(organization.role)}
+      business={{
+        name: organization.name,
+        taxId: organization.taxId,
+        phone: organization.phone,
+        address: organization.address,
+      }}
     />
   );
 }

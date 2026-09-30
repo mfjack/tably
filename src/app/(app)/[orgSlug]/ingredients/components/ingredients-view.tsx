@@ -1,17 +1,21 @@
 "use client";
 
-import { Package, Plus } from "lucide-react";
-import { useCallback, useState } from "react";
+import { Package, Plus, ShoppingCart } from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useIngredientsQuery } from "@/features/ingredients/hooks/use-ingredients-query";
+import { isRunningLow } from "@/features/ingredients/shopping-list";
 import type { Ingredient } from "@/features/ingredients/types";
+import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
 import type { OrganizationId } from "@/features/organizations/types";
+import { useSuppliersQuery } from "@/features/suppliers/hooks/use-suppliers-query";
 import { ListEmptyState } from "../../components/list-empty-state";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
 import { DeleteIngredientDialog } from "./delete-ingredient-dialog";
 import { IngredientFormDialog } from "./ingredient-form-dialog";
 import { IngredientsTable } from "./ingredients-table";
+import { ShoppingListDialog } from "./shopping-list-dialog";
 import { StockEntryDialog } from "./stock-entry-dialog";
 
 type IngredientFormState =
@@ -24,6 +28,7 @@ type IngredientsViewProps = {
   title: string;
   description: string;
   canManage: boolean;
+  business: OrderTicketBusiness;
 };
 
 export function IngredientsView({
@@ -31,8 +36,15 @@ export function IngredientsView({
   title,
   description,
   canManage,
+  business,
 }: IngredientsViewProps) {
   const ingredientsQuery = useIngredientsQuery(organizationId);
+  const suppliersQuery = useSuppliersQuery(organizationId);
+  const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
+  const lowStockCount = useMemo(
+    () => (ingredientsQuery.data ?? []).filter(isRunningLow).length,
+    [ingredientsQuery.data],
+  );
   const [formState, setFormState] = useState<IngredientFormState>({
     mode: "closed",
   });
@@ -55,12 +67,28 @@ export function IngredientsView({
         title={title}
         description={description}
         actions={
-          canManage && (
-            <Button className="h-10" onClick={openCreateForm}>
-              <Plus aria-hidden />
-              Novo insumo
+          <>
+            <Button
+              variant="outline"
+              className="h-10"
+              disabled={!ingredientsQuery.data}
+              onClick={() => setIsShoppingListOpen(true)}
+            >
+              <ShoppingCart aria-hidden />
+              <span className="max-sm:sr-only">Lista de compras</span>
+              {lowStockCount > 0 && (
+                <span className="rounded-full bg-destructive px-1.5 font-semibold text-white text-xs tabular-nums">
+                  {lowStockCount}
+                </span>
+              )}
             </Button>
-          )
+            {canManage && (
+              <Button className="h-10" onClick={openCreateForm}>
+                <Plus aria-hidden />
+                <span className="max-sm:sr-only">Novo insumo</span>
+              </Button>
+            )}
+          </>
         }
       />
       <PageContent>
@@ -97,6 +125,13 @@ export function IngredientsView({
         organizationId={organizationId}
         ingredient={ingredientForStockEntry}
         onClose={() => setIngredientForStockEntry(null)}
+      />
+      <ShoppingListDialog
+        isOpen={isShoppingListOpen}
+        ingredients={ingredientsQuery.data ?? []}
+        suppliers={suppliersQuery.data ?? []}
+        business={business}
+        onClose={() => setIsShoppingListOpen(false)}
       />
       <DeleteIngredientDialog
         organizationId={organizationId}
