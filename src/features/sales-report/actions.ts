@@ -1,6 +1,10 @@
 "use server";
 
 import { z } from "zod";
+import {
+  hasModuleAccess,
+  MODULE_ACCESS_DENIED_MESSAGE,
+} from "@/features/operators/module-access";
 import type { OrganizationId } from "@/features/organizations/types";
 import type { ProductId } from "@/features/products/types";
 import {
@@ -64,6 +68,10 @@ export async function getSalesReport(
   organizationId: OrganizationId,
   period: SalesReportPeriod,
 ): Promise<ActionResult<SalesReport>> {
+  if (!(await hasModuleAccess(organizationId, "sales_report"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
+
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("get_sales_report", {
     p_organization_id: organizationId,

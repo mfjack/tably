@@ -1,6 +1,11 @@
 "use server";
 
 import {
+  hasModuleAccess,
+  MODULE_ACCESS_DENIED_MESSAGE,
+} from "@/features/operators/module-access";
+
+import {
   type ActionResult,
   actionFailure,
   actionSuccess,
@@ -55,6 +60,10 @@ export async function updateOrganizationSettings(
   organizationId: OrganizationId,
   input: OrganizationSettingsInput,
 ): Promise<ActionResult> {
+  if (!(await hasModuleAccess(organizationId, "settings"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
+
   const parsedInput = organizationSettingsSchema.safeParse(input);
   if (!parsedInput.success) {
     return actionFailure("Confira os campos e tente novamente.");
@@ -84,6 +93,10 @@ export async function updateOrganizationModules(
   organizationId: OrganizationId,
   input: OrganizationModulesInput,
 ): Promise<ActionResult> {
+  if (!(await hasModuleAccess(organizationId, "settings"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
+
   const parsedInput = organizationModulesSchema.safeParse(input);
   if (!parsedInput.success) {
     return actionFailure("Confira os módulos e tente novamente.");
