@@ -1378,6 +1378,7 @@ export type Database = {
         Row: {
           created_at: string
           deduction_amount: number
+          details: Json
           employee_id: string
           employee_snapshot: Json
           fgts_amount: number
@@ -1390,17 +1391,21 @@ export type Database = {
           issued_at: string | null
           issued_by_name: string | null
           items: Json
+          kind: Database["public"]["Enums"]["payslip_kind"]
           manual_items: Json
           net_amount: number
           organization_id: string
+          payment_due_date: string | null
           reference_month: string
           status: Database["public"]["Enums"]["payslip_status"]
+          time_off_id: string | null
           timesheet_summary: Json
           updated_at: string
         }
         Insert: {
           created_at?: string
           deduction_amount?: number
+          details?: Json
           employee_id: string
           employee_snapshot: Json
           fgts_amount?: number
@@ -1413,17 +1418,21 @@ export type Database = {
           issued_at?: string | null
           issued_by_name?: string | null
           items?: Json
+          kind?: Database["public"]["Enums"]["payslip_kind"]
           manual_items?: Json
           net_amount?: number
           organization_id: string
+          payment_due_date?: string | null
           reference_month: string
           status?: Database["public"]["Enums"]["payslip_status"]
+          time_off_id?: string | null
           timesheet_summary?: Json
           updated_at?: string
         }
         Update: {
           created_at?: string
           deduction_amount?: number
+          details?: Json
           employee_id?: string
           employee_snapshot?: Json
           fgts_amount?: number
@@ -1436,11 +1445,14 @@ export type Database = {
           issued_at?: string | null
           issued_by_name?: string | null
           items?: Json
+          kind?: Database["public"]["Enums"]["payslip_kind"]
           manual_items?: Json
           net_amount?: number
           organization_id?: string
+          payment_due_date?: string | null
           reference_month?: string
           status?: Database["public"]["Enums"]["payslip_status"]
+          time_off_id?: string | null
           timesheet_summary?: Json
           updated_at?: string
         }
@@ -1457,6 +1469,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payslips_time_off_id_fkey"
+            columns: ["time_off_id"]
+            isOneToOne: false
+            referencedRelation: "employee_time_off"
             referencedColumns: ["id"]
           },
         ]
@@ -2329,6 +2348,17 @@ export type Database = {
         }
         Returns: Json
       }
+      get_today_dashboard: {
+        Args: {
+          p_include_finance: boolean
+          p_include_operations: boolean
+          p_include_sales: boolean
+          p_include_stock: boolean
+          p_include_team: boolean
+          p_organization_id: string
+        }
+        Returns: Json
+      }
       has_role: {
         Args: {
           org_id: string
@@ -2584,6 +2614,7 @@ export type Database = {
         | "employees"
         | "payroll"
         | "finance"
+        | "dashboard"
       employment_type: "clt" | "apprentice" | "intern"
       financial_account_kind:
         | "cash"
@@ -2612,6 +2643,11 @@ export type Database = {
         | "credit_card"
         | "debit_card"
         | "customer_account"
+      payslip_kind:
+        | "monthly"
+        | "vacation"
+        | "thirteenth_first"
+        | "thirteenth_second"
       payslip_status: "draft" | "issued"
       recurrence_frequency:
         | "weekly"
@@ -2781,6 +2817,7 @@ export const Constants = {
         "employees",
         "payroll",
         "finance",
+        "dashboard",
       ],
       employment_type: ["clt", "apprentice", "intern"],
       financial_account_kind: [
@@ -2812,6 +2849,12 @@ export const Constants = {
         "credit_card",
         "debit_card",
         "customer_account",
+      ],
+      payslip_kind: [
+        "monthly",
+        "vacation",
+        "thirteenth_first",
+        "thirteenth_second",
       ],
       payslip_status: ["draft", "issued"],
       recurrence_frequency: [
