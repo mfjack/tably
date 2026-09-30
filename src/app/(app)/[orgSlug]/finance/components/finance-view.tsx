@@ -30,6 +30,7 @@ import { MonthNavigator } from "../../components/month-navigator";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
 import { AccountsDialog } from "./accounts-dialog";
+import { AnalysisPanel } from "./analysis-panel";
 import { AutomationDialog } from "./automation-dialog";
 import { CategoriesDialog } from "./categories-dialog";
 import { DeleteEntryDialog } from "./delete-entry-dialog";
@@ -45,6 +46,7 @@ const FINANCE_TABS = [
   "payables",
   "receivables",
   "statement",
+  "analysis",
 ] as const;
 
 type FinanceTab = (typeof FINANCE_TABS)[number];
@@ -184,6 +186,9 @@ export function FinanceView({
               <TabsTrigger value="statement" className="px-3">
                 Extrato
               </TabsTrigger>
+              <TabsTrigger value="analysis" className="px-3">
+                Análises
+              </TabsTrigger>
             </TabsList>
             <MonthNavigator monthKey={monthKey} onChange={setMonthKey} />
           </div>
@@ -217,6 +222,12 @@ export function FinanceView({
               onPay={openPayment}
               onEdit={openEditForm}
               onDelete={setEntryToDelete}
+            />
+          </TabsContent>
+          <TabsContent value="analysis">
+            <AnalysisPanel
+              organizationId={organizationId}
+              monthKey={monthKey}
             />
           </TabsContent>
           <TabsContent value="statement">

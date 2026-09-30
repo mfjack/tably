@@ -25,6 +25,11 @@ import {
 } from "@/lib/database-errors";
 import { fromSelectFieldValue } from "@/lib/optional-select-value";
 import { createClient } from "@/lib/supabase/server";
+import {
+  type FinancialAnalysisData,
+  PROJECTION_HORIZONS,
+  type ProjectionHorizon,
+} from "./analysis";
 import { FINANCIAL_DOCUMENTS_BUCKET } from "./documents";
 import { DEFAULT_CATEGORIES } from "./labels";
 import {
@@ -1252,4 +1257,63 @@ export async function saveFinanceAutomationSettings(
     return actionFailure("Não foi possível salvar a automação.");
   }
   return actionSuccess();
+}
+
+const numberSchema = z.coerce.number();
+
+const analysisSchema = z.object({
+  today: z.string(),
+  sales: z.object({
+    revenue: numberSchema,
+    orderCount: numberSchema,
+    cost: numberSchema,
+    itemsWithoutCost: numberSchema,
+  }),
+  salesToday: numberSchema,
+  averageDailySales: numberSchema,
+  expensesByCategory: z.array(
+    z.object({ name: z.string(), amount: numberSchema }),
+  ),
+  otherIncome: numberSchema,
+  balanceToday: numberSchema,
+  overdue: z.object({ income: numberSchema, expense: numberSchema }),
+  scheduled: z.array(
+    z.object({
+      date: z.string(),
+      income: numberSchema,
+      expense: numberSchema,
+    }),
+  ),
+});
+
+export async function getFinancialAnalysis(
+  organizationId: OrganizationId,
+  monthKey: string,
+  horizonDays: ProjectionHorizon,
+): Promise<ActionResult<FinancialAnalysisData>> {
+  if (!(await canUseFinance(organizationId))) return ACCESS_DENIED;
+  if (!isMonthKey(monthKey)) return actionFailure("Mês inválido.");
+  if (!PROJECTION_HORIZONS.includes(horizonDays)) {
+    return actionFailure("Período inválido.");
+  }
+
+  const clock = await getOrganizationClock(organizationId);
+  if (!clock) return actionFailure("Não foi possível carregar as análises.");
+
+  await ensureFinanceDefaults(organizationId);
+  await syncFinance(organizationId, clock.today);
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_financial_analysis", {
+    p_organization_id: organizationId,
+    p_from: getMonthStart(monthKey),
+    p_to: getMonthEnd(monthKey),
+    p_horizon_days: horizonDays,
+  });
+
+  const parsedAnalysis = analysisSchema.safeParse(data);
+  if (error || !parsedAnalysis.success) {
+    return actionFailure("Não foi possível carregar as análises.");
+  }
+  return actionSuccess(parsedAnalysis.data);
 }
