@@ -97,7 +97,7 @@ function ProductCardComponent({ product, onAdd }: ProductCardProps) {
           {availabilityLabel && (
             <span
               className={cn(
-                "inline-flex h-5 shrink-0 items-center whitespace-nowrap rounded-md px-2 font-semibold text-xs leading-none",
+                "inline-flex h-4 shrink-0 items-center whitespace-nowrap rounded px-1.5 font-semibold text-[0.625rem] leading-none",
                 isOut
                   ? "bg-muted-foreground text-background"
                   : "bg-destructive/15 text-destructive",
