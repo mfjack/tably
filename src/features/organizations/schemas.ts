@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { isValidCnpj } from "@/lib/masks";
-import { Constants } from "@/lib/supabase/database.types";
 
 const organizationNameSchema = z
   .string()
@@ -32,14 +31,7 @@ export const organizationSettingsSchema = z.object({
     .optional(),
 });
 
-export const organizationModulesSchema = z.object({
-  hiddenModules: z.array(z.enum(Constants.public.Enums.app_module)),
-});
-
 export type CreateOrganizationInput = z.infer<typeof createOrganizationSchema>;
 export type OrganizationSettingsInput = z.infer<
   typeof organizationSettingsSchema
->;
-export type OrganizationModulesInput = z.infer<
-  typeof organizationModulesSchema
 >;

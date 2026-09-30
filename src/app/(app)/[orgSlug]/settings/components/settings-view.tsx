@@ -6,7 +6,6 @@ import { APP_MODULES } from "@/features/modules/app-modules";
 import type { UserOrganization } from "@/features/organizations/types";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
-import { ModuleVisibilityForm } from "./module-visibility-form";
 import { OperatorsSettings } from "./operators-settings";
 import { OrganizationSettingsForm } from "./organization-settings-form";
 import { ProfileForm } from "./profile-form";
@@ -40,9 +39,6 @@ export function SettingsView({
                 <TabsTrigger value="organization" className="shrink-0 px-4">
                   Estabelecimento
                 </TabsTrigger>
-                <TabsTrigger value="modules" className="shrink-0 px-4">
-                  Módulos
-                </TabsTrigger>
                 <TabsTrigger value="operators" className="shrink-0 px-4">
                   Operadores
                 </TabsTrigger>
@@ -69,13 +65,6 @@ export function SettingsView({
                     (moduleId) =>
                       !organization.hiddenModules.includes(moduleId),
                   )}
-                />
-              </TabsContent>
-              <TabsContent value="modules">
-                <ModuleVisibilityForm
-                  key={organization.id}
-                  organizationId={organization.id}
-                  hiddenModules={organization.hiddenModules}
                 />
               </TabsContent>
             </>

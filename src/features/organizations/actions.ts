@@ -14,9 +14,7 @@ import { createClient } from "@/lib/supabase/server";
 import {
   type CreateOrganizationInput,
   createOrganizationSchema,
-  type OrganizationModulesInput,
   type OrganizationSettingsInput,
-  organizationModulesSchema,
   organizationSettingsSchema,
 } from "./schemas";
 import { buildSlugCandidate, slugify } from "./slug";
@@ -84,32 +82,6 @@ export async function updateOrganizationSettings(
     .select("id");
 
   if (error) return actionFailure("Não foi possível salvar as alterações.");
-  if (data.length === 0) return actionFailure(FORBIDDEN_MESSAGE);
-
-  return actionSuccess();
-}
-
-export async function updateOrganizationModules(
-  organizationId: OrganizationId,
-  input: OrganizationModulesInput,
-): Promise<ActionResult> {
-  if (!(await hasModuleAccess(organizationId, "settings"))) {
-    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
-  }
-
-  const parsedInput = organizationModulesSchema.safeParse(input);
-  if (!parsedInput.success) {
-    return actionFailure("Confira os módulos e tente novamente.");
-  }
-
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("organizations")
-    .update({ hidden_modules: [...new Set(parsedInput.data.hiddenModules)] })
-    .eq("id", organizationId)
-    .select("id");
-
-  if (error) return actionFailure("Não foi possível salvar os módulos.");
   if (data.length === 0) return actionFailure(FORBIDDEN_MESSAGE);
 
   return actionSuccess();
