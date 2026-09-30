@@ -192,6 +192,230 @@ export type Database = {
           },
         ]
       }
+      employee_salary_history: {
+        Row: {
+          changed_at: string
+          changed_by_name: string | null
+          employee_id: string
+          id: string
+          organization_id: string
+          salary: number
+        }
+        Insert: {
+          changed_at?: string
+          changed_by_name?: string | null
+          employee_id: string
+          id?: string
+          organization_id: string
+          salary: number
+        }
+        Update: {
+          changed_at?: string
+          changed_by_name?: string | null
+          employee_id?: string
+          id?: string
+          organization_id?: string
+          salary?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_salary_history_employee_id_organization_id_fkey"
+            columns: ["employee_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "employee_salary_history_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_time_off: {
+        Row: {
+          created_at: string
+          created_by_name: string | null
+          employee_id: string
+          end_date: string
+          id: string
+          kind: Database["public"]["Enums"]["time_off_kind"]
+          notes: string | null
+          organization_id: string
+          start_date: string
+        }
+        Insert: {
+          created_at?: string
+          created_by_name?: string | null
+          employee_id: string
+          end_date: string
+          id?: string
+          kind: Database["public"]["Enums"]["time_off_kind"]
+          notes?: string | null
+          organization_id: string
+          start_date: string
+        }
+        Update: {
+          created_at?: string
+          created_by_name?: string | null
+          employee_id?: string
+          end_date?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["time_off_kind"]
+          notes?: string | null
+          organization_id?: string
+          start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_time_off_employee_id_organization_id_fkey"
+            columns: ["employee_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "employee_time_off_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employees: {
+        Row: {
+          admission_date: string
+          birth_date: string | null
+          cbo: string | null
+          cpf: string
+          created_at: string
+          dependents: number
+          effective_date: string | null
+          employment_type: Database["public"]["Enums"]["employment_type"]
+          failed_pin_attempts: number
+          has_pin: boolean | null
+          has_transport_voucher: boolean
+          id: string
+          job_title: string
+          name: string
+          notes: string | null
+          organization_id: string
+          overtime_policy: Database["public"]["Enums"]["overtime_policy"]
+          phone: string | null
+          pin_hash: string | null
+          pin_locked_until: string | null
+          pis: string | null
+          salary: number
+          termination_date: string | null
+          updated_at: string
+          work_schedule_id: string | null
+        }
+        Insert: {
+          admission_date: string
+          birth_date?: string | null
+          cbo?: string | null
+          cpf: string
+          created_at?: string
+          dependents?: number
+          effective_date?: string | null
+          employment_type?: Database["public"]["Enums"]["employment_type"]
+          failed_pin_attempts?: number
+          has_pin?: boolean | null
+          has_transport_voucher?: boolean
+          id?: string
+          job_title: string
+          name: string
+          notes?: string | null
+          organization_id: string
+          overtime_policy?: Database["public"]["Enums"]["overtime_policy"]
+          phone?: string | null
+          pin_hash?: string | null
+          pin_locked_until?: string | null
+          pis?: string | null
+          salary: number
+          termination_date?: string | null
+          updated_at?: string
+          work_schedule_id?: string | null
+        }
+        Update: {
+          admission_date?: string
+          birth_date?: string | null
+          cbo?: string | null
+          cpf?: string
+          created_at?: string
+          dependents?: number
+          effective_date?: string | null
+          employment_type?: Database["public"]["Enums"]["employment_type"]
+          failed_pin_attempts?: number
+          has_pin?: boolean | null
+          has_transport_voucher?: boolean
+          id?: string
+          job_title?: string
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          overtime_policy?: Database["public"]["Enums"]["overtime_policy"]
+          phone?: string | null
+          pin_hash?: string | null
+          pin_locked_until?: string | null
+          pis?: string | null
+          salary?: number
+          termination_date?: string | null
+          updated_at?: string
+          work_schedule_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employees_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employees_work_schedule_id_organization_id_fkey"
+            columns: ["work_schedule_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "work_schedules"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      holidays: {
+        Row: {
+          created_at: string
+          holiday_date: string
+          id: string
+          name: string
+          organization_id: string
+        }
+        Insert: {
+          created_at?: string
+          holiday_date: string
+          id?: string
+          name: string
+          organization_id: string
+        }
+        Update: {
+          created_at?: string
+          holiday_date?: string
+          id?: string
+          name?: string
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "holidays_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ingredients: {
         Row: {
           brand: string | null
@@ -383,33 +607,46 @@ export type Database = {
           allowed_modules: Database["public"]["Enums"]["app_module"][]
           can_access_settings: boolean
           created_at: string
+          employee_id: string | null
+          has_pin: boolean | null
           id: string
           name: string
           organization_id: string
-          pin_hash: string
+          pin_hash: string | null
           updated_at: string
         }
         Insert: {
           allowed_modules?: Database["public"]["Enums"]["app_module"][]
           can_access_settings?: boolean
           created_at?: string
+          employee_id?: string | null
+          has_pin?: boolean | null
           id?: string
           name: string
           organization_id: string
-          pin_hash: string
+          pin_hash?: string | null
           updated_at?: string
         }
         Update: {
           allowed_modules?: Database["public"]["Enums"]["app_module"][]
           can_access_settings?: boolean
           created_at?: string
+          employee_id?: string | null
+          has_pin?: boolean | null
           id?: string
           name?: string
           organization_id?: string
-          pin_hash?: string
+          pin_hash?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "operators_employee_fkey"
+            columns: ["employee_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id", "organization_id"]
+          },
           {
             foreignKeyName: "operators_organization_id_fkey"
             columns: ["organization_id"]
@@ -636,6 +873,152 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      payroll_settings: {
+        Row: {
+          inss_brackets: Json
+          irrf_brackets: Json
+          irrf_dependent_deduction: number
+          irrf_exempt_up_to: number
+          irrf_reduction_constant: number
+          irrf_reduction_factor: number
+          irrf_reduction_up_to: number
+          irrf_simplified_deduction: number
+          night_shift_rate: number
+          organization_id: string
+          overtime_rate: number
+          rest_day_overtime_rate: number
+          transport_voucher_rate: number
+          updated_at: string
+        }
+        Insert: {
+          inss_brackets?: Json
+          irrf_brackets?: Json
+          irrf_dependent_deduction?: number
+          irrf_exempt_up_to?: number
+          irrf_reduction_constant?: number
+          irrf_reduction_factor?: number
+          irrf_reduction_up_to?: number
+          irrf_simplified_deduction?: number
+          night_shift_rate?: number
+          organization_id: string
+          overtime_rate?: number
+          rest_day_overtime_rate?: number
+          transport_voucher_rate?: number
+          updated_at?: string
+        }
+        Update: {
+          inss_brackets?: Json
+          irrf_brackets?: Json
+          irrf_dependent_deduction?: number
+          irrf_exempt_up_to?: number
+          irrf_reduction_constant?: number
+          irrf_reduction_factor?: number
+          irrf_reduction_up_to?: number
+          irrf_simplified_deduction?: number
+          night_shift_rate?: number
+          organization_id?: string
+          overtime_rate?: number
+          rest_day_overtime_rate?: number
+          transport_voucher_rate?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payslips: {
+        Row: {
+          created_at: string
+          deduction_amount: number
+          employee_id: string
+          employee_snapshot: Json
+          fgts_amount: number
+          fgts_base: number
+          gross_amount: number
+          hour_bank_balance_minutes: number
+          id: string
+          inss_base: number
+          irrf_base: number
+          issued_at: string | null
+          issued_by_name: string | null
+          items: Json
+          manual_items: Json
+          net_amount: number
+          organization_id: string
+          reference_month: string
+          status: Database["public"]["Enums"]["payslip_status"]
+          timesheet_summary: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deduction_amount?: number
+          employee_id: string
+          employee_snapshot: Json
+          fgts_amount?: number
+          fgts_base?: number
+          gross_amount?: number
+          hour_bank_balance_minutes?: number
+          id?: string
+          inss_base?: number
+          irrf_base?: number
+          issued_at?: string | null
+          issued_by_name?: string | null
+          items?: Json
+          manual_items?: Json
+          net_amount?: number
+          organization_id: string
+          reference_month: string
+          status?: Database["public"]["Enums"]["payslip_status"]
+          timesheet_summary?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deduction_amount?: number
+          employee_id?: string
+          employee_snapshot?: Json
+          fgts_amount?: number
+          fgts_base?: number
+          gross_amount?: number
+          hour_bank_balance_minutes?: number
+          id?: string
+          inss_base?: number
+          irrf_base?: number
+          issued_at?: string | null
+          issued_by_name?: string | null
+          items?: Json
+          manual_items?: Json
+          net_amount?: number
+          organization_id?: string
+          reference_month?: string
+          status?: Database["public"]["Enums"]["payslip_status"]
+          timesheet_summary?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payslips_employee_id_organization_id_fkey"
+            columns: ["employee_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "payslips_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       product_ingredients: {
         Row: {
@@ -1073,6 +1456,223 @@ export type Database = {
           },
         ]
       }
+      time_punch_counters: {
+        Row: {
+          last_hash: string
+          last_nsr: number
+          organization_id: string
+        }
+        Insert: {
+          last_hash?: string
+          last_nsr?: number
+          organization_id: string
+        }
+        Update: {
+          last_hash?: string
+          last_nsr?: number
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_punch_counters_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      time_punch_voids: {
+        Row: {
+          created_at: string
+          id: string
+          organization_id: string
+          punch_id: string
+          reason: string
+          voided_by: string | null
+          voided_by_name: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          organization_id: string
+          punch_id: string
+          reason: string
+          voided_by?: string | null
+          voided_by_name?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          organization_id?: string
+          punch_id?: string
+          reason?: string
+          voided_by?: string | null
+          voided_by_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_punch_voids_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_punch_voids_punch_id_organization_id_fkey"
+            columns: ["punch_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "time_punches"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      time_punches: {
+        Row: {
+          created_at: string
+          employee_id: string
+          hash: string
+          id: string
+          nsr: number
+          organization_id: string
+          punched_at: string
+          reason: string | null
+          recorded_by: string | null
+          recorded_by_name: string | null
+          source: Database["public"]["Enums"]["time_punch_source"]
+          work_date: string
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          hash: string
+          id?: string
+          nsr: number
+          organization_id: string
+          punched_at: string
+          reason?: string | null
+          recorded_by?: string | null
+          recorded_by_name?: string | null
+          source: Database["public"]["Enums"]["time_punch_source"]
+          work_date: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          hash?: string
+          id?: string
+          nsr?: number
+          organization_id?: string
+          punched_at?: string
+          reason?: string | null
+          recorded_by?: string | null
+          recorded_by_name?: string | null
+          source?: Database["public"]["Enums"]["time_punch_source"]
+          work_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_punches_employee_id_organization_id_fkey"
+            columns: ["employee_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "time_punches_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      work_schedule_days: {
+        Row: {
+          break_end: string | null
+          break_start: string | null
+          end_time: string
+          id: string
+          organization_id: string
+          schedule_id: string
+          start_time: string
+          weekday: number
+        }
+        Insert: {
+          break_end?: string | null
+          break_start?: string | null
+          end_time: string
+          id?: string
+          organization_id: string
+          schedule_id: string
+          start_time: string
+          weekday: number
+        }
+        Update: {
+          break_end?: string | null
+          break_start?: string | null
+          end_time?: string
+          id?: string
+          organization_id?: string
+          schedule_id?: string
+          start_time?: string
+          weekday?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_schedule_days_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_schedule_days_schedule_id_organization_id_fkey"
+            columns: ["schedule_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "work_schedules"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      work_schedules: {
+        Row: {
+          created_at: string
+          daily_tolerance_minutes: number
+          id: string
+          mark_tolerance_minutes: number
+          name: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          daily_tolerance_minutes?: number
+          id?: string
+          mark_tolerance_minutes?: number
+          name: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          daily_tolerance_minutes?: number
+          id?: string
+          mark_tolerance_minutes?: number
+          name?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_schedules_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       customer_account_balances: {
@@ -1128,9 +1728,56 @@ export type Database = {
       }
     }
     Functions: {
+      add_manual_time_punch: {
+        Args: {
+          p_employee_id: string
+          p_punched_at: string
+          p_reason: string
+          p_work_date: string
+        }
+        Returns: number
+      }
       add_order_items: {
         Args: { p_items: Json; p_note?: string; p_order_id: string }
         Returns: number
+      }
+      append_time_punch: {
+        Args: {
+          p_employee_id: string
+          p_organization_id: string
+          p_punched_at: string
+          p_reason: string
+          p_source: Database["public"]["Enums"]["time_punch_source"]
+          p_work_date: string
+        }
+        Returns: {
+          created_at: string
+          employee_id: string
+          hash: string
+          id: string
+          nsr: number
+          organization_id: string
+          punched_at: string
+          reason: string | null
+          recorded_by: string | null
+          recorded_by_name: string | null
+          source: Database["public"]["Enums"]["time_punch_source"]
+          work_date: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "time_punches"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      apply_person_pin_hash: {
+        Args: {
+          p_employee_id: string
+          p_operator_id: string
+          p_pin_hash: string
+        }
+        Returns: undefined
       }
       can_manage_storage_folder: {
         Args: { p_object_name: string }
@@ -1148,6 +1795,10 @@ export type Database = {
       }
       complete_order_if_done: {
         Args: { p_order_id: string }
+        Returns: undefined
+      }
+      create_employee_pin: {
+        Args: { p_employee_id: string; p_pin: string }
         Returns: undefined
       }
       create_ingredient: {
@@ -1173,6 +1824,10 @@ export type Database = {
           p_organization_id: string
         }
         Returns: string
+      }
+      create_operator_pin: {
+        Args: { p_operator_id: string; p_pin: string }
+        Returns: undefined
       }
       create_organization: {
         Args: { p_name: string; p_slug: string }
@@ -1232,6 +1887,19 @@ export type Database = {
         Returns: boolean
       }
       is_member: { Args: { org_id: string }; Returns: boolean }
+      is_operator_employee_active: {
+        Args: { p_operator_id: string }
+        Returns: boolean
+      }
+      list_time_clock_employees: {
+        Args: { p_organization_id: string }
+        Returns: {
+          has_pin: boolean
+          id: string
+          job_title: string
+          name: string
+        }[]
+      }
       lock_open_order: {
         Args: { p_order_id: string }
         Returns: {
@@ -1312,9 +1980,17 @@ export type Database = {
         }
         Returns: number
       }
+      register_time_punch: {
+        Args: { p_employee_id: string; p_pin: string }
+        Returns: Json
+      }
       remove_order_item: {
         Args: { p_order_item_id: string; p_quantity?: number }
         Returns: number
+      }
+      reset_person_pin: {
+        Args: { p_employee_id?: string; p_operator_id?: string }
+        Returns: undefined
       }
       save_customer_account: {
         Args: {
@@ -1327,6 +2003,15 @@ export type Database = {
           p_phone?: string
         }
         Returns: string
+      }
+      save_employee_access: {
+        Args: {
+          p_allowed_modules: Database["public"]["Enums"]["app_module"][]
+          p_can_access_settings: boolean
+          p_employee_id: string
+          p_is_enabled: boolean
+        }
+        Returns: undefined
       }
       save_operator: {
         Args: {
@@ -1352,6 +2037,10 @@ export type Database = {
         }
         Returns: string
       }
+      set_employee_pin: {
+        Args: { p_employee_id: string; p_pin: string }
+        Returns: undefined
+      }
       set_kitchen_ticket_status: {
         Args: {
           p_status: Database["public"]["Enums"]["kitchen_ticket_status"]
@@ -1374,6 +2063,10 @@ export type Database = {
         Args: { p_operator_id: string; p_pin: string }
         Returns: boolean
       }
+      void_time_punch: {
+        Args: { p_punch_id: string; p_reason: string }
+        Returns: undefined
+      }
     }
     Enums: {
       account_entry_kind: "charge" | "payment"
@@ -1388,16 +2081,22 @@ export type Database = {
         | "ingredients"
         | "suppliers"
         | "sales_report"
+        | "time_clock"
+        | "employees"
+        | "payroll"
+      employment_type: "clt" | "apprentice" | "intern"
       kitchen_ticket_status: "preparing" | "ready" | "delivered"
       measure_unit: "unit" | "g" | "kg" | "ml" | "l"
       member_role: "owner" | "manager" | "cashier" | "kitchen" | "waiter"
       order_status: "in_kitchen" | "ready" | "completed" | "canceled"
+      overtime_policy: "paid" | "hour_bank"
       payment_method:
         | "cash"
         | "pix"
         | "credit_card"
         | "debit_card"
         | "customer_account"
+      payslip_status: "draft" | "issued"
       sales_report_period:
         | "today"
         | "yesterday"
@@ -1406,6 +2105,12 @@ export type Database = {
         | "this_month"
         | "last_month"
       task_frequency: "daily" | "weekly" | "monthly"
+      time_off_kind:
+        | "medical_certificate"
+        | "vacation"
+        | "day_off"
+        | "justified_absence"
+      time_punch_source: "clock" | "manual"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1548,11 +2253,16 @@ export const Constants = {
         "ingredients",
         "suppliers",
         "sales_report",
+        "time_clock",
+        "employees",
+        "payroll",
       ],
+      employment_type: ["clt", "apprentice", "intern"],
       kitchen_ticket_status: ["preparing", "ready", "delivered"],
       measure_unit: ["unit", "g", "kg", "ml", "l"],
       member_role: ["owner", "manager", "cashier", "kitchen", "waiter"],
       order_status: ["in_kitchen", "ready", "completed", "canceled"],
+      overtime_policy: ["paid", "hour_bank"],
       payment_method: [
         "cash",
         "pix",
@@ -1560,6 +2270,7 @@ export const Constants = {
         "debit_card",
         "customer_account",
       ],
+      payslip_status: ["draft", "issued"],
       sales_report_period: [
         "today",
         "yesterday",
@@ -1569,6 +2280,13 @@ export const Constants = {
         "last_month",
       ],
       task_frequency: ["daily", "weekly", "monthly"],
+      time_off_kind: [
+        "medical_certificate",
+        "vacation",
+        "day_off",
+        "justified_absence",
+      ],
+      time_punch_source: ["clock", "manual"],
     },
   },
 } as const
