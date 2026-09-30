@@ -384,6 +384,351 @@ export type Database = {
           },
         ]
       }
+      financial_accounts: {
+        Row: {
+          created_at: string
+          id: string
+          is_archived: boolean
+          kind: Database["public"]["Enums"]["financial_account_kind"]
+          name: string
+          opening_balance: number
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_archived?: boolean
+          kind: Database["public"]["Enums"]["financial_account_kind"]
+          name: string
+          opening_balance?: number
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_archived?: boolean
+          kind?: Database["public"]["Enums"]["financial_account_kind"]
+          name?: string
+          opening_balance?: number
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_accounts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financial_categories: {
+        Row: {
+          created_at: string
+          id: string
+          is_archived: boolean
+          kind: Database["public"]["Enums"]["financial_entry_kind"]
+          name: string
+          organization_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_archived?: boolean
+          kind: Database["public"]["Enums"]["financial_entry_kind"]
+          name: string
+          organization_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_archived?: boolean
+          kind?: Database["public"]["Enums"]["financial_entry_kind"]
+          name?: string
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_categories_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financial_entries: {
+        Row: {
+          account_id: string | null
+          amount: number
+          barcode: string | null
+          category_id: string | null
+          created_at: string
+          created_by_name: string | null
+          description: string
+          document_path: string | null
+          due_date: string
+          id: string
+          installment_count: number | null
+          installment_group_id: string | null
+          installment_number: number | null
+          kind: Database["public"]["Enums"]["financial_entry_kind"]
+          notes: string | null
+          organization_id: string
+          paid_amount: number | null
+          paid_at: string | null
+          paid_by_name: string | null
+          receipt_path: string | null
+          recurrence_id: string | null
+          supplier_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_id?: string | null
+          amount: number
+          barcode?: string | null
+          category_id?: string | null
+          created_at?: string
+          created_by_name?: string | null
+          description: string
+          document_path?: string | null
+          due_date: string
+          id?: string
+          installment_count?: number | null
+          installment_group_id?: string | null
+          installment_number?: number | null
+          kind: Database["public"]["Enums"]["financial_entry_kind"]
+          notes?: string | null
+          organization_id: string
+          paid_amount?: number | null
+          paid_at?: string | null
+          paid_by_name?: string | null
+          receipt_path?: string | null
+          recurrence_id?: string | null
+          supplier_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string | null
+          amount?: number
+          barcode?: string | null
+          category_id?: string | null
+          created_at?: string
+          created_by_name?: string | null
+          description?: string
+          document_path?: string | null
+          due_date?: string
+          id?: string
+          installment_count?: number | null
+          installment_group_id?: string | null
+          installment_number?: number | null
+          kind?: Database["public"]["Enums"]["financial_entry_kind"]
+          notes?: string | null
+          organization_id?: string
+          paid_amount?: number | null
+          paid_at?: string | null
+          paid_by_name?: string | null
+          receipt_path?: string | null
+          recurrence_id?: string | null
+          supplier_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_entries_account_id_organization_id_fkey"
+            columns: ["account_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "financial_accounts"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "financial_entries_category_id_organization_id_fkey"
+            columns: ["category_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "financial_categories"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "financial_entries_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_entries_recurrence_id_organization_id_fkey"
+            columns: ["recurrence_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "financial_recurrences"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "financial_entries_supplier_id_organization_id_fkey"
+            columns: ["supplier_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_purchase_summaries"
+            referencedColumns: ["supplier_id", "organization_id"]
+          },
+          {
+            foreignKeyName: "financial_entries_supplier_id_organization_id_fkey"
+            columns: ["supplier_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      financial_recurrences: {
+        Row: {
+          account_id: string | null
+          amount: number
+          category_id: string | null
+          created_at: string
+          description: string
+          end_date: string | null
+          frequency: Database["public"]["Enums"]["recurrence_frequency"]
+          generated_until: string | null
+          id: string
+          kind: Database["public"]["Enums"]["financial_entry_kind"]
+          notes: string | null
+          organization_id: string
+          start_date: string
+          supplier_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_id?: string | null
+          amount: number
+          category_id?: string | null
+          created_at?: string
+          description: string
+          end_date?: string | null
+          frequency: Database["public"]["Enums"]["recurrence_frequency"]
+          generated_until?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["financial_entry_kind"]
+          notes?: string | null
+          organization_id: string
+          start_date: string
+          supplier_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string | null
+          amount?: number
+          category_id?: string | null
+          created_at?: string
+          description?: string
+          end_date?: string | null
+          frequency?: Database["public"]["Enums"]["recurrence_frequency"]
+          generated_until?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["financial_entry_kind"]
+          notes?: string | null
+          organization_id?: string
+          start_date?: string
+          supplier_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_recurrences_account_id_organization_id_fkey"
+            columns: ["account_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "financial_accounts"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "financial_recurrences_category_id_organization_id_fkey"
+            columns: ["category_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "financial_categories"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "financial_recurrences_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_recurrences_supplier_id_organization_id_fkey"
+            columns: ["supplier_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_purchase_summaries"
+            referencedColumns: ["supplier_id", "organization_id"]
+          },
+          {
+            foreignKeyName: "financial_recurrences_supplier_id_organization_id_fkey"
+            columns: ["supplier_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      financial_transfers: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by_name: string | null
+          from_account_id: string
+          id: string
+          notes: string | null
+          organization_id: string
+          to_account_id: string
+          transferred_on: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by_name?: string | null
+          from_account_id: string
+          id?: string
+          notes?: string | null
+          organization_id: string
+          to_account_id: string
+          transferred_on: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by_name?: string | null
+          from_account_id?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          to_account_id?: string
+          transferred_on?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_transfers_from_account_id_organization_id_fkey"
+            columns: ["from_account_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "financial_accounts"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "financial_transfers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_transfers_to_account_id_organization_id_fkey"
+            columns: ["to_account_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "financial_accounts"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
       holidays: {
         Row: {
           created_at: string
@@ -1868,6 +2213,10 @@ export type Database = {
         Returns: undefined
       }
       get_account_balance: { Args: { p_account_id: string }; Returns: number }
+      get_financial_overview: {
+        Args: { p_from: string; p_organization_id: string; p_to: string }
+        Returns: Json
+      }
       get_sales_report: {
         Args: {
           p_organization_id: string
@@ -1971,6 +2320,13 @@ export type Database = {
           order_total: number
         }[]
       }
+      recurrence_step: {
+        Args: {
+          p_frequency: Database["public"]["Enums"]["recurrence_frequency"]
+          p_index: number
+        }
+        Returns: string
+      }
       register_account_payment: {
         Args: {
           p_account_id: string
@@ -2052,6 +2408,10 @@ export type Database = {
         Args: { p_is_done: boolean; p_task_id: string }
         Returns: undefined
       }
+      sync_financial_recurrences: {
+        Args: { p_organization_id: string; p_until: string }
+        Returns: undefined
+      }
       task_period_start: {
         Args: {
           p_day: string
@@ -2084,7 +2444,14 @@ export type Database = {
         | "time_clock"
         | "employees"
         | "payroll"
+        | "finance"
       employment_type: "clt" | "apprentice" | "intern"
+      financial_account_kind:
+        | "cash"
+        | "bank"
+        | "card_acquirer"
+        | "digital_wallet"
+      financial_entry_kind: "income" | "expense"
       kitchen_ticket_status: "preparing" | "ready" | "delivered"
       measure_unit: "unit" | "g" | "kg" | "ml" | "l"
       member_role: "owner" | "manager" | "cashier" | "kitchen" | "waiter"
@@ -2097,6 +2464,14 @@ export type Database = {
         | "debit_card"
         | "customer_account"
       payslip_status: "draft" | "issued"
+      recurrence_frequency:
+        | "weekly"
+        | "biweekly"
+        | "monthly"
+        | "bimonthly"
+        | "quarterly"
+        | "semiannual"
+        | "yearly"
       sales_report_period:
         | "today"
         | "yesterday"
@@ -2256,8 +2631,16 @@ export const Constants = {
         "time_clock",
         "employees",
         "payroll",
+        "finance",
       ],
       employment_type: ["clt", "apprentice", "intern"],
+      financial_account_kind: [
+        "cash",
+        "bank",
+        "card_acquirer",
+        "digital_wallet",
+      ],
+      financial_entry_kind: ["income", "expense"],
       kitchen_ticket_status: ["preparing", "ready", "delivered"],
       measure_unit: ["unit", "g", "kg", "ml", "l"],
       member_role: ["owner", "manager", "cashier", "kitchen", "waiter"],
@@ -2271,6 +2654,15 @@ export const Constants = {
         "customer_account",
       ],
       payslip_status: ["draft", "issued"],
+      recurrence_frequency: [
+        "weekly",
+        "biweekly",
+        "monthly",
+        "bimonthly",
+        "quarterly",
+        "semiannual",
+        "yearly",
+      ],
       sales_report_period: [
         "today",
         "yesterday",
