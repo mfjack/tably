@@ -1,4 +1,5 @@
 import {
+  Banknote,
   BookUser,
   ChartColumn,
   ChefHat,
@@ -118,6 +119,13 @@ export const APP_MODULE_GROUPS = [
         description: "Cadastro de fornecedores e contatos.",
         path: "suppliers",
         icon: Truck,
+      },
+      {
+        id: "finance",
+        label: "Financeiro",
+        description: "Contas a pagar e receber, saldo e extrato.",
+        path: "finance",
+        icon: Banknote,
       },
       {
         id: "sales_report",
