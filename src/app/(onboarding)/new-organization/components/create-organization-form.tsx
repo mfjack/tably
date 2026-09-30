@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useForm, useWatch } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { TextField } from "@/components/form/text-field";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
@@ -18,7 +18,6 @@ import {
   type CreateOrganizationInput,
   createOrganizationSchema,
 } from "@/features/organizations/schemas";
-import { slugify } from "@/features/organizations/slug";
 
 type CreateOrganizationFormProps = {
   canCancel: boolean;
@@ -34,11 +33,6 @@ export function CreateOrganizationForm({
     resolver: zodResolver(createOrganizationSchema),
     defaultValues: { name: "" },
   });
-
-  const organizationName = useWatch({ control: form.control, name: "name" });
-  const addressPreview = organizationName.trim()
-    ? `Seu endereço no Tably: /${slugify(organizationName)}`
-    : undefined;
 
   const handleSubmit = form.handleSubmit((values) => {
     createOrganizationMutation.mutate(values, {
@@ -58,7 +52,6 @@ export function CreateOrganizationForm({
           label="Nome do estabelecimento"
           autoComplete="organization"
           placeholder="Ex.: Café Pinheiro"
-          description={addressPreview}
         />
 
         {createOrganizationMutation.error && (
