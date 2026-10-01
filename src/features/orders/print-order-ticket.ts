@@ -75,8 +75,8 @@ export function buildBusinessHeader(business: OrderTicketBusiness): string {
     .join("")}</div>`;
 }
 
-function buildTicketHtml(ticket: OrderTicket): string {
-  const items = ticket.items
+function buildItemsHtml(items: readonly OrderTicketItem[]): string {
+  return items
     .map(
       (item) =>
         buildRow(`${item.quantity}x ${item.name}`, formatCurrency(item.total)) +
@@ -85,6 +85,10 @@ function buildTicketHtml(ticket: OrderTicket): string {
           : ""),
     )
     .join("");
+}
+
+function buildTicketHtml(ticket: OrderTicket): string {
+  const items = buildItemsHtml(ticket.items);
   const hasTakeawayFee = ticket.takeawayFee > 0;
   const hasPayments = (ticket.payments?.length ?? 0) > 0;
   const hasTotalRow = hasTakeawayFee || hasPayments;
@@ -123,6 +127,66 @@ function buildTicketHtml(ticket: OrderTicket): string {
 
 export function printOrderTicket(ticket: OrderTicket): void {
   printHtml(buildTicketHtml(ticket));
+}
+
+export type GroupedOrderTicketEntry = {
+  customerName: string;
+  items: readonly OrderTicketItem[];
+  total: number;
+};
+
+export type GroupedOrderTicket = {
+  business: OrderTicketBusiness;
+  entries: readonly GroupedOrderTicketEntry[];
+  createdAt: Date;
+};
+
+const GROUPED_TICKET_STYLES = `
+  .person { border-top: 3px solid #000; padding-top: 10px; gap: 6px; }
+  .person-header { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; border-bottom: 1px solid #000; padding-bottom: 6px; }
+  .person-name { font-size: 20px; font-weight: 700; }
+  .person-position { font-size: 12px; }
+  .person .row { font-size: 15px; font-weight: 700; }
+  .person-subtotal { border-top: 1px dashed #000; padding-top: 6px; }
+  .person-subtotal .row { font-size: 13px; font-weight: 400; }
+  .cut { text-align: center; font-size: 11px; letter-spacing: 2px; padding: 6px 0; }
+  .grand-total { border-top: 3px double #000; }
+`;
+
+export function buildGroupedOrderTicketHtml(
+  ticket: GroupedOrderTicket,
+): string {
+  const grandTotal = ticket.entries.reduce(
+    (total, entry) => total + entry.total,
+    0,
+  );
+  const entryCount = ticket.entries.length;
+  const entries = ticket.entries
+    .map(
+      (entry, index) => `<section class="person">
+      <div class="person-header">
+        <span class="person-name">${escapeHtml(entry.customerName)}</span>
+        <span class="person-position">${index + 1}/${entryCount}</span>
+      </div>
+      ${buildItemsHtml(entry.items)}
+      <div class="person-subtotal">${buildRow(`Subtotal de ${entry.customerName}`, formatCurrency(entry.total))}</div>
+    </section>`,
+    )
+    .join(`<p class="cut">- - - - - - - - - - - - - - - -</p>`);
+
+  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8" /><title>Pedidos</title><style>${TICKET_STYLES}${GROUPED_TICKET_STYLES}</style></head><body>
+    ${buildBusinessHeader(ticket.business)}
+    <section>
+      <p>Data: ${format(ticket.createdAt, "dd/MM/yyyy, HH:mm")}</p>
+      <p>${entryCount} pedidos separados por nome</p>
+    </section>
+    ${entries}
+    <section class="grand-total">${buildRow("Total geral", formatCurrency(grandTotal), true)}</section>
+  </body></html>`;
+}
+
+export function printGroupedOrderTicket(ticket: GroupedOrderTicket): void {
+  printHtml(buildGroupedOrderTicketHtml(ticket));
 }
 
 export function toOrderTicketBusiness(

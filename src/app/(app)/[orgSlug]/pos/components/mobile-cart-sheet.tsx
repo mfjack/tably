@@ -12,13 +12,21 @@ import {
 import { formatCurrency } from "@/lib/format";
 import { CartPanel } from "./cart-panel";
 
-type MobileCartSheetProps = Omit<ComponentProps<typeof CartPanel>, "variant">;
+type MobileCartSheetProps = Omit<
+  ComponentProps<typeof CartPanel>,
+  "variant"
+> & {
+  hasOpenOrders: boolean;
+};
 
 function formatItemCount(itemCount: number) {
   return `${itemCount} ${itemCount === 1 ? "item" : "itens"}`;
 }
 
-export function MobileCartSheet(cartPanelProps: MobileCartSheetProps) {
+export function MobileCartSheet({
+  hasOpenOrders,
+  ...cartPanelProps
+}: MobileCartSheetProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { cartLines, onSendToKitchen, onQuickPayment, onAddToTab } =
     cartPanelProps;
@@ -30,15 +38,14 @@ export function MobileCartSheet(cartPanelProps: MobileCartSheetProps) {
     (total, cartLine) => total + cartLine.total,
     0,
   );
-  const isEmpty = cartLines.length === 0;
 
   useEffect(() => {
-    if (isEmpty) setIsOpen(false);
-  }, [isEmpty]);
+    if (!hasOpenOrders) setIsOpen(false);
+  }, [hasOpenOrders]);
 
   return (
     <>
-      {!isEmpty && (
+      {hasOpenOrders && (
         <div className="fixed inset-x-0 bottom-0 z-20 border-t bg-background/95 p-3 backdrop-blur md:hidden">
           <button
             type="button"

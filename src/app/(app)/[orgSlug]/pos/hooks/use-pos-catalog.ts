@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useCategoriesQuery } from "@/features/categories/hooks/use-categories-query";
 import { useIngredientsMap } from "@/features/ingredients/hooks/use-ingredients-map";
 import type { OrganizationId } from "@/features/organizations/types";
@@ -51,9 +51,9 @@ export function usePosCatalog(organizationId: OrganizationId, cart: Cart) {
     [activeProducts],
   );
 
-  const cartLines = useMemo<CartLine[]>(
-    () =>
-      cart.items.flatMap((cartItem) => {
+  const buildCartLines = useCallback(
+    (cartItems: Cart["items"]): CartLine[] =>
+      cartItems.flatMap((cartItem) => {
         const product = productsById.get(cartItem.productId);
         return product
           ? [
@@ -67,7 +67,12 @@ export function usePosCatalog(organizationId: OrganizationId, cart: Cart) {
             ]
           : [];
       }),
-    [cart.items, productsById],
+    [productsById],
+  );
+
+  const cartLines = useMemo(
+    () => buildCartLines(cart.items),
+    [buildCartLines, cart.items],
   );
 
   const posProducts = useMemo<PosProduct[]>(() => {
@@ -97,6 +102,7 @@ export function usePosCatalog(organizationId: OrganizationId, cart: Cart) {
   return {
     posProducts,
     cartLines,
+    buildCartLines,
     categories: categoriesQuery.data,
     isLoading:
       productsQuery.isPending ||

@@ -1,6 +1,7 @@
 "use client";
 
 import { ClipboardPlus, CreditCard, Printer, ShoppingCart } from "lucide-react";
+import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Empty,
@@ -24,6 +25,9 @@ const CART_PANEL_VARIANT_CLASS_NAMES = {
 
 type CartPanelProps = {
   variant: keyof typeof CART_PANEL_VARIANT_CLASS_NAMES;
+  header?: ReactNode;
+  sendToKitchenLabel?: string;
+  quickPaymentLabel?: string;
   cartLines: readonly CartLine[];
   isSendingToKitchen: boolean;
   onDecrement: (cartLine: CartLine) => void;
@@ -38,6 +42,9 @@ type CartPanelProps = {
 
 export function CartPanel({
   variant,
+  header,
+  sendToKitchenLabel = "Imprimir pedido",
+  quickPaymentLabel = "Pagamento",
   cartLines,
   isSendingToKitchen,
   onDecrement,
@@ -63,6 +70,7 @@ export function CartPanel({
         CART_PANEL_VARIANT_CLASS_NAMES[variant],
       )}
     >
+      {header}
       {tabTarget && (
         <TabModeBanner
           customerName={tabTarget.customerName}
@@ -134,7 +142,7 @@ export function CartPanel({
                 ) : (
                   <Printer aria-hidden />
                 )}
-                Imprimir pedido
+                {sendToKitchenLabel}
               </Button>
               <Button
                 type="button"
@@ -144,7 +152,7 @@ export function CartPanel({
                 onClick={onQuickPayment}
               >
                 <CreditCard aria-hidden />
-                Pagamento
+                {quickPaymentLabel}
               </Button>
             </>
           )}

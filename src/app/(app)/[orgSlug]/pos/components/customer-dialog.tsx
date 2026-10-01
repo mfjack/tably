@@ -26,6 +26,7 @@ type CustomerDialogProps = {
   isOpen: boolean;
   takeawayFee: number;
   isTakeawayEnabled: boolean;
+  defaultCustomerName?: string;
   onClose: () => void;
   onConfirm: (customer: OrderCustomerInput) => void;
 };
@@ -35,6 +36,7 @@ export function CustomerDialog({
   isOpen,
   takeawayFee,
   isTakeawayEnabled,
+  defaultCustomerName,
   onClose,
   onConfirm,
 }: CustomerDialogProps) {
@@ -48,9 +50,12 @@ export function CustomerDialog({
 
   useEffect(() => {
     if (!isOpen) return;
-    form.reset(EMPTY_CUSTOMER_FORM);
+    form.reset({
+      ...EMPTY_CUSTOMER_FORM,
+      customerName: defaultCustomerName ?? "",
+    });
     checkCustomerNameMutation.reset();
-  }, [isOpen, form, checkCustomerNameMutation.reset]);
+  }, [isOpen, defaultCustomerName, form, checkCustomerNameMutation.reset]);
 
   const handleSubmit = form.handleSubmit((customer) =>
     checkCustomerNameMutation.mutate(customer.customerName, {

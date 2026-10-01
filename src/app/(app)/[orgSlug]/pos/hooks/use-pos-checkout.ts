@@ -9,7 +9,9 @@ import {
   isCustomerAccountOnly,
 } from "@/features/orders/order-payments";
 import {
+  type GroupedOrderTicketEntry,
   type OrderTicketBusiness,
+  printGroupedOrderTicket,
   printOrderTicket,
 } from "@/features/orders/print-order-ticket";
 import type {
@@ -19,13 +21,25 @@ import type {
 } from "@/features/orders/schemas";
 import type { OrderTabTarget } from "@/features/orders/types";
 import type { OrganizationId } from "@/features/organizations/types";
-import type { Cart } from "@/features/pos/cart-store";
+import type { Cart, CartTabId } from "@/features/pos/cart-store";
 import {
   createOrderRequestId,
   useOfflineOrderQueue,
 } from "@/features/pos/offline-order-queue";
 import { isNetworkError } from "@/lib/network-error";
 import type { CartLine } from "./use-pos-catalog";
+
+export type TabOrderGroup = {
+  cartTabId: CartTabId;
+  customerName: string;
+  cartLines: readonly CartLine[];
+};
+
+export type GroupPlacementResult =
+  | { status: "placed"; isQueued: boolean }
+  | { status: "failed"; message: string };
+
+const GROUP_ORDER_ERROR_MESSAGE = "Não foi possível abrir a comanda.";
 
 export type CheckoutStep =
   | { step: "idle" }
@@ -41,13 +55,15 @@ type UsePosCheckoutOptions = {
   cart: Cart;
   cartLines: readonly CartLine[];
   tabTarget: OrderTabTarget | null;
-  onOrderPlaced: () => void;
-  onItemsAddedToTab: () => void;
+  cartTabId: CartTabId | null;
+  onOrderPlaced: (cartTabId: CartTabId | null) => void;
+  onItemsAddedToTab: (cartTabId: CartTabId | null) => void;
 };
 
 type OrderPlacement = {
   total: number;
   isQueued: boolean;
+  cartTabId: CartTabId | null;
 };
 
 type OrderSubmission = {
@@ -78,6 +94,7 @@ export function usePosCheckout({
   cart,
   cartLines,
   tabTarget,
+  cartTabId,
   onOrderPlaced,
   onItemsAddedToTab,
 }: UsePosCheckoutOptions) {
@@ -125,8 +142,8 @@ export function usePosCheckout({
     }));
   }
 
-  function finishCheckout() {
-    onOrderPlaced();
+  function finishCheckout(placement: OrderPlacement) {
+    onOrderPlaced(placement.cartTabId);
     setCheckoutStep({ step: "idle" });
   }
 
@@ -146,6 +163,7 @@ export function usePosCheckout({
     onPlaced,
   }: OrderSubmission) {
     const requestId = createOrderRequestId();
+    const submittedTabId = cartTabId;
 
     function queueOrder() {
       enqueueOrder({
@@ -157,7 +175,11 @@ export function usePosCheckout({
         total: localTotal,
         input,
       });
-      onPlaced({ total: localTotal, isQueued: true });
+      onPlaced({
+        total: localTotal,
+        isQueued: true,
+        cartTabId: submittedTabId,
+      });
     }
 
     if (!onlineManager.isOnline()) {
@@ -169,7 +191,11 @@ export function usePosCheckout({
       { input, request: { requestId } },
       {
         onSuccess: (placedOrder) =>
-          onPlaced({ total: placedOrder.total, isQueued: false }),
+          onPlaced({
+            total: placedOrder.total,
+            isQueued: false,
+            cartTabId: submittedTabId,
+          }),
         onError: (error) => {
           if (isNetworkError(error)) {
             queueOrder();
@@ -188,10 +214,11 @@ export function usePosCheckout({
     const ticketNote = cart.note.trim() || undefined;
     const items = buildOrderItems();
     const requestId = createOrderRequestId();
+    const submittedTabId = cartTabId;
 
     function finishAddingToTab(placement: OrderPlacement) {
       if (!tabTarget) return;
-      onItemsAddedToTab();
+      onItemsAddedToTab(placement.cartTabId);
       toast.success(
         `Produtos adicionados à comanda de ${tabTarget.customerName}.`,
         { description: buildToastDescription(placement) },
@@ -221,7 +248,11 @@ export function usePosCheckout({
         items,
         note: cart.note,
       });
-      finishAddingToTab({ total: subtotal, isQueued: true });
+      finishAddingToTab({
+        total: subtotal,
+        isQueued: true,
+        cartTabId: submittedTabId,
+      });
     }
 
     if (!onlineManager.isOnline()) {
@@ -238,7 +269,11 @@ export function usePosCheckout({
       },
       {
         onSuccess: () =>
-          finishAddingToTab({ total: subtotal, isQueued: false }),
+          finishAddingToTab({
+            total: subtotal,
+            isQueued: false,
+            cartTabId: submittedTabId,
+          }),
         onError: (error) => {
           if (isNetworkError(error)) {
             queueTabItems();
@@ -269,7 +304,7 @@ export function usePosCheckout({
       customerName: customer.customerName,
       localTotal: subtotal + ticketTakeawayFee,
       onPlaced: (placement) => {
-        finishCheckout();
+        finishCheckout(placement);
         toast.success(
           payments
             ? `Pedido de ${customer.customerName} pago e enviado para a cozinha.`
@@ -306,7 +341,7 @@ export function usePosCheckout({
       customerName: null,
       localTotal: subtotal,
       onPlaced: (placement) => {
-        finishCheckout();
+        finishCheckout(placement);
         toast.success(
           isCustomerAccountOnly(payments)
             ? "Venda lançada na conta do cliente."
@@ -341,11 +376,69 @@ export function usePosCheckout({
       customerName,
       localTotal: subtotal,
       onPlaced: (placement) => {
-        finishCheckout();
+        finishCheckout(placement);
         toast.success(`Comanda de ${customerName} criada.`, {
           description: buildToastDescription(placement),
         });
       },
+    });
+  }
+
+  async function placeGroupOrder(
+    group: TabOrderGroup,
+    payments: OrderPaymentInput[] | undefined,
+    sendToKitchen: boolean,
+  ): Promise<GroupPlacementResult> {
+    const requestId = createOrderRequestId();
+    const localTotal = group.cartLines.reduce(
+      (total, cartLine) => total + cartLine.total,
+      0,
+    );
+    const input: PlaceOrderInput = {
+      items: group.cartLines.map((cartLine) => ({
+        productId: cartLine.product.id,
+        quantity: cartLine.quantity,
+        note: cartLine.note || undefined,
+      })),
+      customer: { customerName: group.customerName, isTakeaway: false },
+      payments,
+      sendToKitchen,
+    };
+
+    function queueGroupOrder(): GroupPlacementResult {
+      enqueueOrder({
+        kind: "place-order",
+        requestId,
+        organizationId,
+        placedAt: new Date().toISOString(),
+        customerName: group.customerName,
+        total: localTotal,
+        input,
+      });
+      return { status: "placed", isQueued: true };
+    }
+
+    if (!onlineManager.isOnline()) return queueGroupOrder();
+
+    try {
+      await placeOrderMutation.mutateAsync({ input, request: { requestId } });
+      return { status: "placed", isQueued: false };
+    } catch (error) {
+      if (isNetworkError(error)) return queueGroupOrder();
+      return {
+        status: "failed",
+        message:
+          error instanceof Error ? error.message : GROUP_ORDER_ERROR_MESSAGE,
+      };
+    }
+  }
+
+  function printGroupedOrders(entries: readonly GroupedOrderTicketEntry[]) {
+    if (entries.length === 0) return;
+    printGroupedOrderTicket({
+      business: ticketBusiness,
+      entries,
+      createdAt: new Date(),
     });
   }
 
@@ -360,6 +453,8 @@ export function usePosCheckout({
     isPlacingOrder: placeOrderMutation.isPending,
     isOpeningTab,
     isAddingToTab: addOrderItemsMutation.isPending,
+    placeGroupOrder,
+    printGroupedOrders,
     addToTab,
     startKitchenCheckout: () => setCheckoutStep({ step: "customer" }),
     startQuickPayment: () => setCheckoutStep({ step: "quick-payment" }),

@@ -9,8 +9,12 @@ import { PaymentDialog } from "@/features/orders/components/payment-dialog";
 import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
 import type { OrganizationId } from "@/features/organizations/types";
 import {
+  getCartTabLabel,
+  useActiveCartTab,
+  useActiveCartTabId,
   useCart,
   useCartStore,
+  useCartTabs,
   useHydratedCartStore,
   useTabTarget,
 } from "@/features/pos/cart-store";
@@ -19,14 +23,24 @@ import { useIsOnline } from "@/hooks/use-is-online";
 import { ModuleLinkButton } from "../../components/module-link-button";
 import { PageHeader } from "../../components/page-header";
 import {
+  type GroupCheckoutMode,
+  useGroupCheckout,
+} from "../hooks/use-group-checkout";
+import {
   type CartLine,
   type PosProduct,
   usePosCatalog,
 } from "../hooks/use-pos-catalog";
 import { usePosCheckout } from "../hooks/use-pos-checkout";
 import { CartPanel } from "./cart-panel";
+import {
+  CartTabNameDialog,
+  type CartTabNameDialogState,
+} from "./cart-tab-name-dialog";
+import { CartTabsBar } from "./cart-tabs-bar";
 import { CategoryFilter, type CategoryFilterOption } from "./category-filter";
 import { CustomerDialog } from "./customer-dialog";
+import { type GroupOrderEntry, GroupOrdersDialog } from "./group-orders-dialog";
 import { ItemNoteDialog } from "./item-note-dialog";
 import { MobileCartSheet } from "./mobile-cart-sheet";
 import { OfflineStatus } from "./offline-status";
@@ -70,10 +84,26 @@ export function PosView({
   const addProductToCart = useCartStore((state) => state.addProduct);
   const decrementCartItem = useCartStore((state) => state.decrementItem);
   const setCartItemNote = useCartStore((state) => state.setItemNote);
-  const clearCart = useCartStore((state) => state.clearCart);
+  const finishCartTab = useCartStore((state) => state.finishCartTab);
+  const addCartTab = useCartStore((state) => state.addCartTab);
+  const selectCartTab = useCartStore((state) => state.selectCartTab);
+  const renameCartTab = useCartStore((state) => state.renameCartTab);
+  const activeCartTab = useActiveCartTab(organizationId);
+  const [groupDialogMode, setGroupDialogMode] =
+    useState<GroupCheckoutMode | null>(null);
+  const [tabNameDialogState, setTabNameDialogState] =
+    useState<CartTabNameDialogState>({ mode: "closed" });
+  const { tabs: cartTabs } = useCartTabs(organizationId);
+  const activeCartTabId = useActiveCartTabId(organizationId);
 
-  const { posProducts, cartLines, categories, isLoading, errorMessage } =
-    usePosCatalog(organizationId, cart);
+  const {
+    posProducts,
+    cartLines,
+    buildCartLines,
+    categories,
+    isLoading,
+    errorMessage,
+  } = usePosCatalog(organizationId, cart);
   const isOnline = useIsOnline();
   const catalogErrorMessage =
     errorMessage ??
@@ -85,9 +115,12 @@ export function PosView({
     cart,
     cartLines,
     tabTarget,
-    onOrderPlaced: () => clearCart(organizationId),
-    onItemsAddedToTab: () => {
-      clearCart(organizationId);
+    cartTabId: activeCartTabId,
+    onOrderPlaced: (cartTabId) => {
+      if (cartTabId) finishCartTab(organizationId, cartTabId);
+    },
+    onItemsAddedToTab: (cartTabId) => {
+      if (cartTabId) finishCartTab(organizationId, cartTabId);
       setTabTarget(organizationId, null);
       router.push(orderTabsHref);
     },
@@ -151,6 +184,75 @@ export function PosView({
     );
   }
 
+  function submitTabName(name: string) {
+    if (tabNameDialogState.mode === "create") {
+      addCartTab(organizationId, name);
+      return;
+    }
+    if (activeCartTabId) renameCartTab(organizationId, activeCartTabId, name);
+  }
+
+  const hasItemsInAnyTab = cartTabs.some((tab) => tab.items.length > 0);
+  const tabsWithItems = cartTabs.filter((tab) => tab.items.length > 0);
+  const hasManyOrders = tabsWithItems.length > 1;
+  const groupOrderEntries: GroupOrderEntry[] = tabsWithItems.map((tab) => {
+    const tabLines = buildCartLines(tab.items);
+    return {
+      cartTabId: tab.id,
+      label: getCartTabLabel(tab),
+      defaultName: tab.name,
+      itemCount: tabLines.reduce((count, line) => count + line.quantity, 0),
+      total: tabLines.reduce((total, line) => total + line.total, 0),
+    };
+  });
+
+  const groupCheckout = useGroupCheckout({
+    placeGroupOrder: checkout.placeGroupOrder,
+    printGroupedOrders: checkout.printGroupedOrders,
+    onTabFinished: (cartTabId) => finishCartTab(organizationId, cartTabId),
+  });
+
+  function startQuickPayment() {
+    if (hasManyOrders) {
+      setGroupDialogMode("payment");
+      return;
+    }
+    checkout.startQuickPayment();
+  }
+
+  function startSendToKitchen() {
+    if (hasManyOrders) {
+      setGroupDialogMode("kitchen");
+      return;
+    }
+    checkout.startKitchenCheckout();
+  }
+
+  function confirmGroupOrders(names: readonly string[]) {
+    const groups = groupOrderEntries.map((entry, index) => {
+      const tab = tabsWithItems.find(({ id }) => id === entry.cartTabId);
+      return {
+        cartTabId: entry.cartTabId,
+        customerName: names[index] ?? entry.label,
+        cartLines: buildCartLines(tab?.items ?? []),
+      };
+    });
+    if (groupDialogMode) groupCheckout.start(groups, groupDialogMode);
+    setGroupDialogMode(null);
+  }
+  const cartTabsBar = isCartHydrated ? (
+    <CartTabsBar
+      tabs={cartTabs}
+      activeTabId={activeCartTabId}
+      onSelect={(tabId) => selectCartTab(organizationId, tabId)}
+      onRename={(tab) =>
+        setTabNameDialogState({ mode: "rename", currentName: tab.name })
+      }
+      onAdd={() => setTabNameDialogState({ mode: "create" })}
+      onRemove={(tabId) => finishCartTab(organizationId, tabId)}
+    />
+  ) : null;
+
   return (
     <div className="flex h-svh min-h-0 flex-col md:flex-row">
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
@@ -197,25 +299,40 @@ export function PosView({
       </div>
 
       <CartPanel
+        header={cartTabsBar}
         variant="sidebar"
         cartLines={isCartHydrated ? cartLines : []}
-        isSendingToKitchen={checkout.isPlacingOrder}
+        isSendingToKitchen={checkout.isPlacingOrder || groupCheckout.isPlacing}
+        sendToKitchenLabel={
+          hasManyOrders ? `Imprimir todos (${tabsWithItems.length})` : undefined
+        }
         onDecrement={handleDecrementItem}
         onEditItemNote={setNoteCartLine}
-        onSendToKitchen={checkout.startKitchenCheckout}
-        onQuickPayment={checkout.startQuickPayment}
+        onSendToKitchen={startSendToKitchen}
+        onQuickPayment={startQuickPayment}
+        quickPaymentLabel={
+          hasManyOrders ? `Pagamento (${tabsWithItems.length})` : undefined
+        }
         tabTarget={tabTarget}
         isAddingToTab={checkout.isAddingToTab}
         onAddToTab={checkout.addToTab}
         onExitTabMode={() => setTabTarget(organizationId, null)}
       />
       <MobileCartSheet
+        header={cartTabsBar}
+        hasOpenOrders={hasItemsInAnyTab}
         cartLines={isCartHydrated ? cartLines : []}
-        isSendingToKitchen={checkout.isPlacingOrder}
+        isSendingToKitchen={checkout.isPlacingOrder || groupCheckout.isPlacing}
+        sendToKitchenLabel={
+          hasManyOrders ? `Imprimir todos (${tabsWithItems.length})` : undefined
+        }
         onDecrement={handleDecrementItem}
         onEditItemNote={setNoteCartLine}
-        onSendToKitchen={checkout.startKitchenCheckout}
-        onQuickPayment={checkout.startQuickPayment}
+        onSendToKitchen={startSendToKitchen}
+        onQuickPayment={startQuickPayment}
+        quickPaymentLabel={
+          hasManyOrders ? `Pagamento (${tabsWithItems.length})` : undefined
+        }
         tabTarget={tabTarget}
         isAddingToTab={checkout.isAddingToTab}
         onAddToTab={checkout.addToTab}
@@ -227,6 +344,7 @@ export function PosView({
         isOpen={checkout.checkoutStep.step === "customer"}
         takeawayFee={takeawayFee}
         isTakeawayEnabled={isTakeawayEnabled}
+        defaultCustomerName={activeCartTab?.name}
         onClose={checkout.cancelCheckout}
         onConfirm={checkout.confirmCustomer}
       />
@@ -260,10 +378,59 @@ export function PosView({
         onClose={() => setNoteCartLine(null)}
         onSave={saveItemNote}
       />
+      <GroupOrdersDialog
+        organizationId={organizationId}
+        entries={groupOrderEntries}
+        mode={groupDialogMode ?? "kitchen"}
+        isOpen={groupDialogMode !== null && groupOrderEntries.length > 0}
+        isSubmitting={false}
+        onClose={() => setGroupDialogMode(null)}
+        onConfirm={confirmGroupOrders}
+      />
+      {groupCheckout.currentGroup && groupCheckout.summary && (
+        <PaymentDialog
+          key={groupCheckout.currentGroup.cartTabId}
+          organizationId={organizationId}
+          isOpen
+          title={`Pagamento · ${groupCheckout.currentGroup.customerName} (${groupCheckout.position}/${groupCheckout.groupCount})`}
+          submitLabel={
+            groupCheckout.mode === "kitchen"
+              ? "Pagamento recebido"
+              : "Confirmar pagamento"
+          }
+          summary={groupCheckout.summary}
+          isSubmitting={groupCheckout.isPlacing}
+          onClose={groupCheckout.cancel}
+          onConfirm={(payments) => void groupCheckout.submit(payments)}
+          secondaryAction={{
+            label:
+              groupCheckout.mode === "kitchen"
+                ? "Abrir comanda"
+                : "Criar comanda",
+            isPending: false,
+            onClick: () => void groupCheckout.submit(undefined),
+          }}
+        />
+      )}
+      <CartTabNameDialog
+        state={tabNameDialogState}
+        organizationId={organizationId}
+        otherTabNames={cartTabs
+          .filter(
+            (tab) =>
+              tabNameDialogState.mode !== "rename" ||
+              tab.id !== activeCartTabId,
+          )
+          .map((tab) => tab.name)
+          .filter(Boolean)}
+        onClose={() => setTabNameDialogState({ mode: "closed" })}
+        onSubmit={submitTabName}
+      />
       <TabNameDialog
         organizationId={organizationId}
         isOpen={checkout.checkoutStep.step === "tab-name"}
         isCreatingTab={checkout.isPlacingOrder}
+        defaultCustomerName={activeCartTab?.name}
         onClose={checkout.startQuickPayment}
         onConfirm={checkout.createTab}
       />

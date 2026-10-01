@@ -21,6 +21,7 @@ type TabNameDialogProps = {
   organizationId: OrganizationId;
   isOpen: boolean;
   isCreatingTab: boolean;
+  defaultCustomerName?: string;
   onClose: () => void;
   onConfirm: (customerName: string) => void;
 };
@@ -29,6 +30,7 @@ export function TabNameDialog({
   organizationId,
   isOpen,
   isCreatingTab,
+  defaultCustomerName,
   onClose,
   onConfirm,
 }: TabNameDialogProps) {
@@ -41,9 +43,12 @@ export function TabNameDialog({
 
   useEffect(() => {
     if (!isOpen) return;
-    form.reset(EMPTY_TAB_NAME_FORM);
+    form.reset({
+      ...EMPTY_TAB_NAME_FORM,
+      customerName: defaultCustomerName ?? "",
+    });
     checkCustomerNameMutation.reset();
-  }, [isOpen, form, checkCustomerNameMutation.reset]);
+  }, [isOpen, defaultCustomerName, form, checkCustomerNameMutation.reset]);
 
   const handleSubmit = form.handleSubmit(({ customerName }) =>
     checkCustomerNameMutation.mutate(customerName, {
