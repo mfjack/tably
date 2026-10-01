@@ -52,7 +52,7 @@ export function KitchenColumn({
 
       <div className="-m-1 flex min-h-0 flex-1 flex-col overflow-y-auto p-1">
         {isLoading ? (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(16rem,1fr))] gap-4">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(14rem,1fr))] gap-4">
             {Array.from({ length: LOADING_CARD_COUNT }, (_, cardIndex) => (
               <Skeleton
                 key={`loading-${cardIndex.toString()}`}
@@ -65,7 +65,7 @@ export function KitchenColumn({
             {emptyMessage}
           </p>
         ) : (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(16rem,1fr))] content-start gap-4">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(14rem,1fr))] content-start gap-4">
             {tickets.map((ticket) => (
               <KitchenTicketCard
                 key={ticket.id}

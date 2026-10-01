@@ -1,6 +1,6 @@
 "use client";
 
-import { BellRing, CookingPot } from "lucide-react";
+import { BellRing, CookingPot, Hourglass } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -21,7 +21,7 @@ import { KitchenColumn } from "./kitchen-column";
 
 const ELAPSED_TIME_REFRESH_IN_MS = 30_000;
 
-const KITCHEN_COLUMN_IDS = ["preparing", "ready"] as const;
+const KITCHEN_COLUMN_IDS = ["waiting", "preparing", "ready"] as const;
 
 type KitchenColumnId = (typeof KITCHEN_COLUMN_IDS)[number];
 
@@ -41,17 +41,17 @@ export function KitchenView({
   description,
 }: KitchenViewProps) {
   const now = useNow(ELAPSED_TIME_REFRESH_IN_MS);
-  const [mobileColumn, setMobileColumn] =
-    useState<KitchenColumnId>("preparing");
+  const [mobileColumn, setMobileColumn] = useState<KitchenColumnId>("waiting");
   const kitchenTicketsQuery = useKitchenTicketsQuery(organizationId);
   const setStatusMutation = useSetKitchenTicketStatusMutation(organizationId);
   const { mutate: setTicketStatus } = setStatusMutation;
 
   useKitchenRealtime(organizationId, playNewTicketSound);
 
-  const { preparingTickets, readyTickets } = useMemo(() => {
+  const { waitingTickets, preparingTickets, readyTickets } = useMemo(() => {
     const tickets = kitchenTicketsQuery.data ?? [];
     return {
+      waitingTickets: tickets.filter((ticket) => ticket.status === "waiting"),
       preparingTickets: tickets.filter(
         (ticket) => ticket.status === "preparing",
       ),
@@ -87,9 +87,15 @@ export function KitchenView({
               onValueChange={(value: string) => {
                 if (isKitchenColumnId(value)) setMobileColumn(value);
               }}
-              className="md:hidden"
+              className="lg:hidden"
             >
               <TabsList className="w-full group-data-horizontal/tabs:h-10">
+                <TabsTrigger value="waiting">
+                  No aguardo
+                  <span className="text-muted-foreground tabular-nums">
+                    {waitingTickets.length}
+                  </span>
+                </TabsTrigger>
                 <TabsTrigger value="preparing">
                   Em preparo
                   <span className="text-muted-foreground tabular-nums">
@@ -97,17 +103,27 @@ export function KitchenView({
                   </span>
                 </TabsTrigger>
                 <TabsTrigger value="ready">
-                  Prontos
+                  Pronto
                   <span className="text-muted-foreground tabular-nums">
                     {readyTickets.length}
                   </span>
                 </TabsTrigger>
               </TabsList>
             </Tabs>
-            <div className="grid min-h-0 flex-1 gap-4 md:grid-cols-2 lg:grid-cols-[3fr_2fr]">
+            <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-3">
+              <KitchenColumn
+                title="No aguardo"
+                className={cn(mobileColumn !== "waiting" && "hidden lg:flex")}
+                emptyMessage="Nenhum pedido esperando."
+                icon={Hourglass}
+                tickets={waitingTickets}
+                isLoading={isLoading}
+                now={now}
+                onChangeStatus={changeStatus}
+              />
               <KitchenColumn
                 title="Em preparo"
-                className={cn(mobileColumn !== "preparing" && "hidden md:flex")}
+                className={cn(mobileColumn !== "preparing" && "hidden lg:flex")}
                 emptyMessage="Nenhum pedido em preparo."
                 icon={CookingPot}
                 tickets={preparingTickets}
@@ -116,8 +132,8 @@ export function KitchenView({
                 onChangeStatus={changeStatus}
               />
               <KitchenColumn
-                title="Prontos"
-                className={cn(mobileColumn !== "ready" && "hidden md:flex")}
+                title="Pronto"
+                className={cn(mobileColumn !== "ready" && "hidden lg:flex")}
                 emptyMessage="Os pedidos prontos aparecem aqui até serem entregues."
                 icon={BellRing}
                 tickets={readyTickets}

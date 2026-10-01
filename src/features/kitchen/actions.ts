@@ -22,6 +22,7 @@ const KITCHEN_TICKET_COLUMNS = `
 `;
 
 const ACTIVE_STATUSES = [
+  "waiting",
   "preparing",
   "ready",
 ] as const satisfies readonly ActiveKitchenTicketStatus[];

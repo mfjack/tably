@@ -1,5 +1,5 @@
 import { differenceInMinutes } from "date-fns";
-import { Check, PackageCheck, Undo2 } from "lucide-react";
+import { Check, ChefHat, PackageCheck, Undo2 } from "lucide-react";
 import { memo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,12 +33,14 @@ function KitchenTicketCardComponent({
   now,
   onChangeStatus,
 }: KitchenTicketCardProps) {
+  const isWaiting = ticket.status === "waiting";
   const isPreparing = ticket.status === "preparing";
   const elapsedMinutes = Math.max(
     differenceInMinutes(now, new Date(ticket.createdAt)),
     0,
   );
-  const isLate = isPreparing && elapsedMinutes >= LATE_TICKET_MINUTES;
+  const isLate =
+    (isWaiting || isPreparing) && elapsedMinutes >= LATE_TICKET_MINUTES;
 
   return (
     <article
@@ -90,27 +92,44 @@ function KitchenTicketCardComponent({
         </p>
       )}
 
-      {isPreparing ? (
-        <Button
-          type="button"
-          className="h-11 rounded-xl font-semibold"
-          onClick={() => onChangeStatus(ticket.id, "ready")}
-        >
-          <Check aria-hidden />
-          Pronto
-        </Button>
-      ) : (
-        <div className="flex gap-2">
+      <div className="mt-auto flex gap-2">
+        {!isWaiting && (
           <Button
             type="button"
             variant="outline"
             size="icon"
             className="size-11 rounded-xl"
-            aria-label="Voltar para em preparo"
-            onClick={() => onChangeStatus(ticket.id, "preparing")}
+            aria-label={
+              isPreparing ? "Voltar para no aguardo" : "Voltar para em preparo"
+            }
+            onClick={() =>
+              onChangeStatus(ticket.id, isPreparing ? "waiting" : "preparing")
+            }
           >
             <Undo2 aria-hidden />
           </Button>
+        )}
+        {isWaiting && (
+          <Button
+            type="button"
+            className="h-11 flex-1 rounded-xl font-semibold"
+            onClick={() => onChangeStatus(ticket.id, "preparing")}
+          >
+            <ChefHat aria-hidden />
+            Iniciar preparo
+          </Button>
+        )}
+        {isPreparing && (
+          <Button
+            type="button"
+            className="h-11 flex-1 rounded-xl font-semibold"
+            onClick={() => onChangeStatus(ticket.id, "ready")}
+          >
+            <Check aria-hidden />
+            Pronto
+          </Button>
+        )}
+        {!isWaiting && !isPreparing && (
           <Button
             type="button"
             className="h-11 flex-1 rounded-xl font-semibold"
@@ -119,8 +138,8 @@ function KitchenTicketCardComponent({
             <PackageCheck aria-hidden />
             Entregue
           </Button>
-        </div>
-      )}
+        )}
+      </div>
     </article>
   );
 }
