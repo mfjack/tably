@@ -7,6 +7,7 @@ import { SelectField } from "@/components/form/select-field";
 import { Button } from "@/components/ui/button";
 import type { CustomerAccount } from "@/features/customer-accounts/types";
 import { formatCurrency } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { PAYMENT_METHOD_VALUES, PAYMENT_METHODS } from "../payment-methods";
 import type { PaymentFormInput } from "../schemas";
 import { PaymentMethodField } from "./payment-method-field";
@@ -23,6 +24,7 @@ type PaymentLineFieldsProps = {
   orderTotal: number;
   remainingAmount: number;
   accounts: readonly CustomerAccount[];
+  computedAmount?: number;
   onRemove?: () => void;
 };
 
@@ -41,6 +43,7 @@ export function PaymentLineFields({
   orderTotal,
   remainingAmount,
   accounts,
+  computedAmount,
   onRemove,
 }: PaymentLineFieldsProps) {
   const [method, customerAccountId] = useWatch({
@@ -51,8 +54,11 @@ export function PaymentLineFields({
     (account) => account.id === customerAccountId,
   );
   const amountExample = formatCurrency(
-    isSplit ? remainingAmount || orderTotal : Math.ceil(orderTotal / 10) * 10,
+    isSplit
+      ? (computedAmount ?? (remainingAmount || orderTotal))
+      : Math.ceil(orderTotal / 10) * 10,
   );
+  const isAmountComputed = computedAmount !== undefined;
 
   const accountField = method === "customer_account" && (
     <SelectField
@@ -102,20 +108,27 @@ export function PaymentLineFields({
   return (
     <fieldset className="flex flex-col gap-3 rounded-lg border p-3">
       <div className="flex items-center justify-between gap-2">
-        <legend className="font-medium text-sm">Pagamento {index + 1}</legend>
-        {onRemove && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            aria-label={`Remover pagamento ${index + 1}`}
-            onClick={onRemove}
-          >
-            <X aria-hidden />
-          </Button>
-        )}
+        <legend className="font-medium text-sm">Pessoa {index + 1}</legend>
+        <span className="flex items-center gap-1">
+          {isAmountComputed && (
+            <span className="font-semibold text-sm tabular-nums">
+              {formatCurrency(computedAmount)}
+            </span>
+          )}
+          {onRemove && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              aria-label={`Remover pessoa ${index + 1}`}
+              onClick={onRemove}
+            >
+              <X aria-hidden />
+            </Button>
+          )}
+        </span>
       </div>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className={cn("grid gap-3", !isAmountComputed && "sm:grid-cols-2")}>
         <SelectField
           control={control}
           name={`payments.${index}.method`}
@@ -123,13 +136,15 @@ export function PaymentLineFields({
           placeholder="Escolha"
           options={PAYMENT_METHOD_OPTIONS}
         />
-        <NumberField
-          control={control}
-          name={`payments.${index}.amount`}
-          label="Valor"
-          format="currency"
-          placeholder={`Ex.: ${amountExample}`}
-        />
+        {!isAmountComputed && (
+          <NumberField
+            control={control}
+            name={`payments.${index}.amount`}
+            label="Valor"
+            format="currency"
+            placeholder={`Ex.: ${amountExample}`}
+          />
+        )}
       </div>
       {accountField}
       {cashField}
