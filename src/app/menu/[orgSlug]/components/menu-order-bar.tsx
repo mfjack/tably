@@ -26,6 +26,7 @@ import {
   useMenuCartItems,
   useMenuCartStore,
 } from "@/features/online-orders/menu-cart-store";
+import { ONLINE_ORDER_NAME_IN_USE_MESSAGE } from "@/features/online-orders/messages";
 import {
   type OnlineOrderCustomerInput,
   onlineOrderCustomerSchema,
@@ -120,7 +121,15 @@ export function MenuOrderBar({
           setIsSheetOpen(false);
           router.push(buildOrderPath(menuSlug, placedOrderId));
         },
-        onError: (error) => toast.error(error.message),
+        onError: (error) => {
+          if (error.message === ONLINE_ORDER_NAME_IN_USE_MESSAGE) {
+            setPendingOrderId(null);
+            form.setError("customerName", { message: error.message });
+            form.setFocus("customerName");
+            return;
+          }
+          toast.error(error.message);
+        },
       },
     );
   });
