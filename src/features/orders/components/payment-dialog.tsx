@@ -361,6 +361,14 @@ export function PaymentDialog({
             methods={paymentMethods}
           />
         ))}
+        {change > 0 && (
+          <div className="flex items-baseline justify-between rounded-lg bg-muted px-4 py-3">
+            <span className="text-muted-foreground text-sm">Troco</span>
+            <span aria-live="polite" className="font-bold text-lg tabular-nums">
+              {formatCurrency(change)}
+            </span>
+          </div>
+        )}
         {!isSplit && checkoutSettings.isSplitBillEnabled && (
           <Button
             type="button"
@@ -405,14 +413,6 @@ export function PaymentDialog({
           </p>
         )}
         {paymentsError && <FieldError>{paymentsError}</FieldError>}
-        {change > 0 && (
-          <div className="flex items-baseline justify-between rounded-lg bg-muted px-4 py-3">
-            <span className="text-muted-foreground text-sm">Troco</span>
-            <span aria-live="polite" className="font-bold text-lg tabular-nums">
-              {formatCurrency(change)}
-            </span>
-          </div>
-        )}
       </FieldGroup>
     </FormDialog>
   );
