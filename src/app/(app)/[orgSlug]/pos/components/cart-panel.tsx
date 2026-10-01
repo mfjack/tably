@@ -15,7 +15,6 @@ import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { CartLine } from "../hooks/use-pos-catalog";
 import { CartItemCard } from "./cart-item-card";
-import { OrderNoteInput } from "./order-note-input";
 import { TabModeBanner } from "./tab-mode-banner";
 
 const CART_PANEL_VARIANT_CLASS_NAMES = {
@@ -26,9 +25,7 @@ const CART_PANEL_VARIANT_CLASS_NAMES = {
 type CartPanelProps = {
   variant: keyof typeof CART_PANEL_VARIANT_CLASS_NAMES;
   cartLines: readonly CartLine[];
-  note: string;
   isSendingToKitchen: boolean;
-  onNoteChange: (note: string) => void;
   onDecrement: (cartLine: CartLine) => void;
   onEditItemNote: (cartLine: CartLine) => void;
   onSendToKitchen: () => void;
@@ -42,9 +39,7 @@ type CartPanelProps = {
 export function CartPanel({
   variant,
   cartLines,
-  note,
   isSendingToKitchen,
-  onNoteChange,
   onDecrement,
   onEditItemNote,
   onSendToKitchen,
@@ -103,7 +98,6 @@ export function CartPanel({
       </div>
 
       <footer className="flex flex-col gap-4 border-t bg-background p-4 lg:px-6 lg:py-5">
-        <OrderNoteInput note={note} onNoteChange={onNoteChange} />
         <div className="flex items-baseline justify-between">
           <span className="font-semibold text-base">Total</span>
           <span className="font-bold text-lg tabular-nums tracking-[-0.01em]">

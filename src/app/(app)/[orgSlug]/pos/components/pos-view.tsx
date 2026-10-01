@@ -70,7 +70,6 @@ export function PosView({
   const addProductToCart = useCartStore((state) => state.addProduct);
   const decrementCartItem = useCartStore((state) => state.decrementItem);
   const setCartItemNote = useCartStore((state) => state.setItemNote);
-  const setCartNote = useCartStore((state) => state.setNote);
   const clearCart = useCartStore((state) => state.clearCart);
 
   const { posProducts, cartLines, categories, isLoading, errorMessage } =
@@ -200,9 +199,7 @@ export function PosView({
       <CartPanel
         variant="sidebar"
         cartLines={isCartHydrated ? cartLines : []}
-        note={cart.note}
         isSendingToKitchen={checkout.isPlacingOrder}
-        onNoteChange={(note) => setCartNote(organizationId, note)}
         onDecrement={handleDecrementItem}
         onEditItemNote={setNoteCartLine}
         onSendToKitchen={checkout.startKitchenCheckout}
@@ -214,9 +211,7 @@ export function PosView({
       />
       <MobileCartSheet
         cartLines={isCartHydrated ? cartLines : []}
-        note={cart.note}
         isSendingToKitchen={checkout.isPlacingOrder}
-        onNoteChange={(note) => setCartNote(organizationId, note)}
         onDecrement={handleDecrementItem}
         onEditItemNote={setNoteCartLine}
         onSendToKitchen={checkout.startKitchenCheckout}
