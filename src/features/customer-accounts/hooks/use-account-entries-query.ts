@@ -1,7 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import type { OrganizationId } from "@/features/organizations/types";
-import { unwrapActionResult } from "@/lib/action-result";
-import { listAccountEntries } from "../actions";
+import {
+  type ActionData,
+  fetchActionResult,
+} from "@/lib/api/fetch-action-result";
+import { organizationApiPath } from "@/lib/api/organization-api-path";
+import type { listAccountEntries } from "../actions";
 import type { CustomerAccountId } from "../types";
 
 export function getAccountEntriesQueryKey(
@@ -24,7 +28,14 @@ export function useAccountEntriesQuery(
   return useQuery({
     queryKey: getAccountEntriesQueryKey(organizationId, accountId),
     queryFn: async () =>
-      accountId ? unwrapActionResult(await listAccountEntries(accountId)) : [],
+      accountId
+        ? fetchActionResult<ActionData<typeof listAccountEntries>>(
+            organizationApiPath(
+              organizationId,
+              `customer-accounts/${accountId}/entries`,
+            ),
+          )
+        : [],
     enabled: accountId !== null,
   });
 }

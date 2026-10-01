@@ -1,7 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import type { OrganizationId } from "@/features/organizations/types";
-import { unwrapActionResult } from "@/lib/action-result";
-import { listSupplierPurchases } from "../actions";
+import {
+  type ActionData,
+  fetchActionResult,
+} from "@/lib/api/fetch-action-result";
+import { organizationApiPath } from "@/lib/api/organization-api-path";
+import type { listSupplierPurchases } from "../actions";
 import type { SupplierId } from "../types";
 
 export function getSupplierPurchasesQueryKey(
@@ -25,7 +29,12 @@ export function useSupplierPurchasesQuery(
     queryKey: getSupplierPurchasesQueryKey(organizationId, supplierId),
     queryFn: async () =>
       supplierId
-        ? unwrapActionResult(await listSupplierPurchases(supplierId))
+        ? fetchActionResult<ActionData<typeof listSupplierPurchases>>(
+            organizationApiPath(
+              organizationId,
+              `suppliers/${supplierId}/purchases`,
+            ),
+          )
         : [],
     enabled: supplierId !== null,
   });

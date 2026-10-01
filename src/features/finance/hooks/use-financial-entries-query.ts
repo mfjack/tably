@@ -1,7 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import type { OrganizationId } from "@/features/organizations/types";
-import { unwrapActionResult } from "@/lib/action-result";
-import { listFinancialEntries } from "../actions";
+import {
+  type ActionData,
+  fetchActionResult,
+} from "@/lib/api/fetch-action-result";
+import { organizationApiPath } from "@/lib/api/organization-api-path";
+import type { listFinancialEntries } from "../actions";
 import type { EntryListFilter } from "../schemas";
 import type { FinancialEntryKind } from "../types";
 
@@ -36,8 +40,12 @@ export function useFinancialEntriesQuery(
       filter,
     ),
     queryFn: async () =>
-      unwrapActionResult(
-        await listFinancialEntries(organizationId, kind, monthKey, filter),
+      fetchActionResult<ActionData<typeof listFinancialEntries>>(
+        organizationApiPath(organizationId, "finance/entries", {
+          kind,
+          month: monthKey,
+          filter,
+        }),
       ),
   });
 }

@@ -1,7 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import type { OrganizationId } from "@/features/organizations/types";
-import { unwrapActionResult } from "@/lib/action-result";
-import { getFinanceAutomationSettings } from "../actions";
+import {
+  type ActionData,
+  fetchActionResult,
+} from "@/lib/api/fetch-action-result";
+import { organizationApiPath } from "@/lib/api/organization-api-path";
+import type { getFinanceAutomationSettings } from "../actions";
 
 export function getFinanceAutomationSettingsQueryKey(
   organizationId: OrganizationId,
@@ -16,7 +20,9 @@ export function useFinanceAutomationSettingsQuery(
   return useQuery({
     queryKey: getFinanceAutomationSettingsQueryKey(organizationId),
     queryFn: async () =>
-      unwrapActionResult(await getFinanceAutomationSettings(organizationId)),
+      fetchActionResult<ActionData<typeof getFinanceAutomationSettings>>(
+        organizationApiPath(organizationId, "finance/automation"),
+      ),
     enabled: isEnabled,
   });
 }

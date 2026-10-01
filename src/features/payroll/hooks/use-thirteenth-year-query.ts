@@ -1,7 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import type { OrganizationId } from "@/features/organizations/types";
-import { unwrapActionResult } from "@/lib/action-result";
-import { getThirteenthYear } from "../extra-actions";
+import {
+  type ActionData,
+  fetchActionResult,
+} from "@/lib/api/fetch-action-result";
+import { organizationApiPath } from "@/lib/api/organization-api-path";
+import type { getThirteenthYear } from "../extra-actions";
 
 export function getThirteenthYearQueryKey(
   organizationId: OrganizationId,
@@ -23,6 +27,8 @@ export function useThirteenthYearQuery(
   return useQuery({
     queryKey: getThirteenthYearQueryKey(organizationId, year),
     queryFn: async () =>
-      unwrapActionResult(await getThirteenthYear(organizationId, year)),
+      fetchActionResult<ActionData<typeof getThirteenthYear>>(
+        organizationApiPath(organizationId, `payroll/thirteenth/${year}`),
+      ),
   });
 }

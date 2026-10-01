@@ -1,8 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import type { EmployeeId } from "@/features/employees/types";
 import type { OrganizationId } from "@/features/organizations/types";
-import { unwrapActionResult } from "@/lib/action-result";
-import { getTimesheet } from "../actions";
+import {
+  type ActionData,
+  fetchActionResult,
+} from "@/lib/api/fetch-action-result";
+import { organizationApiPath } from "@/lib/api/organization-api-path";
+import type { getTimesheet } from "../actions";
 
 export function getTimesheetQueryKey(
   organizationId: OrganizationId,
@@ -26,8 +30,12 @@ export function useTimesheetQuery(
   return useQuery({
     queryKey: getTimesheetQueryKey(organizationId, employeeId, monthKey),
     queryFn: async () =>
-      unwrapActionResult(
-        await getTimesheet(organizationId, employeeId, monthKey),
+      fetchActionResult<ActionData<typeof getTimesheet>>(
+        organizationApiPath(
+          organizationId,
+          `time-clock/timesheets/${employeeId}`,
+          { month: monthKey },
+        ),
       ),
   });
 }

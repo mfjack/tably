@@ -1,7 +1,11 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import type { OrganizationId } from "@/features/organizations/types";
-import { unwrapActionResult } from "@/lib/action-result";
-import { getSalesReport } from "../actions";
+import {
+  type ActionData,
+  fetchActionResult,
+} from "@/lib/api/fetch-action-result";
+import { organizationApiPath } from "@/lib/api/organization-api-path";
+import type { getSalesReport } from "../actions";
 import type { SalesReportPeriod } from "../types";
 
 export function getSalesReportQueryKey(
@@ -18,7 +22,9 @@ export function useSalesReportQuery(
   return useQuery({
     queryKey: getSalesReportQueryKey(organizationId, period),
     queryFn: async () =>
-      unwrapActionResult(await getSalesReport(organizationId, period)),
+      fetchActionResult<ActionData<typeof getSalesReport>>(
+        organizationApiPath(organizationId, "sales-report", { period }),
+      ),
     placeholderData: keepPreviousData,
   });
 }

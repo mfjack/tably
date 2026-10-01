@@ -1,7 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import type { OrganizationId } from "@/features/organizations/types";
-import { unwrapActionResult } from "@/lib/action-result";
-import { getPayrollMonth } from "../actions";
+import {
+  type ActionData,
+  fetchActionResult,
+} from "@/lib/api/fetch-action-result";
+import { organizationApiPath } from "@/lib/api/organization-api-path";
+import type { getPayrollMonth } from "../actions";
 
 export function getPayrollMonthQueryKey(
   organizationId: OrganizationId,
@@ -23,6 +27,8 @@ export function usePayrollMonthQuery(
   return useQuery({
     queryKey: getPayrollMonthQueryKey(organizationId, monthKey),
     queryFn: async () =>
-      unwrapActionResult(await getPayrollMonth(organizationId, monthKey)),
+      fetchActionResult<ActionData<typeof getPayrollMonth>>(
+        organizationApiPath(organizationId, `payroll/months/${monthKey}`),
+      ),
   });
 }

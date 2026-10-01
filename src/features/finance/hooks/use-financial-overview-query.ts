@@ -1,7 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import type { OrganizationId } from "@/features/organizations/types";
-import { unwrapActionResult } from "@/lib/action-result";
-import { getFinancialOverview } from "../actions";
+import {
+  type ActionData,
+  fetchActionResult,
+} from "@/lib/api/fetch-action-result";
+import { organizationApiPath } from "@/lib/api/organization-api-path";
+import type { getFinancialOverview } from "../actions";
 
 export function getFinancialOverviewQueryKey(
   organizationId: OrganizationId,
@@ -23,6 +27,10 @@ export function useFinancialOverviewQuery(
   return useQuery({
     queryKey: getFinancialOverviewQueryKey(organizationId, monthKey),
     queryFn: async () =>
-      unwrapActionResult(await getFinancialOverview(organizationId, monthKey)),
+      fetchActionResult<ActionData<typeof getFinancialOverview>>(
+        organizationApiPath(organizationId, "finance/overview", {
+          month: monthKey,
+        }),
+      ),
   });
 }
