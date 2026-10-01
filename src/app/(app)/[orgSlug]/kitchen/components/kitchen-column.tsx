@@ -22,6 +22,7 @@ type KitchenColumnProps = {
     ticketId: KitchenTicketId,
     status: KitchenTicketStatus,
   ) => void;
+  onPrint: (ticket: KitchenTicket) => void;
 };
 
 export function KitchenColumn({
@@ -33,6 +34,7 @@ export function KitchenColumn({
   now,
   className,
   onChangeStatus,
+  onPrint,
 }: KitchenColumnProps) {
   return (
     <section
@@ -72,6 +74,7 @@ export function KitchenColumn({
                 ticket={ticket}
                 now={now}
                 onChangeStatus={onChangeStatus}
+                onPrint={onPrint}
               />
             ))}
           </div>

@@ -16,6 +16,7 @@ export type KitchenTicketItem = {
   id: string;
   productName: string;
   quantity: number;
+  unitPrice: number;
   note: string | null;
 };
 
@@ -25,6 +26,7 @@ export type KitchenTicket = {
   status: ActiveKitchenTicketStatus;
   customerName: string | null;
   isTakeaway: boolean;
+  takeawayFee: number;
   isAddition: boolean;
   note: string | null;
   createdAt: string;

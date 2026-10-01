@@ -17,8 +17,8 @@ import type {
 
 const KITCHEN_TICKET_COLUMNS = `
   id, order_id, status, note, is_addition, created_at, ready_at,
-  order:orders!inner(customer_name, is_takeaway, status),
-  kitchen_ticket_items(id, product_name, quantity, note, sort_order)
+  order:orders!inner(customer_name, is_takeaway, takeaway_fee, status),
+  kitchen_ticket_items(id, product_name, quantity, unit_price, note, sort_order)
 `;
 
 const ACTIVE_STATUSES = [
@@ -35,11 +35,16 @@ type KitchenTicketRow = {
   is_addition: boolean;
   created_at: string;
   ready_at: string | null;
-  order: { customer_name: string | null; is_takeaway: boolean };
+  order: {
+    customer_name: string | null;
+    is_takeaway: boolean;
+    takeaway_fee: number;
+  };
   kitchen_ticket_items: Array<{
     id: string;
     product_name: string;
     quantity: number;
+    unit_price: number;
     note: string | null;
     sort_order: number;
   }>;
@@ -52,6 +57,7 @@ function toKitchenTicket(row: KitchenTicketRow): KitchenTicket {
     status: row.status,
     customerName: row.order.customer_name,
     isTakeaway: row.order.is_takeaway,
+    takeawayFee: row.order.takeaway_fee,
     isAddition: row.is_addition,
     note: row.note,
     createdAt: row.created_at,
@@ -66,6 +72,7 @@ function toKitchenTicket(row: KitchenTicketRow): KitchenTicket {
         id: item.id,
         productName: item.product_name,
         quantity: item.quantity,
+        unitPrice: item.unit_price,
         note: item.note,
       })),
   };

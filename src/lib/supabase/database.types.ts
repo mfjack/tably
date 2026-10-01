@@ -936,6 +936,7 @@ export type Database = {
           quantity: number
           sort_order: number
           ticket_id: string
+          unit_price: number
         }
         Insert: {
           id?: string
@@ -945,6 +946,7 @@ export type Database = {
           quantity: number
           sort_order?: number
           ticket_id: string
+          unit_price?: number
         }
         Update: {
           id?: string
@@ -954,6 +956,7 @@ export type Database = {
           quantity?: number
           sort_order?: number
           ticket_id?: string
+          unit_price?: number
         }
         Relationships: [
           {

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getAppModule } from "@/features/modules/app-modules";
 import { requireVisibleModule } from "@/features/modules/require-visible-module";
+import { toOrderTicketBusiness } from "@/features/orders/print-order-ticket";
 import { KitchenView } from "./components/kitchen-view";
 
 const kitchenModule = getAppModule("kitchen");
@@ -16,6 +17,7 @@ export default async function KitchenPage({
   return (
     <KitchenView
       organizationId={organization.id}
+      ticketBusiness={toOrderTicketBusiness(organization)}
       title={kitchenModule.label}
       description="Pedidos enviados pelo PDV, em tempo real."
     />

@@ -3,7 +3,6 @@ import { Check, ChefHat, PackageCheck, Printer, Undo2 } from "lucide-react";
 import { memo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { printKitchenTicket } from "@/features/kitchen/print-kitchen-ticket";
 import type {
   KitchenTicket,
   KitchenTicketId,
@@ -20,6 +19,7 @@ type KitchenTicketCardProps = {
     ticketId: KitchenTicketId,
     status: KitchenTicketStatus,
   ) => void;
+  onPrint: (ticket: KitchenTicket) => void;
 };
 
 function formatElapsedMinutes(minutes: number) {
@@ -33,6 +33,7 @@ function KitchenTicketCardComponent({
   ticket,
   now,
   onChangeStatus,
+  onPrint,
 }: KitchenTicketCardProps) {
   const isWaiting = ticket.status === "waiting";
   const isPreparing = ticket.status === "preparing";
@@ -116,7 +117,7 @@ function KitchenTicketCardComponent({
           size="icon"
           className="size-11 rounded-xl"
           aria-label={`Imprimir pedido de ${ticket.customerName ?? "cliente"}`}
-          onClick={() => printKitchenTicket(ticket)}
+          onClick={() => onPrint(ticket)}
         >
           <Printer aria-hidden />
         </Button>

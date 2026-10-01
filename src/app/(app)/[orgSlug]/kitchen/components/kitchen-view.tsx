@@ -9,10 +9,13 @@ import { useKitchenRealtime } from "@/features/kitchen/hooks/use-kitchen-realtim
 import { useKitchenTicketsQuery } from "@/features/kitchen/hooks/use-kitchen-tickets-query";
 import { useSetKitchenTicketStatusMutation } from "@/features/kitchen/hooks/use-set-kitchen-ticket-status-mutation";
 import { playNewTicketSound } from "@/features/kitchen/play-new-ticket-sound";
+import { printKitchenTicket } from "@/features/kitchen/print-kitchen-ticket";
 import type {
+  KitchenTicket,
   KitchenTicketId,
   KitchenTicketStatus,
 } from "@/features/kitchen/types";
+import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
 import type { OrganizationId } from "@/features/organizations/types";
 import { useNow } from "@/hooks/use-now";
 import { cn } from "@/lib/utils";
@@ -31,12 +34,14 @@ function isKitchenColumnId(value: string): value is KitchenColumnId {
 
 type KitchenViewProps = {
   organizationId: OrganizationId;
+  ticketBusiness: OrderTicketBusiness;
   title: string;
   description: string;
 };
 
 export function KitchenView({
   organizationId,
+  ticketBusiness,
   title,
   description,
 }: KitchenViewProps) {
@@ -66,6 +71,14 @@ export function KitchenView({
         { onError: (error) => toast.error(error.message) },
       ),
     [setTicketStatus],
+  );
+
+  const printTicket = useCallback(
+    (ticket: KitchenTicket) => {
+      printKitchenTicket(ticket, ticketBusiness);
+      if (ticket.status === "waiting") changeStatus(ticket.id, "preparing");
+    },
+    [ticketBusiness, changeStatus],
   );
 
   const isLoading = kitchenTicketsQuery.isPending;
@@ -120,6 +133,7 @@ export function KitchenView({
                 isLoading={isLoading}
                 now={now}
                 onChangeStatus={changeStatus}
+                onPrint={printTicket}
               />
               <KitchenColumn
                 title="Em preparo"
@@ -130,6 +144,7 @@ export function KitchenView({
                 isLoading={isLoading}
                 now={now}
                 onChangeStatus={changeStatus}
+                onPrint={printTicket}
               />
               <KitchenColumn
                 title="Pronto"
@@ -140,6 +155,7 @@ export function KitchenView({
                 isLoading={isLoading}
                 now={now}
                 onChangeStatus={changeStatus}
+                onPrint={printTicket}
               />
             </div>
           </div>
