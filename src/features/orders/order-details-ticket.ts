@@ -9,8 +9,13 @@ export function getOrderCustomerLabel(order: OrderDetails): string {
 }
 
 export function getOrderPaymentChange(order: OrderDetails): number {
-  if (order.paymentMethod !== "cash" || order.amountReceived === null) return 0;
-  return Math.max(order.amountReceived - order.total, 0);
+  return order.payments.reduce(
+    (change, payment) =>
+      payment.method === "cash" && payment.amountReceived !== null
+        ? change + Math.max(payment.amountReceived - payment.amount, 0)
+        : change,
+    0,
+  );
 }
 
 export function buildOrderDetailsTicket(
@@ -26,18 +31,17 @@ export function buildOrderDetailsTicket(
       name: item.productName,
       quantity: item.quantity,
       total: item.total,
+      note: item.note ?? undefined,
     })),
     subtotal: order.subtotal,
     takeawayFee: order.takeawayFee,
     total: order.total,
     note: order.note ?? undefined,
     createdAt: new Date(order.paidAt ?? order.createdAt),
-    payment: order.paymentMethod
-      ? {
-          label: getPaymentMethodLabel(order.paymentMethod),
-          amount: order.amountReceived ?? order.total,
-          change: change > 0 ? change : undefined,
-        }
-      : undefined,
+    payments: order.payments.map((payment) => ({
+      label: getPaymentMethodLabel(payment.method),
+      amount: payment.amountReceived ?? payment.amount,
+    })),
+    change: change > 0 ? change : undefined,
   };
 }

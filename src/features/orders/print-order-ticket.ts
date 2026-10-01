@@ -7,6 +7,7 @@ export type OrderTicketItem = {
   name: string;
   quantity: number;
   total: number;
+  note?: string;
 };
 
 export type OrderTicketBusiness = {
@@ -19,7 +20,6 @@ export type OrderTicketBusiness = {
 export type OrderTicketPayment = {
   label: string;
   amount: number;
-  change?: number;
 };
 
 export type OrderTicket = {
@@ -31,7 +31,8 @@ export type OrderTicket = {
   total: number;
   note?: string;
   createdAt: Date;
-  payment?: OrderTicketPayment;
+  payments?: readonly OrderTicketPayment[];
+  change?: number;
 };
 
 export const TICKET_STYLES = `
@@ -49,6 +50,7 @@ export const TICKET_STYLES = `
   .strong { font-weight: 700; }
   .customer { font-size: 15px; font-weight: 700; }
   .note { white-space: pre-wrap; }
+  .item-note { font-size: 13px; padding-left: 12px; white-space: pre-wrap; }
 `;
 
 export function buildRow(
@@ -75,12 +77,17 @@ export function buildBusinessHeader(business: OrderTicketBusiness): string {
 
 function buildTicketHtml(ticket: OrderTicket): string {
   const items = ticket.items
-    .map((item) =>
-      buildRow(`${item.quantity}x ${item.name}`, formatCurrency(item.total)),
+    .map(
+      (item) =>
+        buildRow(`${item.quantity}x ${item.name}`, formatCurrency(item.total)) +
+        (item.note
+          ? `<p class="item-note">↳ ${escapeHtml(item.note)}</p>`
+          : ""),
     )
     .join("");
   const hasTakeawayFee = ticket.takeawayFee > 0;
-  const hasTotalRow = hasTakeawayFee || ticket.payment !== undefined;
+  const hasPayments = (ticket.payments?.length ?? 0) > 0;
+  const hasTotalRow = hasTakeawayFee || hasPayments;
   const totals = [
     buildRow("Subtotal", formatCurrency(ticket.subtotal)),
     hasTakeawayFee
@@ -88,11 +95,13 @@ function buildTicketHtml(ticket: OrderTicket): string {
       : "",
     hasTotalRow ? buildRow("Total", formatCurrency(ticket.total), true) : "",
   ].join("");
-  const payment = ticket.payment
-    ? `<section>${buildRow(ticket.payment.label, formatCurrency(ticket.payment.amount))}${
-        ticket.payment.change
-          ? buildRow("Troco", formatCurrency(ticket.payment.change))
-          : ""
+  const payment = hasPayments
+    ? `<section>${(ticket.payments ?? [])
+        .map((ticketPayment) =>
+          buildRow(ticketPayment.label, formatCurrency(ticketPayment.amount)),
+        )
+        .join("")}${
+        ticket.change ? buildRow("Troco", formatCurrency(ticket.change)) : ""
       }</section>`
     : "";
   const note = ticket.note

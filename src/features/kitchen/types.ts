@@ -16,6 +16,7 @@ export type KitchenTicketItem = {
   id: string;
   productName: string;
   quantity: number;
+  note: string | null;
 };
 
 export type KitchenTicket = {

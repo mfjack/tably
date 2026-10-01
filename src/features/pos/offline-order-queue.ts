@@ -3,6 +3,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type {
   OrderItemInput,
+  OrderPaymentInput,
   OrderRequestInput,
   PlaceOrderInput,
 } from "@/features/orders/schemas";
@@ -50,6 +51,24 @@ type OfflineOrderQueueState = {
   markOrderFailed: (requestId: OrderRequestId, errorMessage: string) => void;
   retryOrder: (requestId: OrderRequestId) => void;
 };
+
+const QUEUE_STORE_VERSION = 1;
+
+type LegacyPlaceOrderInput = PlaceOrderInput & { payment?: OrderPaymentInput };
+
+function migrateQueuedOrder(queuedOrder: QueuedOrder): QueuedOrder {
+  if (queuedOrder.kind !== "place-order") return queuedOrder;
+
+  const { payment, ...input }: LegacyPlaceOrderInput = queuedOrder.input;
+  if (!payment) return queuedOrder;
+
+  return { ...queuedOrder, input: { ...input, payments: [payment] } };
+}
+
+function migrateQueueState(persistedState: unknown) {
+  const state = persistedState as { queuedOrders?: QueuedOrder[] };
+  return { queuedOrders: (state.queuedOrders ?? []).map(migrateQueuedOrder) };
+}
 
 export function createOrderRequestId(): OrderRequestId {
   return crypto.randomUUID() as OrderRequestId;
@@ -102,6 +121,8 @@ export const useOfflineOrderQueue = create<OfflineOrderQueueState>()(
     },
     {
       name: "tably-offline-orders",
+      version: QUEUE_STORE_VERSION,
+      migrate: migrateQueueState,
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({ queuedOrders: state.queuedOrders }),
       skipHydration: true,

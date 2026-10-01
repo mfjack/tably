@@ -65,21 +65,34 @@ export function PaidOrderDialog({
             ]}
           />
           <OrderItemsList order={order} />
-          {order.paymentMethod && (
+          {order.payments.length > 0 && (
             <section className="flex flex-col gap-2">
-              <h3 className="font-semibold text-sm">Forma de pagamento</h3>
-              <p className="rounded-lg bg-muted px-4 py-3 text-sm">
-                {getPaymentMethodLabel(order.paymentMethod)} —{" "}
-                <span className="tabular-nums">
-                  {formatCurrency(order.amountReceived ?? order.total)}
-                </span>
+              <h3 className="font-semibold text-sm">
+                {order.payments.length > 1
+                  ? "Formas de pagamento"
+                  : "Forma de pagamento"}
+              </h3>
+              <ul className="flex flex-col gap-1 rounded-lg bg-muted px-4 py-3 text-sm">
+                {order.payments.map((payment, index) => (
+                  <li
+                    key={`${payment.method}-${index.toString()}`}
+                    className="flex justify-between gap-3"
+                  >
+                    <span>{getPaymentMethodLabel(payment.method)}</span>
+                    <span className="tabular-nums">
+                      {formatCurrency(payment.amountReceived ?? payment.amount)}
+                    </span>
+                  </li>
+                ))}
                 {change > 0 && (
-                  <span className="text-muted-foreground">
-                    {" "}
-                    · Troco {formatCurrency(change)}
-                  </span>
+                  <li className="flex justify-between gap-3 text-muted-foreground">
+                    <span>Troco</span>
+                    <span className="tabular-nums">
+                      {formatCurrency(change)}
+                    </span>
+                  </li>
                 )}
-              </p>
+              </ul>
             </section>
           )}
         </div>

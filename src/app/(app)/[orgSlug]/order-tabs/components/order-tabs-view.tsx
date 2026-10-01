@@ -17,6 +17,10 @@ import { usePayOrderMutation } from "@/features/orders/hooks/use-pay-order-mutat
 import { useRemoveOrderItemMutation } from "@/features/orders/hooks/use-remove-order-item-mutation";
 import { buildOrderDetailsTicket } from "@/features/orders/order-details-ticket";
 import {
+  getChangeMessage,
+  isCustomerAccountOnly,
+} from "@/features/orders/order-payments";
+import {
   type OrderTicketBusiness,
   printOrderTicket,
 } from "@/features/orders/print-order-ticket";
@@ -24,7 +28,6 @@ import type { OrderPaymentInput } from "@/features/orders/schemas";
 import type { OrderDetails, OrderId, OrderItem } from "@/features/orders/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import { useCartStore } from "@/features/pos/cart-store";
-import { formatCurrency } from "@/lib/format";
 import { ModuleLinkButton } from "../../components/module-link-button";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
@@ -47,14 +50,6 @@ type OrderTabsViewProps = {
   posHref: string;
   canOpenPos: boolean;
 };
-
-function getChangeMessage(payment: OrderPaymentInput, orderTotal: number) {
-  if (payment.method !== "cash" || payment.amountReceived === undefined) {
-    return undefined;
-  }
-  const change = payment.amountReceived - orderTotal;
-  return change > 0 ? `Troco: ${formatCurrency(change)}` : undefined;
-}
 
 export function OrderTabsView({
   organizationId,
@@ -123,21 +118,21 @@ export function OrderTabsView({
     printOrderTicket(buildOrderDetailsTicket(order, ticketBusiness));
   }
 
-  function confirmPayment(payment: OrderPaymentInput) {
+  function confirmPayment(payments: OrderPaymentInput[]) {
     if (!selectedOrder) return;
     const paidOrder = selectedOrder;
 
     payOrderMutation.mutate(
-      { orderId: paidOrder.id, payment },
+      { orderId: paidOrder.id, payments },
       {
         onSuccess: () => {
           closeOpenTab();
           toast.success(
-            payment.method === "customer_account"
+            isCustomerAccountOnly(payments)
               ? `Comanda de ${paidOrder.customerName} lançada na conta.`
               : `Comanda de ${paidOrder.customerName} paga.`,
             {
-              description: getChangeMessage(payment, paidOrder.total),
+              description: getChangeMessage(payments, paidOrder.total),
             },
           );
         },

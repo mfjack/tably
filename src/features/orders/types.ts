@@ -20,7 +20,14 @@ export type OrderItem = {
   productName: string;
   quantity: number;
   unitPrice: number;
+  note: string | null;
   total: number;
+};
+
+export type OrderPayment = {
+  method: PaymentMethod;
+  amount: number;
+  amountReceived: number | null;
 };
 
 export type OrderDetails = {
@@ -33,8 +40,7 @@ export type OrderDetails = {
   total: number;
   createdAt: string;
   paidAt: string | null;
-  paymentMethod: PaymentMethod | null;
-  amountReceived: number | null;
+  payments: OrderPayment[];
   attendantName: string | null;
   cashierName: string | null;
   items: OrderItem[];

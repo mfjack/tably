@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useCategoriesQuery } from "@/features/categories/hooks/use-categories-query";
 import { useIngredientsMap } from "@/features/ingredients/hooks/use-ingredients-map";
 import type { OrganizationId } from "@/features/organizations/types";
-import type { Cart } from "@/features/pos/cart-store";
+import { type Cart, getCartItemKey } from "@/features/pos/cart-store";
 import { buildReservedIngredientQuantities } from "@/features/pos/reserved-ingredients";
 import {
   getProductAvailability,
@@ -19,8 +19,10 @@ export type PosProduct = Product & {
 };
 
 export type CartLine = {
+  key: string;
   product: Product;
   quantity: number;
+  note: string;
   total: number;
 };
 
@@ -56,8 +58,10 @@ export function usePosCatalog(organizationId: OrganizationId, cart: Cart) {
         return product
           ? [
               {
+                key: getCartItemKey(cartItem),
                 product,
                 quantity: cartItem.quantity,
+                note: cartItem.note,
                 total: product.price * cartItem.quantity,
               },
             ]
@@ -71,9 +75,13 @@ export function usePosCatalog(organizationId: OrganizationId, cart: Cart) {
       cart.items,
       productsById,
     );
-    const cartQuantities = new Map(
-      cart.items.map((cartItem) => [cartItem.productId, cartItem.quantity]),
-    );
+    const cartQuantities = new Map<ProductId, number>();
+    for (const cartItem of cart.items) {
+      cartQuantities.set(
+        cartItem.productId,
+        (cartQuantities.get(cartItem.productId) ?? 0) + cartItem.quantity,
+      );
+    }
 
     return activeProducts.map((product) => ({
       ...product,

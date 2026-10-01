@@ -8,7 +8,7 @@ import { useInvalidateOrders } from "./use-invalidate-orders";
 
 type PayOrderVariables = {
   orderId: OrderId;
-  payment: OrderPaymentInput;
+  payments: OrderPaymentInput[];
 };
 
 export function getPayOrderMutationKey(organizationId: OrganizationId) {
@@ -20,8 +20,8 @@ export function usePayOrderMutation(organizationId: OrganizationId) {
 
   return useMutation({
     mutationKey: getPayOrderMutationKey(organizationId),
-    mutationFn: async ({ orderId, payment }: PayOrderVariables) =>
-      unwrapActionResult(await payOrder(orderId, payment)),
+    mutationFn: async ({ orderId, payments }: PayOrderVariables) =>
+      unwrapActionResult(await payOrder(orderId, payments)),
     onSuccess: invalidateOrders,
   });
 }

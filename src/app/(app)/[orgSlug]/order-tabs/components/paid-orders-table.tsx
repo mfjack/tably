@@ -15,7 +15,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { getOrderCustomerLabel } from "@/features/orders/order-details-ticket";
-import { getPaymentMethodLabel } from "@/features/orders/payment-methods";
+import { formatOrderPaymentMethods } from "@/features/orders/order-payments";
 import type { OrderDetails } from "@/features/orders/types";
 import { formatCurrency } from "@/lib/format";
 
@@ -39,7 +39,7 @@ function getOrderPaidAt(order: OrderDetails) {
 }
 
 function getOrderPaymentLabel(order: OrderDetails) {
-  return order.paymentMethod ? getPaymentMethodLabel(order.paymentMethod) : "—";
+  return formatOrderPaymentMethods(order.payments);
 }
 
 export function PaidOrdersTable({

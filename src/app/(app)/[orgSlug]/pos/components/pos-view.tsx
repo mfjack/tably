@@ -18,11 +18,16 @@ import type { ProductId } from "@/features/products/types";
 import { useIsOnline } from "@/hooks/use-is-online";
 import { ModuleLinkButton } from "../../components/module-link-button";
 import { PageHeader } from "../../components/page-header";
-import { type PosProduct, usePosCatalog } from "../hooks/use-pos-catalog";
+import {
+  type CartLine,
+  type PosProduct,
+  usePosCatalog,
+} from "../hooks/use-pos-catalog";
 import { usePosCheckout } from "../hooks/use-pos-checkout";
 import { CartPanel } from "./cart-panel";
 import { CategoryFilter, type CategoryFilterOption } from "./category-filter";
 import { CustomerDialog } from "./customer-dialog";
+import { ItemNoteDialog } from "./item-note-dialog";
 import { MobileCartSheet } from "./mobile-cart-sheet";
 import { OfflineStatus } from "./offline-status";
 import { PosHeaderDescription } from "./pos-header-description";
@@ -63,9 +68,8 @@ export function PosView({
   const tabTarget = isCartHydrated ? storedTabTarget : null;
   const setTabTarget = useCartStore((state) => state.setTabTarget);
   const addProductToCart = useCartStore((state) => state.addProduct);
-  const decrementProductInCart = useCartStore(
-    (state) => state.decrementProduct,
-  );
+  const decrementCartItem = useCartStore((state) => state.decrementItem);
+  const setCartItemNote = useCartStore((state) => state.setItemNote);
   const setCartNote = useCartStore((state) => state.setNote);
   const clearCart = useCartStore((state) => state.clearCart);
 
@@ -91,6 +95,7 @@ export function PosView({
   });
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [noteCartLine, setNoteCartLine] = useState<CartLine | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] =
     useState<CategoryId | null>(null);
 
@@ -127,10 +132,25 @@ export function PosView({
     [addProductToCart, organizationId],
   );
 
-  const handleDecrementProduct = useCallback(
-    (productId: ProductId) => decrementProductInCart(organizationId, productId),
-    [decrementProductInCart, organizationId],
+  const handleDecrementItem = useCallback(
+    (cartLine: CartLine) =>
+      decrementCartItem(organizationId, cartLine.product.id, cartLine.note),
+    [decrementCartItem, organizationId],
   );
+
+  function saveItemNote(
+    cartLine: CartLine,
+    note: string,
+    quantityToMove: number,
+  ) {
+    setCartItemNote(
+      organizationId,
+      cartLine.product.id,
+      cartLine.note,
+      note,
+      quantityToMove,
+    );
+  }
 
   return (
     <div className="flex h-svh min-h-0 flex-col md:flex-row">
@@ -183,7 +203,8 @@ export function PosView({
         note={cart.note}
         isSendingToKitchen={checkout.isPlacingOrder}
         onNoteChange={(note) => setCartNote(organizationId, note)}
-        onDecrement={handleDecrementProduct}
+        onDecrement={handleDecrementItem}
+        onEditItemNote={setNoteCartLine}
         onSendToKitchen={checkout.startKitchenCheckout}
         onQuickPayment={checkout.startQuickPayment}
         tabTarget={tabTarget}
@@ -196,7 +217,8 @@ export function PosView({
         note={cart.note}
         isSendingToKitchen={checkout.isPlacingOrder}
         onNoteChange={(note) => setCartNote(organizationId, note)}
-        onDecrement={handleDecrementProduct}
+        onDecrement={handleDecrementItem}
+        onEditItemNote={setNoteCartLine}
         onSendToKitchen={checkout.startKitchenCheckout}
         onQuickPayment={checkout.startQuickPayment}
         tabTarget={tabTarget}
@@ -237,6 +259,11 @@ export function PosView({
                 onClick: checkout.openKitchenTab,
               }
         }
+      />
+      <ItemNoteDialog
+        cartLine={noteCartLine}
+        onClose={() => setNoteCartLine(null)}
+        onSave={saveItemNote}
       />
       <TabNameDialog
         organizationId={organizationId}

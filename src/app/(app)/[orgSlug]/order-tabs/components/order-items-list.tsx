@@ -37,6 +37,11 @@ export function OrderItemsList({
                   {item.quantity}x
                 </strong>
                 {item.productName}
+                {item.note && (
+                  <span className="block truncate text-primary text-xs">
+                    ↳ {item.note}
+                  </span>
+                )}
               </span>
               <span className="flex shrink-0 items-center gap-2">
                 <span className="tabular-nums">

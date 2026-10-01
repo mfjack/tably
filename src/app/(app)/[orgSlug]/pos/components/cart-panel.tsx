@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/empty";
 import { Spinner } from "@/components/ui/spinner";
 import type { OrderTabTarget } from "@/features/orders/types";
-import type { ProductId } from "@/features/products/types";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { CartLine } from "../hooks/use-pos-catalog";
@@ -30,7 +29,8 @@ type CartPanelProps = {
   note: string;
   isSendingToKitchen: boolean;
   onNoteChange: (note: string) => void;
-  onDecrement: (productId: ProductId) => void;
+  onDecrement: (cartLine: CartLine) => void;
+  onEditItemNote: (cartLine: CartLine) => void;
   onSendToKitchen: () => void;
   onQuickPayment: () => void;
   tabTarget: OrderTabTarget | null;
@@ -46,6 +46,7 @@ export function CartPanel({
   isSendingToKitchen,
   onNoteChange,
   onDecrement,
+  onEditItemNote,
   onSendToKitchen,
   onQuickPayment,
   tabTarget,
@@ -91,9 +92,10 @@ export function CartPanel({
           <ul className="flex flex-col gap-2.5">
             {cartLines.map((cartLine) => (
               <CartItemCard
-                key={cartLine.product.id}
+                key={cartLine.key}
                 cartLine={cartLine}
                 onDecrement={onDecrement}
+                onEditNote={onEditItemNote}
               />
             ))}
           </ul>

@@ -5,6 +5,10 @@ import type { OrderSummaryData } from "@/features/orders/components/order-summar
 import { useAddOrderItemsMutation } from "@/features/orders/hooks/use-add-order-items-mutation";
 import { usePlaceOrderMutation } from "@/features/orders/hooks/use-place-order-mutation";
 import {
+  getChangeMessage,
+  isCustomerAccountOnly,
+} from "@/features/orders/order-payments";
+import {
   type OrderTicketBusiness,
   printOrderTicket,
 } from "@/features/orders/print-order-ticket";
@@ -20,7 +24,6 @@ import {
   createOrderRequestId,
   useOfflineOrderQueue,
 } from "@/features/pos/offline-order-queue";
-import { formatCurrency } from "@/lib/format";
 import { isNetworkError } from "@/lib/network-error";
 import type { CartLine } from "./use-pos-catalog";
 
@@ -56,17 +59,6 @@ type OrderSubmission = {
 
 const QUEUED_ORDER_MESSAGE =
   "Sem internet: a venda será enviada quando a conexão voltar.";
-
-function getChangeMessage(
-  payment: OrderPaymentInput | undefined,
-  orderTotal: number,
-) {
-  if (payment?.method !== "cash" || payment.amountReceived === undefined) {
-    return undefined;
-  }
-  const change = payment.amountReceived - orderTotal;
-  return change > 0 ? `Troco: ${formatCurrency(change)}` : undefined;
-}
 
 function buildToastDescription(
   placement: OrderPlacement,
@@ -123,12 +115,13 @@ export function usePosCheckout({
   const isOpeningTab =
     placeOrderMutation.isPending &&
     placeOrderMutation.variables?.input.sendToKitchen === true &&
-    !placeOrderMutation.variables.input.payment;
+    !placeOrderMutation.variables.input.payments;
 
   function buildOrderItems() {
     return cartLines.map((cartLine) => ({
       productId: cartLine.product.id,
       quantity: cartLine.quantity,
+      note: cartLine.note || undefined,
     }));
   }
 
@@ -142,6 +135,7 @@ export function usePosCheckout({
       name: cartLine.product.name,
       quantity: cartLine.quantity,
       total: cartLine.total,
+      note: cartLine.note || undefined,
     }));
   }
 
@@ -258,7 +252,7 @@ export function usePosCheckout({
 
   function sendToKitchen(
     customer: OrderCustomerInput,
-    payment: OrderPaymentInput | undefined,
+    payments: OrderPaymentInput[] | undefined,
   ) {
     const ticketItems = buildTicketItems();
     const ticketNote = cart.note.trim() || undefined;
@@ -269,7 +263,7 @@ export function usePosCheckout({
         items: buildOrderItems(),
         note: cart.note,
         customer,
-        payment,
+        payments,
         sendToKitchen: true,
       },
       customerName: customer.customerName,
@@ -277,13 +271,13 @@ export function usePosCheckout({
       onPlaced: (placement) => {
         finishCheckout();
         toast.success(
-          payment
+          payments
             ? `Pedido de ${customer.customerName} pago e enviado para a cozinha.`
             : `Comanda de ${customer.customerName} aberta.`,
           {
             description: buildToastDescription(
               placement,
-              getChangeMessage(payment, placement.total),
+              getChangeMessage(payments, placement.total),
             ),
           },
         );
@@ -301,12 +295,12 @@ export function usePosCheckout({
     });
   }
 
-  function confirmQuickPayment(payment: OrderPaymentInput) {
+  function confirmQuickPayment(payments: OrderPaymentInput[]) {
     submitOrder({
       input: {
         items: buildOrderItems(),
         note: cart.note,
-        payment,
+        payments,
         sendToKitchen: false,
       },
       customerName: null,
@@ -314,13 +308,13 @@ export function usePosCheckout({
       onPlaced: (placement) => {
         finishCheckout();
         toast.success(
-          payment.method === "customer_account"
+          isCustomerAccountOnly(payments)
             ? "Venda lançada na conta do cliente."
             : "Pagamento registrado.",
           {
             description: buildToastDescription(
               placement,
-              getChangeMessage(payment, placement.total),
+              getChangeMessage(payments, placement.total),
             ),
           },
         );
@@ -328,12 +322,12 @@ export function usePosCheckout({
     });
   }
 
-  function confirmPayment(payment: OrderPaymentInput) {
+  function confirmPayment(payments: OrderPaymentInput[]) {
     if (checkoutStep.step === "kitchen-payment") {
-      sendToKitchen(checkoutStep.customer, payment);
+      sendToKitchen(checkoutStep.customer, payments);
       return;
     }
-    confirmQuickPayment(payment);
+    confirmQuickPayment(payments);
   }
 
   function createTab(customerName: string) {

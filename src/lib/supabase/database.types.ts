@@ -927,6 +927,7 @@ export type Database = {
       kitchen_ticket_items: {
         Row: {
           id: string
+          note: string | null
           organization_id: string
           product_name: string
           quantity: number
@@ -934,6 +935,7 @@ export type Database = {
         }
         Insert: {
           id?: string
+          note?: string | null
           organization_id: string
           product_name: string
           quantity: number
@@ -941,6 +943,7 @@ export type Database = {
         }
         Update: {
           id?: string
+          note?: string | null
           organization_id?: string
           product_name?: string
           quantity?: number
@@ -1100,6 +1103,7 @@ export type Database = {
       order_items: {
         Row: {
           id: string
+          note: string | null
           order_id: string
           organization_id: string
           product_id: string | null
@@ -1110,6 +1114,7 @@ export type Database = {
         }
         Insert: {
           id?: string
+          note?: string | null
           order_id: string
           organization_id: string
           product_id?: string | null
@@ -1120,6 +1125,7 @@ export type Database = {
         }
         Update: {
           id?: string
+          note?: string | null
           order_id?: string
           organization_id?: string
           product_id?: string | null
@@ -1156,6 +1162,57 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      order_payments: {
+        Row: {
+          amount: number
+          amount_received: number | null
+          created_at: string
+          created_by: string | null
+          customer_account_id: string | null
+          id: string
+          method: Database["public"]["Enums"]["payment_method"]
+          order_id: string
+          organization_id: string
+        }
+        Insert: {
+          amount: number
+          amount_received?: number | null
+          created_at?: string
+          created_by?: string | null
+          customer_account_id?: string | null
+          id?: string
+          method: Database["public"]["Enums"]["payment_method"]
+          order_id: string
+          organization_id: string
+        }
+        Update: {
+          amount?: number
+          amount_received?: number | null
+          created_at?: string
+          created_by?: string | null
+          customer_account_id?: string | null
+          id?: string
+          method?: Database["public"]["Enums"]["payment_method"]
+          order_id?: string
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_payments_order_id_organization_id_fkey"
+            columns: ["order_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "order_payments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1650,6 +1707,7 @@ export type Database = {
           id: string
           ingredient_id: string
           organization_id: string
+          payment_due_date: string | null
           quantity: number
           supplier_id: string | null
           total_cost: number
@@ -1662,6 +1720,7 @@ export type Database = {
           id?: string
           ingredient_id: string
           organization_id: string
+          payment_due_date?: string | null
           quantity: number
           supplier_id?: string | null
           total_cost: number
@@ -1674,6 +1733,7 @@ export type Database = {
           id?: string
           ingredient_id?: string
           organization_id?: string
+          payment_due_date?: string | null
           quantity?: number
           supplier_id?: string | null
           total_cost?: number
@@ -2243,6 +2303,10 @@ export type Database = {
         }
         Returns: number
       }
+      adjust_ingredient_stock: {
+        Args: { p_ingredient_id: string; p_quantity: number }
+        Returns: undefined
+      }
       append_time_punch: {
         Args: {
           p_employee_id: string
@@ -2310,6 +2374,7 @@ export type Database = {
           p_minimum_stock: number
           p_name: string
           p_organization_id: string
+          p_payment_due_date?: string
           p_quantity: number
           p_supplier_id?: string
           p_total_cost: number
@@ -2468,6 +2533,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      normalize_order_payments: {
+        Args: {
+          p_amount_received: number
+          p_customer_account_id: string
+          p_payment_method: Database["public"]["Enums"]["payment_method"]
+          p_payments: Json
+        }
+        Returns: Json
+      }
       nth_business_day: {
         Args: {
           p_count: number
@@ -2485,7 +2559,8 @@ export type Database = {
           p_amount_received?: number
           p_customer_account_id?: string
           p_order_id: string
-          p_payment_method: Database["public"]["Enums"]["payment_method"]
+          p_payment_method?: Database["public"]["Enums"]["payment_method"]
+          p_payments?: Json
         }
         Returns: number
       }
@@ -2503,6 +2578,7 @@ export type Database = {
           p_note?: string
           p_organization_id: string
           p_payment_method?: Database["public"]["Enums"]["payment_method"]
+          p_payments?: Json
           p_placed_at?: string
           p_request_id?: string
           p_send_to_kitchen?: boolean
@@ -2512,6 +2588,16 @@ export type Database = {
           order_number: number
           order_total: number
         }[]
+      }
+      record_order_payments: {
+        Args: {
+          p_order_id: string
+          p_organization_id: string
+          p_paid_at: string
+          p_payments: Json
+          p_total: number
+        }
+        Returns: undefined
       }
       recurrence_step: {
         Args: {
@@ -2682,7 +2768,7 @@ export type Database = {
         | "payroll_salary"
         | "payroll_fgts"
         | "payroll_taxes"
-      kitchen_ticket_status: "preparing" | "ready" | "delivered"
+      kitchen_ticket_status: "waiting" | "preparing" | "ready" | "delivered"
       measure_unit: "unit" | "g" | "kg" | "ml" | "l"
       member_role: "owner" | "manager" | "cashier" | "kitchen" | "waiter"
       order_status: "in_kitchen" | "ready" | "completed" | "canceled"
@@ -2888,7 +2974,7 @@ export const Constants = {
         "payroll_fgts",
         "payroll_taxes",
       ],
-      kitchen_ticket_status: ["preparing", "ready", "delivered"],
+      kitchen_ticket_status: ["waiting", "preparing", "ready", "delivered"],
       measure_unit: ["unit", "g", "kg", "ml", "l"],
       member_role: ["owner", "manager", "cashier", "kitchen", "waiter"],
       order_status: ["in_kitchen", "ready", "completed", "canceled"],

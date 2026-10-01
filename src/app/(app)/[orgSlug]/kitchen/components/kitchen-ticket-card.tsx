@@ -75,6 +75,11 @@ function KitchenTicketCardComponent({
               {item.quantity}x
             </strong>
             {item.productName}
+            {item.note && (
+              <span className="mt-0.5 block font-semibold text-primary text-sm">
+                ↳ {item.note}
+              </span>
+            )}
           </li>
         ))}
       </ul>

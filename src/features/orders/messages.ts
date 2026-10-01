@@ -8,6 +8,7 @@ const ORDER_ERROR_MESSAGES: Readonly<Record<string, string>> = {
   TB002: CUSTOMER_NAME_IN_USE_MESSAGE,
   TB003: "Essa comanda já foi fechada. Atualize a tela.",
   TB005: "Essa venda passa do limite de crédito da conta do cliente.",
+  TB006: "A soma dos pagamentos não fecha o total do pedido.",
   "22023": "Confira o pedido e o valor recebido.",
   "42501": "Você não tem permissão para vender neste estabelecimento.",
 };

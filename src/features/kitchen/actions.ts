@@ -18,7 +18,7 @@ import type {
 const KITCHEN_TICKET_COLUMNS = `
   id, order_id, status, note, is_addition, created_at, ready_at,
   order:orders!inner(customer_name, is_takeaway, status),
-  kitchen_ticket_items(id, product_name, quantity)
+  kitchen_ticket_items(id, product_name, quantity, note)
 `;
 
 const ACTIVE_STATUSES = [
@@ -39,6 +39,7 @@ type KitchenTicketRow = {
     id: string;
     product_name: string;
     quantity: number;
+    note: string | null;
   }>;
 };
 
@@ -58,6 +59,7 @@ function toKitchenTicket(row: KitchenTicketRow): KitchenTicket {
         id: item.id,
         productName: item.product_name,
         quantity: item.quantity,
+        note: item.note,
       }))
       .sort((first, second) =>
         first.productName.localeCompare(second.productName, "pt-BR"),

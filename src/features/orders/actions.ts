@@ -8,6 +8,7 @@ import {
 } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
 import { getOrderErrorMessage } from "./messages";
+import { toOrderPaymentsPayload } from "./order-payments";
 import {
   type OrderRequestInput,
   orderCustomerSchema,
@@ -28,7 +29,7 @@ export async function placeOrder(
     return actionFailure("Confira o pedido e tente novamente.");
   }
 
-  const { items, note, payment, customer, sendToKitchen } = parsedInput.data;
+  const { items, note, payments, customer, sendToKitchen } = parsedInput.data;
   const supabase = await createClient();
   const { data, error } = await supabase
     .rpc("place_order", {
@@ -36,14 +37,10 @@ export async function placeOrder(
       p_items: items.map((item) => ({
         product_id: item.productId,
         quantity: item.quantity,
+        note: item.note,
       })),
       p_note: note || undefined,
-      p_payment_method: payment?.method,
-      p_amount_received: payment?.amountReceived,
-      p_customer_account_id:
-        payment?.method === "customer_account"
-          ? payment.customerAccountId
-          : undefined,
+      p_payments: payments ? toOrderPaymentsPayload(payments) : undefined,
       p_customer_name: customer?.customerName,
       p_is_takeaway: customer?.isTakeaway ?? false,
       p_send_to_kitchen: sendToKitchen,
