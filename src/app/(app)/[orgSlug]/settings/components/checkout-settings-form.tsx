@@ -19,8 +19,14 @@ type CheckoutSettingsFormProps = {
   organization: UserOrganization;
 };
 
-function toFormValues({ checkout }: UserOrganization): CheckoutSettingsInput {
+function toFormValues({
+  checkout,
+  isTakeawayEnabled,
+  takeawayFee,
+}: UserOrganization): CheckoutSettingsInput {
   return {
+    isTakeawayEnabled,
+    takeawayFee: takeawayFee || undefined,
     isServiceFeeEnabled: checkout.isServiceFeeEnabled,
     serviceFeePercent: checkout.serviceFeePercent || undefined,
     isDiscountEnabled: checkout.isDiscountEnabled,
@@ -40,9 +46,9 @@ export function CheckoutSettingsForm({
     resolver: zodResolver(checkoutSettingsSchema),
     defaultValues: toFormValues(organization),
   });
-  const isServiceFeeEnabled = useWatch({
+  const [isTakeawayEnabled, isServiceFeeEnabled] = useWatch({
     control: form.control,
-    name: "isServiceFeeEnabled",
+    name: ["isTakeawayEnabled", "isServiceFeeEnabled"],
   });
 
   const handleSubmit = form.handleSubmit((values) =>
@@ -65,6 +71,22 @@ export function CheckoutSettingsForm({
       onSubmit={handleSubmit}
     >
       <FieldGroup>
+        <SwitchField
+          control={form.control}
+          name="isTakeawayEnabled"
+          label="Pedidos para levar"
+          description="Mostra a opção Para levar ao informar o cliente no PDV."
+        />
+        {isTakeawayEnabled && (
+          <NumberField
+            control={form.control}
+            name="takeawayFee"
+            label="Taxa para levar"
+            description="Somada ao pedido para levar. Deixe vazio para não cobrar."
+            format="currency"
+            placeholder="Ex.: $ 2,00"
+          />
+        )}
         <SwitchField
           control={form.control}
           name="isServiceFeeEnabled"

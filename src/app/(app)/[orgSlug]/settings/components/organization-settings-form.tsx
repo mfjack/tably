@@ -2,11 +2,9 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useForm, useWatch } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { MaskedField } from "@/components/form/masked-field";
-import { NumberField } from "@/components/form/number-field";
-import { SwitchField } from "@/components/form/switch-field";
 import { TextField } from "@/components/form/text-field";
 import { TextareaField } from "@/components/form/textarea-field";
 import { FieldGroup } from "@/components/ui/field";
@@ -30,8 +28,6 @@ function toFormValues(
     taxId: organization.taxId ?? "",
     phone: organization.phone ?? "",
     address: organization.address ?? "",
-    isTakeawayEnabled: organization.isTakeawayEnabled,
-    takeawayFee: organization.takeawayFee,
   };
 }
 
@@ -45,10 +41,6 @@ export function OrganizationSettingsForm({
   const form = useForm<OrganizationSettingsInput>({
     resolver: zodResolver(organizationSettingsSchema),
     defaultValues: toFormValues(organization),
-  });
-  const isTakeawayEnabled = useWatch({
-    control: form.control,
-    name: "isTakeawayEnabled",
   });
 
   const handleSubmit = form.handleSubmit((values) =>
@@ -103,22 +95,6 @@ export function OrganizationSettingsForm({
           placeholder="Rua, número, bairro, cidade - UF"
           autoComplete="street-address"
         />
-        <SwitchField
-          control={form.control}
-          name="isTakeawayEnabled"
-          label="Pedidos para levar"
-          description="Mostra a opção Para levar ao informar o cliente no PDV."
-        />
-        {isTakeawayEnabled && (
-          <NumberField
-            control={form.control}
-            name="takeawayFee"
-            label="Taxa para levar"
-            description="Somada ao pedido para levar. Deixe vazio para não cobrar."
-            format="currency"
-            placeholder="Ex.: $ 2,00"
-          />
-        )}
       </FieldGroup>
     </SettingsFormSection>
   );

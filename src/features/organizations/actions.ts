@@ -77,8 +77,6 @@ export async function updateOrganizationSettings(
       tax_id: parsedInput.data.taxId || null,
       phone: parsedInput.data.phone || null,
       address: parsedInput.data.address || null,
-      is_takeaway_enabled: parsedInput.data.isTakeawayEnabled,
-      takeaway_fee: parsedInput.data.takeawayFee ?? 0,
     })
     .eq("id", organizationId)
     .select("id");
@@ -102,11 +100,13 @@ export async function updateCheckoutSettings(
     return actionFailure("Confira os campos e tente novamente.");
   }
 
-  const { serviceFeePercent, ...settings } = parsedInput.data;
+  const { serviceFeePercent, takeawayFee, ...settings } = parsedInput.data;
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("organizations")
     .update({
+      is_takeaway_enabled: settings.isTakeawayEnabled,
+      takeaway_fee: takeawayFee ?? 0,
       is_service_fee_enabled: settings.isServiceFeeEnabled,
       ...(serviceFeePercent !== undefined
         ? { service_fee_percent: serviceFeePercent }

@@ -24,12 +24,6 @@ export const organizationSettingsSchema = z.object({
       "Telefone incompleto.",
     ),
   address: z.string().trim().max(200, "Endereço muito longo."),
-  isTakeawayEnabled: z.boolean(),
-  takeawayFee: z
-    .number()
-    .min(0, "Não pode ser negativo.")
-    .max(100, "Valor muito alto.")
-    .optional(),
 });
 
 export type CreateOrganizationInput = z.infer<typeof createOrganizationSchema>;
@@ -39,6 +33,12 @@ export type OrganizationSettingsInput = z.infer<
 
 export const checkoutSettingsSchema = z
   .object({
+    isTakeawayEnabled: z.boolean(),
+    takeawayFee: z
+      .number()
+      .min(0, "Não pode ser negativo.")
+      .max(100, "Valor muito alto.")
+      .optional(),
     isServiceFeeEnabled: z.boolean(),
     serviceFeePercent: z
       .number()
