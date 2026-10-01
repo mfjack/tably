@@ -931,6 +931,7 @@ export type Database = {
           organization_id: string
           product_name: string
           quantity: number
+          sort_order: number
           ticket_id: string
         }
         Insert: {
@@ -939,6 +940,7 @@ export type Database = {
           organization_id: string
           product_name: string
           quantity: number
+          sort_order?: number
           ticket_id: string
         }
         Update: {
@@ -947,6 +949,7 @@ export type Database = {
           organization_id?: string
           product_name?: string
           quantity?: number
+          sort_order?: number
           ticket_id?: string
         }
         Relationships: [

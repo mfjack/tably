@@ -4,6 +4,10 @@ import { ClipboardList } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  buildCategoryOrder,
+  sortByCategoryOrder,
+} from "@/features/categories/category-order";
 import type { CategoryId } from "@/features/categories/types";
 import { PaymentDialog } from "@/features/orders/components/payment-dialog";
 import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
@@ -104,6 +108,10 @@ export function PosView({
     isLoading,
     errorMessage,
   } = usePosCatalog(organizationId, cart);
+  const categoryOrder = useMemo(
+    () => buildCategoryOrder(categories),
+    [categories],
+  );
   const isOnline = useIsOnline();
   const catalogErrorMessage =
     errorMessage ??
@@ -116,6 +124,7 @@ export function PosView({
     cartLines,
     tabTarget,
     cartTabId: activeCartTabId,
+    categoryOrder,
     onOrderPlaced: (cartTabId) => {
       if (cartTabId) finishCartTab(organizationId, cartTabId);
     },
@@ -234,7 +243,11 @@ export function PosView({
       return {
         cartTabId: entry.cartTabId,
         customerName: names[index] ?? entry.label,
-        cartLines: buildCartLines(tab?.items ?? []),
+        cartLines: sortByCategoryOrder(
+          buildCartLines(tab?.items ?? []),
+          (cartLine) => cartLine.product.categoryId,
+          categoryOrder,
+        ),
       };
     });
     if (groupDialogMode) groupCheckout.start(groups, groupDialogMode);

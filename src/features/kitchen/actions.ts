@@ -18,7 +18,7 @@ import type {
 const KITCHEN_TICKET_COLUMNS = `
   id, order_id, status, note, is_addition, created_at, ready_at,
   order:orders!inner(customer_name, is_takeaway, status),
-  kitchen_ticket_items(id, product_name, quantity, note)
+  kitchen_ticket_items(id, product_name, quantity, note, sort_order)
 `;
 
 const ACTIVE_STATUSES = [
@@ -41,6 +41,7 @@ type KitchenTicketRow = {
     product_name: string;
     quantity: number;
     note: string | null;
+    sort_order: number;
   }>;
 };
 
@@ -55,16 +56,18 @@ function toKitchenTicket(row: KitchenTicketRow): KitchenTicket {
     note: row.note,
     createdAt: row.created_at,
     readyAt: row.ready_at,
-    items: row.kitchen_ticket_items
+    items: [...row.kitchen_ticket_items]
+      .sort(
+        (first, second) =>
+          first.sort_order - second.sort_order ||
+          first.product_name.localeCompare(second.product_name, "pt-BR"),
+      )
       .map((item) => ({
         id: item.id,
         productName: item.product_name,
         quantity: item.quantity,
         note: item.note,
-      }))
-      .sort((first, second) =>
-        first.productName.localeCompare(second.productName, "pt-BR"),
-      ),
+      })),
   };
 }
 

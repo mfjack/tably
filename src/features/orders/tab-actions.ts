@@ -31,7 +31,12 @@ const ORDER_DETAILS_COLUMNS = `
   created_by_operator_name, paid_by_operator_name,
   attendant:profiles!orders_created_by_profile_fkey(full_name),
   cashier:profiles!orders_paid_by_profile_fkey(full_name),
-  order_items(id, product_id, product_name, quantity, unit_price, note),
+  order_items(
+    id, product_id, product_name, quantity, unit_price, note,
+    product:products!order_items_product_id_organization_id_fkey(
+      category:categories!products_category_id_organization_id_fkey(created_at, position)
+    )
+  ),
   order_payments(method, amount, amount_received)
 `;
 
@@ -58,6 +63,9 @@ type OrderDetailsRow = {
     quantity: number;
     unit_price: number;
     note: string | null;
+    product: {
+      category: { created_at: string; position: number } | null;
+    } | null;
   }>;
   order_payments: Array<{
     method: PaymentMethod;
@@ -65,6 +73,33 @@ type OrderDetailsRow = {
     amount_received: number | null;
   }>;
 };
+
+type OrderDetailsItemRow = OrderDetailsRow["order_items"][number];
+
+function getCategorySortKey(item: OrderDetailsItemRow): string | null {
+  const category = item.product?.category;
+  if (!category) return null;
+  return `${category.created_at}|${category.position.toString().padStart(6, "0")}`;
+}
+
+function compareCategoryKeys(first: string | null, second: string | null) {
+  if (first === second) return 0;
+  if (first === null) return 1;
+  if (second === null) return -1;
+  return first < second ? -1 : 1;
+}
+
+function compareOrderItemsByCategory(
+  first: OrderDetailsItemRow,
+  second: OrderDetailsItemRow,
+): number {
+  return (
+    compareCategoryKeys(
+      getCategorySortKey(first),
+      getCategorySortKey(second),
+    ) || first.product_name.localeCompare(second.product_name, "pt-BR")
+  );
+}
 
 function toOrderDetails(row: OrderDetailsRow): OrderDetails {
   return {
@@ -87,7 +122,8 @@ function toOrderDetails(row: OrderDetailsRow): OrderDetails {
     attendantName:
       row.created_by_operator_name ?? row.attendant?.full_name ?? null,
     cashierName: row.paid_by_operator_name ?? row.cashier?.full_name ?? null,
-    items: row.order_items
+    items: [...row.order_items]
+      .sort(compareOrderItemsByCategory)
       .map((item) => ({
         id: item.id as OrderItemId,
         productId: item.product_id as ProductId | null,
@@ -96,10 +132,7 @@ function toOrderDetails(row: OrderDetailsRow): OrderDetails {
         unitPrice: item.unit_price,
         note: item.note,
         total: item.unit_price * item.quantity,
-      }))
-      .sort((first, second) =>
-        first.productName.localeCompare(second.productName, "pt-BR"),
-      ),
+      })),
   };
 }
 

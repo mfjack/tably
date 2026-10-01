@@ -23,7 +23,8 @@ export async function listCategories(
     .from("categories")
     .select("id, name, products(count)")
     .eq("organization_id", organizationId)
-    .order("name");
+    .order("created_at")
+    .order("position");
 
   if (error) return actionFailure("Não foi possível carregar as categorias.");
 

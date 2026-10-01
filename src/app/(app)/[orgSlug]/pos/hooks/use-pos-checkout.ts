@@ -1,6 +1,10 @@
 import { onlineManager } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
+import {
+  type CategoryOrder,
+  sortByCategoryOrder,
+} from "@/features/categories/category-order";
 import type { OrderSummaryData } from "@/features/orders/components/order-summary";
 import { useAddOrderItemsMutation } from "@/features/orders/hooks/use-add-order-items-mutation";
 import { usePlaceOrderMutation } from "@/features/orders/hooks/use-place-order-mutation";
@@ -56,6 +60,7 @@ type UsePosCheckoutOptions = {
   cartLines: readonly CartLine[];
   tabTarget: OrderTabTarget | null;
   cartTabId: CartTabId | null;
+  categoryOrder: CategoryOrder;
   onOrderPlaced: (cartTabId: CartTabId | null) => void;
   onItemsAddedToTab: (cartTabId: CartTabId | null) => void;
 };
@@ -95,6 +100,7 @@ export function usePosCheckout({
   cartLines,
   tabTarget,
   cartTabId,
+  categoryOrder,
   onOrderPlaced,
   onItemsAddedToTab,
 }: UsePosCheckoutOptions) {
@@ -148,7 +154,11 @@ export function usePosCheckout({
   }
 
   function buildTicketItems() {
-    return cartLines.map((cartLine) => ({
+    return sortByCategoryOrder(
+      cartLines,
+      (cartLine) => cartLine.product.categoryId,
+      categoryOrder,
+    ).map((cartLine) => ({
       name: cartLine.product.name,
       quantity: cartLine.quantity,
       total: cartLine.total,
