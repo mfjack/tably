@@ -2801,6 +2801,14 @@ export type Database = {
         Args: { p_operator_id: string }
         Returns: boolean
       }
+      list_cash_sessions: {
+        Args: {
+          p_end_date: string
+          p_organization_id: string
+          p_start_date: string
+        }
+        Returns: Json
+      }
       list_my_owned_organizations: {
         Args: never
         Returns: {

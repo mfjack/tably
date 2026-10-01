@@ -15,6 +15,7 @@ import {
 import { formatCurrency } from "@/lib/format";
 import { escapeHtml } from "@/lib/print-html";
 import { printReceipt } from "@/lib/print-receipt";
+import { getCashDifference } from "./cash-difference";
 import type { CashSessionSummary } from "./types";
 
 const DATE_TIME_FORMAT = "dd/MM/yyyy, HH:mm";
@@ -25,18 +26,8 @@ function formatDateTime(value: string | null) {
   return value ? format(new Date(value), DATE_TIME_FORMAT) : "-";
 }
 
-function getDifference(summary: CashSessionSummary) {
-  return (summary.countedCash ?? 0) - summary.expectedCash;
-}
-
-function getDifferenceLabel(difference: number) {
-  if (difference > 0) return "Sobra";
-  if (difference < 0) return "Falta";
-  return "Diferença";
-}
-
 function buildSections(summary: CashSessionSummary): ClosingRow[][] {
-  const difference = getDifference(summary);
+  const difference = getCashDifference(summary);
 
   return [
     [
@@ -61,7 +52,9 @@ function buildSections(summary: CashSessionSummary): ClosingRow[][] {
       ["Sangrias", `- ${formatCurrency(summary.withdrawals)}`],
       ["Dinheiro esperado", formatCurrency(summary.expectedCash)],
       ["Dinheiro contado", formatCurrency(summary.countedCash ?? 0)],
-      [getDifferenceLabel(difference), formatCurrency(Math.abs(difference))],
+      ...(difference
+        ? [[difference.label, formatCurrency(difference.amount)] as ClosingRow]
+        : []),
     ],
   ];
 }

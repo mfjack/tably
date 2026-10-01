@@ -38,6 +38,7 @@ import { formatCurrency, formatPercent } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
+import { CashSessionsSection } from "./cash-sessions-section";
 import { KpiCard } from "./kpi-card";
 import { PaymentMethodsSection } from "./payment-methods-section";
 import { ProductLookupSection } from "./product-lookup-section";
@@ -214,6 +215,15 @@ export function SalesReportView({
             </div>
           ) : (
             <SalesReportSkeleton />
+          )}
+
+          {report && !salesReportQuery.isPlaceholderData && (
+            <CashSessionsSection
+              organizationId={organizationId}
+              ticketBusiness={ticketBusiness}
+              startDate={report.startDate}
+              endDate={report.endDate}
+            />
           )}
         </div>
       </PageContent>

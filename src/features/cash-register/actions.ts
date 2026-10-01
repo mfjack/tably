@@ -152,3 +152,36 @@ export async function closeCashSession(
     ? actionSuccess(summary)
     : actionFailure("O caixa foi fechado, mas o resumo não carregou.");
 }
+
+const reportDateSchema = z.iso.date();
+
+export async function listCashSessions(
+  organizationId: OrganizationId,
+  startDate: string,
+  endDate: string,
+): Promise<ActionResult<CashSessionSummary[]>> {
+  if (
+    !reportDateSchema.safeParse(startDate).success ||
+    !reportDateSchema.safeParse(endDate).success
+  ) {
+    return actionFailure("Período inválido.");
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("list_cash_sessions", {
+    p_organization_id: organizationId,
+    p_start_date: startDate,
+    p_end_date: endDate,
+  });
+
+  if (error || !Array.isArray(data)) {
+    return actionFailure("Não foi possível carregar os caixas.");
+  }
+
+  return actionSuccess(
+    data.flatMap((session) => {
+      const summary = toCashSessionSummary(session);
+      return summary ? [summary] : [];
+    }),
+  );
+}
