@@ -4,6 +4,7 @@ import { ClipboardList } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useOpenCashSessionQuery } from "@/features/cash-register/hooks/use-open-cash-session-query";
 import {
   buildCategoryOrder,
   sortByCategoryOrder,
@@ -45,6 +46,7 @@ import {
   type CartTabNameDialogState,
 } from "./cart-tab-name-dialog";
 import { CartTabsBar } from "./cart-tabs-bar";
+import { CashRegisterClosedState } from "./cash-register-closed-state";
 import { CashRegisterPanel } from "./cash-register-panel";
 import { CategoryFilter, type CategoryFilterOption } from "./category-filter";
 import { CustomerDialog } from "./customer-dialog";
@@ -53,6 +55,7 @@ import { ItemNoteDialog } from "./item-note-dialog";
 import { MobileCartSheet } from "./mobile-cart-sheet";
 import { OfflineStatus } from "./offline-status";
 import { OnlineOrdersPanel } from "./online-orders-panel";
+import { OpenCashRegisterDialog } from "./open-cash-register-dialog";
 import { PosHeaderDescription } from "./pos-header-description";
 import { ProductGrid } from "./product-grid";
 import { ProductSearchInput } from "./product-search-input";
@@ -124,6 +127,11 @@ export function PosView({
     [categories],
   );
   const isOnline = useIsOnline();
+  const cashSessionQuery = useOpenCashSessionQuery(organizationId);
+  const isCashRegisterClosed =
+    isOnline && cashSessionQuery.isSuccess && cashSessionQuery.data === null;
+  const [isOpenRegisterDialogOpen, setIsOpenRegisterDialogOpen] =
+    useState(false);
   const catalogErrorMessage =
     errorMessage ??
     (!isOnline && isLoading ? OFFLINE_CATALOG_MESSAGE : undefined);
@@ -289,6 +297,7 @@ export function PosView({
               <CashRegisterPanel
                 organizationId={organizationId}
                 ticketBusiness={ticketBusiness}
+                onOpenRegister={() => setIsOpenRegisterDialogOpen(true)}
               />
               {isOnlineOrderingEnabled && (
                 <OnlineOrdersPanel
@@ -307,30 +316,40 @@ export function PosView({
             </>
           }
         />
-        <div className="flex flex-col gap-4 px-4 pt-5 md:px-8">
-          <CategoryFilter
-            options={categoryOptions}
-            selectedCategoryId={selectedCategoryId}
-            onSelect={setSelectedCategoryId}
-          />
-          <ProductSearchInput
-            searchTerm={searchTerm}
-            onSearchTermChange={setSearchTerm}
-          />
-        </div>
-        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pt-6 pb-28 md:px-8 md:pb-8">
-          {catalogErrorMessage ? (
-            <Alert variant="destructive">
-              <AlertDescription>{catalogErrorMessage}</AlertDescription>
-            </Alert>
-          ) : (
-            <ProductGrid
-              products={visibleProducts}
-              isLoading={isLoading || !isCartHydrated}
-              onAdd={handleAddProduct}
+        {isCashRegisterClosed ? (
+          <div className="flex min-h-0 flex-1 flex-col px-4 py-6 md:px-8">
+            <CashRegisterClosedState
+              onOpenRegister={() => setIsOpenRegisterDialogOpen(true)}
             />
-          )}
-        </div>
+          </div>
+        ) : (
+          <>
+            <div className="flex flex-col gap-4 px-4 pt-5 md:px-8">
+              <CategoryFilter
+                options={categoryOptions}
+                selectedCategoryId={selectedCategoryId}
+                onSelect={setSelectedCategoryId}
+              />
+              <ProductSearchInput
+                searchTerm={searchTerm}
+                onSearchTermChange={setSearchTerm}
+              />
+            </div>
+            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pt-6 pb-28 md:px-8 md:pb-8">
+              {catalogErrorMessage ? (
+                <Alert variant="destructive">
+                  <AlertDescription>{catalogErrorMessage}</AlertDescription>
+                </Alert>
+              ) : (
+                <ProductGrid
+                  products={visibleProducts}
+                  isLoading={isLoading || !isCartHydrated}
+                  onAdd={handleAddProduct}
+                />
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       <CartPanel
@@ -374,6 +393,11 @@ export function PosView({
         onExitTabMode={() => setTabTarget(organizationId, null)}
       />
 
+      <OpenCashRegisterDialog
+        organizationId={organizationId}
+        isOpen={isOpenRegisterDialogOpen}
+        onClose={() => setIsOpenRegisterDialogOpen(false)}
+      />
       <CustomerDialog
         organizationId={organizationId}
         isOpen={checkout.checkoutStep.step === "customer"}
