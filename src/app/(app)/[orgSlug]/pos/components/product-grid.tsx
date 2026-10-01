@@ -31,7 +31,7 @@ export function ProductGrid({ products, isLoading, onAdd }: ProductGridProps) {
         {Array.from({ length: LOADING_CARD_COUNT }, (_, index) => (
           <Skeleton
             key={`loading-${index.toString()}`}
-            className="h-40 rounded-xl"
+            className="h-36 rounded-xl"
           />
         ))}
       </div>

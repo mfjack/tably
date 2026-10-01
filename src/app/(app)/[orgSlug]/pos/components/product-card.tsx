@@ -50,7 +50,7 @@ function ProductCardComponent({ product, onAdd }: ProductCardProps) {
       aria-label={getAccessibleLabel(product, availabilityLabel)}
       onClick={() => onAdd(product.id)}
       className={cn(
-        "relative flex flex-col gap-2.5 rounded-xl border bg-card p-2 text-left outline-none transition-colors hover:border-primary/40 focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed",
+        "relative flex flex-col gap-2 rounded-xl border bg-card p-2 text-left outline-none transition-colors hover:border-primary/40 focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed",
         isInCart && !isLow && !isOut && "border-primary bg-primary/5",
         isLow && "border-destructive/25 bg-destructive/5",
         isOut && "border-dashed hover:border-border",
@@ -58,7 +58,7 @@ function ProductCardComponent({ product, onAdd }: ProductCardProps) {
     >
       <div
         className={cn(
-          "relative flex h-24 items-center justify-center overflow-hidden rounded-lg bg-foreground/5 text-muted-foreground/70",
+          "relative flex h-20 items-center justify-center overflow-hidden rounded-lg bg-foreground/5 text-muted-foreground/70",
           isLow && "bg-destructive/10",
           isOut && "text-muted-foreground/40",
         )}
