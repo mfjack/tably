@@ -2,9 +2,10 @@ import "server-only";
 
 import { cache } from "react";
 import { z } from "zod";
+import type { CategoryId } from "@/features/categories/types";
 import type { ProductId } from "@/features/products/types";
 import { createClient } from "@/lib/supabase/server";
-import { MENU_GROUPS, type PublicMenu } from "./types";
+import type { PublicMenu } from "./types";
 
 const publicMenuSchema = z.object({
   title: z.string(),
@@ -14,9 +15,8 @@ const publicMenuSchema = z.object({
   acceptsOrders: z.boolean(),
   sections: z.array(
     z.object({
-      group: z.enum(MENU_GROUPS),
+      id: z.string().transform((id) => id as CategoryId),
       name: z.string(),
-      isHighlighted: z.boolean(),
       items: z.array(
         z.object({
           id: z.string().transform((id) => id as ProductId),

@@ -1,6 +1,5 @@
 "use server";
 
-import { MENU_GROUPS, type MenuGroup } from "@/features/menu/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import {
   type ActionResult,
@@ -16,25 +15,13 @@ const DUPLICATE_NAME_MESSAGE = "Já existe uma categoria com esse nome.";
 const INVALID_FORM_MESSAGE = "Confira os campos e tente novamente.";
 const GENERIC_ERROR_MESSAGE = "Não foi possível salvar. Tente novamente.";
 
-function toMenuGroup(value: string | null): MenuGroup | null {
-  return MENU_GROUPS.find((group) => group === value) ?? null;
-}
-
-function toCategoryValues(input: CategoryFormInput) {
-  return {
-    name: input.name,
-    menu_group: input.menuGroup === "none" ? null : input.menuGroup,
-    menu_is_highlighted: input.isMenuHighlighted,
-  };
-}
-
 export async function listCategories(
   organizationId: OrganizationId,
 ): Promise<ActionResult<Category[]>> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("categories")
-    .select("id, name, menu_group, menu_is_highlighted, products(count)")
+    .select("id, name, products(count)")
     .eq("organization_id", organizationId)
     .order("created_at")
     .order("position");
@@ -46,8 +33,6 @@ export async function listCategories(
       id: category.id as CategoryId,
       name: category.name,
       productCount: category.products[0]?.count ?? 0,
-      menuGroup: toMenuGroup(category.menu_group),
-      isMenuHighlighted: category.menu_is_highlighted,
     })),
   );
 }
@@ -62,7 +47,7 @@ export async function createCategory(
   const supabase = await createClient();
   const { error } = await supabase.from("categories").insert({
     organization_id: organizationId,
-    ...toCategoryValues(parsedInput.data),
+    name: parsedInput.data.name,
   });
 
   if (isUniqueViolation(error)) return actionFailure(DUPLICATE_NAME_MESSAGE);
@@ -81,7 +66,7 @@ export async function updateCategory(
   const supabase = await createClient();
   const { error } = await supabase
     .from("categories")
-    .update(toCategoryValues(parsedInput.data))
+    .update({ name: parsedInput.data.name })
     .eq("id", categoryId);
 
   if (isUniqueViolation(error)) return actionFailure(DUPLICATE_NAME_MESSAGE);

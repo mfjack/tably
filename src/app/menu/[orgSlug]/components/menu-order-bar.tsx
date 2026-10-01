@@ -139,7 +139,7 @@ export function MenuOrderBar({
           {latestOrder && !hasCartItems && (
             <Link
               href={buildOrderPath(menuSlug, latestOrder.id)}
-              className="flex h-12 items-center justify-center gap-2 rounded-full border-2 border-black bg-white font-bold shadow-lg"
+              className="flex h-12 items-center justify-center gap-2 rounded-full border bg-card font-semibold shadow-lg"
             >
               <ReceiptText className="size-5" aria-hidden />
               Acompanhar meu pedido
@@ -148,7 +148,7 @@ export function MenuOrderBar({
           {hasCartItems && (
             <button
               type="button"
-              className="flex h-14 items-center justify-between gap-3 rounded-full bg-black px-6 font-bold text-white shadow-lg"
+              className="flex h-14 items-center justify-between gap-3 rounded-full bg-primary px-6 font-semibold text-primary-foreground shadow-lg"
               onClick={() => setIsSheetOpen(true)}
             >
               <span className="flex items-center gap-2">

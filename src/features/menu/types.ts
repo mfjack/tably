@@ -1,13 +1,5 @@
+import type { CategoryId } from "@/features/categories/types";
 import type { ProductId } from "@/features/products/types";
-
-export const MENU_GROUPS = ["drinks", "food"] as const;
-
-export type MenuGroup = (typeof MENU_GROUPS)[number];
-
-export const MENU_GROUP_LABELS = {
-  drinks: "para beber",
-  food: "para comer",
-} as const satisfies Record<MenuGroup, string>;
 
 export type PublicMenuItem = {
   id: ProductId;
@@ -17,9 +9,8 @@ export type PublicMenuItem = {
 };
 
 export type PublicMenuSection = {
-  group: MenuGroup;
+  id: CategoryId;
   name: string;
-  isHighlighted: boolean;
   items: PublicMenuItem[];
 };
 

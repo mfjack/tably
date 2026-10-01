@@ -10,11 +10,6 @@ import type {
 } from "@/features/online-orders/types";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import {
-  menuHeadingFont,
-  menuItemFont,
-  menuTitleFont,
-} from "../../../menu-fonts";
 
 type OnlineOrderTrackerProps = {
   onlineOrderId: string;
@@ -70,30 +65,20 @@ export function OnlineOrderTracker({
   }, [order.stage]);
 
   return (
-    <main className="min-h-svh bg-white text-black">
-      <div className="mx-auto flex max-w-2xl flex-col gap-10 px-6 py-12 sm:px-12">
-        <header className="flex flex-col items-center gap-2 text-center">
-          <h1
-            className={cn(
-              menuTitleFont.className,
-              "text-5xl lowercase leading-none sm:text-6xl",
-            )}
-          >
+    <main className="min-h-svh bg-background text-foreground">
+      <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-10 sm:px-6">
+        <header className="flex flex-col items-center gap-1 text-center">
+          <h1 className="font-bold text-3xl tracking-tight">
             {order.menuTitle}
           </h1>
-          <p className={cn(menuHeadingFont.className, "text-3xl")}>
-            olá, {order.customerName.toLocaleLowerCase("pt-BR")}!
-          </p>
+          <p className="text-muted-foreground">Olá, {order.customerName}!</p>
         </header>
 
         <section
           aria-live="polite"
-          className={cn(
-            menuItemFont.className,
-            "flex flex-col gap-6 rounded-2xl border-2 border-black p-6",
-          )}
+          className="flex flex-col gap-5 rounded-xl border bg-card p-5 shadow-xs"
         >
-          <p className="text-center font-bold text-lg">
+          <p className="text-center font-semibold text-lg">
             {STAGE_MESSAGES[order.stage]}
           </p>
           {!isRejected && (
@@ -106,13 +91,14 @@ export function OnlineOrderTracker({
                     key={step.stage}
                     className={cn(
                       "flex items-center gap-3",
-                      !isDone && !isCurrent && "opacity-40",
+                      !isDone && !isCurrent && "text-muted-foreground",
                     )}
                   >
                     <span
                       className={cn(
-                        "flex size-7 shrink-0 items-center justify-center rounded-full border-2 border-black font-bold text-sm",
-                        (isDone || isCurrent) && "bg-black text-white",
+                        "flex size-7 shrink-0 items-center justify-center rounded-full border font-semibold text-sm",
+                        (isDone || isCurrent) &&
+                          "border-primary bg-primary text-primary-foreground",
                         isCurrent && "animate-pulse",
                       )}
                     >
@@ -122,7 +108,7 @@ export function OnlineOrderTracker({
                         index + 1
                       )}
                     </span>
-                    <span className={cn(isCurrent && "font-bold")}>
+                    <span className={cn(isCurrent && "font-semibold")}>
                       {step.label}
                     </span>
                   </li>
@@ -132,41 +118,45 @@ export function OnlineOrderTracker({
           )}
         </section>
 
-        <section className={cn(menuItemFont.className, "flex flex-col gap-2")}>
-          <h2 className={cn(menuHeadingFont.className, "text-2xl")}>
-            seu pedido
-          </h2>
-          <ul className="flex flex-col gap-1">
+        <section className="flex flex-col gap-3 rounded-xl border bg-card p-5 shadow-xs">
+          <h2 className="font-semibold text-lg">Seu pedido</h2>
+          <ul className="flex flex-col gap-2">
             {order.items.map((item) => (
               <li
                 key={`${item.productId}-${item.note ?? ""}`}
-                className="flex items-baseline justify-between gap-4"
+                className="flex items-start justify-between gap-4"
               >
-                <span className="lowercase">
-                  {item.quantity}x {item.name}
-                </span>
+                <div className="flex min-w-0 flex-col">
+                  <span>
+                    {item.quantity}x {item.name}
+                  </span>
+                  {item.note && (
+                    <span className="text-primary text-xs">↳ {item.note}</span>
+                  )}
+                </div>
                 <span className="shrink-0 tabular-nums">
                   {formatCurrency(item.unitPrice * item.quantity)}
                 </span>
               </li>
             ))}
           </ul>
-          {order.note && <p className="text-sm">obs.: {order.note}</p>}
-          <p className="flex justify-between border-black border-t-2 pt-2 font-bold">
-            <span>total</span>
+          {order.note && (
+            <p className="text-muted-foreground text-sm">Obs.: {order.note}</p>
+          )}
+          <p className="flex justify-between border-t pt-3 font-semibold">
+            <span>Total</span>
             <span className="tabular-nums">{formatCurrency(order.total)}</span>
           </p>
-          <p className="text-sm">pagamento no balcão.</p>
+          <p className="text-muted-foreground text-sm">
+            O pagamento é feito no balcão.
+          </p>
         </section>
 
         <Link
           href={`/menu/${order.menuSlug}`}
-          className={cn(
-            menuItemFont.className,
-            "self-center font-bold underline underline-offset-4",
-          )}
+          className="self-center font-medium text-sm underline underline-offset-4"
         >
-          voltar ao cardápio
+          Voltar ao cardápio
         </Link>
       </div>
     </main>

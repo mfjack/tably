@@ -1,6 +1,7 @@
 "use client";
 
 import { Minus, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   useHydratedMenuCartStore,
   useMenuCartItemQuantity,
@@ -13,9 +14,6 @@ type MenuItemOrderControlProps = {
   productId: ProductId;
   productName: string;
 };
-
-const CONTROL_BUTTON_CLASS_NAME =
-  "flex size-8 items-center justify-center rounded-full border-2 border-black transition-colors active:bg-black active:text-white";
 
 export function MenuItemOrderControl({
   menuSlug,
@@ -30,36 +28,43 @@ export function MenuItemOrderControl({
 
   if (quantity === 0) {
     return (
-      <button
+      <Button
         type="button"
+        variant="outline"
+        size="icon-lg"
+        className="shrink-0 rounded-full"
         aria-label={`Adicionar ${productName}`}
-        className={CONTROL_BUTTON_CLASS_NAME}
         onClick={() => incrementItem(menuSlug, productId)}
       >
-        <Plus className="size-4" aria-hidden />
-      </button>
+        <Plus aria-hidden />
+      </Button>
     );
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <button
+    <div className="flex shrink-0 items-center gap-1.5">
+      <Button
         type="button"
+        variant="outline"
+        size="icon-lg"
+        className="rounded-full"
         aria-label={`Remover um ${productName}`}
-        className={CONTROL_BUTTON_CLASS_NAME}
         onClick={() => decrementItem(menuSlug, productId)}
       >
-        <Minus className="size-4" aria-hidden />
-      </button>
-      <span className="w-5 text-center font-bold tabular-nums">{quantity}</span>
-      <button
+        <Minus aria-hidden />
+      </Button>
+      <span className="w-5 text-center font-semibold tabular-nums">
+        {quantity}
+      </span>
+      <Button
         type="button"
+        size="icon-lg"
+        className="rounded-full"
         aria-label={`Adicionar mais um ${productName}`}
-        className="flex size-8 items-center justify-center rounded-full border-2 border-black bg-black text-white"
         onClick={() => incrementItem(menuSlug, productId)}
       >
-        <Plus className="size-4" aria-hidden />
-      </button>
+        <Plus aria-hidden />
+      </Button>
     </div>
   );
 }

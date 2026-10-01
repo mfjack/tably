@@ -83,7 +83,7 @@ export function MenuSettings({ organization }: MenuSettingsProps) {
     <div className="flex flex-col gap-6">
       <SettingsFormSection
         title="Cardápio digital"
-        description="Página pública com os produtos e preços do PDV. Escolha em cada categoria se ela aparece em “para beber” ou “para comer”, e em cada produto se ele aparece e qual o detalhe (ex.: 220ml)."
+        description="Página pública com os produtos e preços do PDV, separados pelas suas categorias. No cadastro de cada produto você escolhe se ele aparece no cardápio e pode colocar um detalhe (ex.: 300ml)."
         isDirty={form.formState.isDirty}
         isSubmitting={saveMenuSettingsMutation.isPending}
         onSubmit={handleSubmit}
