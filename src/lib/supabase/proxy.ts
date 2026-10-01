@@ -1,8 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
+import { actionFailure } from "@/lib/action-result";
 import { env } from "@/lib/env";
 import { AUTH_ROUTES, PUBLIC_ROUTES, ROUTES } from "@/lib/routes";
 import type { Database } from "./database.types";
+
+const API_PATH_PREFIX = "/api/";
+const SESSION_EXPIRED_MESSAGE = "Sua sessão expirou. Entre novamente.";
 
 function matchesAnyRoute(pathname: string, routes: readonly string[]) {
   return routes.some(
@@ -64,6 +68,12 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const isAuthenticated = Boolean(data?.claims);
   const { pathname } = request.nextUrl;
+
+  if (!isAuthenticated && pathname.startsWith(API_PATH_PREFIX)) {
+    return NextResponse.json(actionFailure(SESSION_EXPIRED_MESSAGE), {
+      status: 401,
+    });
+  }
 
   if (!isAuthenticated && !matchesAnyRoute(pathname, PUBLIC_ROUTES)) {
     return redirectKeepingCookies(buildLoginRedirectUrl(request), response);
