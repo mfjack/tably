@@ -33,6 +33,7 @@ import {
   ENTRY_SOURCE_LABELS,
   getEntryStatus,
   getEntryStatusLabel,
+  isDeletableEntry,
   isSystemManagedEntry,
   RECURRENCE_FREQUENCY_LABELS,
 } from "@/features/finance/labels";
@@ -64,6 +65,7 @@ export function EntryRow({
   const status = getEntryStatus(entry, today);
   const isAutomatic = entry.source !== "manual";
   const isSystemManaged = isSystemManagedEntry(entry);
+  const isDeletable = isDeletableEntry(entry);
   const isExpense = entry.kind === "expense";
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pendingFieldRef = useRef<DocumentField>("document");
@@ -300,7 +302,7 @@ export function EntryRow({
                 Anexar comprovante
               </DropdownMenuItem>
             )}
-            {!isAutomatic && (
+            {isDeletable && (
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem

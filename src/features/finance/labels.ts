@@ -98,6 +98,17 @@ const SYSTEM_MANAGED_SOURCES: readonly FinancialEntrySource[] = [
   "customer_payments_fee",
 ];
 
+const DELETABLE_SOURCES: readonly FinancialEntrySource[] = [
+  "manual",
+  "stock_purchase",
+];
+
+export function isDeletableEntry(
+  entry: Pick<FinancialEntry, "source">,
+): boolean {
+  return DELETABLE_SOURCES.includes(entry.source);
+}
+
 export function isSystemManagedEntry(
   entry: Pick<FinancialEntry, "source">,
 ): boolean {
