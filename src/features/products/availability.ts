@@ -1,8 +1,5 @@
-import { getStockStatus } from "@/features/ingredients/measure-units";
 import type { Ingredient } from "@/features/ingredients/types";
 import type { Product } from "./types";
-
-export const LOW_AVAILABILITY_THRESHOLD = 5;
 
 const NO_RESERVED_QUANTITIES: ReadonlyMap<string, number> = new Map();
 
@@ -19,6 +16,7 @@ export type ProductAvailability =
 
 type IngredientCapacity = {
   ingredient: Ingredient | undefined;
+  freeStock: number;
   producibleQuantity: number;
 };
 
@@ -29,7 +27,7 @@ function calculateIngredientCapacities(
 ): IngredientCapacity[] {
   return product.recipe.map((recipeItem) => {
     const ingredient = ingredientsById.get(recipeItem.ingredientId);
-    if (!ingredient) return { ingredient, producibleQuantity: 0 };
+    if (!ingredient) return { ingredient, freeStock: 0, producibleQuantity: 0 };
 
     const freeStock =
       ingredient.currentStock -
@@ -37,6 +35,7 @@ function calculateIngredientCapacities(
 
     return {
       ingredient,
+      freeStock,
       producibleQuantity: Math.max(
         0,
         Math.floor(freeStock / recipeItem.quantity),
@@ -45,12 +44,13 @@ function calculateIngredientCapacities(
   });
 }
 
-function isRunningLow({ ingredient, producibleQuantity }: IngredientCapacity) {
+function isRunningLow({
+  ingredient,
+  freeStock,
+  producibleQuantity,
+}: IngredientCapacity) {
   if (!ingredient || producibleQuantity === 0) return false;
-  return (
-    producibleQuantity <= LOW_AVAILABILITY_THRESHOLD ||
-    getStockStatus(ingredient) !== "ok"
-  );
+  return freeStock <= ingredient.minimumStock;
 }
 
 function getIngredientNames(capacities: readonly IngredientCapacity[]) {
@@ -90,7 +90,7 @@ export function getProductAvailability(
   const shortages = getIngredientShortages(capacities);
 
   if (remaining === 0) return { status: "out", ...shortages };
-  if (remaining <= LOW_AVAILABILITY_THRESHOLD) {
+  if (shortages.runningLowIngredientNames.length > 0) {
     return { status: "low", remaining, ...shortages };
   }
   return { status: "available", remaining, ...shortages };
