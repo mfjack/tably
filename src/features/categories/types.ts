@@ -6,4 +6,5 @@ export type Category = {
   id: CategoryId;
   name: string;
   productCount: number;
+  isOnMenu: boolean;
 };

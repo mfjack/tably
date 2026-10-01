@@ -6,6 +6,7 @@ export const categoryFormSchema = z.object({
     .trim()
     .min(1, "Informe o nome da categoria.")
     .max(60, "Nome muito longo."),
+  isOnMenu: z.boolean(),
 });
 
 export type CategoryFormInput = z.infer<typeof categoryFormSchema>;

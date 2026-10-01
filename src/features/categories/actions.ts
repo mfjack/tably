@@ -21,7 +21,7 @@ export async function listCategories(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("categories")
-    .select("id, name, products(count)")
+    .select("id, name, is_on_menu, products(count)")
     .eq("organization_id", organizationId)
     .order("created_at")
     .order("position");
@@ -32,6 +32,7 @@ export async function listCategories(
     data.map((category) => ({
       id: category.id as CategoryId,
       name: category.name,
+      isOnMenu: category.is_on_menu,
       productCount: category.products[0]?.count ?? 0,
     })),
   );
@@ -48,6 +49,7 @@ export async function createCategory(
   const { error } = await supabase.from("categories").insert({
     organization_id: organizationId,
     name: parsedInput.data.name,
+    is_on_menu: parsedInput.data.isOnMenu,
   });
 
   if (isUniqueViolation(error)) return actionFailure(DUPLICATE_NAME_MESSAGE);
@@ -66,7 +68,10 @@ export async function updateCategory(
   const supabase = await createClient();
   const { error } = await supabase
     .from("categories")
-    .update({ name: parsedInput.data.name })
+    .update({
+      name: parsedInput.data.name,
+      is_on_menu: parsedInput.data.isOnMenu,
+    })
     .eq("id", categoryId);
 
   if (isUniqueViolation(error)) return actionFailure(DUPLICATE_NAME_MESSAGE);

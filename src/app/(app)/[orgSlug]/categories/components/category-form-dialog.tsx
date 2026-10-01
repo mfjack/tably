@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { FormDialog } from "@/components/dialog/form-dialog";
+import { SwitchField } from "@/components/form/switch-field";
 import { TextField } from "@/components/form/text-field";
 import { FieldGroup } from "@/components/ui/field";
 import { useSaveCategoryMutation } from "@/features/categories/hooks/use-save-category-mutation";
@@ -15,7 +16,7 @@ import {
 import type { Category } from "@/features/categories/types";
 import type { OrganizationId } from "@/features/organizations/types";
 
-const EMPTY_CATEGORY_FORM: CategoryFormInput = { name: "" };
+const EMPTY_CATEGORY_FORM: CategoryFormInput = { name: "", isOnMenu: true };
 
 type CategoryFormDialogProps = {
   organizationId: OrganizationId;
@@ -39,7 +40,11 @@ export function CategoryFormDialog({
 
   useEffect(() => {
     if (!isOpen) return;
-    form.reset(category ? { name: category.name } : EMPTY_CATEGORY_FORM);
+    form.reset(
+      category
+        ? { name: category.name, isOnMenu: category.isOnMenu }
+        : EMPTY_CATEGORY_FORM,
+    );
     saveCategoryMutation.reset();
   }, [isOpen, category, form, saveCategoryMutation.reset]);
 
@@ -75,6 +80,12 @@ export function CategoryFormDialog({
           label="Nome"
           placeholder="Ex.: Cafés"
           autoComplete="off"
+        />
+        <SwitchField
+          control={form.control}
+          name="isOnMenu"
+          label="Mostrar no cardápio digital"
+          description="Desligado, a categoria e os produtos dela não aparecem no cardápio. No PDV nada muda."
         />
       </FieldGroup>
     </FormDialog>
