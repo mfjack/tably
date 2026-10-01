@@ -31,6 +31,7 @@ const EMPTY_INGREDIENT_FORM: DefaultValues<IngredientFormInput> = {
   brand: "",
   supplierId: NONE_SELECT_VALUE,
   expiresAt: "",
+  paymentDueDate: "",
 };
 
 function toFormValues(
@@ -41,6 +42,8 @@ function toFormValues(
     brand: ingredient.brand ?? "",
     unit: ingredient.unit,
     minimumStock: ingredient.minimumStock,
+    currentStock:
+      ingredient.currentStock >= 0 ? ingredient.currentStock : undefined,
     supplierId: toSelectFieldValue(ingredient.supplierId),
     expiresAt: ingredient.expiresAt ?? "",
   };
@@ -111,7 +114,7 @@ export function IngredientFormDialog({
       title={isEditing ? "Editar insumo" : "Novo insumo"}
       description={
         isEditing
-          ? "O estoque e o custo mudam pelas entradas de estoque."
+          ? "Para registrar uma compra, use a entrada de estoque. Aqui você corrige o estoque atual."
           : "Informe o que você comprou. O custo por unidade é calculado automaticamente."
       }
       submitLabel={isEditing ? "Salvar" : "Cadastrar"}
@@ -134,7 +137,17 @@ export function IngredientFormDialog({
           autoComplete="off"
         />
         {isEditing ? (
-          unitField
+          <div className="grid gap-5 sm:grid-cols-2">
+            <NumberField
+              control={form.control}
+              name="currentStock"
+              label="Estoque atual"
+              format="quantity"
+              suffix={unitSymbol}
+              placeholder="Ex.: 12"
+            />
+            {unitField}
+          </div>
         ) : (
           <div className="grid gap-5 sm:grid-cols-2">
             <NumberField
@@ -158,13 +171,27 @@ export function IngredientFormDialog({
           description="Abaixo disso, o Tably avisa que é hora de comprar."
         />
         {!isEditing && (
-          <NumberField
-            control={form.control}
-            name="totalCost"
-            label="Valor total pago"
-            format="currency"
-            placeholder="Quanto custou essa compra toda"
-          />
+          <div className="grid gap-5 sm:grid-cols-2">
+            <NumberField
+              control={form.control}
+              name="totalCost"
+              label="Valor total pago"
+              format="currency"
+              placeholder="Ex.: $ 60,00"
+            />
+            <TextField
+              control={form.control}
+              name="paymentDueDate"
+              label="Data de pagamento"
+              type="date"
+            />
+          </div>
+        )}
+        {!isEditing && (
+          <p className="-mt-2 text-muted-foreground text-sm">
+            Com data de pagamento, a compra entra como conta a pagar no
+            financeiro. Deixe em branco se já pagou.
+          </p>
         )}
         <SelectField
           control={form.control}

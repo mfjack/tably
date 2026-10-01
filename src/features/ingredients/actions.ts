@@ -71,6 +71,7 @@ export async function createIngredient(
     minimumStock,
     supplierId,
     expiresAt,
+    paymentDueDate,
   } = parsedInput.data;
   const supabase = await createClient();
   const { error } = await supabase.rpc("create_ingredient", {
@@ -83,6 +84,8 @@ export async function createIngredient(
     p_brand: brand || undefined,
     p_supplier_id: fromSelectFieldValue<SupplierId>(supplierId),
     p_expires_at: expiresAt || undefined,
+    p_payment_due_date:
+      (totalCost ?? 0) > 0 ? paymentDueDate || undefined : undefined,
   });
 
   if (isUniqueViolation(error)) return actionFailure(DUPLICATE_NAME_MESSAGE);
@@ -98,7 +101,8 @@ export async function updateIngredient(
   const parsedInput = ingredientFormSchema.safeParse(input);
   if (!parsedInput.success) return actionFailure(INVALID_FORM_MESSAGE);
 
-  const { name, brand, minimumStock, supplierId, expiresAt } = parsedInput.data;
+  const { name, brand, minimumStock, currentStock, supplierId, expiresAt } =
+    parsedInput.data;
   const supabase = await createClient();
   const { error } = await supabase
     .from("ingredients")
@@ -113,6 +117,16 @@ export async function updateIngredient(
 
   if (isUniqueViolation(error)) return actionFailure(DUPLICATE_NAME_MESSAGE);
   if (error) return actionFailure(GENERIC_ERROR_MESSAGE);
+
+  if (currentStock !== undefined) {
+    const { error: adjustError } = await supabase.rpc(
+      "adjust_ingredient_stock",
+      { p_ingredient_id: ingredientId, p_quantity: currentStock },
+    );
+    if (adjustError) {
+      return actionFailure("Não foi possível corrigir o estoque.");
+    }
+  }
 
   return actionSuccess();
 }
@@ -144,7 +158,8 @@ export async function createStockEntry(
   const parsedInput = stockEntryFormSchema.safeParse(input);
   if (!parsedInput.success) return actionFailure(INVALID_FORM_MESSAGE);
 
-  const { quantity, totalCost, supplierId, expiresAt } = parsedInput.data;
+  const { quantity, totalCost, supplierId, expiresAt, paymentDueDate } =
+    parsedInput.data;
   const supabase = await createClient();
   const { error } = await supabase.from("stock_entries").insert({
     organization_id: organizationId,
@@ -153,6 +168,7 @@ export async function createStockEntry(
     quantity,
     total_cost: totalCost,
     expires_at: expiresAt || null,
+    payment_due_date: totalCost > 0 ? paymentDueDate || null : null,
   });
 
   if (error) return actionFailure("Não foi possível registrar a entrada.");

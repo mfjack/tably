@@ -1,5 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { useInvalidateCatalog } from "@/features/catalog/use-invalidate-catalog";
+import { useInvalidateFinance } from "@/features/finance/hooks/use-invalidate-finance";
 import type { OrganizationId } from "@/features/organizations/types";
 import { useInvalidateSuppliers } from "@/features/suppliers/hooks/use-invalidate-suppliers";
 import { unwrapActionResult } from "@/lib/action-result";
@@ -19,6 +20,7 @@ export function getCreateStockEntryMutationKey(organizationId: OrganizationId) {
 export function useCreateStockEntryMutation(organizationId: OrganizationId) {
   const invalidateCatalog = useInvalidateCatalog(organizationId);
   const invalidateSuppliers = useInvalidateSuppliers(organizationId);
+  const invalidateFinance = useInvalidateFinance(organizationId);
 
   return useMutation({
     mutationKey: getCreateStockEntryMutationKey(organizationId),
@@ -26,6 +28,11 @@ export function useCreateStockEntryMutation(organizationId: OrganizationId) {
       unwrapActionResult(
         await createStockEntry(organizationId, ingredientId, values),
       ),
-    onSuccess: () => Promise.all([invalidateCatalog(), invalidateSuppliers()]),
+    onSuccess: () =>
+      Promise.all([
+        invalidateCatalog(),
+        invalidateSuppliers(),
+        invalidateFinance(),
+      ]),
   });
 }

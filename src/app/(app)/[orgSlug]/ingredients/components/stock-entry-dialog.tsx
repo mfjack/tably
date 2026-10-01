@@ -27,6 +27,7 @@ function buildDefaultValues(
   return {
     supplierId: toSelectFieldValue(ingredient?.supplierId ?? null),
     expiresAt: "",
+    paymentDueDate: "",
   };
 }
 
@@ -118,6 +119,13 @@ export function StockEntryDialog({
               ? undefined
               : "Cadastre fornecedores no módulo Fornecedores para vinculá-los às compras."
           }
+        />
+        <TextField
+          control={form.control}
+          name="paymentDueDate"
+          label="Data de pagamento"
+          type="date"
+          description="Com data, a compra entra como conta a pagar no financeiro. Deixe em branco se já pagou."
         />
         <TextField
           control={form.control}

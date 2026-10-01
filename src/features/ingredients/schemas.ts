@@ -23,8 +23,10 @@ export const ingredientFormSchema = z
     quantity: optionalAmountSchema,
     totalCost: optionalAmountSchema,
     minimumStock: optionalAmountSchema,
+    currentStock: optionalAmountSchema,
     supplierId: z.string().optional(),
     expiresAt: optionalDateSchema,
+    paymentDueDate: optionalDateSchema,
   })
   .refine(
     (values) => (values.quantity ?? 0) > 0 || (values.totalCost ?? 0) === 0,
@@ -40,6 +42,7 @@ export const stockEntryFormSchema = z.object({
     .min(0, "Não pode ser negativo."),
   supplierId: z.string().optional(),
   expiresAt: optionalDateSchema,
+  paymentDueDate: optionalDateSchema,
 });
 
 export type IngredientFormInput = z.infer<typeof ingredientFormSchema>;
