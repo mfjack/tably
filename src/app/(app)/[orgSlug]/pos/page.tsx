@@ -31,6 +31,14 @@ export default async function PosPage({ params }: PageProps<"/[orgSlug]/pos">) {
         organization.menu.isOnlineOrderingEnabled
       }
       canOpenOrderTabs={accessibleModuleIds.includes("order_tabs")}
+      kitchenHref={
+        accessibleModuleIds.includes("kitchen")
+          ? buildOrganizationPath(
+              organization.slug,
+              getAppModule("kitchen").path,
+            )
+          : null
+      }
       orderTabsHref={buildOrganizationPath(
         organization.slug,
         getAppModule("order_tabs").path,

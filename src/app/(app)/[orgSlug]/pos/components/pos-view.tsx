@@ -63,6 +63,7 @@ type PosViewProps = {
   isOnlineOrderingEnabled: boolean;
   orderTabsHref: string;
   canOpenOrderTabs: boolean;
+  kitchenHref: string | null;
 };
 
 const OFFLINE_CATALOG_MESSAGE =
@@ -81,6 +82,7 @@ export function PosView({
   isOnlineOrderingEnabled,
   orderTabsHref,
   canOpenOrderTabs,
+  kitchenHref,
 }: PosViewProps) {
   const router = useRouter();
   const isCartHydrated = useHydratedCartStore();
@@ -282,6 +284,7 @@ export function PosView({
                 <OnlineOrdersPanel
                   organizationId={organizationId}
                   ticketBusiness={ticketBusiness}
+                  kitchenHref={kitchenHref}
                 />
               )}
               {canOpenOrderTabs && (

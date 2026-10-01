@@ -1,7 +1,8 @@
 "use client";
 
 import { differenceInMinutes } from "date-fns";
-import { BellRing } from "lucide-react";
+import { BellRing, ChefHat } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 import { DetailsDialog } from "@/components/dialog/details-dialog";
@@ -26,6 +27,7 @@ import { cn } from "@/lib/utils";
 type OnlineOrdersPanelProps = {
   organizationId: OrganizationId;
   ticketBusiness: OrderTicketBusiness;
+  kitchenHref: string | null;
 };
 
 const ELAPSED_TIME_REFRESH_IN_MS = 30_000;
@@ -38,6 +40,7 @@ function formatElapsedTime(createdAt: string, now: Date) {
 export function OnlineOrdersPanel({
   organizationId,
   ticketBusiness,
+  kitchenHref,
 }: OnlineOrdersPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
   const now = useNow(ELAPSED_TIME_REFRESH_IN_MS);
@@ -122,13 +125,28 @@ export function OnlineOrdersPanel({
         title="Pedidos pelo cardápio"
         size="large"
         footer={
-          <Button
-            variant="outline"
-            className={cn(DIALOG_ACTION_BUTTON_CLASS_NAME, "col-span-2")}
-            onClick={() => setIsOpen(false)}
-          >
-            Fechar
-          </Button>
+          <>
+            <Button
+              variant="outline"
+              className={cn(
+                DIALOG_ACTION_BUTTON_CLASS_NAME,
+                !kitchenHref && "col-span-2",
+              )}
+              onClick={() => setIsOpen(false)}
+            >
+              Fechar
+            </Button>
+            {kitchenHref && (
+              <Button
+                className={DIALOG_ACTION_BUTTON_CLASS_NAME}
+                nativeButton={false}
+                render={<Link href={kitchenHref} />}
+              >
+                <ChefHat aria-hidden />
+                Ir para a cozinha
+              </Button>
+            )}
+          </>
         }
       >
         {pendingCount === 0 ? (
