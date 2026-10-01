@@ -45,6 +45,7 @@ import {
   type CartTabNameDialogState,
 } from "./cart-tab-name-dialog";
 import { CartTabsBar } from "./cart-tabs-bar";
+import { CashRegisterPanel } from "./cash-register-panel";
 import { CategoryFilter, type CategoryFilterOption } from "./category-filter";
 import { CustomerDialog } from "./customer-dialog";
 import { type GroupOrderEntry, GroupOrdersDialog } from "./group-orders-dialog";
@@ -285,6 +286,10 @@ export function PosView({
           actions={
             <>
               <OfflineStatus organizationId={organizationId} />
+              <CashRegisterPanel
+                organizationId={organizationId}
+                ticketBusiness={ticketBusiness}
+              />
               {isOnlineOrderingEnabled && (
                 <OnlineOrdersPanel
                   organizationId={organizationId}

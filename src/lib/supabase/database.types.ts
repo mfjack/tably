@@ -43,6 +43,7 @@ export type Database = {
         Row: {
           account_id: string
           amount: number
+          cash_session_id: string | null
           created_at: string
           created_by: string | null
           id: string
@@ -56,6 +57,7 @@ export type Database = {
         Insert: {
           account_id: string
           amount: number
+          cash_session_id?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -69,6 +71,7 @@ export type Database = {
         Update: {
           account_id?: string
           amount?: number
+          cash_session_id?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -95,6 +98,13 @@ export type Database = {
             referencedColumns: ["id", "organization_id"]
           },
           {
+            foreignKeyName: "account_entries_cash_session_id_fkey"
+            columns: ["cash_session_id"]
+            isOneToOne: false
+            referencedRelation: "cash_sessions"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "account_entries_order_id_organization_id_fkey"
             columns: ["order_id", "organization_id"]
             isOneToOne: false
@@ -103,6 +113,110 @@ export type Database = {
           },
           {
             foreignKeyName: "account_entries_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cash_movements: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          created_by_name: string | null
+          id: string
+          kind: Database["public"]["Enums"]["cash_movement_kind"]
+          note: string | null
+          organization_id: string
+          session_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["cash_movement_kind"]
+          note?: string | null
+          organization_id: string
+          session_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["cash_movement_kind"]
+          note?: string | null
+          organization_id?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cash_movements_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_movements_session_id_organization_id_fkey"
+            columns: ["session_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "cash_sessions"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      cash_sessions: {
+        Row: {
+          closed_at: string | null
+          closed_by: string | null
+          closed_by_name: string | null
+          closing_note: string | null
+          counted_cash: number | null
+          expected_cash: number | null
+          id: string
+          opened_at: string
+          opened_by: string | null
+          opened_by_name: string | null
+          opening_amount: number
+          organization_id: string
+        }
+        Insert: {
+          closed_at?: string | null
+          closed_by?: string | null
+          closed_by_name?: string | null
+          closing_note?: string | null
+          counted_cash?: number | null
+          expected_cash?: number | null
+          id?: string
+          opened_at?: string
+          opened_by?: string | null
+          opened_by_name?: string | null
+          opening_amount?: number
+          organization_id: string
+        }
+        Update: {
+          closed_at?: string | null
+          closed_by?: string | null
+          closed_by_name?: string | null
+          closing_note?: string | null
+          counted_cash?: number | null
+          expected_cash?: number | null
+          id?: string
+          opened_at?: string
+          opened_by?: string | null
+          opened_by_name?: string | null
+          opening_amount?: number
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cash_sessions_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -1241,6 +1355,7 @@ export type Database = {
         Row: {
           amount: number
           amount_received: number | null
+          cash_session_id: string | null
           created_at: string
           created_by: string | null
           customer_account_id: string | null
@@ -1252,6 +1367,7 @@ export type Database = {
         Insert: {
           amount: number
           amount_received?: number | null
+          cash_session_id?: string | null
           created_at?: string
           created_by?: string | null
           customer_account_id?: string | null
@@ -1263,6 +1379,7 @@ export type Database = {
         Update: {
           amount?: number
           amount_received?: number | null
+          cash_session_id?: string | null
           created_at?: string
           created_by?: string | null
           customer_account_id?: string | null
@@ -1272,6 +1389,13 @@ export type Database = {
           organization_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "order_payments_cash_session_id_fkey"
+            columns: ["cash_session_id"]
+            isOneToOne: false
+            referencedRelation: "cash_sessions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "order_payments_order_id_organization_id_fkey"
             columns: ["order_id", "organization_id"]
@@ -2423,6 +2547,15 @@ export type Database = {
           order_id: string
         }[]
       }
+      add_cash_movement: {
+        Args: {
+          p_amount: number
+          p_kind: Database["public"]["Enums"]["cash_movement_kind"]
+          p_note: string
+          p_organization_id: string
+        }
+        Returns: undefined
+      }
       add_manual_time_punch: {
         Args: {
           p_employee_id: string
@@ -2493,6 +2626,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      build_cash_session_summary: {
+        Args: { p_session_id: string }
+        Returns: Json
+      }
       can_manage_storage_folder: {
         Args: { p_object_name: string }
         Returns: boolean
@@ -2506,6 +2643,14 @@ export type Database = {
           p_organization_id: string
         }
         Returns: undefined
+      }
+      close_cash_session: {
+        Args: {
+          p_counted_cash: number
+          p_note: string
+          p_organization_id: string
+        }
+        Returns: Json
       }
       close_stale_orders: { Args: never; Returns: undefined }
       complete_order_if_done: {
@@ -2582,6 +2727,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      current_actor_name: {
+        Args: { p_organization_id: string }
+        Returns: string
+      }
       current_operator_name: {
         Args: { p_organization_id: string }
         Returns: string
@@ -2616,6 +2765,10 @@ export type Database = {
       }
       get_online_order_status: {
         Args: { p_online_order_id: string }
+        Returns: Json
+      }
+      get_open_cash_session: {
+        Args: { p_organization_id: string }
         Returns: Json
       }
       get_public_menu: { Args: { p_slug: string }; Returns: Json }
@@ -2726,6 +2879,10 @@ export type Database = {
           p_month_start: string
           p_organization_id: string
         }
+        Returns: string
+      }
+      open_cash_session: {
+        Args: { p_opening_amount: number; p_organization_id: string }
         Returns: string
       }
       organization_today: {
@@ -2954,6 +3111,7 @@ export type Database = {
         | "payroll"
         | "finance"
         | "dashboard"
+      cash_movement_kind: "withdrawal" | "supply"
       employment_type: "clt" | "apprentice" | "intern"
       financial_account_kind:
         | "cash"
@@ -3159,6 +3317,7 @@ export const Constants = {
         "finance",
         "dashboard",
       ],
+      cash_movement_kind: ["withdrawal", "supply"],
       employment_type: ["clt", "apprentice", "intern"],
       financial_account_kind: [
         "cash",

@@ -40,7 +40,7 @@ export function startReceipt(columns: number) {
     .raw(buildLeftMarginCommand(columns));
 }
 
-function buildPriceColumns(totalColumns: number): ReceiptColumns {
+export function buildPriceColumns(totalColumns: number): ReceiptColumns {
   return [
     { width: totalColumns - PRICE_COLUMN_WIDTH, align: "left" },
     { width: PRICE_COLUMN_WIDTH, align: "right" },
@@ -86,7 +86,7 @@ function writeItems(
   }
 }
 
-function finishReceipt(encoder: ReceiptPrinterEncoder): Uint8Array {
+export function finishReceipt(encoder: ReceiptPrinterEncoder): Uint8Array {
   return encoder.newline(PAPER_FEED_LINES).cut().encode();
 }
 

@@ -1,3 +1,5 @@
+import { CASH_REGISTER_CLOSED_MESSAGE } from "@/features/cash-register/messages";
+
 export const CUSTOMER_NAME_IN_USE_MESSAGE =
   "Já existe uma comanda aberta ou um pedido na cozinha com esse nome. Use outro nome ou um sobrenome.";
 
@@ -9,6 +11,7 @@ const ORDER_ERROR_MESSAGES: Readonly<Record<string, string>> = {
   TB003: "Essa comanda já foi fechada. Atualize a tela.",
   TB005: "Essa venda passa do limite de crédito da conta do cliente.",
   TB006: "A soma dos pagamentos não fecha o total do pedido.",
+  TB017: CASH_REGISTER_CLOSED_MESSAGE,
   TB014:
     "Desconto inválido. Ele precisa ser maior que zero e menor que o total.",
   TB015: "O desconto está desligado nas configurações de vendas.",
