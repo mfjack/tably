@@ -10,6 +10,7 @@ import { DeleteAccountSection } from "./delete-account-section";
 import { OperatorsSettings } from "./operators-settings";
 import { OrganizationSettingsForm } from "./organization-settings-form";
 import { ProfileForm } from "./profile-form";
+import { ThermalPrinterSettings } from "./thermal-printer-settings";
 
 type SettingsViewProps = {
   title: string;
@@ -45,6 +46,9 @@ export function SettingsView({
                 </TabsTrigger>
               </>
             )}
+            <TabsTrigger value="printer" className="shrink-0 px-4">
+              Impressora
+            </TabsTrigger>
             <TabsTrigger value="profile" className="shrink-0 px-4">
               Meu perfil
             </TabsTrigger>
@@ -70,6 +74,9 @@ export function SettingsView({
               </TabsContent>
             </>
           )}
+          <TabsContent value="printer">
+            <ThermalPrinterSettings />
+          </TabsContent>
           <TabsContent value="profile" className="flex flex-col gap-6">
             <ProfileForm
               email={currentUser.email}

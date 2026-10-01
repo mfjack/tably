@@ -1,7 +1,12 @@
 import { format } from "date-fns";
 import { formatCurrency } from "@/lib/format";
 import { formatCnpj, formatPhone } from "@/lib/masks";
-import { escapeHtml, printHtml } from "@/lib/print-html";
+import { escapeHtml } from "@/lib/print-html";
+import { printReceipt } from "@/lib/print-receipt";
+import {
+  encodeGroupedOrderTicket,
+  encodeOrderTicket,
+} from "./thermal-order-ticket";
 
 export type OrderTicketItem = {
   name: string;
@@ -40,7 +45,7 @@ export const TICKET_STYLES = `
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: Arial, Helvetica, sans-serif; color: #000; width: 72mm; font-size: 13px; }
   h1 { font-size: 17px; text-align: center; padding-bottom: 10px; }
-  .business { text-align: center; font-size: 11px; padding-bottom: 8px; display: flex; flex-direction: column; gap: 2px; }
+  .business { text-align: left; font-size: 11px; padding-bottom: 8px; display: flex; flex-direction: column; gap: 2px; }
   .business-name { padding-bottom: 4px; }
   section { border-top: 1px solid #000; padding: 8px 0; display: flex; flex-direction: column; gap: 4px; }
   .row { display: flex; justify-content: space-between; gap: 8px; }
@@ -126,7 +131,10 @@ function buildTicketHtml(ticket: OrderTicket): string {
 }
 
 export function printOrderTicket(ticket: OrderTicket): void {
-  printHtml(buildTicketHtml(ticket));
+  printReceipt({
+    html: buildTicketHtml(ticket),
+    encode: (columns) => encodeOrderTicket(ticket, columns),
+  });
 }
 
 export type GroupedOrderTicketEntry = {
@@ -186,7 +194,10 @@ export function buildGroupedOrderTicketHtml(
 }
 
 export function printGroupedOrderTicket(ticket: GroupedOrderTicket): void {
-  printHtml(buildGroupedOrderTicketHtml(ticket));
+  printReceipt({
+    html: buildGroupedOrderTicketHtml(ticket),
+    encode: (columns) => encodeGroupedOrderTicket(ticket, columns),
+  });
 }
 
 export function toOrderTicketBusiness(
