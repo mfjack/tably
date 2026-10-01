@@ -1,17 +1,21 @@
 "use client";
 
 import { SerwistProvider } from "@serwist/turbopack/react";
-import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
-import { onlineManager, type Query, QueryClient } from "@tanstack/react-query";
-import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import {
+  onlineManager,
+  type Query,
+  QueryClient,
+  QueryClientProvider,
+} from "@tanstack/react-query";
+import { experimental_createQueryPersister } from "@tanstack/react-query-persist-client";
 import { type ReactNode, useState } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { OFFLINE_QUERY_CACHE_KEY } from "@/lib/offline-cache";
+import { OFFLINE_QUERY_STORAGE_PREFIX } from "@/lib/offline-cache";
 
 const ONE_MINUTE_IN_MS = 60 * 1000;
 const ONE_WEEK_IN_MS = 7 * 24 * 60 * ONE_MINUTE_IN_MS;
-const QUERY_CACHE_VERSION = "1";
+const QUERY_CACHE_VERSION = "2";
 const OFFLINE_QUERY_RESOURCES: readonly unknown[] = [
   "products",
   "categories",
@@ -19,37 +23,37 @@ const OFFLINE_QUERY_RESOURCES: readonly unknown[] = [
   "customer-accounts",
 ] as const;
 
+function isOfflineQuery(query: Query) {
+  const [scope, , resource] = query.queryKey;
+  return (
+    scope === "organizations" &&
+    query.queryKey.length === 3 &&
+    OFFLINE_QUERY_RESOURCES.includes(resource)
+  );
+}
+
 function createQueryClient() {
-  if (typeof window !== "undefined") {
-    onlineManager.setOnline(window.navigator.onLine);
-  }
+  const isBrowser = typeof window !== "undefined";
+  if (isBrowser) onlineManager.setOnline(window.navigator.onLine);
+
+  const queryPersister = experimental_createQueryPersister({
+    storage: isBrowser ? window.localStorage : undefined,
+    prefix: OFFLINE_QUERY_STORAGE_PREFIX,
+    buster: QUERY_CACHE_VERSION,
+    maxAge: ONE_WEEK_IN_MS,
+    filters: { predicate: isOfflineQuery },
+  });
 
   return new QueryClient({
     defaultOptions: {
       queries: {
         staleTime: ONE_MINUTE_IN_MS,
-        gcTime: ONE_WEEK_IN_MS,
         refetchOnWindowFocus: false,
+        networkMode: "offlineFirst",
+        persister: queryPersister.persisterFn,
       },
     },
   });
-}
-
-function createQueryPersister() {
-  return createSyncStoragePersister({
-    key: OFFLINE_QUERY_CACHE_KEY,
-    storage: typeof window === "undefined" ? undefined : window.localStorage,
-  });
-}
-
-function shouldPersistQuery(query: Query) {
-  const [scope, , resource] = query.queryKey;
-  return (
-    query.state.status === "success" &&
-    scope === "organizations" &&
-    query.queryKey.length === 3 &&
-    OFFLINE_QUERY_RESOURCES.includes(resource)
-  );
 }
 
 type ProvidersProps = {
@@ -58,7 +62,6 @@ type ProvidersProps = {
 
 export function Providers({ children }: ProvidersProps) {
   const [queryClient] = useState(createQueryClient);
-  const [queryPersister] = useState(createQueryPersister);
 
   return (
     <SerwistProvider
@@ -66,20 +69,12 @@ export function Providers({ children }: ProvidersProps) {
       disable={process.env.NODE_ENV === "development"}
       reloadOnOnline={false}
     >
-      <PersistQueryClientProvider
-        client={queryClient}
-        persistOptions={{
-          persister: queryPersister,
-          maxAge: ONE_WEEK_IN_MS,
-          buster: QUERY_CACHE_VERSION,
-          dehydrateOptions: { shouldDehydrateQuery: shouldPersistQuery },
-        }}
-      >
+      <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           {children}
           <Toaster theme="light" richColors position="top-right" />
         </TooltipProvider>
-      </PersistQueryClientProvider>
+      </QueryClientProvider>
     </SerwistProvider>
   );
 }

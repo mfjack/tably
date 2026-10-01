@@ -1,9 +1,22 @@
-export const OFFLINE_QUERY_CACHE_KEY = "tably-query-cache";
+export const OFFLINE_QUERY_STORAGE_PREFIX = "tably-query";
 
 const PRECACHE_NAME_PREFIX = "serwist-precache";
 
+function removeStoredQueries() {
+  const storedKeys = Array.from(
+    { length: window.localStorage.length },
+    (_, index) => window.localStorage.key(index),
+  );
+
+  for (const storedKey of storedKeys) {
+    if (storedKey?.startsWith(OFFLINE_QUERY_STORAGE_PREFIX)) {
+      window.localStorage.removeItem(storedKey);
+    }
+  }
+}
+
 export async function clearOfflineCaches() {
-  window.localStorage.removeItem(OFFLINE_QUERY_CACHE_KEY);
+  removeStoredQueries();
 
   if (!("caches" in window)) return;
 
