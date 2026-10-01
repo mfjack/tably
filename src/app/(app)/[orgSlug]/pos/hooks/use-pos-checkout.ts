@@ -299,8 +299,6 @@ export function usePosCheckout({
     customer: OrderCustomerInput,
     payments: OrderPaymentInput[] | undefined,
   ) {
-    const ticketItems = buildTicketItems();
-    const ticketNote = cart.note.trim() || undefined;
     const ticketTakeawayFee = customer.isTakeaway ? takeawayFee : 0;
 
     submitOrder({
@@ -326,18 +324,27 @@ export function usePosCheckout({
             ),
           },
         );
-        printOrderTicket({
-          business: ticketBusiness,
-          customerName: customer.customerName,
-          items: ticketItems,
-          subtotal,
-          takeawayFee: ticketTakeawayFee,
-          total: placement.total,
-          note: ticketNote,
-          createdAt: new Date(),
-        });
       },
     });
+  }
+
+  function printKitchenOrderTicket(customer: OrderCustomerInput) {
+    const ticketTakeawayFee = customer.isTakeaway ? takeawayFee : 0;
+    printOrderTicket({
+      business: ticketBusiness,
+      customerName: customer.customerName,
+      items: buildTicketItems(),
+      subtotal,
+      takeawayFee: ticketTakeawayFee,
+      total: subtotal + ticketTakeawayFee,
+      note: cart.note.trim() || undefined,
+      createdAt: new Date(),
+    });
+  }
+
+  function confirmCustomer(customer: OrderCustomerInput) {
+    printKitchenOrderTicket(customer);
+    setCheckoutStep({ step: "kitchen-payment", customer });
   }
 
   function confirmQuickPayment(payments: OrderPaymentInput[]) {
@@ -470,8 +477,7 @@ export function usePosCheckout({
     startQuickPayment: () => setCheckoutStep({ step: "quick-payment" }),
     startTabCreation: () => setCheckoutStep({ step: "tab-name" }),
     createTab,
-    confirmCustomer: (customer: OrderCustomerInput) =>
-      setCheckoutStep({ step: "kitchen-payment", customer }),
+    confirmCustomer,
     confirmPayment,
     openKitchenTab,
     cancelCheckout: () => setCheckoutStep({ step: "idle" }),

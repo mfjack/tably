@@ -16,7 +16,6 @@ type GroupCheckoutFlow = {
   mode: GroupCheckoutMode;
   groups: readonly TabOrderGroup[];
   index: number;
-  entries: readonly GroupedOrderTicketEntry[];
 };
 
 type UseGroupCheckoutOptions = {
@@ -85,16 +84,16 @@ export function useGroupCheckout({
 
   function start(groups: readonly TabOrderGroup[], mode: GroupCheckoutMode) {
     if (groups.length === 0) return;
-    setFlow({ mode, groups, index: 0, entries: [] });
+    if (mode === "kitchen") printGroupedOrders(groups.map(toTicketEntry));
+    setFlow({ mode, groups, index: 0 });
   }
 
-  function finish(entries: readonly GroupedOrderTicketEntry[]) {
-    if (flow?.mode === "kitchen") printGroupedOrders(entries);
+  function finish() {
     setFlow(null);
   }
 
   function cancel() {
-    finish(flow?.entries ?? []);
+    finish();
   }
 
   async function submit(payments: OrderPaymentInput[] | undefined) {
@@ -128,15 +127,14 @@ export function useGroupCheckout({
       },
     );
 
-    const entries = [...flow.entries, toTicketEntry(currentGroup)];
     const nextIndex = flow.index + 1;
 
     if (nextIndex >= flow.groups.length) {
-      finish(entries);
+      finish();
       return;
     }
 
-    setFlow({ ...flow, index: nextIndex, entries });
+    setFlow({ ...flow, index: nextIndex });
   }
 
   return {
