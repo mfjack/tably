@@ -74,6 +74,22 @@ export function OrderItemsList({
               </span>
             </li>
           )}
+          {order.serviceFee > 0 && (
+            <li className="flex items-baseline justify-between gap-4 text-muted-foreground text-sm">
+              <span>Taxa de serviço</span>
+              <span className="tabular-nums">
+                {formatCurrency(order.serviceFee)}
+              </span>
+            </li>
+          )}
+          {order.discount > 0 && (
+            <li className="flex items-baseline justify-between gap-4 text-primary text-sm">
+              <span>Desconto</span>
+              <span className="tabular-nums">
+                − {formatCurrency(order.discount)}
+              </span>
+            </li>
+          )}
         </ul>
       )}
 

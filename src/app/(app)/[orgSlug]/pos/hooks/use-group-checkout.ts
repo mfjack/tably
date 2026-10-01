@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import type { OrderSummaryData } from "@/features/orders/components/order-summary";
 import { getChangeMessage } from "@/features/orders/order-payments";
 import type { GroupedOrderTicketEntry } from "@/features/orders/print-order-ticket";
-import type { OrderPaymentInput } from "@/features/orders/schemas";
+import type { OrderPaymentConfirmation } from "@/features/orders/schemas";
 import type { CartTabId } from "@/features/pos/cart-store";
 import type { GroupPlacementResult, TabOrderGroup } from "./use-pos-checkout";
 
@@ -21,7 +21,7 @@ type GroupCheckoutFlow = {
 type UseGroupCheckoutOptions = {
   placeGroupOrder: (
     group: TabOrderGroup,
-    payments: OrderPaymentInput[] | undefined,
+    payment: OrderPaymentConfirmation | undefined,
     sendToKitchen: boolean,
   ) => Promise<GroupPlacementResult>;
   printGroupedOrders: (entries: readonly GroupedOrderTicketEntry[]) => void;
@@ -96,12 +96,12 @@ export function useGroupCheckout({
     finish();
   }
 
-  async function submit(payments: OrderPaymentInput[] | undefined) {
+  async function submit(payment: OrderPaymentConfirmation | undefined) {
     if (!flow || !currentGroup || isPlacing) return;
 
     setIsPlacing(true);
     const isKitchen = flow.mode === "kitchen";
-    const result = await placeGroupOrder(currentGroup, payments, isKitchen);
+    const result = await placeGroupOrder(currentGroup, payment, isKitchen);
     setIsPlacing(false);
 
     if (result.status === "failed") {
@@ -111,15 +111,14 @@ export function useGroupCheckout({
 
     onTabFinished(currentGroup.cartTabId);
     toast.success(
-      getSuccessMessage(
-        currentGroup.customerName,
-        Boolean(payments),
-        isKitchen,
-      ),
+      getSuccessMessage(currentGroup.customerName, Boolean(payment), isKitchen),
       {
         description:
           [
-            getChangeMessage(payments, sumLines(currentGroup)),
+            getChangeMessage(
+              payment?.payments,
+              payment?.total ?? sumLines(currentGroup),
+            ),
             result.isQueued ? QUEUED_ORDER_MESSAGE : undefined,
           ]
             .filter(Boolean)

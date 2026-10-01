@@ -8,6 +8,7 @@ import {
 } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
 import { getOrderErrorMessage } from "./messages";
+import { toOrderAdjustmentsPayload } from "./order-adjustments";
 import { toOrderPaymentsPayload } from "./order-payments";
 import {
   type OrderRequestInput,
@@ -29,7 +30,8 @@ export async function placeOrder(
     return actionFailure("Confira o pedido e tente novamente.");
   }
 
-  const { items, note, payments, customer, sendToKitchen } = parsedInput.data;
+  const { items, note, payments, adjustments, customer, sendToKitchen } =
+    parsedInput.data;
   const supabase = await createClient();
   const { data, error } = await supabase
     .rpc("place_order", {
@@ -46,6 +48,9 @@ export async function placeOrder(
       p_send_to_kitchen: sendToKitchen,
       p_request_id: parsedRequest.data?.requestId,
       p_placed_at: parsedRequest.data?.placedAt,
+      ...(payments && adjustments
+        ? toOrderAdjustmentsPayload(adjustments)
+        : {}),
     })
     .single();
 

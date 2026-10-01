@@ -6,6 +6,7 @@ import { APP_MODULES } from "@/features/modules/app-modules";
 import type { UserOrganization } from "@/features/organizations/types";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
+import { CheckoutSettingsForm } from "./checkout-settings-form";
 import { DeleteAccountSection } from "./delete-account-section";
 import { MenuSettings } from "./menu-settings";
 import { OperatorsSettings } from "./operators-settings";
@@ -42,6 +43,9 @@ export function SettingsView({
                 <TabsTrigger value="organization" className="shrink-0 px-4">
                   Estabelecimento
                 </TabsTrigger>
+                <TabsTrigger value="checkout" className="shrink-0 px-4">
+                  Vendas
+                </TabsTrigger>
                 <TabsTrigger value="operators" className="shrink-0 px-4">
                   Operadores
                 </TabsTrigger>
@@ -61,6 +65,12 @@ export function SettingsView({
             <>
               <TabsContent value="organization">
                 <OrganizationSettingsForm
+                  key={organization.id}
+                  organization={organization}
+                />
+              </TabsContent>
+              <TabsContent value="checkout">
+                <CheckoutSettingsForm
                   key={organization.id}
                   organization={organization}
                 />

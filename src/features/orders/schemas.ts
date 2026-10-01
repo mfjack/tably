@@ -1,4 +1,8 @@
 import { z } from "zod";
+import {
+  type OrderAdjustmentsInput,
+  orderAdjustmentsSchema,
+} from "./order-adjustments";
 import { PAYMENT_METHOD_VALUES } from "./payment-methods";
 
 export const ORDER_ITEM_NOTE_MAX_LENGTH = 140;
@@ -35,6 +39,7 @@ export const placeOrderSchema = z.object({
   items: z.array(orderItemSchema).min(1, "Adicione produtos ao pedido."),
   note: z.string().trim().max(500, "Observação muito longa.").optional(),
   payments: orderPaymentsSchema.optional(),
+  adjustments: orderAdjustmentsSchema.optional(),
   customer: orderCustomerSchema.optional(),
   sendToKitchen: z.boolean(),
 });
@@ -49,6 +54,12 @@ export type OrderPaymentInput = z.infer<typeof orderPaymentSchema>;
 export type OrderCustomerInput = z.infer<typeof orderCustomerSchema>;
 export type PlaceOrderInput = z.infer<typeof placeOrderSchema>;
 export type OrderRequestInput = z.infer<typeof orderRequestSchema>;
+
+export type OrderPaymentConfirmation = {
+  payments: OrderPaymentInput[];
+  adjustments: OrderAdjustmentsInput;
+  total: number;
+};
 
 function toCents(value: number) {
   return Math.round(value * 100);

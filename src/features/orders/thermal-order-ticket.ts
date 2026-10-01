@@ -122,6 +122,16 @@ export function encodeOrderTicket(
       ["Para levar", formatCurrency(ticket.takeawayFee)],
     ]);
   }
+  if ((ticket.serviceFee ?? 0) > 0) {
+    encoder.table(columns, [
+      ["Taxa de servico", formatCurrency(ticket.serviceFee ?? 0)],
+    ]);
+  }
+  if ((ticket.discount ?? 0) > 0) {
+    encoder.table(columns, [
+      ["Desconto", `- ${formatCurrency(ticket.discount ?? 0)}`],
+    ]);
+  }
   encoder
     .bold(true)
     .table(columns, [["Total", formatCurrency(ticket.total)]])

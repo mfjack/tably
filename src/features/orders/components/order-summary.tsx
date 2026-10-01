@@ -10,6 +10,9 @@ export type OrderSummaryData = {
   customerName?: string;
   lines: readonly OrderSummaryLine[];
   takeawayFee: number;
+  isTakeaway?: boolean;
+  serviceFee?: number;
+  discount?: number;
   total: number;
 };
 
@@ -51,6 +54,22 @@ export function OrderSummary({ summary }: OrderSummaryProps) {
             <span>Para levar</span>
             <span className="tabular-nums">
               {formatCurrency(summary.takeawayFee)}
+            </span>
+          </li>
+        )}
+        {(summary.serviceFee ?? 0) > 0 && (
+          <li className="flex items-baseline justify-between gap-4 text-muted-foreground text-sm">
+            <span>Taxa de serviço</span>
+            <span className="tabular-nums">
+              {formatCurrency(summary.serviceFee ?? 0)}
+            </span>
+          </li>
+        )}
+        {(summary.discount ?? 0) > 0 && (
+          <li className="flex items-baseline justify-between gap-4 text-primary text-sm">
+            <span>Desconto</span>
+            <span className="tabular-nums">
+              − {formatCurrency(summary.discount ?? 0)}
             </span>
           </li>
         )}

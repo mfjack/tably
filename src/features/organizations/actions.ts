@@ -12,7 +12,9 @@ import {
 } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
 import {
+  type CheckoutSettingsInput,
   type CreateOrganizationInput,
+  checkoutSettingsSchema,
   createOrganizationSchema,
   type OrganizationSettingsInput,
   organizationSettingsSchema,
@@ -77,6 +79,42 @@ export async function updateOrganizationSettings(
       address: parsedInput.data.address || null,
       is_takeaway_enabled: parsedInput.data.isTakeawayEnabled,
       takeaway_fee: parsedInput.data.takeawayFee ?? 0,
+    })
+    .eq("id", organizationId)
+    .select("id");
+
+  if (error) return actionFailure("Não foi possível salvar as alterações.");
+  if (data.length === 0) return actionFailure(FORBIDDEN_MESSAGE);
+
+  return actionSuccess();
+}
+
+export async function updateCheckoutSettings(
+  organizationId: OrganizationId,
+  input: CheckoutSettingsInput,
+): Promise<ActionResult> {
+  if (!(await hasModuleAccess(organizationId, "settings"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
+
+  const parsedInput = checkoutSettingsSchema.safeParse(input);
+  if (!parsedInput.success) {
+    return actionFailure("Confira os campos e tente novamente.");
+  }
+
+  const { serviceFeePercent, ...settings } = parsedInput.data;
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("organizations")
+    .update({
+      is_service_fee_enabled: settings.isServiceFeeEnabled,
+      ...(serviceFeePercent !== undefined
+        ? { service_fee_percent: serviceFeePercent }
+        : {}),
+      is_discount_enabled: settings.isDiscountEnabled,
+      is_split_bill_enabled: settings.isSplitBillEnabled,
+      is_customer_account_payment_enabled:
+        settings.isCustomerAccountPaymentEnabled,
     })
     .eq("id", organizationId)
     .select("id");

@@ -9,6 +9,11 @@ import {
 } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
 import { getOrderErrorMessage } from "./messages";
+import {
+  type OrderAdjustmentsInput,
+  orderAdjustmentsSchema,
+  toOrderAdjustmentsPayload,
+} from "./order-adjustments";
 import { toOrderPaymentsPayload } from "./order-payments";
 import {
   type OrderItemInput,
@@ -26,7 +31,8 @@ import type {
 } from "./types";
 
 const ORDER_DETAILS_COLUMNS = `
-  id, customer_name, is_takeaway, note, subtotal, takeaway_fee, total,
+  id, customer_name, is_takeaway, note, subtotal, takeaway_fee,
+  service_fee_amount, discount_amount, total,
   created_at, paid_at,
   created_by_operator_name, paid_by_operator_name,
   attendant:profiles!orders_created_by_profile_fkey(full_name),
@@ -49,6 +55,8 @@ type OrderDetailsRow = {
   note: string | null;
   subtotal: number;
   takeaway_fee: number;
+  service_fee_amount: number;
+  discount_amount: number;
   total: number;
   created_at: string;
   paid_at: string | null;
@@ -109,6 +117,8 @@ function toOrderDetails(row: OrderDetailsRow): OrderDetails {
     note: row.note,
     subtotal: row.subtotal,
     takeawayFee: row.takeaway_fee,
+    serviceFee: row.service_fee_amount,
+    discount: row.discount_amount,
     total: row.total,
     createdAt: row.created_at,
     paidAt: row.paid_at,
@@ -227,9 +237,11 @@ export async function removeOrderItem(
 export async function payOrder(
   orderId: OrderId,
   payments: OrderPaymentInput[],
+  adjustments: OrderAdjustmentsInput,
 ): Promise<ActionResult> {
   const parsedPayments = orderPaymentsSchema.safeParse(payments);
-  if (!parsedPayments.success) {
+  const parsedAdjustments = orderAdjustmentsSchema.safeParse(adjustments);
+  if (!parsedPayments.success || !parsedAdjustments.success) {
     return actionFailure("Escolha a forma de pagamento.");
   }
 
@@ -237,6 +249,7 @@ export async function payOrder(
   const { error } = await supabase.rpc("pay_order", {
     p_order_id: orderId,
     p_payments: toOrderPaymentsPayload(parsedPayments.data),
+    ...toOrderAdjustmentsPayload(parsedAdjustments.data),
   });
 
   if (error) {

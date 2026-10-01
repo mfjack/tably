@@ -37,6 +37,8 @@ export type OrderDetails = {
   note: string | null;
   subtotal: number;
   takeawayFee: number;
+  serviceFee: number;
+  discount: number;
   total: number;
   createdAt: string;
   paidAt: string | null;

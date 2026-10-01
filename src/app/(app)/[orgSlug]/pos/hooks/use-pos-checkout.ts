@@ -8,6 +8,7 @@ import {
 import type { OrderSummaryData } from "@/features/orders/components/order-summary";
 import { useAddOrderItemsMutation } from "@/features/orders/hooks/use-add-order-items-mutation";
 import { usePlaceOrderMutation } from "@/features/orders/hooks/use-place-order-mutation";
+import type { OrderAdjustmentsInput } from "@/features/orders/order-adjustments";
 import {
   getChangeMessage,
   isCustomerAccountOnly,
@@ -20,6 +21,7 @@ import {
 } from "@/features/orders/print-order-ticket";
 import type {
   OrderCustomerInput,
+  OrderPaymentConfirmation,
   OrderPaymentInput,
   PlaceOrderInput,
 } from "@/features/orders/schemas";
@@ -132,6 +134,9 @@ export function usePosCheckout({
       total: cartLine.total,
     })),
     takeawayFee: appliedTakeawayFee,
+    isTakeaway:
+      checkoutStep.step === "kitchen-payment" &&
+      checkoutStep.customer.isTakeaway,
     total: orderTotal,
   };
 
@@ -298,9 +303,10 @@ export function usePosCheckout({
 
   function sendToKitchen(
     customer: OrderCustomerInput,
-    payments: OrderPaymentInput[] | undefined,
+    payment: OrderPaymentConfirmation | undefined,
   ) {
     const ticketTakeawayFee = customer.isTakeaway ? takeawayFee : 0;
+    const payments = payment?.payments;
 
     submitOrder({
       input: {
@@ -308,10 +314,11 @@ export function usePosCheckout({
         note: cart.note,
         customer,
         payments,
+        adjustments: payment?.adjustments,
         sendToKitchen: true,
       },
       customerName: customer.customerName,
-      localTotal: subtotal + ticketTakeawayFee,
+      localTotal: payment?.total ?? subtotal + ticketTakeawayFee,
       onPlaced: (placement) => {
         finishCheckout(placement);
         toast.success(
@@ -348,16 +355,21 @@ export function usePosCheckout({
     setCheckoutStep({ step: "kitchen-payment", customer });
   }
 
-  function confirmQuickPayment(payments: OrderPaymentInput[]) {
+  function confirmQuickPayment({
+    payments,
+    adjustments,
+    total,
+  }: OrderPaymentConfirmation) {
     submitOrder({
       input: {
         items: buildOrderItems(),
         note: cart.note,
         payments,
+        adjustments,
         sendToKitchen: false,
       },
       customerName: null,
-      localTotal: subtotal,
+      localTotal: total,
       onPlaced: (placement) => {
         finishCheckout(placement);
         toast.success(
@@ -375,12 +387,17 @@ export function usePosCheckout({
     });
   }
 
-  function confirmPayment(payments: OrderPaymentInput[]) {
+  function confirmPayment(
+    payments: OrderPaymentInput[],
+    adjustments: OrderAdjustmentsInput,
+    total: number,
+  ) {
+    const payment = { payments, adjustments, total };
     if (checkoutStep.step === "kitchen-payment") {
-      sendToKitchen(checkoutStep.customer, payments);
+      sendToKitchen(checkoutStep.customer, payment);
       return;
     }
-    confirmQuickPayment(payments);
+    confirmQuickPayment(payment);
   }
 
   function createTab(customerName: string) {
@@ -404,14 +421,13 @@ export function usePosCheckout({
 
   async function placeGroupOrder(
     group: TabOrderGroup,
-    payments: OrderPaymentInput[] | undefined,
+    payment: OrderPaymentConfirmation | undefined,
     sendToKitchen: boolean,
   ): Promise<GroupPlacementResult> {
     const requestId = createOrderRequestId();
-    const localTotal = group.cartLines.reduce(
-      (total, cartLine) => total + cartLine.total,
-      0,
-    );
+    const localTotal =
+      payment?.total ??
+      group.cartLines.reduce((total, cartLine) => total + cartLine.total, 0);
     const input: PlaceOrderInput = {
       items: group.cartLines.map((cartLine) => ({
         productId: cartLine.product.id,
@@ -419,7 +435,8 @@ export function usePosCheckout({
         note: cartLine.note || undefined,
       })),
       customer: { customerName: group.customerName, isTakeaway: false },
-      payments,
+      payments: payment?.payments,
+      adjustments: payment?.adjustments,
       sendToKitchen,
     };
 

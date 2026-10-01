@@ -15,6 +15,7 @@ import { useOpenOrderTabsQuery } from "@/features/orders/hooks/use-open-order-ta
 import { usePaidOrdersQuery } from "@/features/orders/hooks/use-paid-orders-query";
 import { usePayOrderMutation } from "@/features/orders/hooks/use-pay-order-mutation";
 import { useRemoveOrderItemMutation } from "@/features/orders/hooks/use-remove-order-item-mutation";
+import type { OrderAdjustmentsInput } from "@/features/orders/order-adjustments";
 import { buildOrderDetailsTicket } from "@/features/orders/order-details-ticket";
 import {
   getChangeMessage,
@@ -26,7 +27,10 @@ import {
 } from "@/features/orders/print-order-ticket";
 import type { OrderPaymentInput } from "@/features/orders/schemas";
 import type { OrderDetails, OrderId, OrderItem } from "@/features/orders/types";
-import type { OrganizationId } from "@/features/organizations/types";
+import type {
+  OrganizationCheckoutSettings,
+  OrganizationId,
+} from "@/features/organizations/types";
 import { useCartStore } from "@/features/pos/cart-store";
 import { ModuleLinkButton } from "../../components/module-link-button";
 import { PageContent } from "../../components/page-content";
@@ -45,6 +49,7 @@ type OpenTabState =
 type OrderTabsViewProps = {
   organizationId: OrganizationId;
   ticketBusiness: OrderTicketBusiness;
+  checkoutSettings: OrganizationCheckoutSettings;
   title: string;
   description: string;
   posHref: string;
@@ -54,6 +59,7 @@ type OrderTabsViewProps = {
 export function OrderTabsView({
   organizationId,
   ticketBusiness,
+  checkoutSettings,
   title,
   description,
   posHref,
@@ -118,12 +124,16 @@ export function OrderTabsView({
     printOrderTicket(buildOrderDetailsTicket(order, ticketBusiness));
   }
 
-  function confirmPayment(payments: OrderPaymentInput[]) {
+  function confirmPayment(
+    payments: OrderPaymentInput[],
+    adjustments: OrderAdjustmentsInput,
+    total: number,
+  ) {
     if (!selectedOrder) return;
     const paidOrder = selectedOrder;
 
     payOrderMutation.mutate(
-      { orderId: paidOrder.id, payments },
+      { orderId: paidOrder.id, payments, adjustments },
       {
         onSuccess: () => {
           closeOpenTab();
@@ -132,7 +142,7 @@ export function OrderTabsView({
               ? `Comanda de ${paidOrder.customerName} lançada na conta.`
               : `Comanda de ${paidOrder.customerName} paga.`,
             {
-              description: getChangeMessage(payments, paidOrder.total),
+              description: getChangeMessage(payments, total),
             },
           );
         },
@@ -237,8 +247,11 @@ export function OrderTabsView({
               total: item.total,
             })) ?? [],
           takeawayFee: selectedOrder?.takeawayFee ?? 0,
+          isTakeaway: selectedOrder?.isTakeaway ?? false,
           total: selectedOrder?.total ?? 0,
         }}
+        checkoutSettings={checkoutSettings}
+        isServiceFeeSuggested
         isSubmitting={payOrderMutation.isPending}
         onClose={backToDetails}
         onConfirm={confirmPayment}

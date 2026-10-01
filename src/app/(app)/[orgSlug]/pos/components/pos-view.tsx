@@ -11,7 +11,10 @@ import {
 import type { CategoryId } from "@/features/categories/types";
 import { PaymentDialog } from "@/features/orders/components/payment-dialog";
 import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
-import type { OrganizationId } from "@/features/organizations/types";
+import type {
+  OrganizationCheckoutSettings,
+  OrganizationId,
+} from "@/features/organizations/types";
 import {
   getCartTabLabel,
   useActiveCartTab,
@@ -60,6 +63,7 @@ type PosViewProps = {
   ticketBusiness: OrderTicketBusiness;
   isTakeawayEnabled: boolean;
   takeawayFee: number;
+  checkoutSettings: OrganizationCheckoutSettings;
   isOnlineOrderingEnabled: boolean;
   orderTabsHref: string;
   canOpenOrderTabs: boolean;
@@ -79,6 +83,7 @@ export function PosView({
   ticketBusiness,
   isTakeawayEnabled,
   takeawayFee,
+  checkoutSettings,
   isOnlineOrderingEnabled,
   orderTabsHref,
   canOpenOrderTabs,
@@ -381,6 +386,8 @@ export function PosView({
           isKitchenPayment ? "Pagamento recebido" : "Confirmar pagamento"
         }
         summary={checkout.paymentSummary}
+        checkoutSettings={checkoutSettings}
+        isServiceFeeSuggested={false}
         isSubmitting={checkout.isPlacingOrder && !checkout.isOpeningTab}
         onClose={checkout.cancelCheckout}
         onConfirm={checkout.confirmPayment}
@@ -424,9 +431,13 @@ export function PosView({
               : "Confirmar pagamento"
           }
           summary={groupCheckout.summary}
+          checkoutSettings={checkoutSettings}
+          isServiceFeeSuggested={false}
           isSubmitting={groupCheckout.isPlacing}
           onClose={groupCheckout.cancel}
-          onConfirm={(payments) => void groupCheckout.submit(payments)}
+          onConfirm={(payments, adjustments, total) =>
+            void groupCheckout.submit({ payments, adjustments, total })
+          }
           secondaryAction={{
             label:
               groupCheckout.mode === "kitchen"

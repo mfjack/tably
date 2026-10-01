@@ -19,6 +19,15 @@ export type UserOrganization = {
   phone: string | null;
   address: string | null;
   menu: OrganizationMenuSettings;
+  checkout: OrganizationCheckoutSettings;
+};
+
+export type OrganizationCheckoutSettings = {
+  isServiceFeeEnabled: boolean;
+  serviceFeePercent: number;
+  isDiscountEnabled: boolean;
+  isSplitBillEnabled: boolean;
+  isCustomerAccountPaymentEnabled: boolean;
 };
 
 export type OrganizationMenuSettings = {

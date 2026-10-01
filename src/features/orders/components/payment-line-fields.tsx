@@ -10,12 +10,15 @@ import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { PAYMENT_METHOD_VALUES, PAYMENT_METHODS } from "../payment-methods";
 import type { PaymentFormInput } from "../schemas";
+import type { PaymentMethod } from "../types";
 import { PaymentMethodField } from "./payment-method-field";
 
-const PAYMENT_METHOD_OPTIONS = PAYMENT_METHOD_VALUES.map((method) => ({
-  value: method,
-  label: PAYMENT_METHODS[method].label,
-}));
+function toPaymentMethodOptions(methods: readonly PaymentMethod[]) {
+  return methods.map((method) => ({
+    value: method,
+    label: PAYMENT_METHODS[method].label,
+  }));
+}
 
 type PaymentLineFieldsProps = {
   control: Control<PaymentFormInput>;
@@ -26,6 +29,7 @@ type PaymentLineFieldsProps = {
   accounts: readonly CustomerAccount[];
   computedAmount?: number;
   onRemove?: () => void;
+  methods?: readonly PaymentMethod[];
 };
 
 function getAccountDescription(account: CustomerAccount | undefined) {
@@ -45,6 +49,7 @@ export function PaymentLineFields({
   accounts,
   computedAmount,
   onRemove,
+  methods = PAYMENT_METHOD_VALUES,
 }: PaymentLineFieldsProps) {
   const [method, customerAccountId] = useWatch({
     control,
@@ -98,6 +103,7 @@ export function PaymentLineFields({
         <PaymentMethodField
           control={control}
           name={`payments.${index}.method`}
+          methods={methods}
         />
         {accountField}
         {cashField}
@@ -134,7 +140,7 @@ export function PaymentLineFields({
           name={`payments.${index}.method`}
           label="Forma"
           placeholder="Escolha"
-          options={PAYMENT_METHOD_OPTIONS}
+          options={toPaymentMethodOptions(methods)}
         />
         {!isAmountComputed && (
           <NumberField

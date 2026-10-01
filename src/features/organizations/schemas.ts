@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MAX_SERVICE_FEE_PERCENT } from "@/features/orders/order-adjustments";
 import { isValidCnpj } from "@/lib/masks";
 
 const organizationNameSchema = z
@@ -35,3 +36,27 @@ export type CreateOrganizationInput = z.infer<typeof createOrganizationSchema>;
 export type OrganizationSettingsInput = z.infer<
   typeof organizationSettingsSchema
 >;
+
+export const checkoutSettingsSchema = z
+  .object({
+    isServiceFeeEnabled: z.boolean(),
+    serviceFeePercent: z
+      .number()
+      .positive("Informe um valor maior que zero.")
+      .max(MAX_SERVICE_FEE_PERCENT, `No máximo ${MAX_SERVICE_FEE_PERCENT}%.`)
+      .optional(),
+    isDiscountEnabled: z.boolean(),
+    isSplitBillEnabled: z.boolean(),
+    isCustomerAccountPaymentEnabled: z.boolean(),
+  })
+  .superRefine((values, context) => {
+    if (values.isServiceFeeEnabled && values.serviceFeePercent === undefined) {
+      context.addIssue({
+        code: "custom",
+        message: "Informe a porcentagem da taxa.",
+        path: ["serviceFeePercent"],
+      });
+    }
+  });
+
+export type CheckoutSettingsInput = z.infer<typeof checkoutSettingsSchema>;

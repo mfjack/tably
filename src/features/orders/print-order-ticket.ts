@@ -33,6 +33,8 @@ export type OrderTicket = {
   items: readonly OrderTicketItem[];
   subtotal: number;
   takeawayFee: number;
+  serviceFee?: number;
+  discount?: number;
   total: number;
   note?: string;
   createdAt: Date;
@@ -95,13 +97,20 @@ function buildItemsHtml(items: readonly OrderTicketItem[]): string {
 function buildTicketHtml(ticket: OrderTicket): string {
   const items = buildItemsHtml(ticket.items);
   const hasTakeawayFee = ticket.takeawayFee > 0;
+  const serviceFee = ticket.serviceFee ?? 0;
+  const discount = ticket.discount ?? 0;
   const hasPayments = (ticket.payments?.length ?? 0) > 0;
-  const hasTotalRow = hasTakeawayFee || hasPayments;
+  const hasTotalRow =
+    hasTakeawayFee || serviceFee > 0 || discount > 0 || hasPayments;
   const totals = [
     buildRow("Subtotal", formatCurrency(ticket.subtotal)),
     hasTakeawayFee
       ? buildRow("Para levar", formatCurrency(ticket.takeawayFee))
       : "",
+    serviceFee > 0
+      ? buildRow("Taxa de serviço", formatCurrency(serviceFee))
+      : "",
+    discount > 0 ? buildRow("Desconto", `- ${formatCurrency(discount)}`) : "",
     hasTotalRow ? buildRow("Total", formatCurrency(ticket.total), true) : "",
   ].join("");
   const payment = hasPayments

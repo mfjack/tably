@@ -69,6 +69,42 @@ export function sumAmountsByPerson(
   return personCents.map((cents) => cents / 100);
 }
 
+export function distributeAdjustment(
+  personAmounts: readonly number[],
+  fullBase: number,
+  adjustment: number,
+): number[] {
+  const baseCents = toCents(fullBase);
+  const adjustmentCents = toCents(adjustment);
+  if (baseCents === 0 || adjustmentCents === 0) return [...personAmounts];
+
+  const sign = Math.sign(adjustmentCents);
+  const weights = personAmounts.map(toCents);
+  const assignedCents = weights.reduce((total, weight) => total + weight, 0);
+  const targetCents = Math.round(
+    (Math.abs(adjustmentCents) * assignedCents) / baseCents,
+  );
+  const rawShares = weights.map(
+    (weight) => (Math.abs(adjustmentCents) * weight) / baseCents,
+  );
+  const shares = rawShares.map(Math.floor);
+  let missingCents =
+    targetCents - shares.reduce((total, share) => total + share, 0);
+  const byRemainder = rawShares
+    .map((share, index) => ({ index, remainder: share - Math.floor(share) }))
+    .sort((first, second) => second.remainder - first.remainder);
+
+  for (const { index } of byRemainder) {
+    if (missingCents <= 0) break;
+    shares[index] = (shares[index] ?? 0) + 1;
+    missingCents -= 1;
+  }
+
+  return weights.map(
+    (weight, index) => (weight + sign * (shares[index] ?? 0)) / 100,
+  );
+}
+
 export function countUnassignedUnits(
   units: readonly BillUnit[],
   assignments: UnitAssignments,

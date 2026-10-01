@@ -1332,6 +1332,10 @@ export type Database = {
           created_by_operator_name: string | null
           customer_account_id: string | null
           customer_name: string | null
+          discount_amount: number
+          discount_type: string | null
+          discount_value: number | null
+          discounted_by: string | null
           id: string
           is_takeaway: boolean
           note: string | null
@@ -1341,6 +1345,8 @@ export type Database = {
           paid_by: string | null
           paid_by_operator_name: string | null
           payment_method: Database["public"]["Enums"]["payment_method"] | null
+          service_fee_amount: number
+          service_fee_percent: number | null
           status: Database["public"]["Enums"]["order_status"]
           subtotal: number
           takeaway_fee: number
@@ -1354,6 +1360,10 @@ export type Database = {
           created_by_operator_name?: string | null
           customer_account_id?: string | null
           customer_name?: string | null
+          discount_amount?: number
+          discount_type?: string | null
+          discount_value?: number | null
+          discounted_by?: string | null
           id?: string
           is_takeaway?: boolean
           note?: string | null
@@ -1363,6 +1373,8 @@ export type Database = {
           paid_by?: string | null
           paid_by_operator_name?: string | null
           payment_method?: Database["public"]["Enums"]["payment_method"] | null
+          service_fee_amount?: number
+          service_fee_percent?: number | null
           status: Database["public"]["Enums"]["order_status"]
           subtotal: number
           takeaway_fee?: number
@@ -1376,6 +1388,10 @@ export type Database = {
           created_by_operator_name?: string | null
           customer_account_id?: string | null
           customer_name?: string | null
+          discount_amount?: number
+          discount_type?: string | null
+          discount_value?: number | null
+          discounted_by?: string | null
           id?: string
           is_takeaway?: boolean
           note?: string | null
@@ -1385,6 +1401,8 @@ export type Database = {
           paid_by?: string | null
           paid_by_operator_name?: string | null
           payment_method?: Database["public"]["Enums"]["payment_method"] | null
+          service_fee_amount?: number
+          service_fee_percent?: number | null
           status?: Database["public"]["Enums"]["order_status"]
           subtotal?: number
           takeaway_fee?: number
@@ -1436,8 +1454,12 @@ export type Database = {
           created_by: string | null
           hidden_modules: Database["public"]["Enums"]["app_module"][]
           id: string
+          is_customer_account_payment_enabled: boolean
+          is_discount_enabled: boolean
           is_menu_published: boolean
           is_online_ordering_enabled: boolean
+          is_service_fee_enabled: boolean
+          is_split_bill_enabled: boolean
           is_takeaway_enabled: boolean
           last_order_number: number
           menu_instagram: string | null
@@ -1447,6 +1469,7 @@ export type Database = {
           name: string
           phone: string | null
           pos_seen_at: string | null
+          service_fee_percent: number
           slug: string
           takeaway_fee: number
           tax_id: string | null
@@ -1459,8 +1482,12 @@ export type Database = {
           created_by?: string | null
           hidden_modules?: Database["public"]["Enums"]["app_module"][]
           id?: string
+          is_customer_account_payment_enabled?: boolean
+          is_discount_enabled?: boolean
           is_menu_published?: boolean
           is_online_ordering_enabled?: boolean
+          is_service_fee_enabled?: boolean
+          is_split_bill_enabled?: boolean
           is_takeaway_enabled?: boolean
           last_order_number?: number
           menu_instagram?: string | null
@@ -1470,6 +1497,7 @@ export type Database = {
           name: string
           phone?: string | null
           pos_seen_at?: string | null
+          service_fee_percent?: number
           slug: string
           takeaway_fee?: number
           tax_id?: string | null
@@ -1482,8 +1510,12 @@ export type Database = {
           created_by?: string | null
           hidden_modules?: Database["public"]["Enums"]["app_module"][]
           id?: string
+          is_customer_account_payment_enabled?: boolean
+          is_discount_enabled?: boolean
           is_menu_published?: boolean
           is_online_ordering_enabled?: boolean
+          is_service_fee_enabled?: boolean
+          is_split_bill_enabled?: boolean
           is_takeaway_enabled?: boolean
           last_order_number?: number
           menu_instagram?: string | null
@@ -1493,6 +1525,7 @@ export type Database = {
           name?: string
           phone?: string | null
           pos_seen_at?: string | null
+          service_fee_percent?: number
           slug?: string
           takeaway_fee?: number
           tax_id?: string | null
@@ -2443,6 +2476,15 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      apply_order_adjustments: {
+        Args: {
+          p_discount_type: string
+          p_discount_value: number
+          p_has_service_fee: boolean
+          p_order_id: string
+        }
+        Returns: number
+      }
       apply_person_pin_hash: {
         Args: {
           p_employee_id: string
@@ -2465,6 +2507,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      close_stale_orders: { Args: never; Returns: undefined }
       complete_order_if_done: {
         Args: { p_order_id: string }
         Returns: undefined
@@ -2510,8 +2553,12 @@ export type Database = {
           created_by: string | null
           hidden_modules: Database["public"]["Enums"]["app_module"][]
           id: string
+          is_customer_account_payment_enabled: boolean
+          is_discount_enabled: boolean
           is_menu_published: boolean
           is_online_ordering_enabled: boolean
+          is_service_fee_enabled: boolean
+          is_split_bill_enabled: boolean
           is_takeaway_enabled: boolean
           last_order_number: number
           menu_instagram: string | null
@@ -2521,6 +2568,7 @@ export type Database = {
           name: string
           phone: string | null
           pos_seen_at: string | null
+          service_fee_percent: number
           slug: string
           takeaway_fee: number
           tax_id: string | null
@@ -2625,6 +2673,10 @@ export type Database = {
           created_by_operator_name: string | null
           customer_account_id: string | null
           customer_name: string | null
+          discount_amount: number
+          discount_type: string | null
+          discount_value: number | null
+          discounted_by: string | null
           id: string
           is_takeaway: boolean
           note: string | null
@@ -2634,6 +2686,8 @@ export type Database = {
           paid_by: string | null
           paid_by_operator_name: string | null
           payment_method: Database["public"]["Enums"]["payment_method"] | null
+          service_fee_amount: number
+          service_fee_percent: number | null
           status: Database["public"]["Enums"]["order_status"]
           subtotal: number
           takeaway_fee: number
@@ -2682,6 +2736,9 @@ export type Database = {
         Args: {
           p_amount_received?: number
           p_customer_account_id?: string
+          p_discount_type?: string
+          p_discount_value?: number
+          p_has_service_fee?: boolean
           p_order_id: string
           p_payment_method?: Database["public"]["Enums"]["payment_method"]
           p_payments?: Json
@@ -2708,6 +2765,9 @@ export type Database = {
           p_amount_received?: number
           p_customer_account_id?: string
           p_customer_name?: string
+          p_discount_type?: string
+          p_discount_value?: number
+          p_has_service_fee?: boolean
           p_is_takeaway?: boolean
           p_items: Json
           p_note?: string

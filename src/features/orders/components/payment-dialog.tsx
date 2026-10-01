@@ -17,12 +17,24 @@ import {
   type OrderPaymentInput,
   type PaymentFormInput,
 } from "@/features/orders/schemas";
-import type { OrganizationId } from "@/features/organizations/types";
+import type {
+  OrganizationCheckoutSettings,
+  OrganizationId,
+} from "@/features/organizations/types";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import {
+  calculateOrderTotals,
+  type OrderAdjustmentsInput,
+} from "../order-adjustments";
 import { getPaymentsChange } from "../order-payments";
 import {
+  PAYMENT_METHOD_VALUES,
+  RECEIVABLE_PAYMENT_METHOD_VALUES,
+} from "../payment-methods";
+import {
   countUnassignedUnits,
+  distributeAdjustment,
   expandBillUnits,
   isSplitMode,
   removePersonFromAssignments,
@@ -34,6 +46,10 @@ import {
   type UnitAssignments,
 } from "../split-bill";
 import { BillItemsAssignment } from "./bill-items-assignment";
+import {
+  type AdjustmentsFormInput,
+  OrderAdjustmentsFields,
+} from "./order-adjustments-fields";
 import { OrderSummary, type OrderSummaryData } from "./order-summary";
 import { PaymentLineFields } from "./payment-line-fields";
 
@@ -43,9 +59,15 @@ type PaymentDialogProps = {
   title: string;
   submitLabel: string;
   summary: OrderSummaryData;
+  checkoutSettings: OrganizationCheckoutSettings;
+  isServiceFeeSuggested: boolean;
   isSubmitting: boolean;
   onClose: () => void;
-  onConfirm: (payments: OrderPaymentInput[]) => void;
+  onConfirm: (
+    payments: OrderPaymentInput[],
+    adjustments: OrderAdjustmentsInput,
+    total: number,
+  ) => void;
   secondaryAction?: FormDialogSecondaryAction;
 };
 
@@ -53,6 +75,20 @@ const MAX_PEOPLE = 10;
 const UNASSIGNED_ITEMS_MESSAGE = "Escolha quem paga cada item.";
 
 const EMPTY_PAYMENT_LINE = {} as PaymentFormInput["payments"][number];
+
+const INVALID_DISCOUNT_MESSAGE = "Confira o valor do desconto.";
+
+function toOrderAdjustments(
+  values: AdjustmentsFormInput,
+): OrderAdjustmentsInput {
+  return {
+    hasServiceFee: values.hasServiceFee,
+    discount:
+      values.hasDiscount && values.discountValue !== undefined
+        ? { type: values.discountType, value: values.discountValue }
+        : undefined,
+  };
+}
 
 function toCents(value: number) {
   return Math.round(value * 100);
@@ -72,6 +108,8 @@ export function PaymentDialog({
   organizationId,
   isOpen,
   summary,
+  checkoutSettings,
+  isServiceFeeSuggested,
   isSubmitting,
   onClose,
   onConfirm,
@@ -79,7 +117,46 @@ export function PaymentDialog({
   submitLabel,
   secondaryAction,
 }: PaymentDialogProps) {
-  const orderTotal = summary.total;
+  const serviceFeePercent = checkoutSettings.isServiceFeeEnabled
+    ? checkoutSettings.serviceFeePercent
+    : 0;
+  const canChargeServiceFee = !summary.isTakeaway && serviceFeePercent > 0;
+  const paymentMethods = checkoutSettings.isCustomerAccountPaymentEnabled
+    ? PAYMENT_METHOD_VALUES
+    : RECEIVABLE_PAYMENT_METHOD_VALUES;
+  const adjustmentsForm = useForm<AdjustmentsFormInput>({
+    defaultValues: {
+      hasServiceFee: false,
+      hasDiscount: false,
+      discountType: "percent",
+    },
+  });
+  const adjustmentValues = useWatch({ control: adjustmentsForm.control });
+  const adjustments = toOrderAdjustments({
+    hasServiceFee: adjustmentValues.hasServiceFee ?? false,
+    hasDiscount: adjustmentValues.hasDiscount ?? false,
+    discountType: adjustmentValues.discountType ?? "percent",
+    discountValue: adjustmentValues.discountValue,
+  });
+  const subtotal = summary.lines.reduce((total, line) => total + line.total, 0);
+  const totals = calculateOrderTotals({
+    subtotal,
+    takeawayFee: summary.takeawayFee,
+    isTakeaway: summary.isTakeaway ?? false,
+    serviceFeePercent,
+    adjustments,
+  });
+  const orderTotal = totals.total;
+  const adjustedSummary: OrderSummaryData = {
+    ...summary,
+    serviceFee: totals.serviceFee,
+    discount: totals.discount,
+    total: orderTotal,
+  };
+  const adjustmentDelta = totals.serviceFee - totals.discount;
+  const isDiscountIncomplete =
+    (adjustmentValues.hasDiscount ?? false) &&
+    (adjustmentValues.discountValue === undefined || !totals.isDiscountValid);
   const paymentFormSchema = useMemo(
     () => createPaymentFormSchema(orderTotal),
     [orderTotal],
@@ -112,11 +189,15 @@ export function PaymentDialog({
     if (!isSplit || splitMode === "custom") return null;
     return splitMode === "equal"
       ? splitAmountEqually(orderTotal, peopleCount)
-      : sumAmountsByPerson(
-          billUnits,
-          assignments,
-          peopleCount,
-          summary.takeawayFee,
+      : distributeAdjustment(
+          sumAmountsByPerson(
+            billUnits,
+            assignments,
+            peopleCount,
+            summary.takeawayFee,
+          ),
+          subtotal + summary.takeawayFee,
+          adjustmentDelta,
         );
   }, [
     isSplit,
@@ -126,6 +207,8 @@ export function PaymentDialog({
     billUnits,
     assignments,
     summary.takeawayFee,
+    subtotal,
+    adjustmentDelta,
   ]);
   const computedAmountsKey = computedAmounts?.join("|") ?? "";
   const unassignedCount =
@@ -144,10 +227,22 @@ export function PaymentDialog({
   useEffect(() => {
     if (!isOpen) return;
     form.reset({ payments: [EMPTY_PAYMENT_LINE] });
+    adjustmentsForm.reset({
+      hasServiceFee: isServiceFeeSuggested && canChargeServiceFee,
+      hasDiscount: false,
+      discountType: "percent",
+      discountValue: undefined,
+    });
     setSplitMode("equal");
     setAssignments({});
     setAssignmentError(null);
-  }, [isOpen, form]);
+  }, [
+    isOpen,
+    form,
+    adjustmentsForm,
+    isServiceFeeSuggested,
+    canChargeServiceFee,
+  ]);
 
   useEffect(() => {
     if (!computedAmountsKey) return;
@@ -157,10 +252,15 @@ export function PaymentDialog({
   }, [computedAmountsKey, form]);
 
   const submitPayments = form.handleSubmit(({ payments: submittedPayments }) =>
-    onConfirm(submittedPayments),
+    onConfirm(submittedPayments, adjustments, orderTotal),
   );
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    if (isDiscountIncomplete) {
+      event.preventDefault();
+      setAssignmentError(INVALID_DISCOUNT_MESSAGE);
+      return;
+    }
     if (unassignedCount > 0) {
       event.preventDefault();
       setAssignmentError(UNASSIGNED_ITEMS_MESSAGE);
@@ -215,7 +315,14 @@ export function PaymentDialog({
       secondaryAction={secondaryAction}
     >
       <FieldGroup>
-        <OrderSummary summary={summary} />
+        <OrderSummary summary={adjustedSummary} />
+        <OrderAdjustmentsFields
+          control={adjustmentsForm.control}
+          serviceFeePercent={serviceFeePercent}
+          canChargeServiceFee={canChargeServiceFee}
+          isDiscountEnabled={checkoutSettings.isDiscountEnabled}
+          totals={totals}
+        />
         {isSplit && (
           <Tabs
             value={splitMode}
@@ -251,9 +358,10 @@ export function PaymentDialog({
             accounts={activeAccounts}
             computedAmount={computedAmounts?.[index]}
             onRemove={isSplit ? () => removePerson(index) : undefined}
+            methods={paymentMethods}
           />
         ))}
-        {!isSplit && (
+        {!isSplit && checkoutSettings.isSplitBillEnabled && (
           <Button
             type="button"
             variant="outline"
