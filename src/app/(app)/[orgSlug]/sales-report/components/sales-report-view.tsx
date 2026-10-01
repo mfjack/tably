@@ -38,8 +38,8 @@ import { formatCurrency, formatPercent } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
-import { CashClosingSection } from "./cash-closing-section";
 import { KpiCard } from "./kpi-card";
+import { PaymentMethodsSection } from "./payment-methods-section";
 import { ProductLookupSection } from "./product-lookup-section";
 import { ProductsRankingSection } from "./products-ranking-section";
 import { SalesCharts } from "./sales-charts";
@@ -130,7 +130,7 @@ function SalesReportContent({ report }: SalesReportContentProps) {
       </div>
 
       <ProductLookupSection key={report.startDate} report={report} />
-      <CashClosingSection report={report} />
+      <PaymentMethodsSection report={report} />
 
       <SalesCharts report={report} />
 
