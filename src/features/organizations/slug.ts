@@ -9,6 +9,7 @@ const RESERVED_SLUGS: ReadonlySet<string> = new Set([
   "icon",
   "login",
   "manifest-webmanifest",
+  "menu",
   "new-organization",
   "offline",
   "pwa-icon",

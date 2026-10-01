@@ -114,6 +114,8 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          menu_group: string | null
+          menu_is_highlighted: boolean
           name: string
           organization_id: string
           position: number
@@ -122,6 +124,8 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          menu_group?: string | null
+          menu_is_highlighted?: boolean
           name: string
           organization_id: string
           position?: number
@@ -130,6 +134,8 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          menu_group?: string | null
+          menu_is_highlighted?: boolean
           name?: string
           organization_id?: string
           position?: number
@@ -1049,6 +1055,69 @@ export type Database = {
           },
         ]
       }
+      online_orders: {
+        Row: {
+          accepted_customer_name: string | null
+          created_at: string
+          customer_name: string
+          decided_at: string | null
+          decided_by: string | null
+          device_id: string
+          id: string
+          items: Json
+          note: string | null
+          order_id: string | null
+          organization_id: string
+          status: Database["public"]["Enums"]["online_order_status"]
+          total: number
+        }
+        Insert: {
+          accepted_customer_name?: string | null
+          created_at?: string
+          customer_name: string
+          decided_at?: string | null
+          decided_by?: string | null
+          device_id: string
+          id: string
+          items: Json
+          note?: string | null
+          order_id?: string | null
+          organization_id: string
+          status?: Database["public"]["Enums"]["online_order_status"]
+          total: number
+        }
+        Update: {
+          accepted_customer_name?: string | null
+          created_at?: string
+          customer_name?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          device_id?: string
+          id?: string
+          items?: Json
+          note?: string | null
+          order_id?: string | null
+          organization_id?: string
+          status?: Database["public"]["Enums"]["online_order_status"]
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "online_orders_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "online_orders_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       operators: {
         Row: {
           allowed_modules: Database["public"]["Enums"]["app_module"][]
@@ -1367,10 +1436,17 @@ export type Database = {
           created_by: string | null
           hidden_modules: Database["public"]["Enums"]["app_module"][]
           id: string
+          is_menu_published: boolean
+          is_online_ordering_enabled: boolean
           is_takeaway_enabled: boolean
           last_order_number: number
+          menu_instagram: string | null
+          menu_note: string | null
+          menu_tagline: string | null
+          menu_title: string | null
           name: string
           phone: string | null
+          pos_seen_at: string | null
           slug: string
           takeaway_fee: number
           tax_id: string | null
@@ -1383,10 +1459,17 @@ export type Database = {
           created_by?: string | null
           hidden_modules?: Database["public"]["Enums"]["app_module"][]
           id?: string
+          is_menu_published?: boolean
+          is_online_ordering_enabled?: boolean
           is_takeaway_enabled?: boolean
           last_order_number?: number
+          menu_instagram?: string | null
+          menu_note?: string | null
+          menu_tagline?: string | null
+          menu_title?: string | null
           name: string
           phone?: string | null
+          pos_seen_at?: string | null
           slug: string
           takeaway_fee?: number
           tax_id?: string | null
@@ -1399,10 +1482,17 @@ export type Database = {
           created_by?: string | null
           hidden_modules?: Database["public"]["Enums"]["app_module"][]
           id?: string
+          is_menu_published?: boolean
+          is_online_ordering_enabled?: boolean
           is_takeaway_enabled?: boolean
           last_order_number?: number
+          menu_instagram?: string | null
+          menu_note?: string | null
+          menu_tagline?: string | null
+          menu_title?: string | null
           name?: string
           phone?: string | null
+          pos_seen_at?: string | null
           slug?: string
           takeaway_fee?: number
           tax_id?: string | null
@@ -1633,6 +1723,8 @@ export type Database = {
           id: string
           image_url: string | null
           is_active: boolean
+          is_on_menu: boolean
+          menu_detail: string | null
           name: string
           organization_id: string
           price: number
@@ -1644,6 +1736,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean
+          is_on_menu?: boolean
+          menu_detail?: string | null
           name: string
           organization_id: string
           price: number
@@ -1655,6 +1749,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean
+          is_on_menu?: boolean
+          menu_detail?: string | null
           name?: string
           organization_id?: string
           price?: number
@@ -2287,6 +2383,13 @@ export type Database = {
       }
     }
     Functions: {
+      accept_online_order: {
+        Args: { p_online_order_id: string }
+        Returns: {
+          customer_name: string
+          order_id: string
+        }[]
+      }
       add_manual_time_punch: {
         Args: {
           p_employee_id: string
@@ -2407,10 +2510,17 @@ export type Database = {
           created_by: string | null
           hidden_modules: Database["public"]["Enums"]["app_module"][]
           id: string
+          is_menu_published: boolean
+          is_online_ordering_enabled: boolean
           is_takeaway_enabled: boolean
           last_order_number: number
+          menu_instagram: string | null
+          menu_note: string | null
+          menu_tagline: string | null
+          menu_title: string | null
           name: string
           phone: string | null
+          pos_seen_at: string | null
           slug: string
           takeaway_fee: number
           tax_id: string | null
@@ -2456,6 +2566,11 @@ export type Database = {
         Args: { p_from: string; p_organization_id: string; p_to: string }
         Returns: Json
       }
+      get_online_order_status: {
+        Args: { p_online_order_id: string }
+        Returns: Json
+      }
+      get_public_menu: { Args: { p_slug: string }; Returns: Json }
       get_sales_report: {
         Args: {
           p_organization_id: string
@@ -2467,6 +2582,12 @@ export type Database = {
         Args: {
           org_id: string
           roles: Database["public"]["Enums"]["member_role"][]
+        }
+        Returns: boolean
+      }
+      is_accepting_online_orders: {
+        Args: {
+          p_organization: Database["public"]["Tables"]["organizations"]["Row"]
         }
         Returns: boolean
       }
@@ -2571,6 +2692,17 @@ export type Database = {
         Args: { p_method: Database["public"]["Enums"]["payment_method"] }
         Returns: string
       }
+      place_online_order: {
+        Args: {
+          p_customer_name: string
+          p_device_id: string
+          p_items: Json
+          p_note?: string
+          p_online_order_id: string
+          p_slug: string
+        }
+        Returns: string
+      }
       place_order: {
         Args: {
           p_amount_received?: number
@@ -2621,6 +2753,10 @@ export type Database = {
       register_time_punch: {
         Args: { p_employee_id: string; p_pin: string }
         Returns: Json
+      }
+      reject_online_order: {
+        Args: { p_online_order_id: string }
+        Returns: undefined
       }
       remove_order_item: {
         Args: { p_order_item_id: string; p_quantity?: number }
@@ -2709,6 +2845,10 @@ export type Database = {
         }
         Returns: string
       }
+      touch_pos_presence: {
+        Args: { p_organization_id: string }
+        Returns: undefined
+      }
       upsert_automatic_entry: {
         Args: {
           p_account_id: string
@@ -2774,6 +2914,7 @@ export type Database = {
       kitchen_ticket_status: "waiting" | "preparing" | "ready" | "delivered"
       measure_unit: "unit" | "g" | "kg" | "ml" | "l"
       member_role: "owner" | "manager" | "cashier" | "kitchen" | "waiter"
+      online_order_status: "pending" | "accepted" | "rejected"
       order_status: "in_kitchen" | "ready" | "completed" | "canceled"
       overtime_policy: "paid" | "hour_bank"
       payment_method:
@@ -2980,6 +3121,7 @@ export const Constants = {
       kitchen_ticket_status: ["waiting", "preparing", "ready", "delivered"],
       measure_unit: ["unit", "g", "kg", "ml", "l"],
       member_role: ["owner", "manager", "cashier", "kitchen", "waiter"],
+      online_order_status: ["pending", "accepted", "rejected"],
       order_status: ["in_kitchen", "ready", "completed", "canceled"],
       overtime_policy: ["paid", "hour_bank"],
       payment_method: [

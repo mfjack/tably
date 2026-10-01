@@ -48,6 +48,7 @@ import { type GroupOrderEntry, GroupOrdersDialog } from "./group-orders-dialog";
 import { ItemNoteDialog } from "./item-note-dialog";
 import { MobileCartSheet } from "./mobile-cart-sheet";
 import { OfflineStatus } from "./offline-status";
+import { OnlineOrdersPanel } from "./online-orders-panel";
 import { PosHeaderDescription } from "./pos-header-description";
 import { ProductGrid } from "./product-grid";
 import { ProductSearchInput } from "./product-search-input";
@@ -59,6 +60,7 @@ type PosViewProps = {
   ticketBusiness: OrderTicketBusiness;
   isTakeawayEnabled: boolean;
   takeawayFee: number;
+  isOnlineOrderingEnabled: boolean;
   orderTabsHref: string;
   canOpenOrderTabs: boolean;
 };
@@ -76,6 +78,7 @@ export function PosView({
   ticketBusiness,
   isTakeawayEnabled,
   takeawayFee,
+  isOnlineOrderingEnabled,
   orderTabsHref,
   canOpenOrderTabs,
 }: PosViewProps) {
@@ -275,6 +278,12 @@ export function PosView({
           actions={
             <>
               <OfflineStatus organizationId={organizationId} />
+              {isOnlineOrderingEnabled && (
+                <OnlineOrdersPanel
+                  organizationId={organizationId}
+                  ticketBusiness={ticketBusiness}
+                />
+              )}
               {canOpenOrderTabs && (
                 <ModuleLinkButton
                   href={orderTabsHref}

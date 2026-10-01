@@ -18,4 +18,14 @@ export type UserOrganization = {
   taxId: string | null;
   phone: string | null;
   address: string | null;
+  menu: OrganizationMenuSettings;
+};
+
+export type OrganizationMenuSettings = {
+  isPublished: boolean;
+  isOnlineOrderingEnabled: boolean;
+  title: string | null;
+  tagline: string | null;
+  instagram: string | null;
+  note: string | null;
 };

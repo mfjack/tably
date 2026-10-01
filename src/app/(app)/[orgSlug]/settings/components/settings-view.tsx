@@ -7,6 +7,7 @@ import type { UserOrganization } from "@/features/organizations/types";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
 import { DeleteAccountSection } from "./delete-account-section";
+import { MenuSettings } from "./menu-settings";
 import { OperatorsSettings } from "./operators-settings";
 import { OrganizationSettingsForm } from "./organization-settings-form";
 import { ProfileForm } from "./profile-form";
@@ -44,6 +45,9 @@ export function SettingsView({
                 <TabsTrigger value="operators" className="shrink-0 px-4">
                   Operadores
                 </TabsTrigger>
+                <TabsTrigger value="menu" className="shrink-0 px-4">
+                  Cardápio
+                </TabsTrigger>
               </>
             )}
             <TabsTrigger value="printer" className="shrink-0 px-4">
@@ -70,6 +74,12 @@ export function SettingsView({
                     (moduleId) =>
                       !organization.hiddenModules.includes(moduleId),
                   )}
+                />
+              </TabsContent>
+              <TabsContent value="menu">
+                <MenuSettings
+                  key={organization.id}
+                  organization={organization}
                 />
               </TabsContent>
             </>

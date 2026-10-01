@@ -38,6 +38,8 @@ const EMPTY_PRODUCT_FORM: DefaultValues<ProductFormInput> = {
   name: "",
   categoryId: NONE_SELECT_VALUE,
   isActive: true,
+  isOnMenu: true,
+  menuDetail: "",
   imageUrl: "",
   recipe: [],
 };
@@ -48,6 +50,8 @@ function toFormValues(product: Product): DefaultValues<ProductFormInput> {
     categoryId: toSelectFieldValue(product.categoryId),
     price: product.price,
     isActive: product.isActive,
+    isOnMenu: product.isOnMenu,
+    menuDetail: product.menuDetail ?? "",
     imageUrl: product.imageUrl ?? "",
     recipe: product.recipe,
   };
@@ -163,6 +167,22 @@ export function ProductFormDialog({
           label="Disponível no PDV"
           description="Produtos inativos continuam cadastrados, mas não aparecem para venda."
         />
+
+        <div className="grid gap-5 sm:grid-cols-2">
+          <SwitchField
+            control={form.control}
+            name="isOnMenu"
+            label="Mostrar no cardápio digital"
+            description="Aparece na seção da categoria, se ela estiver no cardápio."
+          />
+          <TextField
+            control={form.control}
+            name="menuDetail"
+            label="Detalhe no cardápio"
+            placeholder="Ex.: 220ml"
+            autoComplete="off"
+          />
+        </div>
 
         <FieldSet>
           <FieldLegend>Ficha técnica</FieldLegend>

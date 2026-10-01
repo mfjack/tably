@@ -69,13 +69,19 @@ export async function updateSession(request: NextRequest) {
   const isAuthenticated = Boolean(data?.claims);
   const { pathname } = request.nextUrl;
 
-  if (!isAuthenticated && pathname.startsWith(API_PATH_PREFIX)) {
+  const isPublicRoute = matchesAnyRoute(pathname, PUBLIC_ROUTES);
+
+  if (
+    !isAuthenticated &&
+    !isPublicRoute &&
+    pathname.startsWith(API_PATH_PREFIX)
+  ) {
     return NextResponse.json(actionFailure(SESSION_EXPIRED_MESSAGE), {
       status: 401,
     });
   }
 
-  if (!isAuthenticated && !matchesAnyRoute(pathname, PUBLIC_ROUTES)) {
+  if (!isAuthenticated && !isPublicRoute) {
     return redirectKeepingCookies(buildLoginRedirectUrl(request), response);
   }
 

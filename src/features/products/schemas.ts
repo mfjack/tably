@@ -21,6 +21,8 @@ export const productFormSchema = z
       .number({ error: "Informe o preço de venda." })
       .min(0, "Não pode ser negativo."),
     isActive: z.boolean(),
+    isOnMenu: z.boolean(),
+    menuDetail: z.string().trim().max(40, "Detalhe muito longo.").optional(),
     imageUrl: z.string().optional(),
     recipe: z.array(recipeItemSchema),
   })

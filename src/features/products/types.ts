@@ -19,4 +19,6 @@ export type Product = {
   categoryName: string | null;
   unitCost: number;
   recipe: RecipeItem[];
+  isOnMenu: boolean;
+  menuDetail: string | null;
 };

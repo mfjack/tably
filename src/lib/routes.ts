@@ -14,7 +14,12 @@ export const AUTH_ROUTES = [
   ROUTES.forgotPassword,
 ] as const;
 
-export const PUBLIC_ROUTES = [...AUTH_ROUTES, "/auth"] as const;
+export const PUBLIC_ROUTES = [
+  ...AUTH_ROUTES,
+  "/auth",
+  "/menu",
+  "/api/public",
+] as const;
 
 export const LOGIN_ERROR_CODES = {
   invalidLink: "invalid-link",
