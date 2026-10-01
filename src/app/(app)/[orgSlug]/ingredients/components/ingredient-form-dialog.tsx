@@ -13,6 +13,7 @@ import { useSaveIngredientMutation } from "@/features/ingredients/hooks/use-save
 import {
   getUnitSymbol,
   MEASURE_UNIT_OPTIONS,
+  toSelectableMeasureUnit,
 } from "@/features/ingredients/measure-units";
 import {
   type IngredientFormInput,
@@ -40,7 +41,7 @@ function toFormValues(
   return {
     name: ingredient.name,
     brand: ingredient.brand ?? "",
-    unit: ingredient.unit,
+    unit: toSelectableMeasureUnit(ingredient.unit),
     minimumStock: ingredient.minimumStock,
     currentStock:
       ingredient.currentStock >= 0 ? ingredient.currentStock : undefined,

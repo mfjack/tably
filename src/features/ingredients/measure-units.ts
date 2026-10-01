@@ -9,10 +9,19 @@ export const MEASURE_UNITS = {
   l: { label: "Litro", symbol: "L" },
 } as const satisfies Record<MeasureUnit, { label: string; symbol: string }>;
 
-export const MEASURE_UNIT_VALUES = Object.keys(MEASURE_UNITS) as [
-  MeasureUnit,
-  ...MeasureUnit[],
-];
+export const MEASURE_UNIT_VALUES = [
+  "unit",
+  "g",
+  "ml",
+] as const satisfies readonly MeasureUnit[];
+
+export type SelectableMeasureUnit = (typeof MEASURE_UNIT_VALUES)[number];
+
+export function toSelectableMeasureUnit(
+  unit: MeasureUnit,
+): SelectableMeasureUnit | undefined {
+  return MEASURE_UNIT_VALUES.find((selectableUnit) => selectableUnit === unit);
+}
 
 export const MEASURE_UNIT_OPTIONS: readonly SelectOption[] =
   MEASURE_UNIT_VALUES.map((unit) => ({
