@@ -1,8 +1,9 @@
 import { differenceInMinutes } from "date-fns";
-import { Check, ChefHat, PackageCheck, Undo2 } from "lucide-react";
+import { Check, ChefHat, PackageCheck, Printer, Undo2 } from "lucide-react";
 import { memo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { printKitchenTicket } from "@/features/kitchen/print-kitchen-ticket";
 import type {
   KitchenTicket,
   KitchenTicketId,
@@ -109,6 +110,16 @@ function KitchenTicketCardComponent({
             <Undo2 aria-hidden />
           </Button>
         )}
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="size-11 rounded-xl"
+          aria-label={`Imprimir pedido de ${ticket.customerName ?? "cliente"}`}
+          onClick={() => printKitchenTicket(ticket)}
+        >
+          <Printer aria-hidden />
+        </Button>
         {isWaiting && (
           <Button
             type="button"
