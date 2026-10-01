@@ -36,7 +36,7 @@ type CartPanelProps = {
   onQuickPayment: () => void;
   tabTarget: OrderTabTarget | null;
   isAddingToTab: boolean;
-  onAddToTab: () => void;
+  onAddToTab: (shouldPrint: boolean) => void;
   onExitTabMode: () => void;
 };
 
@@ -114,20 +114,32 @@ export function CartPanel({
         </div>
         <div className="flex flex-col gap-2.5">
           {tabTarget ? (
-            <Button
-              type="button"
-              className="h-12 rounded-xl font-semibold text-base"
-              disabled={isEmpty || isAddingToTab}
-              aria-busy={isAddingToTab}
-              onClick={onAddToTab}
-            >
-              {isAddingToTab ? (
-                <Spinner aria-hidden />
-              ) : (
+            <>
+              <Button
+                type="button"
+                className="h-12 rounded-xl font-semibold text-base"
+                disabled={isEmpty || isAddingToTab}
+                aria-busy={isAddingToTab}
+                onClick={() => onAddToTab(true)}
+              >
+                {isAddingToTab ? (
+                  <Spinner aria-hidden />
+                ) : (
+                  <Printer aria-hidden />
+                )}
+                Adicionar e imprimir
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-12 rounded-xl border-primary font-semibold text-base text-primary hover:text-primary"
+                disabled={isEmpty || isAddingToTab}
+                onClick={() => onAddToTab(false)}
+              >
                 <ClipboardPlus aria-hidden />
-              )}
-              Adicionar à comanda
-            </Button>
+                Adicionar sem imprimir
+              </Button>
+            </>
           ) : (
             <>
               <Button

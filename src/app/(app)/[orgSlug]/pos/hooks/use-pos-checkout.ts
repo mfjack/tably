@@ -217,7 +217,7 @@ export function usePosCheckout({
     );
   }
 
-  function addToTab() {
+  function addToTab(shouldPrint: boolean) {
     if (!tabTarget) return;
 
     const ticketItems = buildTicketItems();
@@ -233,6 +233,7 @@ export function usePosCheckout({
         `Produtos adicionados à comanda de ${tabTarget.customerName}.`,
         { description: buildToastDescription(placement) },
       );
+      if (!shouldPrint) return;
       printOrderTicket({
         business: ticketBusiness,
         customerName: tabTarget.customerName,

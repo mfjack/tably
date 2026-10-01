@@ -88,9 +88,9 @@ export function MobileCartSheet({
               setIsOpen(false);
               onQuickPayment();
             }}
-            onAddToTab={() => {
+            onAddToTab={(shouldPrint) => {
               setIsOpen(false);
-              onAddToTab();
+              onAddToTab(shouldPrint);
             }}
           />
         </SheetContent>
