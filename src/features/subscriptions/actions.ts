@@ -32,7 +32,6 @@ const adminSubscriptionRowSchema = z.object({
   ownerEmail: z.string().nullable(),
   plan: z.enum(SUBSCRIPTION_PLANS),
   monthlyPrice: z.number(),
-  hasFullAccess: z.boolean(),
   trialEndsAt: z.string(),
   paidUntil: z.string().nullable(),
   paymentReportedAt: z.string().nullable(),
@@ -125,14 +124,12 @@ export async function updateAdminSubscription(
   const parsedInput = adminSubscriptionSchema.safeParse(input);
   if (!parsedInput.success) return actionFailure(INVALID_FORM_MESSAGE);
 
-  const { plan, monthlyPrice, hasFullAccess, trialEndsAt, notes } =
-    parsedInput.data;
+  const { plan, monthlyPrice, trialEndsAt, notes } = parsedInput.data;
   const supabase = await createClient();
   const { error } = await supabase.rpc("admin_update_subscription", {
     p_organization_id: organizationId,
     p_plan: plan,
     p_monthly_price: monthlyPrice,
-    p_has_full_access: hasFullAccess,
     p_trial_ends_at: `${trialEndsAt}T23:59:59-03:00`,
     p_notes: notes,
   });

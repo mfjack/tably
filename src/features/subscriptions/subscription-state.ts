@@ -9,13 +9,17 @@ const DAY_IN_MS = 24 * 60 * 60 * 1000;
 export type Subscription = {
   plan: SubscriptionPlan;
   monthlyPrice: number;
-  hasFullAccess: boolean;
   trialEndsAt: string;
   paidUntil: string | null;
   paymentReportedAt: string | null;
 };
 
-export type SubscriptionStatus = "trial" | "active" | "grace" | "blocked";
+export type SubscriptionStatus =
+  | "trial"
+  | "active"
+  | "courtesy"
+  | "grace"
+  | "blocked";
 
 export type SubscriptionState = {
   status: SubscriptionStatus;
@@ -38,6 +42,7 @@ export function getSubscriptionState(
     paidUntil && paidUntil > trialEndsAt ? paidUntil : trialEndsAt;
   const isPaid = paidUntil !== null && now <= paidUntil;
   const isTrial = !isPaid && now <= trialEndsAt;
+  const isCourtesy = subscription.monthlyPrice <= 0;
   const graceEndsAt = new Date(
     accessUntil.getTime() + GRACE_PERIOD_IN_DAYS * DAY_IN_MS,
   );
@@ -45,11 +50,13 @@ export function getSubscriptionState(
     ? "active"
     : isTrial
       ? "trial"
-      : now <= graceEndsAt
-        ? "grace"
-        : "blocked";
+      : isCourtesy
+        ? "courtesy"
+        : now <= graceEndsAt
+          ? "grace"
+          : "blocked";
   const daysLeft = Math.max(
-    Math.ceil((accessUntil.getTime() - now.getTime()) / DAY_IN_MS),
+    Math.floor((accessUntil.getTime() - now.getTime()) / DAY_IN_MS),
     0,
   );
 
@@ -60,9 +67,10 @@ export function getSubscriptionState(
     isPaymentReported: subscription.paymentReportedAt !== null,
     isExpiringSoon:
       status === "grace" ||
-      ((status === "trial" || status === "active") &&
+      (!isCourtesy &&
+        (status === "trial" || status === "active") &&
         daysLeft <= EXPIRING_SOON_IN_DAYS),
-    hasAllModules: status === "trial" || subscription.hasFullAccess,
+    hasAllModules: status === "trial",
   };
 }
 

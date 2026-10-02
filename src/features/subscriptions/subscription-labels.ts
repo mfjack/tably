@@ -10,6 +10,7 @@ const DAY_IN_MS = 24 * 60 * 60 * 1000;
 export const SUBSCRIPTION_STATUS_LABELS = {
   trial: "Teste grátis",
   active: "Ativa",
+  courtesy: "Cortesia",
   grace: "Vencida",
   blocked: "Bloqueada",
 } as const satisfies Record<SubscriptionStatus, string>;
@@ -33,6 +34,8 @@ export function getSubscriptionStatusDescription(state: SubscriptionState) {
       return `Teste grátis até ${formatDate(state.accessUntil)} (${formatDaysLeft(state.daysLeft)}).`;
     case "active":
       return `Paga até ${formatDate(state.accessUntil)}.`;
+    case "courtesy":
+      return "Cortesia, sem cobrança mensal.";
     case "grace":
       return `Venceu em ${formatDate(state.accessUntil)}. Pague até ${formatDate(graceEndsAt)} para não bloquear o sistema.`;
     case "blocked":

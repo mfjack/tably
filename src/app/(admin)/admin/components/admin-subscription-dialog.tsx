@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import { FormDialog } from "@/components/dialog/form-dialog";
 import { NumberField } from "@/components/form/number-field";
 import { SelectField } from "@/components/form/select-field";
-import { SwitchField } from "@/components/form/switch-field";
 import { TextField } from "@/components/form/text-field";
 import { TextareaField } from "@/components/form/textarea-field";
 import { FieldGroup } from "@/components/ui/field";
@@ -37,7 +36,6 @@ function toFormValues(subscription: AdminSubscription): AdminSubscriptionInput {
   return {
     plan: subscription.plan,
     monthlyPrice: subscription.monthlyPrice,
-    hasFullAccess: subscription.hasFullAccess,
     trialEndsAt: format(new Date(subscription.trialEndsAt), "yyyy-MM-dd"),
     notes: subscription.notes ?? "",
   };
@@ -90,15 +88,9 @@ export function AdminSubscriptionDialog({
           control={form.control}
           name="monthlyPrice"
           label="Valor mensal"
-          description="Pode ser diferente do preço do plano, como um desconto para amigos."
+          description="Quanto este cliente paga por mês, e o valor do QR Code Pix dele. Pode ser diferente do preço do plano, como um desconto para amigos."
           format="currency"
           placeholder="Ex.: $ 49,00"
-        />
-        <SwitchField
-          control={form.control}
-          name="hasFullAccess"
-          label="Liberar tudo"
-          description="Usa todos os módulos do sistema, qualquer que seja o plano."
         />
         <TextField
           control={form.control}

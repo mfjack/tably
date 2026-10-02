@@ -6,7 +6,6 @@ export const adminSubscriptionSchema = z.object({
   monthlyPrice: z
     .number({ error: "Informe o valor mensal." })
     .min(0, "Não pode ser negativo."),
-  hasFullAccess: z.boolean(),
   trialEndsAt: z.iso.date({ error: "Informe a data." }),
   notes: z.string().trim().max(1000, "Anotação muito longa."),
 });

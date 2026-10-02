@@ -70,11 +70,6 @@ export function SubscriptionSettings({
             parte do plano escolhido.
           </p>
         )}
-        {subscription.hasFullAccess && state.status !== "trial" && (
-          <p className="text-muted-foreground text-sm">
-            Seu estabelecimento tem acesso liberado a todos os módulos.
-          </p>
-        )}
       </section>
 
       <section className="flex flex-col gap-3">
@@ -128,19 +123,21 @@ export function SubscriptionSettings({
         )}
       </section>
 
-      <section className="flex flex-col gap-3">
-        <h3 className="font-semibold">Pagamento</h3>
-        <PixPaymentCard
-          organizationId={organization.id}
-          reference={organization.slug}
-          amount={subscription.monthlyPrice}
-          isPaymentReported={state.isPaymentReported}
-        />
-        <p className="text-muted-foreground text-sm">
-          Depois que confirmarmos o Pix, sua assinatura é renovada por mais um
-          mês.
-        </p>
-      </section>
+      {subscription.monthlyPrice > 0 && (
+        <section className="flex flex-col gap-3">
+          <h3 className="font-semibold">Pagamento</h3>
+          <PixPaymentCard
+            organizationId={organization.id}
+            reference={organization.slug}
+            amount={subscription.monthlyPrice}
+            isPaymentReported={state.isPaymentReported}
+          />
+          <p className="text-muted-foreground text-sm">
+            Depois que confirmarmos o Pix, sua assinatura é renovada por mais um
+            mês.
+          </p>
+        </section>
+      )}
     </div>
   );
 }

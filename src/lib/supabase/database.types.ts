@@ -2698,17 +2698,28 @@ export type Database = {
         }
         Returns: string
       }
-      admin_update_subscription: {
-        Args: {
-          p_has_full_access: boolean
-          p_monthly_price: number
-          p_notes: string
-          p_organization_id: string
-          p_plan: Database["public"]["Enums"]["subscription_plan"]
-          p_trial_ends_at: string
-        }
-        Returns: undefined
-      }
+      admin_update_subscription:
+        | {
+            Args: {
+              p_has_full_access: boolean
+              p_monthly_price: number
+              p_notes: string
+              p_organization_id: string
+              p_plan: Database["public"]["Enums"]["subscription_plan"]
+              p_trial_ends_at: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              p_monthly_price: number
+              p_notes: string
+              p_organization_id: string
+              p_plan: Database["public"]["Enums"]["subscription_plan"]
+              p_trial_ends_at: string
+            }
+            Returns: undefined
+          }
       append_time_punch: {
         Args: {
           p_employee_id: string

@@ -18,7 +18,6 @@ export type AdminSubscription = {
   ownerEmail: string | null;
   plan: SubscriptionPlan;
   monthlyPrice: number;
-  hasFullAccess: boolean;
   trialEndsAt: string;
   paidUntil: string | null;
   paymentReportedAt: string | null;

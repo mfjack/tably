@@ -15,7 +15,6 @@ const APP_MODULE_IDS = APP_MODULES.map(({ id }) => id);
 type SubscriptionRow = {
   plan: Subscription["plan"];
   monthly_price: number;
-  has_full_access: boolean;
   trial_ends_at: string;
   paid_until: string | null;
   payment_reported_at: string | null;
@@ -26,7 +25,6 @@ function toSubscription(row: SubscriptionRow): Subscription | null {
   return {
     plan: row.plan,
     monthlyPrice: row.monthly_price,
-    hasFullAccess: row.has_full_access,
     trialEndsAt: row.trial_ends_at,
     paidUntil: row.paid_until,
     paymentReportedAt: row.payment_reported_at,
@@ -34,7 +32,7 @@ function toSubscription(row: SubscriptionRow): Subscription | null {
 }
 
 const USER_ORGANIZATION_COLUMNS =
-  "id, name, slug, hidden_modules, takeaway_fee, is_takeaway_enabled, service_fee_percent, is_service_fee_enabled, is_discount_enabled, is_split_bill_enabled, is_customer_account_payment_enabled, tax_id, phone, address, is_menu_published, menu_title, menu_tagline, menu_instagram, menu_note, is_online_ordering_enabled, memberships!inner(role, user_id), subscription:subscriptions(plan, monthly_price, has_full_access, trial_ends_at, paid_until, payment_reported_at)";
+  "id, name, slug, hidden_modules, takeaway_fee, is_takeaway_enabled, service_fee_percent, is_service_fee_enabled, is_discount_enabled, is_split_bill_enabled, is_customer_account_payment_enabled, tax_id, phone, address, is_menu_published, menu_title, menu_tagline, menu_instagram, menu_note, is_online_ordering_enabled, memberships!inner(role, user_id), subscription:subscriptions(plan, monthly_price, trial_ends_at, paid_until, payment_reported_at)";
 
 export const getUserOrganizations = cache(
   async (): Promise<UserOrganization[]> => {

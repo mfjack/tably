@@ -30,11 +30,12 @@ type DialogState =
 const STATUS_BADGE_VARIANTS = {
   trial: "secondary",
   active: "default",
+  courtesy: "outline",
   grace: "destructive",
   blocked: "destructive",
 } as const satisfies Record<
   SubscriptionStatus,
-  "default" | "secondary" | "destructive"
+  "default" | "secondary" | "outline" | "destructive"
 >;
 
 function formatMoney(amount: number) {
@@ -99,9 +100,6 @@ export function AdminSubscriptionsView({
                   <Badge variant={STATUS_BADGE_VARIANTS[state.status]}>
                     {SUBSCRIPTION_STATUS_LABELS[state.status]}
                   </Badge>
-                  {subscription.hasFullAccess && (
-                    <Badge variant="outline">Tudo liberado</Badge>
-                  )}
                   {state.isPaymentReported && (
                     <Badge variant="outline" className="gap-1">
                       <BellRing aria-hidden className="size-3" />
