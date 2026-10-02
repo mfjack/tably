@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 import { RECEIVABLE_PAYMENT_METHOD_VALUES } from "@/features/orders/payment-methods";
 import type { PaymentMethod } from "@/features/orders/types";
 

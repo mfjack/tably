@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 import { CART_ITEM_NOTE_MAX_LENGTH } from "@/features/pos/cart-items";
 
 export const ONLINE_ORDER_MAX_ITEM_QUANTITY = 50;

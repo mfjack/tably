@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 import { MEASURE_UNIT_VALUES } from "./measure-units";
 
 const optionalDateSchema = z

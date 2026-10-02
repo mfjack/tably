@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 
 export const supplierSchema = z.object({
   name: z

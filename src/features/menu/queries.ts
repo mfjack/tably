@@ -1,7 +1,7 @@
 import "server-only";
 
 import { cache } from "react";
-import { z } from "zod";
+import * as z from "zod";
 import type { CategoryId } from "@/features/categories/types";
 import type { ProductId } from "@/features/products/types";
 import { createClient } from "@/lib/supabase/server";

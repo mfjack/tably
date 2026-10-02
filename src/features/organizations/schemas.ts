@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 import { MAX_SERVICE_FEE_PERCENT } from "@/features/orders/order-adjustments";
 import { isValidCnpj } from "@/lib/masks";
 

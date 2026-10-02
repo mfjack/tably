@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { z } from "zod";
+import * as z from "zod";
 import { listFinancialEntries } from "@/features/finance/actions";
 import { ENTRY_LIST_FILTERS } from "@/features/finance/schemas";
 import type { OrganizationId } from "@/features/organizations/types";

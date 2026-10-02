@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 
 const publicEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.url(),

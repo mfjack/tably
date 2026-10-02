@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 import { BILLING_CYCLES, SUBSCRIPTION_PLANS } from "./plans";
 
 export const adminSubscriptionSchema = z.object({

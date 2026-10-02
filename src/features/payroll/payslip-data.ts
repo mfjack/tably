@@ -1,6 +1,6 @@
 import "server-only";
 
-import { z } from "zod";
+import * as z from "zod";
 import type { Employee, EmployeeId } from "@/features/employees/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import type { Tables } from "@/lib/supabase/database.types";

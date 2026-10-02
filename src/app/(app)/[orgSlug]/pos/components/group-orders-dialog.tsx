@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
-import { z } from "zod";
+import * as z from "zod";
 import { FormDialog } from "@/components/dialog/form-dialog";
 import { TextField } from "@/components/form/text-field";
 import { FieldGroup } from "@/components/ui/field";

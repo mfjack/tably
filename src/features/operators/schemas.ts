@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 import { Constants } from "@/lib/supabase/database.types";
 
 const PIN_PATTERN = /^\d{4}$/;

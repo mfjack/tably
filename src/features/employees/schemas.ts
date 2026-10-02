@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 import { isValidCpf, isValidPis } from "@/lib/masks";
 import { Constants } from "@/lib/supabase/database.types";
 

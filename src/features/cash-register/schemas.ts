@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 
 export const openCashSessionSchema = z.object({
   openingAmount: z.number().min(0, "Não pode ser negativo.").optional(),
