@@ -2140,7 +2140,6 @@ export type Database = {
         Row: {
           billing_cycle: Database["public"]["Enums"]["billing_cycle"]
           created_at: string
-          has_full_access: boolean
           monthly_price: number
           notes: string | null
           organization_id: string
@@ -2154,7 +2153,6 @@ export type Database = {
         Insert: {
           billing_cycle?: Database["public"]["Enums"]["billing_cycle"]
           created_at?: string
-          has_full_access?: boolean
           monthly_price: number
           notes?: string | null
           organization_id: string
@@ -2168,7 +2166,6 @@ export type Database = {
         Update: {
           billing_cycle?: Database["public"]["Enums"]["billing_cycle"]
           created_at?: string
-          has_full_access?: boolean
           monthly_price?: number
           notes?: string | null
           organization_id?: string
@@ -2704,40 +2701,18 @@ export type Database = {
         }
         Returns: string
       }
-      admin_update_subscription:
-        | {
-            Args: {
-              p_billing_cycle: Database["public"]["Enums"]["billing_cycle"]
-              p_monthly_price: number
-              p_notes: string
-              p_organization_id: string
-              p_plan: Database["public"]["Enums"]["subscription_plan"]
-              p_trial_ends_at: string
-              p_yearly_price: number
-            }
-            Returns: undefined
-          }
-        | {
-            Args: {
-              p_has_full_access: boolean
-              p_monthly_price: number
-              p_notes: string
-              p_organization_id: string
-              p_plan: Database["public"]["Enums"]["subscription_plan"]
-              p_trial_ends_at: string
-            }
-            Returns: undefined
-          }
-        | {
-            Args: {
-              p_monthly_price: number
-              p_notes: string
-              p_organization_id: string
-              p_plan: Database["public"]["Enums"]["subscription_plan"]
-              p_trial_ends_at: string
-            }
-            Returns: undefined
-          }
+      admin_update_subscription: {
+        Args: {
+          p_billing_cycle: Database["public"]["Enums"]["billing_cycle"]
+          p_monthly_price: number
+          p_notes: string
+          p_organization_id: string
+          p_plan: Database["public"]["Enums"]["subscription_plan"]
+          p_trial_ends_at: string
+          p_yearly_price: number
+        }
+        Returns: undefined
+      }
       append_time_punch: {
         Args: {
           p_employee_id: string
