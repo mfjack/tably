@@ -36,14 +36,14 @@ const PREVIEW_COLUMNS: readonly PreviewColumn[] = [
         customerName: "Ana",
         elapsed: "agora",
         items: [
-          { quantity: 2, name: "X-Burguer", note: "sem cebola" },
-          { quantity: 1, name: "Fritas" },
+          { quantity: 2, name: "Cappuccino", note: "leite vegetal" },
+          { quantity: 1, name: "Croissant" },
         ],
       },
       {
         customerName: "João",
         elapsed: "há 2 min",
-        items: [{ quantity: 1, name: "Prato do dia" }],
+        items: [{ quantity: 1, name: "X-Burguer", note: "sem cebola" }],
       },
     ],
   },
@@ -58,8 +58,8 @@ const PREVIEW_COLUMNS: readonly PreviewColumn[] = [
         elapsed: "há 16 min",
         isLate: true,
         items: [
-          { quantity: 1, name: "Porção de calabresa" },
-          { quantity: 2, name: "Pastel", note: "1 de queijo" },
+          { quantity: 1, name: "Prato do dia" },
+          { quantity: 2, name: "Pão de queijo" },
         ],
       },
     ],
@@ -73,7 +73,7 @@ const PREVIEW_COLUMNS: readonly PreviewColumn[] = [
       {
         customerName: "Pedro",
         elapsed: "há 9 min",
-        items: [{ quantity: 3, name: "Chope" }],
+        items: [{ quantity: 3, name: "Espresso" }],
       },
     ],
   },

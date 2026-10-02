@@ -16,10 +16,10 @@ export default function TermsPage() {
       <LegalSection title="1. Aceitação">
         <p>
           Estes termos regulam o uso do {LEGAL_INFO.productName}, sistema de
-          gestão para restaurantes, lanchonetes, bares e estabelecimentos
-          similares, oferecido por {LEGAL_INFO.responsibleName}. Ao criar uma
-          conta ou um estabelecimento, você declara que leu e concorda com estes
-          termos e com a{" "}
+          gestão para cafeterias, restaurantes, lanchonetes, bares e
+          estabelecimentos similares, oferecido por {LEGAL_INFO.responsibleName}
+          . Ao criar uma conta ou um estabelecimento, você declara que leu e
+          concorda com estes termos e com a{" "}
           <Link href={ROUTES.privacy} className="underline underline-offset-4">
             Política de privacidade
           </Link>

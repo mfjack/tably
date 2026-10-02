@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Tably",
     short_name: "Tably",
     description:
-      "Sistema de gestão para cafeterias, restaurantes, açaiterias e muito mais.",
+      "Sistema de gestão para cafeterias, restaurantes, lanchonetes e bares.",
     lang: "pt-BR",
     start_url: "/",
     scope: "/",

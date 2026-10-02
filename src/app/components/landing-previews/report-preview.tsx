@@ -19,9 +19,9 @@ const PREVIEW_DAYS = [
 ] as const;
 
 const PREVIEW_TOP_PRODUCTS = [
-  { name: "X-Burguer", quantity: 184 },
-  { name: "Chope", quantity: 162 },
-  { name: "Fritas", quantity: 97 },
+  { name: "Cappuccino", quantity: 184 },
+  { name: "Pão de queijo", quantity: 162 },
+  { name: "X-Burguer", quantity: 97 },
 ] as const;
 
 export function ReportPreview() {

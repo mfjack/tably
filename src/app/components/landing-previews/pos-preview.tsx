@@ -10,21 +10,21 @@ import {
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-const PREVIEW_CATEGORIES = ["Todos", "Lanches", "Porções", "Bebidas"] as const;
+const PREVIEW_CATEGORIES = ["Todos", "Cafés", "Salgados", "Lanches"] as const;
 
 const PREVIEW_PRODUCTS = [
-  { name: "X-Burguer", price: 28, cartQuantity: 2 },
-  { name: "Fritas", price: 32, cartQuantity: 1 },
+  { name: "Cappuccino", price: 16, cartQuantity: 2 },
+  { name: "Pão de queijo", price: 9, cartQuantity: 2 },
+  { name: "Croissant", price: 18, cartQuantity: 1 },
+  { name: "X-Burguer", price: 28, cartQuantity: 0 },
   { name: "Suco", price: 9, cartQuantity: 0 },
-  { name: "Chope", price: 12, cartQuantity: 3 },
-  { name: "Prato do dia", price: 35, cartQuantity: 0 },
-  { name: "Sobremesa", price: 15, cartQuantity: 0 },
+  { name: "Brownie", price: 12, cartQuantity: 0 },
 ] as const;
 
 const PREVIEW_CART = [
-  { name: "X-Burguer", quantity: 2, total: 56, note: "sem cebola" },
-  { name: "Fritas", quantity: 1, total: 32, note: null },
-  { name: "Chope", quantity: 3, total: 36, note: null },
+  { name: "Cappuccino", quantity: 2, total: 32, note: "leite vegetal" },
+  { name: "Pão de queijo", quantity: 2, total: 18, note: null },
+  { name: "Croissant", quantity: 1, total: 18, note: null },
 ] as const;
 
 export function PosPreview() {
@@ -35,7 +35,7 @@ export function PosPreview() {
       <div className="flex min-w-0 flex-1 flex-col gap-3 p-3 sm:p-4">
         <div className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 flex-col">
-            <span className="truncate font-bold text-sm">Bar do Centro</span>
+            <span className="truncate font-bold text-sm">Café do Centro</span>
             <span className="text-[0.625rem] text-muted-foreground">
               Sexta, 2 de outubro
             </span>

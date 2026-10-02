@@ -16,11 +16,11 @@ export default function PrivacyPage() {
     >
       <LegalSection title="1. Quem somos">
         <p>
-          O {LEGAL_INFO.productName} é um sistema de gestão para restaurantes,
-          lanchonetes, bares e estabelecimentos similares, oferecido por{" "}
-          {LEGAL_INFO.responsibleName}. Esta política explica quais dados
-          pessoais tratamos, por que e quais são os seus direitos, conforme a
-          Lei Geral de Proteção de Dados (Lei nº 13.709/2018, LGPD).
+          O {LEGAL_INFO.productName} é um sistema de gestão para cafeterias,
+          restaurantes, lanchonetes, bares e estabelecimentos similares,
+          oferecido por {LEGAL_INFO.responsibleName}. Esta política explica
+          quais dados pessoais tratamos, por que e quais são os seus direitos,
+          conforme a Lei Geral de Proteção de Dados (Lei nº 13.709/2018, LGPD).
         </p>
         <LegalList
           items={[

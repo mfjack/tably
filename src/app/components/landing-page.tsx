@@ -131,7 +131,8 @@ export function LandingPage() {
         <section className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:py-24">
           <div className="flex flex-col gap-6">
             <h1 className="font-bold text-4xl tracking-tight sm:text-5xl">
-              O sistema do seu restaurante, lanchonete ou bar
+              O sistema completo para cafeterias, restaurantes, lanchonetes e
+              bares
             </h1>
             <p className="text-lg text-muted-foreground">
               PDV, comandas, cozinha, caixa, cardápio digital, estoque e
