@@ -17,3 +17,11 @@ export const DEFAULT_SALES_REPORT_PERIOD: SalesReportPeriod = "today";
 export function isSalesReportPeriod(value: string): value is SalesReportPeriod {
   return SALES_REPORT_PERIODS.some((period) => period === value);
 }
+
+export function toSalesReportPeriod(
+  value: string | string[] | undefined,
+): SalesReportPeriod {
+  return typeof value === "string" && isSalesReportPeriod(value)
+    ? value
+    : DEFAULT_SALES_REPORT_PERIOD;
+}
