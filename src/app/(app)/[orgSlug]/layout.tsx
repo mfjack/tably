@@ -6,16 +6,20 @@ import {
   getEffectiveHiddenModules,
 } from "@/features/operators/access";
 import { getOperatorAccess } from "@/features/operators/queries";
+import { canManageOrganization } from "@/features/organizations/permissions";
 import {
   getUserOrganizationBySlug,
   getUserOrganizations,
 } from "@/features/organizations/queries";
+import { getSubscriptionState } from "@/features/subscriptions/subscription-state";
 import { AppSidebar } from "./components/app-sidebar";
 import { OfflineOrderSync } from "./components/offline-order-sync";
 import { OperatorAutoLock } from "./components/operator-auto-lock";
 import { OperatorLockScreen } from "./components/operator-lock-screen";
 import { ServerDataRefresher } from "./components/server-data-refresher";
 import { SidebarOverlay } from "./components/sidebar-overlay";
+import { SubscriptionBanner } from "./components/subscription-banner";
+import { SubscriptionBlockedScreen } from "./components/subscription-blocked-screen";
 
 export default async function OrganizationLayout({
   children,
@@ -29,6 +33,20 @@ export default async function OrganizationLayout({
   ]);
 
   if (!organization || !currentUser) notFound();
+
+  const subscriptionState = organization.subscription
+    ? getSubscriptionState(organization.subscription)
+    : null;
+
+  if (organization.subscription && subscriptionState?.status === "blocked") {
+    return (
+      <SubscriptionBlockedScreen
+        organization={organization}
+        subscription={organization.subscription}
+        state={subscriptionState}
+      />
+    );
+  }
 
   const access = await getOperatorAccess(organization.id);
 
@@ -65,7 +83,16 @@ export default async function OrganizationLayout({
           access.mode === "unlocked" ? access.operator.name : null
         }
       />
-      <SidebarInset>{children}</SidebarInset>
+      <SidebarInset>
+        {subscriptionState?.isExpiringSoon && (
+          <SubscriptionBanner
+            organizationSlug={organization.slug}
+            state={subscriptionState}
+            canManage={canManageOrganization(organization.role)}
+          />
+        )}
+        {children}
+      </SidebarInset>
       <SidebarOverlay />
       <ServerDataRefresher />
       <OfflineOrderSync />

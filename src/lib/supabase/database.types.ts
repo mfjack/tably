@@ -1832,6 +1832,18 @@ export type Database = {
           },
         ]
       }
+      platform_admins: {
+        Row: {
+          email: string
+        }
+        Insert: {
+          email: string
+        }
+        Update: {
+          email?: string
+        }
+        Relationships: []
+      }
       product_ingredients: {
         Row: {
           ingredient_id: string
@@ -2078,6 +2090,94 @@ export type Database = {
             foreignKeyName: "stock_movements_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          months: number
+          note: string | null
+          organization_id: string
+          paid_until: string
+          recorded_by: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          months?: number
+          note?: string | null
+          organization_id: string
+          paid_until: string
+          recorded_by?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          months?: number
+          note?: string | null
+          organization_id?: string
+          paid_until?: string
+          recorded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_payments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscriptions: {
+        Row: {
+          created_at: string
+          has_full_access: boolean
+          monthly_price: number
+          notes: string | null
+          organization_id: string
+          paid_until: string | null
+          payment_reported_at: string | null
+          plan: Database["public"]["Enums"]["subscription_plan"]
+          trial_ends_at: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          has_full_access?: boolean
+          monthly_price: number
+          notes?: string | null
+          organization_id: string
+          paid_until?: string | null
+          payment_reported_at?: string | null
+          plan?: Database["public"]["Enums"]["subscription_plan"]
+          trial_ends_at: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          has_full_access?: boolean
+          monthly_price?: number
+          notes?: string | null
+          organization_id?: string
+          paid_until?: string | null
+          payment_reported_at?: string | null
+          plan?: Database["public"]["Enums"]["subscription_plan"]
+          trial_ends_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -2588,6 +2688,27 @@ export type Database = {
         Args: { p_ingredient_id: string; p_quantity: number }
         Returns: undefined
       }
+      admin_list_subscriptions: { Args: never; Returns: Json }
+      admin_record_subscription_payment: {
+        Args: {
+          p_amount: number
+          p_months: number
+          p_note: string
+          p_organization_id: string
+        }
+        Returns: string
+      }
+      admin_update_subscription: {
+        Args: {
+          p_has_full_access: boolean
+          p_monthly_price: number
+          p_notes: string
+          p_organization_id: string
+          p_plan: Database["public"]["Enums"]["subscription_plan"]
+          p_trial_ends_at: string
+        }
+        Returns: undefined
+      }
       append_time_punch: {
         Args: {
           p_employee_id: string
@@ -2650,6 +2771,13 @@ export type Database = {
           p_amount: number
           p_order_id: string
           p_organization_id: string
+        }
+        Returns: undefined
+      }
+      choose_subscription_plan: {
+        Args: {
+          p_organization_id: string
+          p_plan: Database["public"]["Enums"]["subscription_plan"]
         }
         Returns: undefined
       }
@@ -2747,6 +2875,10 @@ export type Database = {
         Args: { p_organization_id: string }
         Returns: string
       }
+      default_plan_price: {
+        Args: { p_plan: Database["public"]["Enums"]["subscription_plan"] }
+        Returns: number
+      }
       delete_customer_account: {
         Args: { p_account_id: string }
         Returns: undefined
@@ -2813,6 +2945,7 @@ export type Database = {
         Args: { p_operator_id: string }
         Returns: boolean
       }
+      is_platform_admin: { Args: never; Returns: boolean }
       list_cash_sessions: {
         Args: {
           p_end_date: string
@@ -2999,6 +3132,10 @@ export type Database = {
         Args: { p_order_item_id: string; p_quantity?: number }
         Returns: number
       }
+      report_subscription_payment: {
+        Args: { p_organization_id: string }
+        Returns: undefined
+      }
       reset_person_pin: {
         Args: { p_employee_id?: string; p_operator_id?: string }
         Returns: undefined
@@ -3182,6 +3319,7 @@ export type Database = {
         | "last_30_days"
         | "this_month"
         | "last_month"
+      subscription_plan: "essential" | "management" | "complete"
       task_frequency: "daily" | "weekly" | "monthly"
       time_off_kind:
         | "medical_certificate"
@@ -3394,6 +3532,7 @@ export const Constants = {
         "this_month",
         "last_month",
       ],
+      subscription_plan: ["essential", "management", "complete"],
       task_frequency: ["daily", "weekly", "monthly"],
       time_off_kind: [
         "medical_certificate",

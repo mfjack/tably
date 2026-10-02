@@ -12,6 +12,7 @@ import { MenuSettings } from "./menu-settings";
 import { OperatorsSettings } from "./operators-settings";
 import { OrganizationSettingsForm } from "./organization-settings-form";
 import { ProfileForm } from "./profile-form";
+import { SubscriptionSettings } from "./subscription-settings";
 import { ThermalPrinterSettings } from "./thermal-printer-settings";
 
 type SettingsViewProps = {
@@ -20,6 +21,7 @@ type SettingsViewProps = {
   organization: UserOrganization;
   currentUser: CurrentUser;
   canManageOrganization: boolean;
+  initialTab?: string;
 };
 
 export function SettingsView({
@@ -28,13 +30,30 @@ export function SettingsView({
   organization,
   currentUser,
   canManageOrganization,
+  initialTab,
 }: SettingsViewProps) {
+  const defaultTab = canManageOrganization ? "organization" : "profile";
+  const availableTabs = canManageOrganization
+    ? [
+        "organization",
+        "checkout",
+        "subscription",
+        "operators",
+        "menu",
+        "printer",
+        "profile",
+      ]
+    : ["printer", "profile"];
   return (
     <>
       <PageHeader title={title} description={description} />
       <PageContent>
         <Tabs
-          defaultValue={canManageOrganization ? "organization" : "profile"}
+          defaultValue={
+            initialTab && availableTabs.includes(initialTab)
+              ? initialTab
+              : defaultTab
+          }
           className="gap-6"
         >
           <TabsList className="w-full justify-start overflow-x-auto group-data-horizontal/tabs:h-10 sm:w-fit">
@@ -46,6 +65,11 @@ export function SettingsView({
                 <TabsTrigger value="checkout" className="shrink-0 px-4">
                   Vendas
                 </TabsTrigger>
+                {organization.subscription && (
+                  <TabsTrigger value="subscription" className="shrink-0 px-4">
+                    Assinatura
+                  </TabsTrigger>
+                )}
                 <TabsTrigger value="operators" className="shrink-0 px-4">
                   Operadores
                 </TabsTrigger>
@@ -75,6 +99,14 @@ export function SettingsView({
                   organization={organization}
                 />
               </TabsContent>
+              {organization.subscription && (
+                <TabsContent value="subscription">
+                  <SubscriptionSettings
+                    organization={organization}
+                    subscription={organization.subscription}
+                  />
+                </TabsContent>
+              )}
               <TabsContent value="operators">
                 <OperatorsSettings
                   organizationId={organization.id}

@@ -18,8 +18,10 @@ export const metadata: Metadata = { title: SETTINGS_PAGE.label };
 
 export default async function SettingsPage({
   params,
+  searchParams,
 }: PageProps<"/[orgSlug]/settings">) {
   const { orgSlug } = await params;
+  const { tab } = await searchParams;
   const [organization, currentUser] = await Promise.all([
     getUserOrganizationBySlug(orgSlug),
     getCurrentUser(),
@@ -40,6 +42,7 @@ export default async function SettingsPage({
 
   return (
     <SettingsView
+      initialTab={typeof tab === "string" ? tab : undefined}
       title={SETTINGS_PAGE.label}
       description={SETTINGS_PAGE.description}
       organization={organization}

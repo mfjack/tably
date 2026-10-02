@@ -2,6 +2,7 @@ const SLUG_SUFFIX_LENGTH = 4;
 const FALLBACK_SLUG = "my-business";
 
 const RESERVED_SLUGS: ReadonlySet<string> = new Set([
+  "admin",
   "api",
   "apple-icon",
   "auth",
