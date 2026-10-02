@@ -12,7 +12,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { startReceipt } from "@/features/orders/thermal-order-ticket";
 import {
   connectThermalPrinter,
   getThermalPaperColumns,
@@ -47,7 +46,10 @@ function buildErrorMessage(prefix: string, error: unknown) {
   return error instanceof Error ? `${prefix}: ${error.message}` : prefix;
 }
 
-function encodeTestReceipt(columns: number): Uint8Array {
+async function encodeTestReceipt(columns: number): Promise<Uint8Array> {
+  const { startReceipt } = await import(
+    "@/features/orders/thermal-order-ticket"
+  );
   return startReceipt(columns)
     .align("center")
     .bold(true)
@@ -104,7 +106,9 @@ export function ThermalPrinterSettings() {
     setIsTesting(true);
     setErrorMessage(null);
     try {
-      await printThermalReceipt(encodeTestReceipt(getThermalPaperColumns()));
+      await printThermalReceipt(
+        await encodeTestReceipt(getThermalPaperColumns()),
+      );
       toast.success("Teste enviado para a impressora.");
     } catch (error) {
       const message = buildErrorMessage("O teste não foi impresso", error);

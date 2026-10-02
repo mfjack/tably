@@ -1,11 +1,11 @@
 "use client";
 
 import { CheckCircle2, Copy } from "lucide-react";
-import QRCode from "qrcode";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import type { OrganizationId } from "@/features/organizations/types";
+import { createQrCodeDataUrl } from "@/lib/qr-code";
 import { useReportSubscriptionPaymentMutation } from "../hooks/use-report-subscription-payment-mutation";
 import { buildPixPayload, PIX_RECEIVER } from "../pix-payment";
 
@@ -37,7 +37,7 @@ export function PixPaymentCard({
 
   useEffect(() => {
     let isCurrent = true;
-    QRCode.toDataURL(payload, { width: QR_CODE_SIZE_IN_PIXELS, margin: 1 })
+    createQrCodeDataUrl(payload, { width: QR_CODE_SIZE_IN_PIXELS, margin: 1 })
       .then((dataUrl) => {
         if (isCurrent) setQrCodeUrl(dataUrl);
       })

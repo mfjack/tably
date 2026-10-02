@@ -3,10 +3,6 @@ import { formatCurrency } from "@/lib/format";
 import { formatCnpj, formatPhone } from "@/lib/masks";
 import { escapeHtml } from "@/lib/print-html";
 import { printReceipt } from "@/lib/print-receipt";
-import {
-  encodeGroupedOrderTicket,
-  encodeOrderTicket,
-} from "./thermal-order-ticket";
 
 export type OrderTicketItem = {
   name: string;
@@ -139,10 +135,23 @@ function buildTicketHtml(ticket: OrderTicket): string {
   </body></html>`;
 }
 
+async function encodeOrderTicketLazily(ticket: OrderTicket, columns: number) {
+  const { encodeOrderTicket } = await import("./thermal-order-ticket");
+  return encodeOrderTicket(ticket, columns);
+}
+
+async function encodeGroupedOrderTicketLazily(
+  ticket: GroupedOrderTicket,
+  columns: number,
+) {
+  const { encodeGroupedOrderTicket } = await import("./thermal-order-ticket");
+  return encodeGroupedOrderTicket(ticket, columns);
+}
+
 export function printOrderTicket(ticket: OrderTicket): void {
   printReceipt({
     html: buildTicketHtml(ticket),
-    encode: (columns) => encodeOrderTicket(ticket, columns),
+    encode: (columns) => encodeOrderTicketLazily(ticket, columns),
   });
 }
 
@@ -205,7 +214,7 @@ export function buildGroupedOrderTicketHtml(
 export function printGroupedOrderTicket(ticket: GroupedOrderTicket): void {
   printReceipt({
     html: buildGroupedOrderTicketHtml(ticket),
-    encode: (columns) => encodeGroupedOrderTicket(ticket, columns),
+    encode: (columns) => encodeGroupedOrderTicketLazily(ticket, columns),
   });
 }
 

@@ -8,7 +8,7 @@ import {
 
 type ReceiptPrintJob = {
   html: string;
-  encode: (columns: number) => Uint8Array;
+  encode: (columns: number) => Promise<Uint8Array>;
 };
 
 function buildThermalFailureMessage(error: unknown): string {
@@ -18,7 +18,7 @@ function buildThermalFailureMessage(error: unknown): string {
 
 async function printOnThermalPrinter({ html, encode }: ReceiptPrintJob) {
   try {
-    await printThermalReceipt(encode(getThermalPaperColumns()));
+    await printThermalReceipt(await encode(getThermalPaperColumns()));
   } catch (error) {
     toast.error(buildThermalFailureMessage(error));
     printHtml(html);

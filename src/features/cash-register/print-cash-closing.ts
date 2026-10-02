@@ -6,12 +6,6 @@ import {
   type OrderTicketBusiness,
   TICKET_STYLES,
 } from "@/features/orders/print-order-ticket";
-import {
-  buildPriceColumns,
-  finishReceipt,
-  startReceipt,
-  writeBusinessHeader,
-} from "@/features/orders/thermal-order-ticket";
 import { formatCurrency } from "@/lib/format";
 import { escapeHtml } from "@/lib/print-html";
 import { printReceipt } from "@/lib/print-receipt";
@@ -59,11 +53,17 @@ function buildSections(summary: CashSessionSummary): ClosingRow[][] {
   ];
 }
 
-function encodeCashClosing(
+async function encodeCashClosing(
   summary: CashSessionSummary,
   business: OrderTicketBusiness,
   totalColumns: number,
-): Uint8Array {
+): Promise<Uint8Array> {
+  const {
+    buildPriceColumns,
+    finishReceipt,
+    startReceipt,
+    writeBusinessHeader,
+  } = await import("@/features/orders/thermal-order-ticket");
   const encoder = startReceipt(totalColumns);
   const columns = buildPriceColumns(encoder.columns);
 

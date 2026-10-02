@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Copy, Download, ExternalLink } from "lucide-react";
-import QRCode from "qrcode";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -17,6 +16,7 @@ import {
 } from "@/features/menu/schemas";
 import type { UserOrganization } from "@/features/organizations/types";
 import { productionSiteUrl } from "@/lib/env";
+import { createQrCodeDataUrl } from "@/lib/qr-code";
 import { SettingsFormSection } from "./settings-form-section";
 
 const QR_CODE_SIZE_IN_PIXELS = 1024;
@@ -50,7 +50,7 @@ export function MenuSettings({ organization }: MenuSettingsProps) {
 
   useEffect(() => {
     let isCurrent = true;
-    QRCode.toDataURL(menuUrl, { width: QR_CODE_SIZE_IN_PIXELS, margin: 2 })
+    createQrCodeDataUrl(menuUrl, { width: QR_CODE_SIZE_IN_PIXELS, margin: 2 })
       .then((dataUrl) => {
         if (isCurrent) setQrCodeUrl(dataUrl);
       })
