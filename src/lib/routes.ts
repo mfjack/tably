@@ -17,6 +17,7 @@ export const AUTH_ROUTES = [
 ] as const;
 
 export const PUBLIC_ROUTES = [
+  ROUTES.home,
   ...AUTH_ROUTES,
   "/auth",
   "/menu",
