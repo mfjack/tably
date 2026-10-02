@@ -10,6 +10,8 @@ const RESERVED_SLUGS: ReadonlySet<string> = new Set([
   "login",
   "manifest-webmanifest",
   "menu",
+  "terms",
+  "privacy",
   "new-organization",
   "offline",
   "pwa-icon",

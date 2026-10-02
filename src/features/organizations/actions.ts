@@ -1,10 +1,10 @@
 "use server";
 
+import { TERMS_VERSION } from "@/features/legal/legal-info";
 import {
   hasModuleAccess,
   MODULE_ACCESS_DENIED_MESSAGE,
 } from "@/features/operators/module-access";
-
 import {
   type ActionResult,
   actionFailure,
@@ -47,7 +47,17 @@ export async function createOrganization(
       p_slug: buildSlugCandidate(baseSlug, attempt),
     });
 
-    if (!error) return actionSuccess({ slug: data.slug });
+    if (!error) {
+      await supabase
+        .from("organizations")
+        .update({
+          terms_accepted_at: new Date().toISOString(),
+          terms_version: TERMS_VERSION,
+          terms_accepted_by: (await supabase.auth.getUser()).data.user?.id,
+        })
+        .eq("slug", data.slug);
+      return actionSuccess({ slug: data.slug });
+    }
     if (error.code !== UNIQUE_VIOLATION_CODE) break;
   }
 

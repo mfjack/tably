@@ -18,6 +18,7 @@ import {
   type CreateOrganizationInput,
   createOrganizationSchema,
 } from "@/features/organizations/schemas";
+import { TermsAcceptanceField } from "./terms-acceptance-field";
 
 type CreateOrganizationFormProps = {
   canCancel: boolean;
@@ -31,7 +32,7 @@ export function CreateOrganizationForm({
   const signOutMutation = useSignOutMutation();
   const form = useForm<CreateOrganizationInput>({
     resolver: zodResolver(createOrganizationSchema),
-    defaultValues: { name: "" },
+    defaultValues: { name: "", hasAcceptedTerms: false },
   });
 
   const handleSubmit = form.handleSubmit((values) => {
@@ -53,6 +54,7 @@ export function CreateOrganizationForm({
           autoComplete="organization"
           placeholder="Ex.: Café Pinheiro"
         />
+        <TermsAcceptanceField control={form.control} />
 
         {createOrganizationMutation.error && (
           <AuthAlert>{createOrganizationMutation.error.message}</AuthAlert>

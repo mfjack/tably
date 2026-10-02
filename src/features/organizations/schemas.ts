@@ -10,6 +10,9 @@ const organizationNameSchema = z
 
 export const createOrganizationSchema = z.object({
   name: organizationNameSchema,
+  hasAcceptedTerms: z.boolean().refine((isAccepted) => isAccepted, {
+    message: "Para continuar, aceite os termos de uso.",
+  }),
 });
 
 export const organizationSettingsSchema = z.object({

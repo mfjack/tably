@@ -6,6 +6,8 @@ export const ROUTES = {
   resetPassword: "/reset-password",
   authCallback: "/auth/callback",
   newOrganization: "/new-organization",
+  terms: "/terms",
+  privacy: "/privacy",
 } as const;
 
 export const AUTH_ROUTES = [
@@ -19,6 +21,8 @@ export const PUBLIC_ROUTES = [
   "/auth",
   "/menu",
   "/api/public",
+  ROUTES.terms,
+  ROUTES.privacy,
 ] as const;
 
 export const LOGIN_ERROR_CODES = {

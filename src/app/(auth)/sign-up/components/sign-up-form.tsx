@@ -12,6 +12,7 @@ import { AuthSubmitButton } from "@/features/auth/components/auth-submit-button"
 import { GoogleSignIn } from "@/features/auth/components/google-sign-in";
 import { useSignUpMutation } from "@/features/auth/hooks/use-sign-up-mutation";
 import { type SignUpInput, signUpSchema } from "@/features/auth/schemas";
+import { LegalNotice } from "@/features/legal/components/legal-notice";
 import { ROUTES } from "@/lib/routes";
 import { EmailConfirmationNotice } from "./email-confirmation-notice";
 
@@ -84,10 +85,7 @@ export function SignUpForm() {
           href={ROUTES.login}
           linkLabel="Entrar"
         />
-        <p className="max-w-80 text-center text-[0.8125rem] text-muted-foreground">
-          Ao criar uma conta, você concorda com os Termos de Uso e a Política de
-          Privacidade.
-        </p>
+        <LegalNotice actionLabel="Ao criar uma conta" />
       </div>
     </div>
   );

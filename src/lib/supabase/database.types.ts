@@ -1597,6 +1597,9 @@ export type Database = {
           slug: string
           takeaway_fee: number
           tax_id: string | null
+          terms_accepted_at: string | null
+          terms_accepted_by: string | null
+          terms_version: string | null
           timezone: string
           updated_at: string
         }
@@ -1625,6 +1628,9 @@ export type Database = {
           slug: string
           takeaway_fee?: number
           tax_id?: string | null
+          terms_accepted_at?: string | null
+          terms_accepted_by?: string | null
+          terms_version?: string | null
           timezone?: string
           updated_at?: string
         }
@@ -1653,6 +1659,9 @@ export type Database = {
           slug?: string
           takeaway_fee?: number
           tax_id?: string | null
+          terms_accepted_at?: string | null
+          terms_accepted_by?: string | null
+          terms_version?: string | null
           timezone?: string
           updated_at?: string
         }
@@ -2717,6 +2726,9 @@ export type Database = {
           slug: string
           takeaway_fee: number
           tax_id: string | null
+          terms_accepted_at: string | null
+          terms_accepted_by: string | null
+          terms_version: string | null
           timezone: string
           updated_at: string
         }

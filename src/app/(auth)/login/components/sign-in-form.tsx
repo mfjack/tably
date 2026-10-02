@@ -13,6 +13,7 @@ import { AuthSubmitButton } from "@/features/auth/components/auth-submit-button"
 import { GoogleSignIn } from "@/features/auth/components/google-sign-in";
 import { useSignInMutation } from "@/features/auth/hooks/use-sign-in-mutation";
 import { type SignInInput, signInSchema } from "@/features/auth/schemas";
+import { LegalNotice } from "@/features/legal/components/legal-notice";
 import { ROUTES } from "@/lib/routes";
 import { getSafeRedirectPath } from "@/lib/safe-redirect";
 
@@ -75,11 +76,14 @@ export function SignInForm({ nextPath, initialErrorMessage }: SignInFormProps) {
         </FieldGroup>
       </form>
 
-      <AuthFooterLink
-        question="Ainda não tem conta?"
-        href={ROUTES.signUp}
-        linkLabel="Criar conta"
-      />
+      <div className="flex flex-col items-center gap-3">
+        <AuthFooterLink
+          question="Ainda não tem conta?"
+          href={ROUTES.signUp}
+          linkLabel="Criar conta"
+        />
+        <LegalNotice actionLabel="Ao continuar" />
+      </div>
     </div>
   );
 }
