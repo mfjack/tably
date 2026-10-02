@@ -1,5 +1,3 @@
-"use client";
-
 import type { CategoryId } from "@/features/categories/types";
 import { cn } from "@/lib/utils";
 

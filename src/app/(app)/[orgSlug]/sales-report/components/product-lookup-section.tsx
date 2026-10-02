@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { getCostShare } from "@/features/sales-report/report-metrics";
 import type { SalesReport } from "@/features/sales-report/types";

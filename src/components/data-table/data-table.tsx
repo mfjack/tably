@@ -1,5 +1,3 @@
-"use client";
-
 import type { RowData } from "@tanstack/react-table";
 import { Search } from "lucide-react";
 import type { ReactNode } from "react";

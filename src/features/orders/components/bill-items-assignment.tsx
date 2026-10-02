@@ -1,5 +1,3 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format";
 import type { BillUnit, UnitAssignments } from "../split-bill";

@@ -1,5 +1,3 @@
-"use client";
-
 import { format } from "date-fns";
 import { Ban, ClipboardPlus, CreditCard, Printer } from "lucide-react";
 import { DetailsDialog } from "@/components/dialog/details-dialog";

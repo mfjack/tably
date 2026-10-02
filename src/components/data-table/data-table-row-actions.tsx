@@ -1,5 +1,3 @@
-"use client";
-
 import { Pencil, Trash2 } from "lucide-react";
 import type { ReactNode } from "react";
 import { DataTableRowActionButton } from "./data-table-row-action-button";

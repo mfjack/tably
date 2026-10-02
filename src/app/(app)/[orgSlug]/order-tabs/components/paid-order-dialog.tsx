@@ -1,5 +1,3 @@
-"use client";
-
 import { format } from "date-fns";
 import { Printer } from "lucide-react";
 import { DetailsDialog } from "@/components/dialog/details-dialog";

@@ -1,5 +1,3 @@
-"use client";
-
 import { Check } from "lucide-react";
 import { FieldError, FieldLegend, FieldSet } from "@/components/ui/field";
 import { APP_MODULES, SETTINGS_PAGE } from "@/features/modules/app-modules";

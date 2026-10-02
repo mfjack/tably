@@ -1,5 +1,3 @@
-"use client";
-
 import { ShoppingBag } from "lucide-react";
 import Image from "next/image";
 import { memo } from "react";
