@@ -37,8 +37,7 @@ export function LandingPricing() {
             seu momento e mude quando quiser.
           </p>
         </div>
-        <div
-          role="radiogroup"
+        <fieldset
           aria-label="Forma de cobrança"
           className="flex self-start rounded-full border bg-muted p-1 md:self-auto"
         >
@@ -48,8 +47,7 @@ export function LandingPricing() {
               <button
                 key={option.id}
                 type="button"
-                role="radio"
-                aria-checked={isActive}
+                aria-pressed={isActive}
                 className={cn(
                   "flex h-9 items-center gap-1.5 rounded-full px-4 font-medium text-sm transition-colors",
                   isActive
@@ -67,7 +65,7 @@ export function LandingPricing() {
               </button>
             );
           })}
-        </div>
+        </fieldset>
       </div>
       <ul className="grid gap-4 lg:grid-cols-3">
         {LANDING_PLANS.map((plan) => (
