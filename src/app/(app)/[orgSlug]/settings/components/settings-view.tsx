@@ -1,5 +1,3 @@
-"use client";
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { CurrentUser } from "@/features/auth/types";
 import { APP_MODULES } from "@/features/modules/app-modules";
