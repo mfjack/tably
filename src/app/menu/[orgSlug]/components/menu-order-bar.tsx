@@ -1,40 +1,27 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
 import { ReceiptText, ShoppingBag } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { TextField } from "@/components/form/text-field";
-import { Button } from "@/components/ui/button";
-import { FieldGroup } from "@/components/ui/field";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { useEffect, useState } from "react";
 import type { PublicMenuItem } from "@/features/menu/types";
-import { usePlaceOnlineOrderMutation } from "@/features/online-orders/hooks/use-place-online-order-mutation";
 import {
   useHydratedMenuCartStore,
   useLatestRecentOrder,
   useMenuCartItems,
-  useMenuCartStore,
 } from "@/features/online-orders/menu-cart-store";
-import { ONLINE_ORDER_NAME_IN_USE_MESSAGE } from "@/features/online-orders/messages";
-import {
-  type OnlineOrderCustomerInput,
-  onlineOrderCustomerSchema,
-} from "@/features/online-orders/schemas";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { MenuCartItemCard, type MenuCartLine } from "./menu-cart-item-card";
-import { MenuItemNoteDialog } from "./menu-item-note-dialog";
+import type { MenuCartLine } from "./menu-cart-item-card";
+import { buildOrderPath } from "./menu-order-path";
+
+function loadMenuOrderSheet() {
+  return import("./menu-order-sheet");
+}
+
+const MenuOrderSheet = dynamic(() =>
+  loadMenuOrderSheet().then((module) => module.MenuOrderSheet),
+);
 
 type MenuOrderBarProps = {
   menuSlug: string;
@@ -43,37 +30,17 @@ type MenuOrderBarProps = {
   className?: string;
 };
 
-function buildOrderPath(menuSlug: string, onlineOrderId: string) {
-  return `/menu/${menuSlug}/orders/${onlineOrderId}`;
-}
-
 export function MenuOrderBar({
   menuSlug,
   acceptsOrders,
   items,
   className,
 }: MenuOrderBarProps) {
-  const router = useRouter();
   const isHydrated = useHydratedMenuCartStore();
   const cartItems = useMenuCartItems(menuSlug);
   const latestOrder = useLatestRecentOrder(menuSlug);
-  const savedCustomerName = useMenuCartStore((state) => state.customerName);
-  const decrementItem = useMenuCartStore((state) => state.decrementItem);
-  const setItemNote = useMenuCartStore((state) => state.setItemNote);
-  const clearCart = useMenuCartStore((state) => state.clearCart);
-  const setCustomerName = useMenuCartStore((state) => state.setCustomerName);
-  const addRecentOrder = useMenuCartStore((state) => state.addRecentOrder);
-  const getDeviceId = useMenuCartStore((state) => state.getDeviceId);
-  const placeOnlineOrderMutation = usePlaceOnlineOrderMutation(menuSlug);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
-  const [noteCartLine, setNoteCartLine] = useState<MenuCartLine | null>(null);
-
-  const form = useForm<OnlineOrderCustomerInput>({
-    resolver: zodResolver(onlineOrderCustomerSchema),
-    values: { customerName: savedCustomerName },
-    resetOptions: { keepDirtyValues: true },
-  });
+  const [hasOpenedSheet, setHasOpenedSheet] = useState(false);
 
   const itemsById = new Map(items.map((item) => [item.id, item]));
   const cartLines: MenuCartLine[] = (isHydrated ? cartItems : []).flatMap(
@@ -97,42 +64,14 @@ export function MenuOrderBar({
   const total = cartLines.reduce((sum, line) => sum + line.total, 0);
   const hasCartItems = acceptsOrders && cartLines.length > 0;
 
-  const handleSubmit = form.handleSubmit((values) => {
-    const onlineOrderId = pendingOrderId ?? crypto.randomUUID();
-    setPendingOrderId(onlineOrderId);
+  useEffect(() => {
+    if (hasCartItems) void loadMenuOrderSheet();
+  }, [hasCartItems]);
 
-    placeOnlineOrderMutation.mutate(
-      {
-        ...values,
-        onlineOrderId,
-        deviceId: getDeviceId(),
-        items: cartLines.map((line) => ({
-          productId: line.productId,
-          quantity: line.quantity,
-          note: line.note,
-        })),
-      },
-      {
-        onSuccess: (placedOrderId) => {
-          setCustomerName(values.customerName);
-          addRecentOrder(menuSlug, placedOrderId);
-          clearCart(menuSlug);
-          setPendingOrderId(null);
-          setIsSheetOpen(false);
-          router.push(buildOrderPath(menuSlug, placedOrderId));
-        },
-        onError: (error) => {
-          if (error.message === ONLINE_ORDER_NAME_IN_USE_MESSAGE) {
-            setPendingOrderId(null);
-            form.setError("customerName", { message: error.message });
-            form.setFocus("customerName");
-            return;
-          }
-          toast.error(error.message);
-        },
-      },
-    );
-  });
+  function openSheet() {
+    setHasOpenedSheet(true);
+    setIsSheetOpen(true);
+  }
 
   if (!hasCartItems && !latestOrder) return null;
 
@@ -158,7 +97,7 @@ export function MenuOrderBar({
             <button
               type="button"
               className="flex h-14 items-center justify-between gap-3 rounded-full bg-primary px-6 font-semibold text-primary-foreground shadow-lg"
-              onClick={() => setIsSheetOpen(true)}
+              onClick={openSheet}
             >
               <span className="flex items-center gap-2">
                 <ShoppingBag className="size-5" aria-hidden />
@@ -170,74 +109,15 @@ export function MenuOrderBar({
         </div>
       </div>
 
-      <Sheet open={isSheetOpen && hasCartItems} onOpenChange={setIsSheetOpen}>
-        <SheetContent
-          side="bottom"
-          className="mx-auto max-h-[90svh] w-full max-w-2xl overflow-y-auto rounded-t-3xl"
-        >
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <SheetHeader>
-              <SheetTitle>Seu pedido</SheetTitle>
-              <SheetDescription>
-                Para comer aqui. O pagamento é feito no balcão.
-              </SheetDescription>
-            </SheetHeader>
-
-            <ul className="flex flex-col gap-3 px-4">
-              {cartLines.map((line) => (
-                <MenuCartItemCard
-                  key={`${line.productId}:${line.note}`}
-                  cartLine={line}
-                  onDecrement={(cartLine) =>
-                    decrementItem(menuSlug, cartLine.productId, cartLine.note)
-                  }
-                  onEditNote={setNoteCartLine}
-                />
-              ))}
-            </ul>
-
-            <FieldGroup className="px-4">
-              <TextField
-                control={form.control}
-                name="customerName"
-                label="Seu nome"
-                placeholder="Ex.: Ana"
-                autoComplete="given-name"
-                description="É por ele que vamos chamar você quando o pedido ficar pronto."
-              />
-            </FieldGroup>
-
-            <SheetFooter>
-              <Button
-                type="submit"
-                size="lg"
-                className="h-12 w-full justify-between"
-                disabled={placeOnlineOrderMutation.isPending}
-              >
-                <span>
-                  {placeOnlineOrderMutation.isPending
-                    ? "Enviando..."
-                    : "Enviar pedido"}
-                </span>
-                <span className="tabular-nums">{formatCurrency(total)}</span>
-              </Button>
-            </SheetFooter>
-          </form>
-        </SheetContent>
-      </Sheet>
-      <MenuItemNoteDialog
-        cartLine={noteCartLine}
-        onClose={() => setNoteCartLine(null)}
-        onSave={(cartLine, note, quantityToMove) =>
-          setItemNote(
-            menuSlug,
-            cartLine.productId,
-            cartLine.note,
-            note,
-            quantityToMove,
-          )
-        }
-      />
+      {hasOpenedSheet && (
+        <MenuOrderSheet
+          menuSlug={menuSlug}
+          cartLines={cartLines}
+          total={total}
+          isOpen={isSheetOpen && hasCartItems}
+          onOpenChange={setIsSheetOpen}
+        />
+      )}
     </>
   );
 }
