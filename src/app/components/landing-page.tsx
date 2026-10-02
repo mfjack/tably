@@ -230,9 +230,7 @@ export function LandingPage() {
                 Pronto para organizar o seu negócio?
               </h2>
               <p className="text-primary-foreground/80">
-                Planos a partir de{" "}
-                {formatPlanPrice(LANDING_PLANS[0].monthlyPrice)}
-                por mês.
+                {`Planos a partir de ${formatPlanPrice(LANDING_PLANS[0].monthlyPrice)}/mês.`}
               </p>
             </div>
             <Button
