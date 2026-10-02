@@ -10,10 +10,12 @@ import { NumberField } from "@/components/form/number-field";
 import { TextField } from "@/components/form/text-field";
 import { FieldGroup } from "@/components/ui/field";
 import { useRecordSubscriptionPaymentMutation } from "@/features/subscriptions/hooks/use-record-subscription-payment-mutation";
+import { BILLING_CYCLE_MONTHS } from "@/features/subscriptions/plans";
 import {
   type SubscriptionPaymentInput,
   subscriptionPaymentSchema,
 } from "@/features/subscriptions/schemas";
+import { getSubscriptionChargeAmount } from "@/features/subscriptions/subscription-state";
 import type { AdminSubscription } from "@/features/subscriptions/types";
 
 const EMPTY_PAYMENT_FORM: DefaultValues<SubscriptionPaymentInput> = {
@@ -77,7 +79,7 @@ export function RecordPaymentDialog({
           format="currency"
           placeholder={
             subscription
-              ? `Ex.: $ ${subscription.monthlyPrice.toFixed(2).replace(".", ",")}`
+              ? `Ex.: $ ${getSubscriptionChargeAmount(subscription).toFixed(2).replace(".", ",")}`
               : undefined
           }
         />
@@ -86,7 +88,7 @@ export function RecordPaymentDialog({
           name="months"
           label="Meses pagos"
           format="integer"
-          placeholder="Ex.: 1"
+          placeholder={`Ex.: ${subscription ? BILLING_CYCLE_MONTHS[subscription.billingCycle] : 1}`}
         />
         <TextField
           control={form.control}

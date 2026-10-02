@@ -2138,6 +2138,7 @@ export type Database = {
       }
       subscriptions: {
         Row: {
+          billing_cycle: Database["public"]["Enums"]["billing_cycle"]
           created_at: string
           has_full_access: boolean
           monthly_price: number
@@ -2148,8 +2149,10 @@ export type Database = {
           plan: Database["public"]["Enums"]["subscription_plan"]
           trial_ends_at: string
           updated_at: string
+          yearly_price: number
         }
         Insert: {
+          billing_cycle?: Database["public"]["Enums"]["billing_cycle"]
           created_at?: string
           has_full_access?: boolean
           monthly_price: number
@@ -2160,8 +2163,10 @@ export type Database = {
           plan?: Database["public"]["Enums"]["subscription_plan"]
           trial_ends_at: string
           updated_at?: string
+          yearly_price?: number
         }
         Update: {
+          billing_cycle?: Database["public"]["Enums"]["billing_cycle"]
           created_at?: string
           has_full_access?: boolean
           monthly_price?: number
@@ -2172,6 +2177,7 @@ export type Database = {
           plan?: Database["public"]["Enums"]["subscription_plan"]
           trial_ends_at?: string
           updated_at?: string
+          yearly_price?: number
         }
         Relationships: [
           {
@@ -2701,6 +2707,18 @@ export type Database = {
       admin_update_subscription:
         | {
             Args: {
+              p_billing_cycle: Database["public"]["Enums"]["billing_cycle"]
+              p_monthly_price: number
+              p_notes: string
+              p_organization_id: string
+              p_plan: Database["public"]["Enums"]["subscription_plan"]
+              p_trial_ends_at: string
+              p_yearly_price: number
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
               p_has_full_access: boolean
               p_monthly_price: number
               p_notes: string
@@ -2781,6 +2799,13 @@ export type Database = {
           p_account_id: string
           p_amount: number
           p_order_id: string
+          p_organization_id: string
+        }
+        Returns: undefined
+      }
+      choose_billing_cycle: {
+        Args: {
+          p_billing_cycle: Database["public"]["Enums"]["billing_cycle"]
           p_organization_id: string
         }
         Returns: undefined
@@ -2887,6 +2912,10 @@ export type Database = {
         Returns: string
       }
       default_plan_price: {
+        Args: { p_plan: Database["public"]["Enums"]["subscription_plan"] }
+        Returns: number
+      }
+      default_plan_yearly_price: {
         Args: { p_plan: Database["public"]["Enums"]["subscription_plan"] }
         Returns: number
       }
@@ -3279,6 +3308,7 @@ export type Database = {
         | "payroll"
         | "finance"
         | "dashboard"
+      billing_cycle: "monthly" | "yearly"
       cash_movement_kind: "withdrawal" | "supply"
       employment_type: "clt" | "apprentice" | "intern"
       financial_account_kind:
@@ -3486,6 +3516,7 @@ export const Constants = {
         "finance",
         "dashboard",
       ],
+      billing_cycle: ["monthly", "yearly"],
       cash_movement_kind: ["withdrawal", "supply"],
       employment_type: ["clt", "apprentice", "intern"],
       financial_account_kind: [

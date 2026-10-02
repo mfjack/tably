@@ -9,6 +9,9 @@ import {
 } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
 import {
+  BILLING_CYCLES,
+  type BillingCycle,
+  isBillingCycle,
   isSubscriptionPlan,
   SUBSCRIPTION_PLANS,
   type SubscriptionPlan,
@@ -31,7 +34,9 @@ const adminSubscriptionRowSchema = z.object({
   createdAt: z.string(),
   ownerEmail: z.string().nullable(),
   plan: z.enum(SUBSCRIPTION_PLANS),
+  billingCycle: z.enum(BILLING_CYCLES),
   monthlyPrice: z.number(),
+  yearlyPrice: z.number(),
   trialEndsAt: z.string(),
   paidUntil: z.string().nullable(),
   paymentReportedAt: z.string().nullable(),
@@ -69,6 +74,28 @@ export async function chooseSubscriptionPlan(
       isPermissionError(error)
         ? "Só o dono do estabelecimento pode trocar o plano."
         : "Não foi possível trocar o plano.",
+    );
+  }
+  return actionSuccess();
+}
+
+export async function chooseBillingCycle(
+  organizationId: OrganizationId,
+  billingCycle: BillingCycle,
+): Promise<ActionResult> {
+  if (!isBillingCycle(billingCycle)) return actionFailure(INVALID_FORM_MESSAGE);
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("choose_billing_cycle", {
+    p_organization_id: organizationId,
+    p_billing_cycle: billingCycle,
+  });
+
+  if (error) {
+    return actionFailure(
+      isPermissionError(error)
+        ? "Só o dono do estabelecimento pode trocar a forma de cobrança."
+        : "Não foi possível trocar a forma de cobrança.",
     );
   }
   return actionSuccess();
@@ -124,12 +151,15 @@ export async function updateAdminSubscription(
   const parsedInput = adminSubscriptionSchema.safeParse(input);
   if (!parsedInput.success) return actionFailure(INVALID_FORM_MESSAGE);
 
-  const { plan, monthlyPrice, trialEndsAt, notes } = parsedInput.data;
+  const { plan, billingCycle, monthlyPrice, yearlyPrice, trialEndsAt, notes } =
+    parsedInput.data;
   const supabase = await createClient();
   const { error } = await supabase.rpc("admin_update_subscription", {
     p_organization_id: organizationId,
     p_plan: plan,
+    p_billing_cycle: billingCycle,
     p_monthly_price: monthlyPrice,
+    p_yearly_price: yearlyPrice,
     p_trial_ends_at: `${trialEndsAt}T23:59:59-03:00`,
     p_notes: notes,
   });

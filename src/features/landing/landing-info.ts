@@ -5,6 +5,7 @@ export const LANDING_INFO = {
 export type LandingPlan = {
   name: string;
   monthlyPrice: number;
+  yearlyPrice: number;
   description: string;
   features: readonly string[];
   isHighlighted: boolean;
@@ -12,9 +13,10 @@ export type LandingPlan = {
 
 export const LANDING_PLANS = [
   {
-    name: "Essencial",
+    name: "Balcão",
     monthlyPrice: 49,
-    description: "Para lanchonetes e operações de balcão.",
+    yearlyPrice: 490,
+    description: "Para cafeterias, lanchonetes e operações de balcão.",
     features: [
       "PDV que funciona sem internet",
       "Desconto, taxa de serviço e dividir conta",
@@ -29,9 +31,10 @@ export const LANDING_PLANS = [
   {
     name: "Gestão",
     monthlyPrice: 99,
+    yearlyPrice: 990,
     description: "Para quem quer controlar custos e lucro.",
     features: [
-      "Tudo do Essencial",
+      "Tudo do plano Balcão",
       "Estoque e ficha técnica dos produtos",
       "Fornecedores e compras",
       "Financeiro: contas a pagar e receber",
@@ -41,11 +44,12 @@ export const LANDING_PLANS = [
     isHighlighted: true,
   },
   {
-    name: "Completo",
+    name: "Equipe",
     monthlyPrice: 149,
+    yearlyPrice: 1490,
     description: "Para quem tem equipe e quer tudo em um lugar.",
     features: [
-      "Tudo do Gestão",
+      "Tudo do plano Gestão",
       "Funcionários, ponto e escalas",
       "Estimativa de folha, férias e 13º",
       "Operadores ilimitados",
@@ -54,8 +58,12 @@ export const LANDING_PLANS = [
   },
 ] as const satisfies readonly LandingPlan[];
 
-export function formatPlanPrice(monthlyPrice: number) {
-  return `R$ ${monthlyPrice}`;
+export function formatPlanPrice(price: number) {
+  return `R$ ${price.toLocaleString("pt-BR")}`;
+}
+
+export function formatMonthlyEquivalent(yearlyPrice: number) {
+  return `R$ ${(yearlyPrice / 12).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 export function buildWhatsAppUrl(phoneNumber: string, message: string) {

@@ -1,5 +1,5 @@
 import type { OrganizationId } from "@/features/organizations/types";
-import type { SubscriptionPlan } from "./plans";
+import type { BillingCycle, SubscriptionPlan } from "./plans";
 
 export type SubscriptionPaymentRecord = {
   id: string;
@@ -17,7 +17,9 @@ export type AdminSubscription = {
   createdAt: string;
   ownerEmail: string | null;
   plan: SubscriptionPlan;
+  billingCycle: BillingCycle;
   monthlyPrice: number;
+  yearlyPrice: number;
   trialEndsAt: string;
   paidUntil: string | null;
   paymentReportedAt: string | null;

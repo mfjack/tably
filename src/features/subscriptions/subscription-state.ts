@@ -1,14 +1,23 @@
 import type { AppModuleId } from "@/features/organizations/types";
-import { PLAN_DETAILS, type SubscriptionPlan } from "./plans";
+import {
+  type BillingCycle,
+  PLAN_DETAILS,
+  type SubscriptionPlan,
+} from "./plans";
 
 export const GRACE_PERIOD_IN_DAYS = 3;
-export const EXPIRING_SOON_IN_DAYS = 3;
+const EXPIRING_SOON_IN_DAYS = {
+  monthly: 3,
+  yearly: 7,
+} as const satisfies Record<BillingCycle, number>;
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
 export type Subscription = {
   plan: SubscriptionPlan;
+  billingCycle: BillingCycle;
   monthlyPrice: number;
+  yearlyPrice: number;
   trialEndsAt: string;
   paidUntil: string | null;
   paymentReportedAt: string | null;
@@ -25,6 +34,7 @@ export type SubscriptionState = {
   status: SubscriptionStatus;
   accessUntil: Date;
   daysLeft: number;
+  chargeAmount: number;
   isPaymentReported: boolean;
   isExpiringSoon: boolean;
   hasAllModules: boolean;
@@ -42,7 +52,8 @@ export function getSubscriptionState(
     paidUntil && paidUntil > trialEndsAt ? paidUntil : trialEndsAt;
   const isPaid = paidUntil !== null && now <= paidUntil;
   const isTrial = !isPaid && now <= trialEndsAt;
-  const isCourtesy = subscription.monthlyPrice <= 0;
+  const chargeAmount = getSubscriptionChargeAmount(subscription);
+  const isCourtesy = chargeAmount <= 0;
   const graceEndsAt = new Date(
     accessUntil.getTime() + GRACE_PERIOD_IN_DAYS * DAY_IN_MS,
   );
@@ -64,14 +75,26 @@ export function getSubscriptionState(
     status,
     accessUntil,
     daysLeft,
+    chargeAmount,
     isPaymentReported: subscription.paymentReportedAt !== null,
     isExpiringSoon:
       status === "grace" ||
       (!isCourtesy &&
         (status === "trial" || status === "active") &&
-        daysLeft <= EXPIRING_SOON_IN_DAYS),
+        daysLeft <= EXPIRING_SOON_IN_DAYS[subscription.billingCycle]),
     hasAllModules: status === "trial",
   };
+}
+
+export function getSubscriptionChargeAmount(
+  subscription: Pick<
+    Subscription,
+    "billingCycle" | "monthlyPrice" | "yearlyPrice"
+  >,
+): number {
+  return subscription.billingCycle === "yearly"
+    ? subscription.yearlyPrice
+    : subscription.monthlyPrice;
 }
 
 export function getPlanHiddenModules(

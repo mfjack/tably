@@ -4,10 +4,16 @@ import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { UserOrganization } from "@/features/organizations/types";
 import { PixPaymentCard } from "@/features/subscriptions/components/pix-payment-card";
+import { useChooseBillingCycleMutation } from "@/features/subscriptions/hooks/use-choose-billing-cycle-mutation";
 import { useChooseSubscriptionPlanMutation } from "@/features/subscriptions/hooks/use-choose-subscription-plan-mutation";
 import {
+  BILLING_CYCLE_LABELS,
+  BILLING_CYCLES,
+  type BillingCycle,
+  isBillingCycle,
   PLAN_DETAILS,
   SUBSCRIPTION_PLANS,
   type SubscriptionPlan,
@@ -32,9 +38,23 @@ export function SubscriptionSettings({
   subscription,
 }: SubscriptionSettingsProps) {
   const choosePlanMutation = useChooseSubscriptionPlanMutation(organization.id);
+  const chooseCycleMutation = useChooseBillingCycleMutation(organization.id);
+  const isYearly = subscription.billingCycle === "yearly";
   const state = getSubscriptionState(subscription);
   const isOwner = organization.role === "owner";
   const planDetails = PLAN_DETAILS[subscription.plan];
+
+  function chooseCycle(billingCycle: BillingCycle) {
+    chooseCycleMutation.mutate(billingCycle, {
+      onSuccess: () =>
+        toast.success(
+          billingCycle === "yearly"
+            ? "Cobrança anual escolhida."
+            : "Cobrança mensal escolhida.",
+        ),
+      onError: (error) => toast.error(error.message),
+    });
+  }
 
   function choosePlan(plan: SubscriptionPlan) {
     choosePlanMutation.mutate(plan, {
@@ -73,7 +93,37 @@ export function SubscriptionSettings({
       </section>
 
       <section className="flex flex-col gap-3">
-        <h3 className="font-semibold">Escolha o plano</h3>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h3 className="font-semibold">Escolha o plano</h3>
+          <Tabs
+            value={subscription.billingCycle}
+            onValueChange={(value: string) => {
+              if (
+                isOwner &&
+                isBillingCycle(value) &&
+                value !== subscription.billingCycle
+              ) {
+                chooseCycle(value);
+              }
+            }}
+          >
+            <TabsList className="group-data-horizontal/tabs:h-10">
+              {BILLING_CYCLES.map((cycle) => (
+                <TabsTrigger
+                  key={cycle}
+                  value={cycle}
+                  disabled={!isOwner || chooseCycleMutation.isPending}
+                  className="px-4"
+                >
+                  {BILLING_CYCLE_LABELS[cycle]}
+                  {cycle === "yearly" && (
+                    <span className="text-primary text-xs">2 meses grátis</span>
+                  )}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        </div>
         <ul className="grid gap-3 md:grid-cols-3">
           {SUBSCRIPTION_PLANS.map((plan) => {
             const details = PLAN_DETAILS[plan];
@@ -91,9 +141,13 @@ export function SubscriptionSettings({
                   {isCurrent && <Badge>Atual</Badge>}
                 </div>
                 <span className="font-bold text-2xl">
-                  R$ {details.price}
+                  R${" "}
+                  {(isYearly
+                    ? details.yearlyPrice
+                    : details.price
+                  ).toLocaleString("pt-BR")}
                   <span className="font-normal text-muted-foreground text-sm">
-                    /mês
+                    {isYearly ? "/ano" : "/mês"}
                   </span>
                 </span>
                 {isCurrent ? (
@@ -123,18 +177,18 @@ export function SubscriptionSettings({
         )}
       </section>
 
-      {subscription.monthlyPrice > 0 && (
+      {state.chargeAmount > 0 && (
         <section className="flex flex-col gap-3">
           <h3 className="font-semibold">Pagamento</h3>
           <PixPaymentCard
             organizationId={organization.id}
             reference={organization.slug}
-            amount={subscription.monthlyPrice}
+            amount={state.chargeAmount}
             isPaymentReported={state.isPaymentReported}
           />
           <p className="text-muted-foreground text-sm">
-            Depois que confirmarmos o Pix, sua assinatura é renovada por mais um
-            mês.
+            Depois que confirmarmos o Pix, sua assinatura é renovada por mais{" "}
+            {isYearly ? "um ano" : "um mês"}.
           </p>
         </section>
       )}

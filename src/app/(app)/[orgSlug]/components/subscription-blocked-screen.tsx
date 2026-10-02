@@ -51,7 +51,7 @@ export function SubscriptionBlockedScreen({
             <PixPaymentCard
               organizationId={organization.id}
               reference={organization.slug}
-              amount={subscription.monthlyPrice}
+              amount={state.chargeAmount}
               isPaymentReported={state.isPaymentReported}
             />
             <p className="text-muted-foreground text-sm">

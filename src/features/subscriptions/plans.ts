@@ -3,6 +3,25 @@ import type { Database } from "@/lib/supabase/database.types";
 
 export type SubscriptionPlan = Database["public"]["Enums"]["subscription_plan"];
 
+export type BillingCycle = Database["public"]["Enums"]["billing_cycle"];
+
+export const BILLING_CYCLES = [
+  "monthly",
+  "yearly",
+] as const satisfies readonly BillingCycle[];
+
+export const BILLING_CYCLE_LABELS = {
+  monthly: "Mensal",
+  yearly: "Anual",
+} as const satisfies Record<BillingCycle, string>;
+
+export const BILLING_CYCLE_MONTHS = {
+  monthly: 1,
+  yearly: 12,
+} as const satisfies Record<BillingCycle, number>;
+
+export const YEARLY_PRICE_MONTHS = 10;
+
 export const SUBSCRIPTION_PLANS = [
   "essential",
   "management",
@@ -36,24 +55,36 @@ const COMPLETE_MODULES = [
 
 export const PLAN_DETAILS = {
   essential: {
-    label: "Essencial",
+    label: "Balcão",
     price: 49,
+    yearlyPrice: 490,
     modules: ESSENTIAL_MODULES,
   },
   management: {
     label: "Gestão",
     price: 99,
+    yearlyPrice: 990,
     modules: MANAGEMENT_MODULES,
   },
   complete: {
-    label: "Completo",
+    label: "Equipe",
     price: 149,
+    yearlyPrice: 1490,
     modules: COMPLETE_MODULES,
   },
 } as const satisfies Record<
   SubscriptionPlan,
-  { label: string; price: number; modules: readonly AppModuleId[] }
+  {
+    label: string;
+    price: number;
+    yearlyPrice: number;
+    modules: readonly AppModuleId[];
+  }
 >;
+
+export function isBillingCycle(value: string): value is BillingCycle {
+  return BILLING_CYCLES.some((cycle) => cycle === value);
+}
 
 export function isSubscriptionPlan(value: string): value is SubscriptionPlan {
   return SUBSCRIPTION_PLANS.some((plan) => plan === value);

@@ -1,10 +1,14 @@
 import { z } from "zod";
-import { SUBSCRIPTION_PLANS } from "./plans";
+import { BILLING_CYCLES, SUBSCRIPTION_PLANS } from "./plans";
 
 export const adminSubscriptionSchema = z.object({
   plan: z.enum(SUBSCRIPTION_PLANS),
+  billingCycle: z.enum(BILLING_CYCLES),
   monthlyPrice: z
     .number({ error: "Informe o valor mensal." })
+    .min(0, "Não pode ser negativo."),
+  yearlyPrice: z
+    .number({ error: "Informe o valor anual." })
     .min(0, "Não pode ser negativo."),
   trialEndsAt: z.iso.date({ error: "Informe a data." }),
   notes: z.string().trim().max(1000, "Anotação muito longa."),

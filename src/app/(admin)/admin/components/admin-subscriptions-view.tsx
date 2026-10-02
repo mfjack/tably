@@ -5,7 +5,10 @@ import { BellRing, Pencil, Wallet } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PLAN_DETAILS } from "@/features/subscriptions/plans";
+import {
+  BILLING_CYCLE_MONTHS,
+  PLAN_DETAILS,
+} from "@/features/subscriptions/plans";
 import {
   getSubscriptionStatusDescription,
   SUBSCRIPTION_STATUS_LABELS,
@@ -56,7 +59,13 @@ export function AdminSubscriptionsView({
     rows.filter((row) => row.state.status === status).length;
   const monthlyRevenue = rows
     .filter((row) => row.state.status === "active")
-    .reduce((total, row) => total + row.subscription.monthlyPrice, 0);
+    .reduce(
+      (total, row) =>
+        total +
+        row.state.chargeAmount /
+          BILLING_CYCLE_MONTHS[row.subscription.billingCycle],
+      0,
+    );
   const summary = [
     { label: "Pagantes", value: String(countByStatus("active")) },
     { label: "Em teste", value: String(countByStatus("trial")) },
@@ -125,7 +134,8 @@ export function AdminSubscriptionsView({
                   {PLAN_DETAILS[subscription.plan].label}
                 </span>
                 <span className="text-muted-foreground text-sm tabular-nums">
-                  {formatMoney(subscription.monthlyPrice)}/mês
+                  {formatMoney(state.chargeAmount)}
+                  {subscription.billingCycle === "yearly" ? "/ano" : "/mês"}
                 </span>
                 {subscription.payments.length > 0 && (
                   <span className="text-muted-foreground text-xs">

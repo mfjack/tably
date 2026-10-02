@@ -13,6 +13,8 @@ import { TextareaField } from "@/components/form/textarea-field";
 import { FieldGroup } from "@/components/ui/field";
 import { useUpdateAdminSubscriptionMutation } from "@/features/subscriptions/hooks/use-update-admin-subscription-mutation";
 import {
+  BILLING_CYCLE_LABELS,
+  BILLING_CYCLES,
   PLAN_DETAILS,
   SUBSCRIPTION_PLANS,
 } from "@/features/subscriptions/plans";
@@ -21,6 +23,11 @@ import {
   adminSubscriptionSchema,
 } from "@/features/subscriptions/schemas";
 import type { AdminSubscription } from "@/features/subscriptions/types";
+
+const BILLING_CYCLE_OPTIONS = BILLING_CYCLES.map((cycle) => ({
+  value: cycle,
+  label: BILLING_CYCLE_LABELS[cycle],
+}));
 
 const PLAN_OPTIONS = SUBSCRIPTION_PLANS.map((plan) => ({
   value: plan,
@@ -35,7 +42,9 @@ type AdminSubscriptionDialogProps = {
 function toFormValues(subscription: AdminSubscription): AdminSubscriptionInput {
   return {
     plan: subscription.plan,
+    billingCycle: subscription.billingCycle,
     monthlyPrice: subscription.monthlyPrice,
+    yearlyPrice: subscription.yearlyPrice,
     trialEndsAt: format(new Date(subscription.trialEndsAt), "yyyy-MM-dd"),
     notes: subscription.notes ?? "",
   };
@@ -84,13 +93,27 @@ export function AdminSubscriptionDialog({
           label="Plano"
           options={PLAN_OPTIONS}
         />
+        <SelectField
+          control={form.control}
+          name="billingCycle"
+          label="Cobrança"
+          options={BILLING_CYCLE_OPTIONS}
+        />
         <NumberField
           control={form.control}
           name="monthlyPrice"
           label="Valor mensal"
-          description="Quanto este cliente paga por mês, e o valor do QR Code Pix dele. Pode ser diferente do preço do plano, como um desconto para amigos."
+          description="Quanto este cliente paga por mês, e o valor do QR Code Pix dele. Pode ser diferente do preço do plano, como um desconto para amigos. Com valor zero, é cortesia: sem cobrança e sem bloqueio."
           format="currency"
           placeholder="Ex.: $ 49,00"
+        />
+        <NumberField
+          control={form.control}
+          name="yearlyPrice"
+          label="Valor anual"
+          description="Cobrado quando a cobrança é anual. O padrão é o valor de 10 meses (2 meses grátis)."
+          format="currency"
+          placeholder="Ex.: $ 490,00"
         />
         <TextField
           control={form.control}
@@ -102,7 +125,7 @@ export function AdminSubscriptionDialog({
           control={form.control}
           name="notes"
           label="Anotações"
-          placeholder="Ex.: Amiga, paga o Essencial com tudo liberado"
+          placeholder="Ex.: Amiga, paga R$ 49 no plano Equipe"
         />
       </FieldGroup>
     </FormDialog>
