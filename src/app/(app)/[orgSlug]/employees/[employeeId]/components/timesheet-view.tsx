@@ -35,9 +35,11 @@ import {
   formatMinutes,
   formatMonthLabel,
   formatSignedMinutes,
+  parseMonthKey,
   shiftMonthKey,
 } from "@/features/time-clock/time-utils";
 import type { TimesheetPunch } from "@/features/time-clock/timesheet";
+import { useSearchParamState } from "@/hooks/use-search-param-state";
 import { formatDateKey } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { PageContent } from "../../../components/page-content";
@@ -142,7 +144,11 @@ export function TimesheetView({
   business,
   initialMonthKey,
 }: TimesheetViewProps) {
-  const [monthKey, setMonthKey] = useState(initialMonthKey);
+  const [monthKey, setMonthKey] = useSearchParamState({
+    key: "month",
+    defaultValue: initialMonthKey,
+    parse: parseMonthKey,
+  });
   const timesheetQuery = useTimesheetQuery(
     organizationId,
     employeeId,
@@ -159,6 +165,14 @@ export function TimesheetView({
   const defaultDate = data?.today.startsWith(monthKey)
     ? data.today
     : `${monthKey}-01`;
+
+  function showPreviousMonth() {
+    setMonthKey((currentMonthKey) => shiftMonthKey(currentMonthKey, -1));
+  }
+
+  function showNextMonth() {
+    setMonthKey((currentMonthKey) => shiftMonthKey(currentMonthKey, 1));
+  }
 
   async function handleExport(exportFormat: "pdf" | "csv") {
     if (!data) return;
@@ -213,9 +227,7 @@ export function TimesheetView({
                 variant="ghost"
                 size="icon-sm"
                 aria-label="Mês anterior"
-                onClick={() =>
-                  setMonthKey((current) => shiftMonthKey(current, -1))
-                }
+                onClick={showPreviousMonth}
               >
                 <ChevronLeft aria-hidden />
               </Button>
@@ -226,9 +238,7 @@ export function TimesheetView({
                 variant="ghost"
                 size="icon-sm"
                 aria-label="Próximo mês"
-                onClick={() =>
-                  setMonthKey((current) => shiftMonthKey(current, 1))
-                }
+                onClick={showNextMonth}
               >
                 <ChevronRight aria-hidden />
               </Button>

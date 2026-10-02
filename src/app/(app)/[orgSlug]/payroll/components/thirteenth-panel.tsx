@@ -14,8 +14,15 @@ import { useGenerateThirteenthMutation } from "@/features/payroll/hooks/use-gene
 import { useThirteenthYearQuery } from "@/features/payroll/hooks/use-thirteenth-year-query";
 import type { ThirteenthInstallment } from "@/features/payroll/schemas";
 import type { Payslip, PayslipId } from "@/features/payroll/types";
+import { useSearchParamState } from "@/hooks/use-search-param-state";
 import { formatCurrency } from "@/lib/format";
 import { PayslipDialog } from "./payslip-dialog";
+
+const YEAR_PATTERN = /^d{4}$/;
+
+function parseYear(rawValue: string) {
+  return YEAR_PATTERN.test(rawValue) ? rawValue : null;
+}
 
 type ThirteenthPanelProps = {
   organizationId: OrganizationId;
@@ -62,7 +69,12 @@ export function ThirteenthPanel({
   business,
   initialYear,
 }: ThirteenthPanelProps) {
-  const [year, setYear] = useState(initialYear);
+  const [yearParam, setYearParam] = useSearchParamState({
+    key: "year",
+    defaultValue: String(initialYear),
+    parse: parseYear,
+  });
+  const year = Number(yearParam);
   const yearQuery = useThirteenthYearQuery(organizationId, year);
   const generateMutation = useGenerateThirteenthMutation(organizationId);
   const [selectedPayslipId, setSelectedPayslipId] = useState<PayslipId | null>(
@@ -73,6 +85,18 @@ export function ThirteenthPanel({
     rows
       ?.flatMap((row) => [row.first, row.second])
       .find((payslip) => payslip?.id === selectedPayslipId) ?? null;
+
+  function shiftYear(offset: number) {
+    setYearParam((currentYear) => String(Number(currentYear) + offset));
+  }
+
+  function showPreviousYear() {
+    shiftYear(-1);
+  }
+
+  function showNextYear() {
+    shiftYear(1);
+  }
 
   function generate(installment: ThirteenthInstallment) {
     generateMutation.mutate(
@@ -97,7 +121,7 @@ export function ThirteenthPanel({
             variant="ghost"
             size="icon-sm"
             aria-label="Ano anterior"
-            onClick={() => setYear((currentYear) => currentYear - 1)}
+            onClick={showPreviousYear}
           >
             <ChevronLeft aria-hidden />
           </Button>
@@ -108,7 +132,7 @@ export function ThirteenthPanel({
             variant="ghost"
             size="icon-sm"
             aria-label="Próximo ano"
-            onClick={() => setYear((currentYear) => currentYear + 1)}
+            onClick={showNextYear}
           >
             <ChevronRight aria-hidden />
           </Button>

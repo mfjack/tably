@@ -11,6 +11,10 @@ export function isMonthKey(value: string): boolean {
   return MONTH_KEY_PATTERN.test(value);
 }
 
+export function parseMonthKey(rawValue: string): string | null {
+  return isMonthKey(rawValue) ? rawValue : null;
+}
+
 export function getMonthKey(date: string): string {
   return date.slice(0, 7);
 }

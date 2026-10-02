@@ -25,20 +25,19 @@ import { usePayrollMonthQuery } from "@/features/payroll/hooks/use-payroll-month
 import type { PayrollRow } from "@/features/payroll/types";
 import {
   formatMonthLabel,
+  parseMonthKey,
   shiftMonthKey,
 } from "@/features/time-clock/time-utils";
+import { useSearchParamState } from "@/hooks/use-search-param-state";
 import { formatCurrency } from "@/lib/format";
 import { ListEmptyState } from "../../components/list-empty-state";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
+import { DEFAULT_PAYROLL_TAB, parsePayrollTab } from "../payroll-search-params";
 import { PayrollSettingsDialog } from "./payroll-settings-dialog";
 import { PayslipDialog } from "./payslip-dialog";
 import { ThirteenthPanel } from "./thirteenth-panel";
 import { VacationsPanel } from "./vacations-panel";
-
-const PAYROLL_TABS = ["monthly", "vacations", "thirteenth"] as const;
-
-type PayrollTab = (typeof PAYROLL_TABS)[number];
 
 type PayrollViewProps = {
   organizationId: OrganizationId;
@@ -66,8 +65,16 @@ export function PayrollView({
   initialMonthKey,
   employeesHref,
 }: PayrollViewProps) {
-  const [monthKey, setMonthKey] = useState(initialMonthKey);
-  const [tab, setTab] = useState<PayrollTab>("monthly");
+  const [monthKey, setMonthKey] = useSearchParamState({
+    key: "month",
+    defaultValue: initialMonthKey,
+    parse: parseMonthKey,
+  });
+  const [tab, setTab] = useSearchParamState({
+    key: "tab",
+    defaultValue: DEFAULT_PAYROLL_TAB,
+    parse: parsePayrollTab,
+  });
   const payrollQuery = usePayrollMonthQuery(organizationId, monthKey);
   const generateAllMutation = useGenerateAllPayslipsMutation(organizationId);
   const generateMutation = useGeneratePayslipMutation(organizationId);
@@ -90,6 +97,19 @@ export function PayrollView({
       ),
     [rows],
   );
+
+  function changeTab(value: string) {
+    const nextTab = parsePayrollTab(value);
+    if (nextTab) setTab(nextTab);
+  }
+
+  function showPreviousMonth() {
+    setMonthKey((currentMonthKey) => shiftMonthKey(currentMonthKey, -1));
+  }
+
+  function showNextMonth() {
+    setMonthKey((currentMonthKey) => shiftMonthKey(currentMonthKey, 1));
+  }
 
   function generateAll() {
     generateAllMutation.mutate(monthKey, {
@@ -151,16 +171,7 @@ export function PayrollView({
         }
       />
       <PageContent>
-        <Tabs
-          value={tab}
-          onValueChange={(value: string) => {
-            const nextTab = PAYROLL_TABS.find(
-              (payrollTab) => payrollTab === value,
-            );
-            if (nextTab) setTab(nextTab);
-          }}
-          className="gap-5"
-        >
+        <Tabs value={tab} onValueChange={changeTab} className="gap-5">
           <TabsList className="group-data-horizontal/tabs:h-10">
             <TabsTrigger value="monthly" className="px-3">
               Mensal
@@ -193,9 +204,7 @@ export function PayrollView({
                     variant="ghost"
                     size="icon-sm"
                     aria-label="Mês anterior"
-                    onClick={() =>
-                      setMonthKey((current) => shiftMonthKey(current, -1))
-                    }
+                    onClick={showPreviousMonth}
                   >
                     <ChevronLeft aria-hidden />
                   </Button>
@@ -206,9 +215,7 @@ export function PayrollView({
                     variant="ghost"
                     size="icon-sm"
                     aria-label="Próximo mês"
-                    onClick={() =>
-                      setMonthKey((current) => shiftMonthKey(current, 1))
-                    }
+                    onClick={showNextMonth}
                   >
                     <ChevronRight aria-hidden />
                   </Button>

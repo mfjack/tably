@@ -17,9 +17,12 @@ import type {
   FinancialEntryKind,
 } from "@/features/finance/types";
 import type { OrganizationId } from "@/features/organizations/types";
+import { parseMonthKey } from "@/features/time-clock/time-utils";
+import { useSearchParamState } from "@/hooks/use-search-param-state";
 import { MonthNavigator } from "../../components/month-navigator";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
+import { DEFAULT_FINANCE_TAB, parseFinanceTab } from "../finance-search-params";
 import { AnalysisPanel } from "./analysis-panel";
 import { AutomationDialog } from "./automation-dialog";
 import { CategoriesDialog } from "./categories-dialog";
@@ -28,10 +31,6 @@ import { EntriesPanel } from "./entries-panel";
 import { EntryFormDialog, type EntryFormState } from "./entry-form-dialog";
 import { FinanceOverview } from "./finance-overview";
 import { PayEntryDialog } from "./pay-entry-dialog";
-
-const FINANCE_TABS = ["overview", "payables", "analysis"] as const;
-
-type FinanceTab = (typeof FINANCE_TABS)[number];
 
 type OpenDialog = "none" | "categories" | "automation";
 
@@ -54,8 +53,16 @@ export function FinanceView({
   today,
   initialMonthKey,
 }: FinanceViewProps) {
-  const [tab, setTab] = useState<FinanceTab>("overview");
-  const [monthKey, setMonthKey] = useState(initialMonthKey);
+  const [tab, setTab] = useSearchParamState({
+    key: "tab",
+    defaultValue: DEFAULT_FINANCE_TAB,
+    parse: parseFinanceTab,
+  });
+  const [monthKey, setMonthKey] = useSearchParamState({
+    key: "month",
+    defaultValue: initialMonthKey,
+    parse: parseMonthKey,
+  });
   const [entryFormState, setEntryFormState] = useState<EntryFormState>({
     mode: "closed",
   });
@@ -74,6 +81,11 @@ export function FinanceView({
   const openEditForm = useCallback((entry: FinancialEntry) => {
     setEntryFormState({ mode: "edit", entry });
   }, []);
+
+  function changeTab(value: string) {
+    const nextTab = parseFinanceTab(value);
+    if (nextTab) setTab(nextTab);
+  }
 
   const openPayment = useCallback(
     (entry: FinancialEntry, paymentToday: string) =>
@@ -128,16 +140,7 @@ export function FinanceView({
         }
       />
       <PageContent>
-        <Tabs
-          value={tab}
-          onValueChange={(value: string) => {
-            const nextTab = FINANCE_TABS.find(
-              (financeTab) => financeTab === value,
-            );
-            if (nextTab) setTab(nextTab);
-          }}
-          className="gap-5"
-        >
+        <Tabs value={tab} onValueChange={changeTab} className="gap-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <TabsList className="max-w-full justify-start overflow-x-auto group-data-horizontal/tabs:h-10">
               <TabsTrigger value="overview" className="px-3">

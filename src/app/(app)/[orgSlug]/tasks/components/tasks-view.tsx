@@ -18,6 +18,8 @@ import { useDeleteTaskMutation } from "@/features/tasks/hooks/use-delete-task-mu
 import { useSetTaskDoneMutation } from "@/features/tasks/hooks/use-set-task-done-mutation";
 import { useTaskListsQuery } from "@/features/tasks/hooks/use-task-lists-query";
 import type { Task, TaskBoard, TaskList } from "@/features/tasks/types";
+import { useSearchParamState } from "@/hooks/use-search-param-state";
+import { createOptionParser } from "@/lib/search-params";
 import { ListEmptyState } from "../../components/list-empty-state";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
@@ -38,9 +40,7 @@ const TASK_FILTERS = ["all", "mine"] as const;
 
 type TaskFilter = (typeof TASK_FILTERS)[number];
 
-function isTaskFilter(value: string): value is TaskFilter {
-  return TASK_FILTERS.some((filter) => filter === value);
-}
+const parseTaskFilter = createOptionParser(TASK_FILTERS);
 
 function filterTaskLists(
   taskBoard: TaskBoard,
@@ -86,7 +86,11 @@ export function TasksView({
     null,
   );
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
-  const [filter, setFilter] = useState<TaskFilter>("all");
+  const [filter, setFilter] = useSearchParamState({
+    key: "filter",
+    defaultValue: "all",
+    parse: parseTaskFilter,
+  });
 
   const openCreateForm = useCallback(() => {
     setFormState({ mode: "create" });
@@ -108,6 +112,11 @@ export function TasksView({
       }),
     [removeTask],
   );
+
+  function changeFilter(value: string) {
+    const nextFilter = parseTaskFilter(value);
+    if (nextFilter) setFilter(nextFilter);
+  }
 
   function confirmDeleteTaskList() {
     if (!taskListToDelete) return;
@@ -165,12 +174,7 @@ export function TasksView({
         ) : (
           <div className="flex flex-col gap-4">
             {activeOperatorId && (
-              <Tabs
-                value={filter}
-                onValueChange={(value: string) => {
-                  if (isTaskFilter(value)) setFilter(value);
-                }}
-              >
+              <Tabs value={filter} onValueChange={changeFilter}>
                 <TabsList className="group-data-horizontal/tabs:h-10">
                   <TabsTrigger value="all" className="px-4">
                     Todas

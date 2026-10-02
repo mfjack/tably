@@ -1,7 +1,6 @@
 "use client";
 
 import { ChartColumn, TrendingDown, TrendingUp } from "lucide-react";
-import { useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Empty,
@@ -34,6 +33,7 @@ import type {
   SalesReport,
   SalesReportPeriod,
 } from "@/features/sales-report/types";
+import { useSearchParamState } from "@/hooks/use-search-param-state";
 import { formatCurrency, formatPercent } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { PageContent } from "../../components/page-content";
@@ -153,15 +153,25 @@ function SalesReportContent({ report }: SalesReportContentProps) {
   );
 }
 
+function parseSalesReportPeriod(rawValue: string) {
+  return isSalesReportPeriod(rawValue) ? rawValue : null;
+}
+
 export function SalesReportView({
   organizationId,
   title,
   ticketBusiness,
 }: SalesReportViewProps) {
-  const [period, setPeriod] = useState<SalesReportPeriod>(
-    DEFAULT_SALES_REPORT_PERIOD,
-  );
+  const [period, setPeriod] = useSearchParamState<SalesReportPeriod>({
+    key: "period",
+    defaultValue: DEFAULT_SALES_REPORT_PERIOD,
+    parse: parseSalesReportPeriod,
+  });
   const salesReportQuery = useSalesReportQuery(organizationId, period);
+
+  function changePeriod(value: string) {
+    if (isSalesReportPeriod(value)) setPeriod(value);
+  }
   const report = salesReportQuery.data;
 
   return (
@@ -178,12 +188,7 @@ export function SalesReportView({
       />
       <PageContent>
         <div className="flex flex-col gap-6">
-          <Tabs
-            value={period}
-            onValueChange={(value: string) => {
-              if (isSalesReportPeriod(value)) setPeriod(value);
-            }}
-          >
+          <Tabs value={period} onValueChange={changePeriod}>
             <TabsList className="h-auto flex-wrap group-data-horizontal/tabs:h-auto">
               {SALES_REPORT_PERIODS.map((periodOption) => (
                 <TabsTrigger
