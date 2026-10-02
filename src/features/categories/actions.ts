@@ -1,5 +1,10 @@
 "use server";
 
+import {
+  hasModuleAccess,
+  hasModuleAccessToRecord,
+  MODULE_ACCESS_DENIED_MESSAGE,
+} from "@/features/operators/module-access";
 import type { OrganizationId } from "@/features/organizations/types";
 import {
   type ActionResult,
@@ -42,6 +47,9 @@ export async function createCategory(
   organizationId: OrganizationId,
   input: CategoryFormInput,
 ): Promise<ActionResult> {
+  if (!(await hasModuleAccess(organizationId, "categories"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const parsedInput = categoryFormSchema.safeParse(input);
   if (!parsedInput.success) return actionFailure(INVALID_FORM_MESSAGE);
 
@@ -66,6 +74,16 @@ export async function updateCategory(
   if (!parsedInput.success) return actionFailure(INVALID_FORM_MESSAGE);
 
   const supabase = await createClient();
+  const { data: category } = await supabase
+    .from("categories")
+    .select("organization_id")
+    .eq("id", categoryId)
+    .maybeSingle();
+  if (
+    !(await hasModuleAccessToRecord(category?.organization_id, "categories"))
+  ) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const { error } = await supabase
     .from("categories")
     .update({
@@ -84,6 +102,16 @@ export async function deleteCategory(
   categoryId: CategoryId,
 ): Promise<ActionResult> {
   const supabase = await createClient();
+  const { data: category } = await supabase
+    .from("categories")
+    .select("organization_id")
+    .eq("id", categoryId)
+    .maybeSingle();
+  if (
+    !(await hasModuleAccessToRecord(category?.organization_id, "categories"))
+  ) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const { error } = await supabase
     .from("categories")
     .delete()

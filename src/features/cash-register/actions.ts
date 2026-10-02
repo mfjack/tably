@@ -1,6 +1,11 @@
 "use server";
 
 import { z } from "zod";
+import {
+  hasAnyModuleAccess,
+  hasModuleAccess,
+  MODULE_ACCESS_DENIED_MESSAGE,
+} from "@/features/operators/module-access";
 import { PAYMENT_METHOD_VALUES } from "@/features/orders/payment-methods";
 import type { OrganizationId } from "@/features/organizations/types";
 import {
@@ -68,6 +73,9 @@ function toCashSessionSummary(data: unknown): CashSessionSummary | null {
 export async function getOpenCashSession(
   organizationId: OrganizationId,
 ): Promise<ActionResult<CashSessionSummary | null>> {
+  if (!(await hasAnyModuleAccess(organizationId, ["pos", "order_tabs"]))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("get_open_cash_session", {
     p_organization_id: organizationId,
@@ -86,6 +94,9 @@ export async function openCashSession(
   organizationId: OrganizationId,
   input: OpenCashSessionInput,
 ): Promise<ActionResult> {
+  if (!(await hasAnyModuleAccess(organizationId, ["pos", "order_tabs"]))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const parsedInput = openCashSessionSchema.safeParse(input);
   if (!parsedInput.success) return actionFailure(INVALID_FORM_MESSAGE);
 
@@ -108,6 +119,9 @@ export async function addCashMovement(
   kind: CashMovementKind,
   input: CashMovementInput,
 ): Promise<ActionResult> {
+  if (!(await hasAnyModuleAccess(organizationId, ["pos", "order_tabs"]))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const parsedInput = cashMovementSchema.safeParse(input);
   if (!parsedInput.success) return actionFailure(INVALID_FORM_MESSAGE);
 
@@ -131,6 +145,9 @@ export async function closeCashSession(
   organizationId: OrganizationId,
   input: CloseCashSessionInput,
 ): Promise<ActionResult<CashSessionSummary>> {
+  if (!(await hasAnyModuleAccess(organizationId, ["pos", "order_tabs"]))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const parsedInput = closeCashSessionSchema.safeParse(input);
   if (!parsedInput.success) return actionFailure(INVALID_FORM_MESSAGE);
 
@@ -160,6 +177,9 @@ export async function listCashSessions(
   startDate: string,
   endDate: string,
 ): Promise<ActionResult<CashSessionSummary[]>> {
+  if (!(await hasModuleAccess(organizationId, "sales_report"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   if (
     !reportDateSchema.safeParse(startDate).success ||
     !reportDateSchema.safeParse(endDate).success

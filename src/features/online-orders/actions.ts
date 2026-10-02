@@ -1,6 +1,11 @@
 "use server";
 
 import { z } from "zod";
+import {
+  hasModuleAccess,
+  hasModuleAccessToRecord,
+  MODULE_ACCESS_DENIED_MESSAGE,
+} from "@/features/operators/module-access";
 import type { OrderId } from "@/features/orders/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import type { ProductId } from "@/features/products/types";
@@ -113,6 +118,9 @@ export async function getOnlineOrderStatus(
 export async function listPendingOnlineOrders(
   organizationId: OrganizationId,
 ): Promise<ActionResult<PendingOnlineOrder[]>> {
+  if (!(await hasModuleAccess(organizationId, "pos"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("online_orders")
@@ -141,6 +149,14 @@ export async function acceptOnlineOrder(
   onlineOrderId: OnlineOrderId,
 ): Promise<ActionResult<AcceptedOnlineOrder>> {
   const supabase = await createClient();
+  const { data: onlineOrder } = await supabase
+    .from("online_orders")
+    .select("organization_id")
+    .eq("id", onlineOrderId)
+    .maybeSingle();
+  if (!(await hasModuleAccessToRecord(onlineOrder?.organization_id, "pos"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const { data, error } = await supabase
     .rpc("accept_online_order", { p_online_order_id: onlineOrderId })
     .single();
@@ -161,6 +177,14 @@ export async function rejectOnlineOrder(
   onlineOrderId: OnlineOrderId,
 ): Promise<ActionResult> {
   const supabase = await createClient();
+  const { data: onlineOrder } = await supabase
+    .from("online_orders")
+    .select("organization_id")
+    .eq("id", onlineOrderId)
+    .maybeSingle();
+  if (!(await hasModuleAccessToRecord(onlineOrder?.organization_id, "pos"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const { error } = await supabase.rpc("reject_online_order", {
     p_online_order_id: onlineOrderId,
   });
@@ -177,6 +201,9 @@ export async function rejectOnlineOrder(
 export async function touchPosPresence(
   organizationId: OrganizationId,
 ): Promise<ActionResult> {
+  if (!(await hasModuleAccess(organizationId, "pos"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const supabase = await createClient();
   const { error } = await supabase.rpc("touch_pos_presence", {
     p_organization_id: organizationId,

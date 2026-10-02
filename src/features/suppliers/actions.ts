@@ -1,5 +1,10 @@
 "use server";
 
+import {
+  hasModuleAccess,
+  hasModuleAccessToRecord,
+  MODULE_ACCESS_DENIED_MESSAGE,
+} from "@/features/operators/module-access";
 import type { OrganizationId } from "@/features/organizations/types";
 import {
   type ActionResult,
@@ -87,6 +92,16 @@ export async function listSupplierPurchases(
   supplierId: SupplierId,
 ): Promise<ActionResult<SupplierPurchase[]>> {
   const supabase = await createClient();
+  const { data: supplier } = await supabase
+    .from("suppliers")
+    .select("organization_id")
+    .eq("id", supplierId)
+    .maybeSingle();
+  if (
+    !(await hasModuleAccessToRecord(supplier?.organization_id, "suppliers"))
+  ) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const { data, error } = await supabase
     .from("stock_entries")
     .select(
@@ -121,6 +136,9 @@ export async function saveSupplier(
   supplierId: SupplierId | null,
   input: SupplierInput,
 ): Promise<ActionResult> {
+  if (!(await hasModuleAccess(organizationId, "suppliers"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const parsedInput = supplierSchema.safeParse(input);
   if (!parsedInput.success) {
     return actionFailure("Confira os campos e tente novamente.");
@@ -161,6 +179,9 @@ export async function deleteSupplier(
   organizationId: OrganizationId,
   supplierId: SupplierId,
 ): Promise<ActionResult> {
+  if (!(await hasModuleAccess(organizationId, "suppliers"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const supabase = await createClient();
   const { error } = await supabase
     .from("suppliers")

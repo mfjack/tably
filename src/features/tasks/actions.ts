@@ -1,5 +1,9 @@
 "use server";
 
+import {
+  hasModuleAccess,
+  MODULE_ACCESS_DENIED_MESSAGE,
+} from "@/features/operators/module-access";
 import type { OperatorId } from "@/features/operators/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import {
@@ -110,6 +114,9 @@ export async function saveTaskList(
   listId: TaskListId | null,
   input: TaskListInput,
 ): Promise<ActionResult> {
+  if (!(await hasModuleAccess(organizationId, "tasks"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const parsedInput = taskListSchema.safeParse(input);
   if (!parsedInput.success) return actionFailure("Informe o nome da lista.");
 
@@ -138,6 +145,9 @@ export async function deleteTaskList(
   organizationId: OrganizationId,
   listId: TaskListId,
 ): Promise<ActionResult> {
+  if (!(await hasModuleAccess(organizationId, "tasks"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("task_lists")
@@ -156,6 +166,9 @@ export async function addTask(
   listId: TaskListId,
   input: NewTaskInput,
 ): Promise<ActionResult> {
+  if (!(await hasModuleAccess(organizationId, "tasks"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const parsedInput = newTaskSchema.safeParse(input);
   if (!parsedInput.success) return actionFailure("Descreva a tarefa.");
 
@@ -179,6 +192,9 @@ export async function updateTask(
   taskId: TaskId,
   input: TaskInput,
 ): Promise<ActionResult> {
+  if (!(await hasModuleAccess(organizationId, "tasks"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const parsedInput = taskSchema.safeParse(input);
   if (!parsedInput.success) {
     return actionFailure("Confira os campos e tente novamente.");
@@ -211,6 +227,9 @@ export async function deleteTask(
   organizationId: OrganizationId,
   taskId: TaskId,
 ): Promise<ActionResult> {
+  if (!(await hasModuleAccess(organizationId, "tasks"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("tasks")

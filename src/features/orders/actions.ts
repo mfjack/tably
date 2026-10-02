@@ -1,5 +1,10 @@
 "use server";
 
+import {
+  hasAnyModuleAccess,
+  hasModuleAccess,
+  MODULE_ACCESS_DENIED_MESSAGE,
+} from "@/features/operators/module-access";
 import type { OrganizationId } from "@/features/organizations/types";
 import {
   type ActionResult,
@@ -24,6 +29,9 @@ export async function placeOrder(
   input: PlaceOrderInput,
   request?: OrderRequestInput,
 ): Promise<ActionResult<PlacedOrder>> {
+  if (!(await hasModuleAccess(organizationId, "pos"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const parsedInput = placeOrderSchema.safeParse(input);
   const parsedRequest = orderRequestSchema.optional().safeParse(request);
   if (!parsedInput.success || !parsedRequest.success) {
@@ -71,6 +79,9 @@ export async function isCustomerNameAvailable(
   organizationId: OrganizationId,
   customerName: string,
 ): Promise<ActionResult<boolean>> {
+  if (!(await hasAnyModuleAccess(organizationId, ["pos", "order_tabs"]))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const parsedName =
     orderCustomerSchema.shape.customerName.safeParse(customerName);
   if (!parsedName.success) return actionFailure("Informe o nome do cliente.");

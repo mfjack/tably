@@ -20,3 +20,24 @@ export async function hasModuleAccess(
   if (access.mode === "locked") return false;
   return access.operator.allowedModules.includes(moduleId);
 }
+
+export async function hasAnyModuleAccess(
+  organizationId: OrganizationId,
+  moduleIds: readonly AppModuleId[],
+): Promise<boolean> {
+  for (const moduleId of moduleIds) {
+    if (await hasModuleAccess(organizationId, moduleId)) return true;
+  }
+  return false;
+}
+
+export async function hasModuleAccessToRecord(
+  organizationId: string | null | undefined,
+  moduleIds: AppModuleId | readonly AppModuleId[],
+): Promise<boolean> {
+  if (!organizationId) return false;
+  return hasAnyModuleAccess(
+    organizationId as OrganizationId,
+    typeof moduleIds === "string" ? [moduleIds] : moduleIds,
+  );
+}

@@ -1,5 +1,10 @@
 "use server";
 
+import {
+  hasModuleAccess,
+  hasModuleAccessToRecord,
+  MODULE_ACCESS_DENIED_MESSAGE,
+} from "@/features/operators/module-access";
 import type { OrganizationId } from "@/features/organizations/types";
 import type { SupplierId } from "@/features/suppliers/types";
 import {
@@ -59,6 +64,9 @@ export async function createIngredient(
   organizationId: OrganizationId,
   input: IngredientFormInput,
 ): Promise<ActionResult> {
+  if (!(await hasModuleAccess(organizationId, "ingredients"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const parsedInput = ingredientFormSchema.safeParse(input);
   if (!parsedInput.success) return actionFailure(INVALID_FORM_MESSAGE);
 
@@ -104,6 +112,16 @@ export async function updateIngredient(
   const { name, brand, minimumStock, currentStock, supplierId, expiresAt } =
     parsedInput.data;
   const supabase = await createClient();
+  const { data: ingredient } = await supabase
+    .from("ingredients")
+    .select("organization_id")
+    .eq("id", ingredientId)
+    .maybeSingle();
+  if (
+    !(await hasModuleAccessToRecord(ingredient?.organization_id, "ingredients"))
+  ) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const { error } = await supabase
     .from("ingredients")
     .update({
@@ -135,6 +153,16 @@ export async function deleteIngredient(
   ingredientId: IngredientId,
 ): Promise<ActionResult> {
   const supabase = await createClient();
+  const { data: ingredient } = await supabase
+    .from("ingredients")
+    .select("organization_id")
+    .eq("id", ingredientId)
+    .maybeSingle();
+  if (
+    !(await hasModuleAccessToRecord(ingredient?.organization_id, "ingredients"))
+  ) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const { error } = await supabase
     .from("ingredients")
     .delete()
@@ -155,6 +183,9 @@ export async function createStockEntry(
   ingredientId: IngredientId,
   input: StockEntryFormInput,
 ): Promise<ActionResult> {
+  if (!(await hasModuleAccess(organizationId, "ingredients"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const parsedInput = stockEntryFormSchema.safeParse(input);
   if (!parsedInput.success) return actionFailure(INVALID_FORM_MESSAGE);
 

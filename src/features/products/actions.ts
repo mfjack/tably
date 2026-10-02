@@ -2,6 +2,11 @@
 
 import type { CategoryId } from "@/features/categories/types";
 import type { IngredientId } from "@/features/ingredients/types";
+import {
+  hasModuleAccess,
+  hasModuleAccessToRecord,
+  MODULE_ACCESS_DENIED_MESSAGE,
+} from "@/features/operators/module-access";
 import type { OrganizationId } from "@/features/organizations/types";
 import {
   type ActionResult,
@@ -69,6 +74,9 @@ export async function saveProduct(
   productId: ProductId | undefined,
   input: ProductFormInput,
 ): Promise<ActionResult> {
+  if (!(await hasModuleAccess(organizationId, "products"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const parsedInput = productFormSchema.safeParse(input);
   if (!parsedInput.success) {
     return actionFailure("Confira os campos e tente novamente.");
@@ -107,7 +115,8 @@ export async function saveProduct(
   const { error: menuError } = await supabase
     .from("products")
     .update({ is_on_menu: isOnMenu, menu_detail: menuDetail || null })
-    .eq("id", savedProductId);
+    .eq("id", savedProductId)
+    .eq("organization_id", organizationId);
   if (menuError) {
     return actionFailure(
       "O produto foi salvo, mas o cardápio não foi atualizado.",
@@ -121,6 +130,14 @@ export async function deleteProduct(
   productId: ProductId,
 ): Promise<ActionResult> {
   const supabase = await createClient();
+  const { data: product } = await supabase
+    .from("products")
+    .select("organization_id")
+    .eq("id", productId)
+    .maybeSingle();
+  if (!(await hasModuleAccessToRecord(product?.organization_id, "products"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const { error } = await supabase
     .from("products")
     .delete()

@@ -1,5 +1,10 @@
 "use server";
 
+import {
+  hasModuleAccess,
+  hasModuleAccessToRecord,
+  MODULE_ACCESS_DENIED_MESSAGE,
+} from "@/features/operators/module-access";
 import type { OrderId } from "@/features/orders/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import {
@@ -81,6 +86,9 @@ function toKitchenTicket(row: KitchenTicketRow): KitchenTicket {
 export async function listActiveKitchenTickets(
   organizationId: OrganizationId,
 ): Promise<ActionResult<KitchenTicket[]>> {
+  if (!(await hasModuleAccess(organizationId, "kitchen"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("kitchen_tickets")
@@ -101,6 +109,14 @@ export async function setKitchenTicketStatus(
   status: KitchenTicketStatus,
 ): Promise<ActionResult> {
   const supabase = await createClient();
+  const { data: ticket } = await supabase
+    .from("kitchen_tickets")
+    .select("organization_id")
+    .eq("id", ticketId)
+    .maybeSingle();
+  if (!(await hasModuleAccessToRecord(ticket?.organization_id, "kitchen"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const { error } = await supabase.rpc("set_kitchen_ticket_status", {
     p_ticket_id: ticketId,
     p_status: status,

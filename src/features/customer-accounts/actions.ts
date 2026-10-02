@@ -1,5 +1,10 @@
 "use server";
 
+import {
+  hasModuleAccess,
+  hasModuleAccessToRecord,
+  MODULE_ACCESS_DENIED_MESSAGE,
+} from "@/features/operators/module-access";
 import type { OrderId } from "@/features/orders/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import {
@@ -79,6 +84,19 @@ export async function listAccountEntries(
   accountId: CustomerAccountId,
 ): Promise<ActionResult<AccountEntry[]>> {
   const supabase = await createClient();
+  const { data: account } = await supabase
+    .from("customer_accounts")
+    .select("organization_id")
+    .eq("id", accountId)
+    .maybeSingle();
+  if (
+    !(await hasModuleAccessToRecord(
+      account?.organization_id,
+      "customer_accounts",
+    ))
+  ) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const { data, error } = await supabase
     .from("account_entries")
     .select(
@@ -109,6 +127,9 @@ export async function saveCustomerAccount(
   accountId: CustomerAccountId | null,
   input: CustomerAccountInput,
 ): Promise<ActionResult> {
+  if (!(await hasModuleAccess(organizationId, "customer_accounts"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const parsedInput = customerAccountSchema.safeParse(input);
   if (!parsedInput.success) {
     return actionFailure("Confira os campos e tente novamente.");
@@ -146,6 +167,19 @@ export async function registerAccountPayment(
 
   const { amount, method, note } = parsedInput.data;
   const supabase = await createClient();
+  const { data: account } = await supabase
+    .from("customer_accounts")
+    .select("organization_id")
+    .eq("id", accountId)
+    .maybeSingle();
+  if (
+    !(await hasModuleAccessToRecord(
+      account?.organization_id,
+      "customer_accounts",
+    ))
+  ) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const { data, error } = await supabase.rpc("register_account_payment", {
     p_account_id: accountId,
     p_amount: amount,
@@ -165,6 +199,19 @@ export async function deleteCustomerAccount(
   accountId: CustomerAccountId,
 ): Promise<ActionResult> {
   const supabase = await createClient();
+  const { data: account } = await supabase
+    .from("customer_accounts")
+    .select("organization_id")
+    .eq("id", accountId)
+    .maybeSingle();
+  if (
+    !(await hasModuleAccessToRecord(
+      account?.organization_id,
+      "customer_accounts",
+    ))
+  ) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
   const { error } = await supabase.rpc("delete_customer_account", {
     p_account_id: accountId,
   });
