@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import type { OrganizationId } from "@/features/organizations/types";
 import { unwrapActionResult } from "@/lib/action-result";
-import { createClient } from "@/lib/supabase/client";
+import { loadBrowserClient } from "@/lib/supabase/load-browser-client";
 import { setFinancialEntryDocument } from "../actions";
 import {
   DOCUMENT_EXTENSIONS_BY_TYPE,
@@ -45,8 +45,9 @@ export function useUploadFinancialDocumentMutation(
       if (validationError) throw new Error(validationError);
 
       const filePath = `${organizationId}/${entryId}/${crypto.randomUUID()}.${DOCUMENT_EXTENSIONS_BY_TYPE[file.type]}`;
-      const { error } = await createClient()
-        .storage.from(FINANCIAL_DOCUMENTS_BUCKET)
+      const supabase = await loadBrowserClient();
+      const { error } = await supabase.storage
+        .from(FINANCIAL_DOCUMENTS_BUCKET)
         .upload(filePath, file, { contentType: file.type });
 
       if (error) throw new Error("Não foi possível enviar o arquivo.");

@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import type { OrganizationId } from "@/features/organizations/types";
-import { createClient } from "@/lib/supabase/client";
+import { loadBrowserClient } from "@/lib/supabase/load-browser-client";
 import {
   getProductImageValidationError,
   PRODUCT_IMAGES_BUCKET,
@@ -26,7 +26,8 @@ export function useUploadProductImageMutation(organizationId: OrganizationId) {
       if (validationError) throw new Error(validationError);
 
       const filePath = `${organizationId}/${crypto.randomUUID()}.${FILE_EXTENSIONS_BY_TYPE[file.type]}`;
-      const storage = createClient().storage.from(PRODUCT_IMAGES_BUCKET);
+      const supabase = await loadBrowserClient();
+      const storage = supabase.storage.from(PRODUCT_IMAGES_BUCKET);
       const { error } = await storage.upload(filePath, file, {
         contentType: file.type,
         cacheControl: "31536000",
