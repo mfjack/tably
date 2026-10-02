@@ -5,8 +5,8 @@ import {
   fetchActionResult,
 } from "@/lib/api/fetch-action-result";
 import { organizationApiPath } from "@/lib/api/organization-api-path";
-import type { getFinancialAnalysis } from "../actions";
 import type { ProjectionHorizon } from "../analysis";
+import type { getFinancialAnalysis } from "../analysis-actions";
 
 export function getFinancialAnalysisQueryKey(
   organizationId: OrganizationId,

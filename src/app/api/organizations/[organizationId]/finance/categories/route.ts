@@ -1,4 +1,4 @@
-import { listFinancialCategories } from "@/features/finance/actions";
+import { listFinancialCategories } from "@/features/finance/category-actions";
 import type { OrganizationId } from "@/features/organizations/types";
 import { jsonActionResult } from "@/lib/api/route-responses";
 

@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import type { OrganizationId } from "@/features/organizations/types";
 import { unwrapActionResult } from "@/lib/action-result";
-import { deleteFinancialCategory } from "../actions";
+import { deleteFinancialCategory } from "../category-actions";
 import type { FinancialCategoryId } from "../types";
 import { useInvalidateFinance } from "./use-invalidate-finance";
 

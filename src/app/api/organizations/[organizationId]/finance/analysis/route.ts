@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
-import { z } from "zod";
-import { getFinancialAnalysis } from "@/features/finance/actions";
+import * as z from "zod";
 import { PROJECTION_HORIZONS } from "@/features/finance/analysis";
+import { getFinancialAnalysis } from "@/features/finance/analysis-actions";
 import type { OrganizationId } from "@/features/organizations/types";
 import {
   invalidRequestResponse,

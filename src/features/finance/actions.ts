@@ -1,11 +1,7 @@
 "use server";
 
-import { addDays, addMonths, format, parseISO } from "date-fns";
-import { z } from "zod";
-import {
-  hasModuleAccess,
-  MODULE_ACCESS_DENIED_MESSAGE,
-} from "@/features/operators/module-access";
+import { addDays, addMonths, parseISO } from "date-fns";
+import * as z from "zod";
 import type { OrganizationId } from "@/features/organizations/types";
 import type { SupplierId } from "@/features/suppliers/types";
 import { getOrganizationClock } from "@/features/time-clock/load-timesheet";
@@ -19,22 +15,19 @@ import {
   actionFailure,
   actionSuccess,
 } from "@/lib/action-result";
-import { isUniqueViolation } from "@/lib/database-errors";
 import { fromSelectFieldValue } from "@/lib/optional-select-value";
 import { createClient } from "@/lib/supabase/server";
-import {
-  type FinancialAnalysisData,
-  PROJECTION_HORIZONS,
-  type ProjectionHorizon,
-} from "./analysis";
 import { FINANCIAL_DOCUMENTS_BUCKET } from "./documents";
-import { DEFAULT_CATEGORIES } from "./labels";
 import {
-  AUTOMATED_PAYMENT_METHODS,
-  type AutomationSettingsInput,
-  automationSettingsSchema,
-  type CategoryInput,
-  categorySchema,
+  ACCESS_DENIED,
+  canUseFinance,
+  ensureFinanceDefaults,
+  getDefaultAccountId,
+  syncFinance,
+  syncRecurrences,
+  toDateKey,
+} from "./finance-core";
+import {
   type EntryDeleteScope,
   type EntryEditScope,
   type EntryInput,
@@ -44,9 +37,7 @@ import {
   payEntrySchema,
 } from "./schemas";
 import type {
-  FinanceAutomationSettings,
   FinancialAccountId,
-  FinancialCategory,
   FinancialCategoryId,
   FinancialEntriesPage,
   FinancialEntry,
@@ -56,10 +47,8 @@ import type {
   FinancialRecurrenceId,
 } from "./types";
 
-const SYNC_HORIZON_IN_DAYS = 90;
 const UPCOMING_WINDOW_IN_DAYS = 30;
 const UPCOMING_LIMIT = 60;
-const ACCESS_DENIED = actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
 
 const ENTRY_COLUMNS =
   "id, kind, description, amount, due_date, category_id, supplier_id, account_id, paid_at, paid_amount, recurrence_id, installment_group_id, installment_number, installment_count, barcode, document_path, receipt_path, notes, created_by_name, paid_by_name, source, category:financial_categories(name), supplier:suppliers(name), account:financial_accounts(name), recurrence:financial_recurrences(frequency, end_date)";
@@ -124,112 +113,6 @@ function toFinancialEntry(row: EntryRow): FinancialEntry {
     paidByName: row.paid_by_name,
     source: row.source,
   };
-}
-
-async function canUseFinance(organizationId: OrganizationId) {
-  return hasModuleAccess(organizationId, "finance");
-}
-
-function toDateKey(date: Date): string {
-  return format(date, "yyyy-MM-dd");
-}
-
-async function syncRecurrences(organizationId: OrganizationId, today: string) {
-  const supabase = await createClient();
-  await supabase.rpc("sync_financial_recurrences", {
-    p_organization_id: organizationId,
-    p_until: toDateKey(addDays(parseISO(today), SYNC_HORIZON_IN_DAYS)),
-  });
-}
-
-async function syncFinance(organizationId: OrganizationId, today: string) {
-  const supabase = await createClient();
-  await supabase
-    .from("finance_automation_settings")
-    .upsert(
-      { organization_id: organizationId, start_date: today },
-      { onConflict: "organization_id", ignoreDuplicates: true },
-    );
-  const accountId = await getDefaultAccountId(organizationId);
-  if (accountId) {
-    await Promise.all([
-      supabase.from("finance_payment_method_settings").upsert(
-        AUTOMATED_PAYMENT_METHODS.map((paymentMethod) => ({
-          organization_id: organizationId,
-          payment_method: paymentMethod,
-          account_id: accountId,
-        })),
-        {
-          onConflict: "organization_id,payment_method",
-          ignoreDuplicates: true,
-        },
-      ),
-      supabase
-        .from("finance_payment_method_settings")
-        .update({ account_id: accountId })
-        .eq("organization_id", organizationId)
-        .is("account_id", null),
-      supabase
-        .from("finance_automation_settings")
-        .update({ stock_purchase_account_id: accountId })
-        .eq("organization_id", organizationId)
-        .is("stock_purchase_account_id", null),
-    ]);
-  }
-  await syncRecurrences(organizationId, today);
-  await supabase.rpc("sync_financial_automations", {
-    p_organization_id: organizationId,
-  });
-}
-
-async function getDefaultAccountId(
-  organizationId: OrganizationId,
-): Promise<FinancialAccountId | null> {
-  await ensureFinanceDefaults(organizationId);
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("financial_accounts")
-    .select("id")
-    .eq("organization_id", organizationId)
-    .eq("is_archived", false)
-    .order("created_at")
-    .limit(1)
-    .maybeSingle();
-  return (data?.id ?? null) as FinancialAccountId | null;
-}
-
-async function ensureFinanceDefaults(organizationId: OrganizationId) {
-  const supabase = await createClient();
-  const [categoriesResult, accountsResult] = await Promise.all([
-    supabase
-      .from("financial_categories")
-      .select("id", { count: "exact", head: true })
-      .eq("organization_id", organizationId),
-    supabase
-      .from("financial_accounts")
-      .select("id", { count: "exact", head: true })
-      .eq("organization_id", organizationId),
-  ]);
-
-  if (categoriesResult.count === 0) {
-    await supabase.from("financial_categories").insert(
-      (["expense", "income"] as const).flatMap((kind) =>
-        DEFAULT_CATEGORIES[kind].map((name) => ({
-          organization_id: organizationId,
-          kind,
-          name,
-        })),
-      ),
-    );
-  }
-
-  if (accountsResult.count === 0) {
-    await supabase.from("financial_accounts").insert({
-      organization_id: organizationId,
-      name: "Caixa",
-      kind: "cash",
-    });
-  }
 }
 
 const overviewSchema = z.object({
@@ -888,255 +771,4 @@ export async function setFinancialEntryDocument(
     await removeDocuments([previousPath]);
   }
   return actionSuccess();
-}
-
-export async function listFinancialCategories(
-  organizationId: OrganizationId,
-): Promise<ActionResult<FinancialCategory[]>> {
-  if (!(await canUseFinance(organizationId))) return ACCESS_DENIED;
-
-  await ensureFinanceDefaults(organizationId);
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("financial_categories")
-    .select("id, name, kind, is_archived")
-    .eq("organization_id", organizationId)
-    .order("name");
-
-  if (error) return actionFailure("Não foi possível carregar as categorias.");
-
-  return actionSuccess(
-    data.map((category) => ({
-      id: category.id as FinancialCategoryId,
-      name: category.name,
-      kind: category.kind,
-      isArchived: category.is_archived,
-    })),
-  );
-}
-
-export async function saveFinancialCategory(
-  organizationId: OrganizationId,
-  categoryId: FinancialCategoryId | null,
-  input: CategoryInput,
-): Promise<ActionResult> {
-  if (!(await canUseFinance(organizationId))) return ACCESS_DENIED;
-
-  const parsedInput = categorySchema.safeParse(input);
-  if (!parsedInput.success) {
-    return actionFailure("Confira os campos e tente novamente.");
-  }
-
-  const supabase = await createClient();
-  const { error } = categoryId
-    ? await supabase
-        .from("financial_categories")
-        .update({ name: parsedInput.data.name })
-        .eq("id", categoryId)
-        .eq("organization_id", organizationId)
-    : await supabase.from("financial_categories").insert({
-        organization_id: organizationId,
-        name: parsedInput.data.name,
-        kind: parsedInput.data.kind,
-      });
-
-  if (error) {
-    return actionFailure(
-      isUniqueViolation(error)
-        ? "Já existe uma categoria com esse nome."
-        : "Não foi possível salvar a categoria.",
-    );
-  }
-  return actionSuccess();
-}
-
-export async function deleteFinancialCategory(
-  organizationId: OrganizationId,
-  categoryId: FinancialCategoryId,
-): Promise<ActionResult> {
-  if (!(await canUseFinance(organizationId))) return ACCESS_DENIED;
-
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("financial_categories")
-    .delete()
-    .eq("id", categoryId)
-    .eq("organization_id", organizationId);
-
-  if (error) return actionFailure("Não foi possível excluir a categoria.");
-  return actionSuccess();
-}
-
-export async function getFinanceAutomationSettings(
-  organizationId: OrganizationId,
-): Promise<ActionResult<FinanceAutomationSettings>> {
-  if (!(await canUseFinance(organizationId))) return ACCESS_DENIED;
-
-  const clock = await getOrganizationClock(organizationId);
-  if (!clock) return actionFailure("Não foi possível carregar a automação.");
-
-  const supabase = await createClient();
-  await supabase
-    .from("finance_automation_settings")
-    .upsert(
-      { organization_id: organizationId, start_date: clock.today },
-      { onConflict: "organization_id", ignoreDuplicates: true },
-    );
-
-  const [settingsResult, methodsResult] = await Promise.all([
-    supabase
-      .from("finance_automation_settings")
-      .select(
-        "start_date, is_sales_enabled, is_customer_payments_enabled, is_stock_purchases_enabled, is_payroll_enabled",
-      )
-      .eq("organization_id", organizationId)
-      .single(),
-    supabase
-      .from("finance_payment_method_settings")
-      .select("payment_method, fee_percent, settlement_days")
-      .eq("organization_id", organizationId),
-  ]);
-
-  if (settingsResult.error || methodsResult.error) {
-    return actionFailure("Não foi possível carregar a automação.");
-  }
-
-  const methodsByKey = new Map(
-    methodsResult.data.map((method) => [method.payment_method, method]),
-  );
-  const settings = settingsResult.data;
-  const accountId = await getDefaultAccountId(organizationId);
-  const { data: account } = accountId
-    ? await supabase
-        .from("financial_accounts")
-        .select("opening_balance")
-        .eq("id", accountId)
-        .single()
-    : { data: null };
-
-  return actionSuccess({
-    startDate: settings.start_date,
-    openingBalance: account?.opening_balance ?? 0,
-    isSalesEnabled: settings.is_sales_enabled,
-    isCustomerPaymentsEnabled: settings.is_customer_payments_enabled,
-    isStockPurchasesEnabled: settings.is_stock_purchases_enabled,
-
-    isPayrollEnabled: settings.is_payroll_enabled,
-    paymentMethods: AUTOMATED_PAYMENT_METHODS.map((paymentMethod) => {
-      const method = methodsByKey.get(paymentMethod);
-      return {
-        paymentMethod,
-
-        feePercent: method?.fee_percent ?? 0,
-        settlementDays: method?.settlement_days ?? 0,
-      };
-    }),
-  });
-}
-
-export async function saveFinanceAutomationSettings(
-  organizationId: OrganizationId,
-  input: AutomationSettingsInput,
-): Promise<ActionResult> {
-  if (!(await canUseFinance(organizationId))) return ACCESS_DENIED;
-
-  const parsedInput = automationSettingsSchema.safeParse(input);
-  if (!parsedInput.success) {
-    return actionFailure("Confira os campos e tente novamente.");
-  }
-
-  const settings = parsedInput.data;
-  const accountId = await getDefaultAccountId(organizationId);
-  if (!accountId)
-    return actionFailure("Não foi possível salvar a configuração.");
-
-  const supabase = await createClient();
-  const [settingsResult, methodsResult, accountResult] = await Promise.all([
-    supabase.from("finance_automation_settings").upsert({
-      organization_id: organizationId,
-      start_date: settings.startDate,
-      is_sales_enabled: settings.isSalesEnabled,
-      is_customer_payments_enabled: settings.isCustomerPaymentsEnabled,
-      is_stock_purchases_enabled: settings.isStockPurchasesEnabled,
-      stock_purchase_account_id: accountId,
-      is_payroll_enabled: settings.isPayrollEnabled,
-    }),
-    supabase.from("finance_payment_method_settings").upsert(
-      settings.paymentMethods.map((method) => ({
-        organization_id: organizationId,
-        payment_method: method.paymentMethod,
-        account_id: accountId,
-        fee_percent: method.feePercent ?? 0,
-        settlement_days: method.settlementDays ?? 0,
-      })),
-    ),
-    supabase
-      .from("financial_accounts")
-      .update({ opening_balance: settings.openingBalance ?? 0 })
-      .eq("id", accountId),
-  ]);
-
-  if (settingsResult.error || methodsResult.error || accountResult.error) {
-    return actionFailure("Não foi possível salvar a automação.");
-  }
-  return actionSuccess();
-}
-
-const numberSchema = z.coerce.number();
-
-const analysisSchema = z.object({
-  today: z.string(),
-  sales: z.object({
-    revenue: numberSchema,
-    orderCount: numberSchema,
-    cost: numberSchema,
-    itemsWithoutCost: numberSchema,
-  }),
-  salesToday: numberSchema,
-  averageDailySales: numberSchema,
-  expensesByCategory: z.array(
-    z.object({ name: z.string(), amount: numberSchema }),
-  ),
-  otherIncome: numberSchema,
-  balanceToday: numberSchema,
-  overdue: z.object({ income: numberSchema, expense: numberSchema }),
-  scheduled: z.array(
-    z.object({
-      date: z.string(),
-      income: numberSchema,
-      expense: numberSchema,
-    }),
-  ),
-});
-
-export async function getFinancialAnalysis(
-  organizationId: OrganizationId,
-  monthKey: string,
-  horizonDays: ProjectionHorizon,
-): Promise<ActionResult<FinancialAnalysisData>> {
-  if (!(await canUseFinance(organizationId))) return ACCESS_DENIED;
-  if (!isMonthKey(monthKey)) return actionFailure("Mês inválido.");
-  if (!PROJECTION_HORIZONS.includes(horizonDays)) {
-    return actionFailure("Período inválido.");
-  }
-
-  const clock = await getOrganizationClock(organizationId);
-  if (!clock) return actionFailure("Não foi possível carregar as análises.");
-
-  await ensureFinanceDefaults(organizationId);
-  await syncFinance(organizationId, clock.today);
-
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc("get_financial_analysis", {
-    p_organization_id: organizationId,
-    p_from: getMonthStart(monthKey),
-    p_to: getMonthEnd(monthKey),
-    p_horizon_days: horizonDays,
-  });
-
-  const parsedAnalysis = analysisSchema.safeParse(data);
-  if (error || !parsedAnalysis.success) {
-    return actionFailure("Não foi possível carregar as análises.");
-  }
-  return actionSuccess(parsedAnalysis.data);
 }

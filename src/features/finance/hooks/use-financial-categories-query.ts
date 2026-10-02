@@ -5,7 +5,7 @@ import {
   fetchActionResult,
 } from "@/lib/api/fetch-action-result";
 import { organizationApiPath } from "@/lib/api/organization-api-path";
-import type { listFinancialCategories } from "../actions";
+import type { listFinancialCategories } from "../category-actions";
 
 export function getFinancialCategoriesQueryKey(organizationId: OrganizationId) {
   return ["organizations", organizationId, "finance", "categories"] as const;

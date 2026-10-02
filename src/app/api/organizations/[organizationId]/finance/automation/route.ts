@@ -1,4 +1,4 @@
-import { getFinanceAutomationSettings } from "@/features/finance/actions";
+import { getFinanceAutomationSettings } from "@/features/finance/automation-actions";
 import type { OrganizationId } from "@/features/organizations/types";
 import { jsonActionResult } from "@/lib/api/route-responses";
 

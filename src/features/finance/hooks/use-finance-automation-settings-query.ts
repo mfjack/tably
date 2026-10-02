@@ -5,7 +5,7 @@ import {
   fetchActionResult,
 } from "@/lib/api/fetch-action-result";
 import { organizationApiPath } from "@/lib/api/organization-api-path";
-import type { getFinanceAutomationSettings } from "../actions";
+import type { getFinanceAutomationSettings } from "../automation-actions";
 
 export function getFinanceAutomationSettingsQueryKey(
   organizationId: OrganizationId,

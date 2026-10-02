@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import type { OrganizationId } from "@/features/organizations/types";
 import { unwrapActionResult } from "@/lib/action-result";
-import { saveFinanceAutomationSettings } from "../actions";
+import { saveFinanceAutomationSettings } from "../automation-actions";
 import type { AutomationSettingsInput } from "../schemas";
 import { useInvalidateFinance } from "./use-invalidate-finance";
 
