@@ -187,8 +187,12 @@ export function SalesReportView({
         }
       />
       <PageContent>
-        <div className="flex flex-col gap-6">
-          <Tabs value={period} onValueChange={changePeriod}>
+        <div className="flex min-h-0 flex-col gap-6">
+          <Tabs
+            value={period}
+            onValueChange={changePeriod}
+            className="shrink-0"
+          >
             <TabsList className="h-auto flex-wrap group-data-horizontal/tabs:h-auto">
               {SALES_REPORT_PERIODS.map((periodOption) => (
                 <TabsTrigger
@@ -202,34 +206,36 @@ export function SalesReportView({
             </TabsList>
           </Tabs>
 
-          {salesReportQuery.error ? (
-            <Alert variant="destructive">
-              <AlertDescription>
-                {salesReportQuery.error.message}
-              </AlertDescription>
-            </Alert>
-          ) : report ? (
-            <div
-              aria-busy={salesReportQuery.isFetching}
-              className={cn(
-                "transition-opacity",
-                salesReportQuery.isPlaceholderData && "opacity-60",
-              )}
-            >
-              <SalesReportContent report={report} />
-            </div>
-          ) : (
-            <SalesReportSkeleton />
-          )}
+          <div className="flex min-h-0 flex-col gap-6 overflow-y-auto">
+            {salesReportQuery.error ? (
+              <Alert variant="destructive">
+                <AlertDescription>
+                  {salesReportQuery.error.message}
+                </AlertDescription>
+              </Alert>
+            ) : report ? (
+              <div
+                aria-busy={salesReportQuery.isFetching}
+                className={cn(
+                  "transition-opacity",
+                  salesReportQuery.isPlaceholderData && "opacity-60",
+                )}
+              >
+                <SalesReportContent report={report} />
+              </div>
+            ) : (
+              <SalesReportSkeleton />
+            )}
 
-          {report && !salesReportQuery.isPlaceholderData && (
-            <CashSessionsSection
-              organizationId={organizationId}
-              ticketBusiness={ticketBusiness}
-              startDate={report.startDate}
-              endDate={report.endDate}
-            />
-          )}
+            {report && !salesReportQuery.isPlaceholderData && (
+              <CashSessionsSection
+                organizationId={organizationId}
+                ticketBusiness={ticketBusiness}
+                startDate={report.startDate}
+                endDate={report.endDate}
+              />
+            )}
+          </div>
         </div>
       </PageContent>
     </>
