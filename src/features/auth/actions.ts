@@ -120,6 +120,7 @@ export async function getGoogleSignInUrl(
     provider: "google",
     options: {
       redirectTo: buildAuthCallbackUrl(getSafeRedirectPath(nextPath)),
+      queryParams: { prompt: "select_account" },
     },
   });
   if (error) return actionFailure(getAuthErrorMessage(error));
