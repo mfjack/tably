@@ -22,11 +22,17 @@ type StatCardProps = {
   value: string;
   detail?: string;
   isAlert?: boolean;
+  className?: string;
 };
 
-function StatCard({ label, value, detail, isAlert }: StatCardProps) {
+function StatCard({ label, value, detail, isAlert, className }: StatCardProps) {
   return (
-    <article className="flex flex-col gap-1 rounded-2xl border bg-card p-4">
+    <article
+      className={cn(
+        "flex flex-col gap-1 rounded-2xl border bg-card p-4",
+        className,
+      )}
+    >
       <h3 className="text-muted-foreground text-xs">{label}</h3>
       <p
         className={cn(
@@ -109,7 +115,7 @@ export function FinanceOverview({
         />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <StatCard
           label="A pagar atrasado"
           value={formatCurrency(overview.overduePayables.amount)}
@@ -122,6 +128,7 @@ export function FinanceOverview({
           detail={describeTotals(overview.monthPayables, "Tudo pago")}
         />
         <StatCard
+          className="col-span-2 sm:col-span-1"
           label="Contas fixas do mês"
           value={formatCurrency(overview.monthFixedExpenses.amount)}
           detail={
@@ -133,14 +140,14 @@ export function FinanceOverview({
       </div>
 
       <section className="flex flex-col gap-3">
-        <h2 className="font-semibold">Vencidas e próximos 30 dias</h2>
-        {overview.upcoming.length === 0 ? (
+        <h2 className="font-semibold">Contas do mês</h2>
+        {overview.monthEntries.length === 0 ? (
           <p className="rounded-2xl border border-dashed px-4 py-8 text-center text-muted-foreground text-sm">
-            Nenhuma conta vencida ou vencendo nos próximos 30 dias.
+            Nenhuma conta com vencimento neste mês.
           </p>
         ) : (
           <ul className="flex flex-col divide-y rounded-2xl border bg-card">
-            {overview.upcoming.map((entry) => (
+            {overview.monthEntries.map((entry) => (
               <EntryRow
                 key={entry.id}
                 organizationId={organizationId}
