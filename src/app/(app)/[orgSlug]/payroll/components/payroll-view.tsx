@@ -171,7 +171,7 @@ export function PayrollView({
         }
       />
       <PageContent>
-        <Tabs value={tab} onValueChange={changeTab} className="gap-5">
+        <Tabs value={tab} onValueChange={changeTab} className="min-h-0 gap-5">
           <TabsList className="group-data-horizontal/tabs:h-10">
             <TabsTrigger value="monthly" className="px-3">
               Mensal
@@ -183,20 +183,20 @@ export function PayrollView({
               13º salário
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="vacations">
+          <TabsContent value="vacations" className="min-h-0 overflow-y-auto">
             <VacationsPanel
               organizationId={organizationId}
               business={business}
             />
           </TabsContent>
-          <TabsContent value="thirteenth">
+          <TabsContent value="thirteenth" className="min-h-0 overflow-y-auto">
             <ThirteenthPanel
               organizationId={organizationId}
               business={business}
               initialYear={Number(initialMonthKey.slice(0, 4))}
             />
           </TabsContent>
-          <TabsContent value="monthly">
+          <TabsContent value="monthly" className="min-h-0 overflow-y-auto">
             <div className="flex flex-col gap-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-1 rounded-lg border px-1 py-1">

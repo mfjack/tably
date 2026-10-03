@@ -182,7 +182,7 @@ export function OrderTabsView({
         }
       />
       <PageContent>
-        <Tabs defaultValue="open" className="flex-1 gap-6">
+        <Tabs defaultValue="open" className="min-h-0 flex-1 gap-6">
           <TabsList className="group-data-horizontal/tabs:h-10">
             <TabsTrigger value="open" className="px-4">
               Abertas
@@ -196,7 +196,10 @@ export function OrderTabsView({
               Histórico
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="open" className="flex flex-col">
+          <TabsContent
+            value="open"
+            className="flex min-h-0 flex-col overflow-y-auto"
+          >
             <OpenOrderTabsGrid
               orders={openOrderTabsQuery.data}
               isLoading={openOrderTabsQuery.isPending}
@@ -205,7 +208,7 @@ export function OrderTabsView({
               onSelect={selectOpenTab}
             />
           </TabsContent>
-          <TabsContent value="history" className="flex flex-col">
+          <TabsContent value="history" className="flex min-h-0 flex-col">
             <PaidOrdersTable
               orders={paidOrdersQuery.data}
               isLoading={paidOrdersQuery.isPending}

@@ -142,7 +142,7 @@ export function FinanceView({
         }
       />
       <PageContent>
-        <Tabs value={tab} onValueChange={changeTab} className="gap-5">
+        <Tabs value={tab} onValueChange={changeTab} className="min-h-0 gap-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <TabsList className="max-w-full justify-start overflow-x-auto group-data-horizontal/tabs:h-10">
               <TabsTrigger value="overview" className="px-3">
@@ -157,7 +157,7 @@ export function FinanceView({
             </TabsList>
             <MonthNavigator monthKey={monthKey} onChange={setMonthKey} />
           </div>
-          <TabsContent value="overview">
+          <TabsContent value="overview" className="min-h-0 overflow-y-auto">
             <FinanceOverview
               organizationId={organizationId}
               monthKey={monthKey}
@@ -166,7 +166,7 @@ export function FinanceView({
               onDelete={setEntryToDelete}
             />
           </TabsContent>
-          <TabsContent value="payables">
+          <TabsContent value="payables" className="min-h-0 overflow-y-auto">
             <EntriesPanel
               organizationId={organizationId}
               kind="expense"
@@ -177,7 +177,7 @@ export function FinanceView({
               onDelete={setEntryToDelete}
             />
           </TabsContent>
-          <TabsContent value="analysis">
+          <TabsContent value="analysis" className="min-h-0 overflow-y-auto">
             <AnalysisPanel
               organizationId={organizationId}
               monthKey={monthKey}

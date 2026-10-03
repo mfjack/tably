@@ -61,8 +61,8 @@ export function DataTable<TData extends RowData>({
   if (!isLoading && !hasData) return emptyState;
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="flex min-h-0 flex-col gap-4">
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
         <InputGroup className="h-10 w-full rounded-lg sm:max-w-xs">
           <InputGroupAddon>
             <Search aria-hidden />
@@ -81,7 +81,7 @@ export function DataTable<TData extends RowData>({
         {toolbarActions}
       </div>
 
-      <div className="flex flex-col gap-3 md:hidden">
+      <div className="flex min-h-0 flex-col gap-3 overflow-y-auto md:hidden">
         {isLoading
           ? Array.from({ length: LOADING_ROW_COUNT }, (_, rowIndex) => (
               <Skeleton
@@ -143,9 +143,9 @@ export function DataTable<TData extends RowData>({
         )}
       </div>
 
-      <div className="hidden overflow-hidden rounded-xl border md:block">
-        <Table>
-          <TableHeader>
+      <div className="hidden min-h-0 flex-col overflow-hidden rounded-xl border md:flex">
+        <Table containerClassName="min-h-0 overflow-auto">
+          <TableHeader className="sticky top-0 z-10 bg-background">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="bg-muted/60">
                 {headerGroup.headers.map((header) => (

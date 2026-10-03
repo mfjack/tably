@@ -87,7 +87,7 @@ export default async function OrganizationLayout({
           access.mode === "unlocked" ? access.operator.name : null
         }
       />
-      <SidebarInset>
+      <SidebarInset className="h-svh overflow-hidden">
         {subscriptionState?.isExpiringSoon && (
           <SubscriptionBanner
             organizationSlug={organization.slug}
