@@ -24,6 +24,7 @@ const publicMenuSchema = z.object({
           detail: z.string().nullable(),
           price: z.number(),
           isAvailable: z.boolean(),
+          remaining: z.number().nullable(),
         }),
       ),
     }),

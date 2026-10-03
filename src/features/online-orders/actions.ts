@@ -1,6 +1,7 @@
 "use server";
 
 import * as z from "zod";
+import { getPublicMenu } from "@/features/menu/queries";
 import {
   hasModuleAccess,
   hasModuleAccessToRecord,
@@ -60,6 +61,32 @@ function toOnlineOrderItems(items: unknown): OnlineOrderItem[] {
   }));
 }
 
+async function findStockShortage(
+  menuSlug: string,
+  items: PlaceOnlineOrderInput["items"],
+): Promise<string | null> {
+  const menu = await getPublicMenu(menuSlug);
+  if (!menu) return null;
+
+  const requestedQuantities = new Map<string, number>();
+  for (const item of items) {
+    requestedQuantities.set(
+      item.productId,
+      (requestedQuantities.get(item.productId) ?? 0) + item.quantity,
+    );
+  }
+
+  for (const menuItem of menu.sections.flatMap((section) => section.items)) {
+    const requestedQuantity = requestedQuantities.get(menuItem.id) ?? 0;
+    if (menuItem.remaining !== null && requestedQuantity > menuItem.remaining) {
+      return menuItem.remaining === 0
+        ? `${menuItem.name} acabou. Tire do pedido para continuar.`
+        : `Só restam ${menuItem.remaining} de ${menuItem.name}. Ajuste a quantidade.`;
+    }
+  }
+  return null;
+}
+
 export async function placeOnlineOrder(
   menuSlug: string,
   input: PlaceOnlineOrderInput,
@@ -71,6 +98,9 @@ export async function placeOnlineOrder(
 
   const { onlineOrderId, deviceId, customerName, customerPhone, items } =
     parsedInput.data;
+  const stockShortageMessage = await findStockShortage(menuSlug, items);
+  if (stockShortageMessage) return actionFailure(stockShortageMessage);
+
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("place_online_order", {
     p_slug: menuSlug,

@@ -7,6 +7,7 @@ export type PublicMenuItem = {
   detail: string | null;
   price: number;
   isAvailable: boolean;
+  remaining: number | null;
 };
 
 export type PublicMenuSection = {
