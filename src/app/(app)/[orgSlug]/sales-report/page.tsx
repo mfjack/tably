@@ -40,6 +40,7 @@ export default async function SalesReportPage({
         organizationId={organization.id}
         title={salesReportModule.label}
         ticketBusiness={toOrderTicketBusiness(organization)}
+        paymentFees={organization.paymentFees}
       />
     </HydrationBoundary>
   );

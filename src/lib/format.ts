@@ -23,6 +23,11 @@ const percentFormatter = new Intl.NumberFormat(LOCALE, {
   maximumFractionDigits: 1,
 });
 
+const precisePercentFormatter = new Intl.NumberFormat(LOCALE, {
+  style: "percent",
+  maximumFractionDigits: 2,
+});
+
 function formatWithCurrencySymbol(
   value: number,
   formatter: Intl.NumberFormat,
@@ -49,6 +54,10 @@ export function formatQuantity(value: number): string {
 
 export function formatPercent(value: number): string {
   return percentFormatter.format(value);
+}
+
+export function formatPrecisePercent(value: number): string {
+  return precisePercentFormatter.format(value);
 }
 
 export function formatDateKey(date: string): string {

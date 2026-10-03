@@ -12,7 +12,10 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
-import type { OrganizationId } from "@/features/organizations/types";
+import type {
+  OrganizationId,
+  OrganizationPaymentFees,
+} from "@/features/organizations/types";
 import { useSalesReportQuery } from "@/features/sales-report/hooks/use-sales-report-query";
 import {
   DEFAULT_SALES_REPORT_PERIOD,
@@ -56,6 +59,7 @@ type SalesReportViewProps = {
   organizationId: OrganizationId;
   title: string;
   ticketBusiness: OrderTicketBusiness;
+  paymentFees: OrganizationPaymentFees;
 };
 
 function SalesReportSkeleton() {
@@ -76,9 +80,10 @@ function SalesReportSkeleton() {
 
 type SalesReportContentProps = {
   report: SalesReport;
+  paymentFees: OrganizationPaymentFees;
 };
 
-function SalesReportContent({ report }: SalesReportContentProps) {
+function SalesReportContent({ report, paymentFees }: SalesReportContentProps) {
   const { summary, previousSummary, canceled } = report;
   const costShare = getCostShare(summary.cost, summary.revenue);
   const totalFees = getTotalFees(report);
@@ -145,7 +150,7 @@ function SalesReportContent({ report }: SalesReportContentProps) {
       </div>
 
       <ProductLookupSection key={report.startDate} report={report} />
-      <PaymentMethodsSection report={report} />
+      <PaymentMethodsSection report={report} paymentFees={paymentFees} />
 
       <SalesCharts report={report} />
 
@@ -175,6 +180,7 @@ export function SalesReportView({
   organizationId,
   title,
   ticketBusiness,
+  paymentFees,
 }: SalesReportViewProps) {
   const [period, setPeriod] = useSearchParamState<SalesReportPeriod>({
     key: "period",
@@ -235,7 +241,7 @@ export function SalesReportView({
                   salesReportQuery.isPlaceholderData && "opacity-60",
                 )}
               >
-                <SalesReportContent report={report} />
+                <SalesReportContent report={report} paymentFees={paymentFees} />
               </div>
             ) : (
               <SalesReportSkeleton />

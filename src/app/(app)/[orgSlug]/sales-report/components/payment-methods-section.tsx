@@ -6,6 +6,8 @@ import {
   PAYMENT_METHODS,
 } from "@/features/orders/payment-methods";
 import type { PaymentMethod } from "@/features/orders/types";
+import { getPaymentMethodFeePercent } from "@/features/organizations/payment-fees";
+import type { OrganizationPaymentFees } from "@/features/organizations/types";
 import {
   getOperatorNames,
   getOperatorPayments,
@@ -14,7 +16,11 @@ import {
   sumPaymentTotals,
 } from "@/features/sales-report/report-metrics";
 import type { SalesReport } from "@/features/sales-report/types";
-import { formatCurrency, formatPercent } from "@/lib/format";
+import {
+  formatCurrency,
+  formatPercent,
+  formatPrecisePercent,
+} from "@/lib/format";
 import { ReportFilterSelect } from "./report-filter-select";
 import { ReportSection } from "./report-section";
 
@@ -22,6 +28,7 @@ const ALL_OPERATORS_VALUE = "all";
 
 type PaymentMethodsSectionProps = {
   report: SalesReport;
+  paymentFees: OrganizationPaymentFees;
 };
 
 function formatOrderCount(orderCount: number) {
@@ -35,6 +42,7 @@ type PaymentMethodTileProps = {
   share: number;
   receivedFromAccounts: number;
   fee: number;
+  feePercent: number;
 };
 
 function PaymentMethodTile({
@@ -44,6 +52,7 @@ function PaymentMethodTile({
   share,
   receivedFromAccounts,
   fee,
+  feePercent,
 }: PaymentMethodTileProps) {
   const { label, icon: Icon } = PAYMENT_METHODS[method];
 
@@ -54,6 +63,11 @@ function PaymentMethodTile({
           <Icon aria-hidden className="size-4" />
         </span>
         <span className="font-medium text-sm">{label}</span>
+        {feePercent > 0 && (
+          <span className="text-muted-foreground text-xs tabular-nums">
+            Taxa {formatPrecisePercent(feePercent / 100)}
+          </span>
+        )}
       </div>
       <div className="flex flex-col gap-0.5">
         <span className="font-bold text-xl tabular-nums tracking-[-0.01em]">
@@ -79,7 +93,10 @@ function PaymentMethodTile({
   );
 }
 
-export function PaymentMethodsSection({ report }: PaymentMethodsSectionProps) {
+export function PaymentMethodsSection({
+  report,
+  paymentFees,
+}: PaymentMethodsSectionProps) {
   const [operatorFilter, setOperatorFilter] = useState(ALL_OPERATORS_VALUE);
 
   const operatorOptions = [
@@ -120,6 +137,7 @@ export function PaymentMethodsSection({ report }: PaymentMethodsSectionProps) {
             orderCount={payments[method].orderCount}
             receivedFromAccounts={receipts[method].revenue}
             fee={selectedOperator ? 0 : getPaymentMethodFee(report, method)}
+            feePercent={getPaymentMethodFeePercent(paymentFees, method)}
             share={
               total.revenue > 0 ? payments[method].revenue / total.revenue : 0
             }
