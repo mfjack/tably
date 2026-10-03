@@ -1,6 +1,12 @@
 "use client";
 
-import { MoreHorizontal, Plus, Tags, Wallet } from "lucide-react";
+import {
+  MoreHorizontal,
+  Tags,
+  TrendingDown,
+  TrendingUp,
+  Wallet,
+} from "lucide-react";
 import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -105,11 +111,11 @@ export function FinanceView({
               className="h-10"
               onClick={() => openCreateForm("income")}
             >
-              <Plus aria-hidden />
+              <TrendingUp aria-hidden />
               <span className="max-sm:sr-only">Receita</span>
             </Button>
             <Button className="h-10" onClick={() => openCreateForm("expense")}>
-              <Plus aria-hidden />
+              <TrendingDown aria-hidden />
               <span className="max-sm:sr-only">Despesa</span>
             </Button>
             <DropdownMenu>
