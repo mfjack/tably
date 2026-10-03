@@ -48,6 +48,10 @@ function getProductRowId(product: ProductRow) {
   return product.id;
 }
 
+function getProductSearchText(product: ProductRow) {
+  return [product.name, product.categoryName].filter(Boolean).join(" ");
+}
+
 export function ProductsTable({
   products,
   ingredientsById,
@@ -80,7 +84,8 @@ export function ProductsTable({
   const columns = useMemo(
     () =>
       columnHelper.columns([
-        columnHelper.accessor("name", {
+        columnHelper.accessor(getProductSearchText, {
+          id: "name",
           header: "Produto",
           cell: ({ row }) => (
             <div className="flex items-center gap-3">
@@ -166,7 +171,7 @@ export function ProductsTable({
       table={table}
       isLoading={isLoading}
       errorMessage={errorMessage}
-      searchPlaceholder="Buscar produto"
+      searchPlaceholder="Buscar produto ou categoria"
       emptyState={emptyState}
     />
   );
