@@ -1,5 +1,4 @@
 import type {
-  AutomatedPaymentMethod,
   EntryStatus,
   FinancialAccountKind,
   FinancialEntry,
@@ -72,13 +71,6 @@ export function getEntryStatusLabel(
   }
 }
 
-export const AUTOMATED_PAYMENT_METHOD_LABELS = {
-  cash: "Dinheiro",
-  pix: "Pix",
-  debit_card: "Cartão de débito",
-  credit_card: "Cartão de crédito",
-} as const satisfies Record<AutomatedPaymentMethod, string>;
-
 export const ENTRY_SOURCE_LABELS = {
   manual: "Manual",
   sales: "Vendas",
@@ -90,27 +82,3 @@ export const ENTRY_SOURCE_LABELS = {
   payroll_fgts: "Folha",
   payroll_taxes: "Folha",
 } as const satisfies Record<FinancialEntrySource, string>;
-
-const SYSTEM_MANAGED_SOURCES: readonly FinancialEntrySource[] = [
-  "sales",
-  "sales_fee",
-  "customer_payments",
-  "customer_payments_fee",
-];
-
-const DELETABLE_SOURCES: readonly FinancialEntrySource[] = [
-  "manual",
-  "stock_purchase",
-];
-
-export function isDeletableEntry(
-  entry: Pick<FinancialEntry, "source">,
-): boolean {
-  return DELETABLE_SOURCES.includes(entry.source);
-}
-
-export function isSystemManagedEntry(
-  entry: Pick<FinancialEntry, "source">,
-): boolean {
-  return SYSTEM_MANAGED_SOURCES.includes(entry.source);
-}

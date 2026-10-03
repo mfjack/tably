@@ -2930,6 +2930,10 @@ export type Database = {
         Args: { p_organization_id: string }
         Returns: Json
       }
+      get_operator_limit: {
+        Args: { p_organization_id: string }
+        Returns: number
+      }
       get_public_menu: { Args: { p_slug: string }; Returns: Json }
       get_sales_report: {
         Args: {
@@ -3219,10 +3223,6 @@ export type Database = {
         Args: { p_is_done: boolean; p_task_id: string }
         Returns: undefined
       }
-      sync_financial_automations: {
-        Args: { p_organization_id: string }
-        Returns: undefined
-      }
       sync_financial_recurrences: {
         Args: { p_organization_id: string; p_until: string }
         Returns: undefined
@@ -3236,24 +3236,6 @@ export type Database = {
       }
       touch_pos_presence: {
         Args: { p_organization_id: string }
-        Returns: undefined
-      }
-      upsert_automatic_entry: {
-        Args: {
-          p_account_id: string
-          p_amount: number
-          p_category_id: string
-          p_description: string
-          p_due_date: string
-          p_keep_when_paid: boolean
-          p_kind: Database["public"]["Enums"]["financial_entry_kind"]
-          p_mark_paid_until: string
-          p_organization_id: string
-          p_source: Database["public"]["Enums"]["financial_entry_source"]
-          p_source_date: string
-          p_source_key: string
-          p_supplier_id: string
-        }
         Returns: undefined
       }
       verify_operator_pin: {

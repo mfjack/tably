@@ -23,7 +23,7 @@ import {
   ACCESS_DENIED,
   canUseFinance,
   ensureFinanceDefaults,
-  syncFinance,
+  syncRecurrences,
 } from "./finance-core";
 
 const numberSchema = z.coerce.number();
@@ -68,7 +68,7 @@ export async function getFinancialAnalysis(
   if (!clock) return actionFailure("Não foi possível carregar as análises.");
 
   await ensureFinanceDefaults(organizationId);
-  await syncFinance(organizationId, clock.today);
+  await syncRecurrences(organizationId, clock.today);
 
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("get_financial_analysis", {

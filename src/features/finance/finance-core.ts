@@ -9,7 +9,6 @@ import type { OrganizationId } from "@/features/organizations/types";
 import { actionFailure } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_CATEGORIES } from "./labels";
-import { AUTOMATED_PAYMENT_METHODS } from "./schemas";
 import type { FinancialAccountId } from "./types";
 
 const SYNC_HORIZON_IN_DAYS = 90;
@@ -31,49 +30,6 @@ export async function syncRecurrences(
   await supabase.rpc("sync_financial_recurrences", {
     p_organization_id: organizationId,
     p_until: toDateKey(addDays(parseISO(today), SYNC_HORIZON_IN_DAYS)),
-  });
-}
-
-export async function syncFinance(
-  organizationId: OrganizationId,
-  today: string,
-) {
-  const supabase = await createClient();
-  await supabase
-    .from("finance_automation_settings")
-    .upsert(
-      { organization_id: organizationId, start_date: today },
-      { onConflict: "organization_id", ignoreDuplicates: true },
-    );
-  const accountId = await getDefaultAccountId(organizationId);
-  if (accountId) {
-    await Promise.all([
-      supabase.from("finance_payment_method_settings").upsert(
-        AUTOMATED_PAYMENT_METHODS.map((paymentMethod) => ({
-          organization_id: organizationId,
-          payment_method: paymentMethod,
-          account_id: accountId,
-        })),
-        {
-          onConflict: "organization_id,payment_method",
-          ignoreDuplicates: true,
-        },
-      ),
-      supabase
-        .from("finance_payment_method_settings")
-        .update({ account_id: accountId })
-        .eq("organization_id", organizationId)
-        .is("account_id", null),
-      supabase
-        .from("finance_automation_settings")
-        .update({ stock_purchase_account_id: accountId })
-        .eq("organization_id", organizationId)
-        .is("stock_purchase_account_id", null),
-    ]);
-  }
-  await syncRecurrences(organizationId, today);
-  await supabase.rpc("sync_financial_automations", {
-    p_organization_id: organizationId,
   });
 }
 

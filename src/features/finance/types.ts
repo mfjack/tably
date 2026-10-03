@@ -93,22 +93,3 @@ export type FinancialOverview = {
   monthReceivables: EntryTotals;
   monthFixedExpenses: EntryTotals & { paidAmount: number; openCount: number };
 };
-
-export type AutomatedPaymentMethod = Exclude<PaymentMethod, "customer_account">;
-
-export type PaymentMethodSettings = {
-  paymentMethod: AutomatedPaymentMethod;
-  feePercent: number;
-  settlementDays: number;
-};
-
-export type FinanceAutomationSettings = {
-  startDate: string;
-  openingBalance: number;
-  isSalesEnabled: boolean;
-  isCustomerPaymentsEnabled: boolean;
-  isStockPurchasesEnabled: boolean;
-
-  isPayrollEnabled: boolean;
-  paymentMethods: PaymentMethodSettings[];
-};

@@ -116,34 +116,8 @@ export const categorySchema = z.object({
 
 export type CategoryInput = z.infer<typeof categorySchema>;
 
-export const AUTOMATED_PAYMENT_METHODS = [
-  "cash",
-  "pix",
-  "debit_card",
-  "credit_card",
-] as const;
-
-export const automationSettingsSchema = z.object({
-  startDate: dateSchema("Informe a data de início."),
-  isSalesEnabled: z.boolean(),
-  isCustomerPaymentsEnabled: z.boolean(),
-  isStockPurchasesEnabled: z.boolean(),
+export const openingBalanceSchema = z.object({
   openingBalance: z.number().optional(),
-  isPayrollEnabled: z.boolean(),
-  paymentMethods: z
-    .array(
-      z.object({
-        paymentMethod: z.enum(AUTOMATED_PAYMENT_METHODS),
-        feePercent: z.number().min(0).max(100, "No máximo 100%.").optional(),
-        settlementDays: z
-          .number()
-          .int()
-          .min(0)
-          .max(120, "No máximo 120 dias.")
-          .optional(),
-      }),
-    )
-    .length(AUTOMATED_PAYMENT_METHODS.length),
 });
 
-export type AutomationSettingsInput = z.infer<typeof automationSettingsSchema>;
+export type OpeningBalanceInput = z.infer<typeof openingBalanceSchema>;

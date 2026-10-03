@@ -23,7 +23,6 @@ import {
   canUseFinance,
   ensureFinanceDefaults,
   getDefaultAccountId,
-  syncFinance,
   syncRecurrences,
   toDateKey,
 } from "./finance-core";
@@ -47,8 +46,7 @@ import type {
   FinancialRecurrenceId,
 } from "./types";
 
-const UPCOMING_WINDOW_IN_DAYS = 30;
-const UPCOMING_LIMIT = 60;
+const MONTH_ENTRIES_LIMIT = 300;
 
 const ENTRY_COLUMNS =
   "id, kind, description, amount, due_date, category_id, supplier_id, account_id, paid_at, paid_amount, recurrence_id, installment_group_id, installment_number, installment_count, barcode, document_path, receipt_path, notes, created_by_name, paid_by_name, source, category:financial_categories(name), supplier:suppliers(name), account:financial_accounts(name), recurrence:financial_recurrences(frequency, end_date)";
@@ -143,7 +141,9 @@ const overviewSchema = z.object({
 export async function getFinancialOverview(
   organizationId: OrganizationId,
   monthKey: string,
-): Promise<ActionResult<FinancialOverview & { upcoming: FinancialEntry[] }>> {
+): Promise<
+  ActionResult<FinancialOverview & { monthEntries: FinancialEntry[] }>
+> {
   if (!(await canUseFinance(organizationId))) return ACCESS_DENIED;
   if (!isMonthKey(monthKey)) return actionFailure("Mês inválido.");
 
@@ -151,30 +151,34 @@ export async function getFinancialOverview(
   if (!clock) return actionFailure("Não foi possível carregar o financeiro.");
 
   await ensureFinanceDefaults(organizationId);
-  await syncFinance(organizationId, clock.today);
+  await syncRecurrences(organizationId, clock.today);
 
+  const monthStart = getMonthStart(monthKey);
+  const monthEnd = getMonthEnd(monthKey);
   const supabase = await createClient();
-  const [overviewResult, upcomingResult] = await Promise.all([
+  const [overviewResult, monthEntriesResult] = await Promise.all([
     supabase.rpc("get_financial_overview", {
       p_organization_id: organizationId,
-      p_from: getMonthStart(monthKey),
-      p_to: getMonthEnd(monthKey),
+      p_from: monthStart,
+      p_to: monthEnd,
     }),
     supabase
       .from("financial_entries")
       .select(ENTRY_COLUMNS)
       .eq("organization_id", organizationId)
-      .is("paid_at", null)
-      .lte(
-        "due_date",
-        toDateKey(addDays(parseISO(clock.today), UPCOMING_WINDOW_IN_DAYS)),
-      )
+      .gte("due_date", monthStart)
+      .lte("due_date", monthEnd)
       .order("due_date")
-      .limit(UPCOMING_LIMIT),
+      .order("created_at")
+      .limit(MONTH_ENTRIES_LIMIT),
   ]);
 
   const parsedOverview = overviewSchema.safeParse(overviewResult.data);
-  if (overviewResult.error || upcomingResult.error || !parsedOverview.success) {
+  if (
+    overviewResult.error ||
+    monthEntriesResult.error ||
+    !parsedOverview.success
+  ) {
     return actionFailure("Não foi possível carregar o financeiro.");
   }
 
@@ -185,7 +189,7 @@ export async function getFinancialOverview(
       ...account,
       id: account.id as FinancialAccountId,
     })),
-    upcoming: upcomingResult.data.map(toFinancialEntry),
+    monthEntries: monthEntriesResult.data.map(toFinancialEntry),
   });
 }
 
@@ -202,7 +206,7 @@ export async function listFinancialEntries(
   if (!clock) return actionFailure("Não foi possível carregar os lançamentos.");
 
   await ensureFinanceDefaults(organizationId);
-  await syncFinance(organizationId, clock.today);
+  await syncRecurrences(organizationId, clock.today);
 
   const monthStart = getMonthStart(monthKey);
   const monthEnd = getMonthEnd(monthKey);

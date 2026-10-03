@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreHorizontal, Plus, Tags, Zap } from "lucide-react";
+import { MoreHorizontal, Plus, Tags, Wallet } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,15 +24,15 @@ import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
 import { DEFAULT_FINANCE_TAB, parseFinanceTab } from "../finance-search-params";
 import { AnalysisPanel } from "./analysis-panel";
-import { AutomationDialog } from "./automation-dialog";
 import { CategoriesDialog } from "./categories-dialog";
 import { DeleteEntryDialog } from "./delete-entry-dialog";
 import { EntriesPanel } from "./entries-panel";
 import { EntryFormDialog, type EntryFormState } from "./entry-form-dialog";
 import { FinanceOverview } from "./finance-overview";
+import { OpeningBalanceDialog } from "./opening-balance-dialog";
 import { PayEntryDialog } from "./pay-entry-dialog";
 
-type OpenDialog = "none" | "categories" | "automation";
+type OpenDialog = "none" | "categories" | "opening-balance";
 
 type PaymentState = { entry: FinancialEntry; today: string } | null;
 
@@ -126,9 +126,11 @@ export function FinanceView({
                 <MoreHorizontal aria-hidden />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="min-w-52">
-                <DropdownMenuItem onClick={() => setOpenDialog("automation")}>
-                  <Zap aria-hidden />
-                  Configurações
+                <DropdownMenuItem
+                  onClick={() => setOpenDialog("opening-balance")}
+                >
+                  <Wallet aria-hidden />
+                  Saldo inicial
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setOpenDialog("categories")}>
                   <Tags aria-hidden />
@@ -208,9 +210,9 @@ export function FinanceView({
         categories={categories}
         onClose={() => setOpenDialog("none")}
       />
-      <AutomationDialog
+      <OpeningBalanceDialog
         organizationId={organizationId}
-        isOpen={openDialog === "automation"}
+        isOpen={openDialog === "opening-balance"}
         onClose={() => setOpenDialog("none")}
       />
     </>
