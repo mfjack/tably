@@ -9,7 +9,7 @@ type PageHeaderProps = {
 
 export function PageHeader({ title, description, actions }: PageHeaderProps) {
   return (
-    <header className="flex items-center gap-3 px-4 pt-7 pb-1 md:px-8">
+    <header className="sticky top-0 z-20 flex items-center gap-3 bg-background px-4 pt-7 pb-1 md:px-8">
       <SidebarTrigger
         className="-ml-2 md:hidden"
         aria-label="Mostrar ou ocultar menu"

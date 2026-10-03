@@ -21,6 +21,8 @@ import { formatCurrency } from "@/lib/format";
 
 const EMPTY_ORDERS: OrderDetails[] = [];
 
+const PAID_ORDERS_PAGE_SIZE = 10;
+
 const columnHelper = createDataTableColumnHelper<OrderDetails>();
 
 type PaidOrdersTableProps = {
@@ -106,6 +108,7 @@ export function PaidOrdersTable({
     data: orders ?? EMPTY_ORDERS,
     columns,
     getRowId: getOrderRowId,
+    pageSize: PAID_ORDERS_PAGE_SIZE,
   });
 
   return (
