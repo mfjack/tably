@@ -22,6 +22,7 @@ import type {
   AppModuleId,
   OrganizationId,
 } from "@/features/organizations/types";
+import type { OperatorLimit } from "@/features/subscriptions/subscription-state";
 import { OperatorFormDialog } from "./operator-form-dialog";
 
 type OperatorFormState =
@@ -32,6 +33,7 @@ type OperatorFormState =
 type OperatorsSettingsProps = {
   organizationId: OrganizationId;
   visibleModuleIds: readonly AppModuleId[];
+  operatorLimit: OperatorLimit | null;
 };
 
 function getPageLabels(operator: Operator) {
@@ -46,6 +48,7 @@ function getPageLabels(operator: Operator) {
 export function OperatorsSettings({
   organizationId,
   visibleModuleIds,
+  operatorLimit,
 }: OperatorsSettingsProps) {
   const router = useRouter();
   const operatorsQuery = useOperatorsQuery(organizationId);
@@ -59,6 +62,12 @@ export function OperatorsSettings({
     null,
   );
   const operators = operatorsQuery.data ?? [];
+  const hasReachedOperatorLimit =
+    operatorLimit !== null && operators.length >= operatorLimit.maxOperators;
+
+  function openCreateForm() {
+    setFormState({ mode: "create" });
+  }
 
   function confirmDelete() {
     if (!operatorToDelete) return;
@@ -160,15 +169,25 @@ export function OperatorsSettings({
         </ul>
       )}
 
-      <div>
-        <Button
-          type="button"
-          variant="outline"
-          className="h-10"
-          onClick={() => setFormState({ mode: "create" })}
-        >
-          Adicionar operador
-        </Button>
+      <div className="flex flex-col gap-2">
+        <div>
+          <Button
+            type="button"
+            variant="outline"
+            className="h-10"
+            disabled={hasReachedOperatorLimit}
+            onClick={openCreateForm}
+          >
+            Adicionar operador
+          </Button>
+        </div>
+        {operatorLimit && (
+          <p className="text-muted-foreground text-sm">
+            {hasReachedOperatorLimit
+              ? `Seu plano ${operatorLimit.planLabel} permite até ${operatorLimit.maxOperators} operadores. Para cadastrar mais, troque de plano na aba Assinatura.`
+              : `${operators.length} de ${operatorLimit.maxOperators} operadores do plano ${operatorLimit.planLabel}.`}
+          </p>
+        )}
       </div>
 
       <OperatorFormDialog

@@ -29,6 +29,8 @@ const OPERATOR_ERROR_MESSAGES: Readonly<Record<string, string>> = {
   P0002: "Esse operador não existe mais. Atualize a tela.",
   TB004: "Pelo menos um operador precisa ter acesso a Configurações.",
   TB010: "Esse PIN já foi criado. Peça ao gerente para redefinir.",
+  TB011:
+    "Você atingiu o limite de operadores do seu plano. Troque de plano na aba Assinatura para cadastrar mais.",
 };
 
 function getOperatorErrorMessage(

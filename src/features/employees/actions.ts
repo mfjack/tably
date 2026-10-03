@@ -31,6 +31,8 @@ const EMPLOYEE_ACCESS_ERROR_MESSAGES: Readonly<Record<string, string>> = {
     "Já existe um operador com o nome desse funcionário. Renomeie um dos dois.",
   "22023": "Escolha pelo menos uma página para o acesso ao sistema.",
   TB004: "Pelo menos um operador precisa ter acesso a Configurações.",
+  TB011:
+    "Você atingiu o limite de operadores do seu plano. Troque de plano em Configurações, na aba Assinatura, para dar acesso ao sistema a este funcionário.",
 };
 
 async function canUseEmployees(organizationId: OrganizationId) {

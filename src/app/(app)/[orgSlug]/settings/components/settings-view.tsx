@@ -2,6 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { CurrentUser } from "@/features/auth/types";
 import { APP_MODULES } from "@/features/modules/app-modules";
 import type { UserOrganization } from "@/features/organizations/types";
+import { getOperatorLimit } from "@/features/subscriptions/subscription-state";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
 import { CheckoutSettingsForm } from "./checkout-settings-form";
@@ -108,6 +109,7 @@ export function SettingsView({
               <TabsContent value="operators">
                 <OperatorsSettings
                   organizationId={organization.id}
+                  operatorLimit={getOperatorLimit(organization.subscription)}
                   visibleModuleIds={APP_MODULES.map(
                     (appModule) => appModule.id,
                   ).filter(

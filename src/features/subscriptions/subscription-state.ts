@@ -97,6 +97,23 @@ export function getSubscriptionChargeAmount(
     : subscription.monthlyPrice;
 }
 
+export type OperatorLimit = {
+  maxOperators: number;
+  planLabel: string;
+};
+
+export function getOperatorLimit(
+  subscription: Subscription | null,
+): OperatorLimit | null {
+  if (!subscription) return null;
+  if (getSubscriptionState(subscription).hasAllModules) return null;
+
+  const { operatorLimit, label } = PLAN_DETAILS[subscription.plan];
+  return operatorLimit === null
+    ? null
+    : { maxOperators: operatorLimit, planLabel: label };
+}
+
 export function getPlanHiddenModules(
   subscription: Subscription | null,
   allModuleIds: readonly AppModuleId[],
