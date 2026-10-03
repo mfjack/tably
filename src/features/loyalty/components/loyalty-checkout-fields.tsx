@@ -162,9 +162,11 @@ export function LoyaltyCheckoutFields({
         name="phone"
         label="Fidelidade"
         description={
-          earnsStamp
-            ? "Celular do cliente para ganhar o selo desta compra. Opcional."
-            : `Compras a partir de ${formatCurrency(program.minimumPurchase)} ganham selo.`
+          isRewardAvailable && rewardProductId
+            ? "Compra com prêmio não ganha selo."
+            : earnsStamp
+              ? "Celular do cliente para ganhar o selo desta compra. Opcional."
+              : `Compras a partir de ${formatCurrency(program.minimumPurchase)} ganham selo.`
         }
         isDescriptionCompact
         mask="phone"
