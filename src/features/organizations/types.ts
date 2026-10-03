@@ -36,7 +36,6 @@ export type OrganizationCheckoutSettings = {
 };
 
 export type OrganizationMenuSettings = {
-  isPublished: boolean;
   isOnlineOrderingEnabled: boolean;
   title: string | null;
   tagline: string | null;

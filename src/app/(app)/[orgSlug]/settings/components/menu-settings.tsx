@@ -27,7 +27,6 @@ type MenuSettingsProps = {
 
 function toFormValues(organization: UserOrganization): MenuSettingsInput {
   return {
-    isPublished: organization.menu.isPublished,
     isOnlineOrderingEnabled: organization.menu.isOnlineOrderingEnabled,
     title: organization.menu.title ?? "",
     tagline: organization.menu.tagline ?? "",
@@ -91,15 +90,9 @@ export function MenuSettings({ organization }: MenuSettingsProps) {
         <FieldGroup>
           <SwitchField
             control={form.control}
-            name="isPublished"
-            label="Cardápio publicado"
-            description="Desligado, o link mostra “página não encontrada”."
-          />
-          <SwitchField
-            control={form.control}
             name="isOnlineOrderingEnabled"
             label="Receber pedidos pelo cardápio"
-            description="O cliente faz o pedido pelo celular para comer no local. Os pedidos só são aceitos enquanto o PDV estiver aberto em algum aparelho, e cada um precisa ser aceito por você."
+            description="O cliente faz o pedido pelo celular para comer no local. Os pedidos só são aceitos enquanto o caixa estiver aberto, e cada um precisa ser aceito por você."
           />
           <div className="grid gap-5 sm:grid-cols-2">
             <TextField

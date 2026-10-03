@@ -27,10 +27,7 @@ export default async function PosPage({ params }: PageProps<"/[orgSlug]/pos">) {
       isTakeawayEnabled={organization.isTakeawayEnabled}
       takeawayFee={organization.takeawayFee}
       checkoutSettings={organization.checkout}
-      isOnlineOrderingEnabled={
-        organization.menu.isPublished &&
-        organization.menu.isOnlineOrderingEnabled
-      }
+      isOnlineOrderingEnabled={organization.menu.isOnlineOrderingEnabled}
       canOpenOrderTabs={accessibleModuleIds.includes("order_tabs")}
       kitchenHref={
         accessibleModuleIds.includes("kitchen")

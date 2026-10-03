@@ -63,7 +63,7 @@ function toSubscription(row: SubscriptionRow): Subscription | null {
 }
 
 const USER_ORGANIZATION_COLUMNS =
-  "id, name, slug, hidden_modules, takeaway_fee, is_takeaway_enabled, service_fee_percent, is_service_fee_enabled, is_discount_enabled, is_split_bill_enabled, is_customer_account_payment_enabled, tax_id, phone, address, is_menu_published, menu_title, menu_tagline, menu_instagram, menu_note, is_online_ordering_enabled, memberships!inner(role, user_id), subscription:subscriptions(plan, billing_cycle, monthly_price, yearly_price, trial_ends_at, paid_until, payment_reported_at), loyalty:loyalty_settings(is_enabled, stamps_required, minimum_purchase, reward_description)";
+  "id, name, slug, hidden_modules, takeaway_fee, is_takeaway_enabled, service_fee_percent, is_service_fee_enabled, is_discount_enabled, is_split_bill_enabled, is_customer_account_payment_enabled, tax_id, phone, address, menu_title, menu_tagline, menu_instagram, menu_note, is_online_ordering_enabled, memberships!inner(role, user_id), subscription:subscriptions(plan, billing_cycle, monthly_price, yearly_price, trial_ends_at, paid_until, payment_reported_at), loyalty:loyalty_settings(is_enabled, stamps_required, minimum_purchase, reward_description)";
 
 export const getUserOrganizations = cache(
   async (): Promise<UserOrganization[]> => {
@@ -102,7 +102,6 @@ export const getUserOrganizations = cache(
         phone: organization.phone,
         address: organization.address,
         menu: {
-          isPublished: organization.is_menu_published,
           isOnlineOrderingEnabled: organization.is_online_ordering_enabled,
           title: organization.menu_title,
           tagline: organization.menu_tagline,

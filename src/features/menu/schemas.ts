@@ -1,7 +1,6 @@
 import * as z from "zod";
 
 export const menuSettingsSchema = z.object({
-  isPublished: z.boolean(),
   isOnlineOrderingEnabled: z.boolean(),
   title: z.string().trim().max(40, "Título muito longo."),
   tagline: z.string().trim().max(60, "Frase muito longa."),
