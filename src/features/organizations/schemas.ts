@@ -1,5 +1,9 @@
 import * as z from "zod";
 import { MAX_SERVICE_FEE_PERCENT } from "@/features/orders/order-adjustments";
+import {
+  BILLING_CYCLES,
+  SUBSCRIPTION_PLANS,
+} from "@/features/subscriptions/plans";
 import { isValidCnpj } from "@/lib/masks";
 
 const organizationNameSchema = z
@@ -9,6 +13,8 @@ const organizationNameSchema = z
   .max(80, "Nome muito longo.");
 
 export const createOrganizationSchema = z.object({
+  plan: z.enum(SUBSCRIPTION_PLANS).optional(),
+  billingCycle: z.enum(BILLING_CYCLES).optional(),
   name: organizationNameSchema,
   hasAcceptedTerms: z.boolean().refine((isAccepted) => isAccepted, {
     message: "Para continuar, aceite os termos de uso.",

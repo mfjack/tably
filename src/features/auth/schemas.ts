@@ -1,4 +1,8 @@
 import * as z from "zod";
+import {
+  BILLING_CYCLES,
+  SUBSCRIPTION_PLANS,
+} from "@/features/subscriptions/plans";
 
 const emailSchema = z
   .string()
@@ -27,6 +31,8 @@ export const signUpSchema = z.object({
   name: personNameSchema,
   email: emailSchema,
   password: newPasswordSchema,
+  plan: z.enum(SUBSCRIPTION_PLANS).optional(),
+  billingCycle: z.enum(BILLING_CYCLES).optional(),
 });
 
 export const forgotPasswordSchema = z.object({ email: emailSchema });

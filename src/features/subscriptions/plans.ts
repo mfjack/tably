@@ -93,3 +93,38 @@ export function isBillingCycle(value: string): value is BillingCycle {
 export function isSubscriptionPlan(value: string): value is SubscriptionPlan {
   return SUBSCRIPTION_PLANS.some((plan) => plan === value);
 }
+
+export type PlanSelection = {
+  plan: SubscriptionPlan;
+  billingCycle: BillingCycle;
+};
+
+export function parsePlanSelection(
+  plan: unknown,
+  billingCycle: unknown,
+): PlanSelection | null {
+  if (typeof plan !== "string" || !isSubscriptionPlan(plan)) return null;
+  return {
+    plan,
+    billingCycle:
+      typeof billingCycle === "string" && isBillingCycle(billingCycle)
+        ? billingCycle
+        : "monthly",
+  };
+}
+
+export function buildPlanSelectionQuery({
+  plan,
+  billingCycle,
+}: PlanSelection): string {
+  return new URLSearchParams({ plan, cycle: billingCycle }).toString();
+}
+
+export function describePlanSelection({
+  plan,
+  billingCycle,
+}: PlanSelection): string {
+  const cycleLabel =
+    billingCycle === "yearly" ? "cobrança anual" : "cobrança mensal";
+  return `Plano ${PLAN_DETAILS[plan].label}, ${cycleLabel}`;
+}

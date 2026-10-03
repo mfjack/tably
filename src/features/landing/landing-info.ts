@@ -1,8 +1,11 @@
+import type { SubscriptionPlan } from "@/features/subscriptions/plans";
+
 export const LANDING_INFO = {
   whatsappNumber: "22997823207",
 } as const satisfies { whatsappNumber: string | null };
 
 export type LandingPlan = {
+  id: SubscriptionPlan;
   name: string;
   monthlyPrice: number;
   yearlyPrice: number;
@@ -13,6 +16,7 @@ export type LandingPlan = {
 
 export const LANDING_PLANS = [
   {
+    id: "essential",
     name: "Balcão",
     monthlyPrice: 49,
     yearlyPrice: 490,
@@ -29,6 +33,7 @@ export const LANDING_PLANS = [
     isHighlighted: false,
   },
   {
+    id: "management",
     name: "Gestão",
     monthlyPrice: 99,
     yearlyPrice: 990,
@@ -44,6 +49,7 @@ export const LANDING_PLANS = [
     isHighlighted: true,
   },
   {
+    id: "complete",
     name: "Equipe",
     monthlyPrice: 149,
     yearlyPrice: 1490,

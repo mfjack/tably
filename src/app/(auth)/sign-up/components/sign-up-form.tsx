@@ -13,10 +13,18 @@ import { GoogleSignIn } from "@/features/auth/components/google-sign-in";
 import { useSignUpMutation } from "@/features/auth/hooks/use-sign-up-mutation";
 import { type SignUpInput, signUpSchema } from "@/features/auth/schemas";
 import { LegalNotice } from "@/features/legal/components/legal-notice";
+import {
+  buildPlanSelectionQuery,
+  type PlanSelection,
+} from "@/features/subscriptions/plans";
 import { ROUTES } from "@/lib/routes";
 import { EmailConfirmationNotice } from "./email-confirmation-notice";
 
-export function SignUpForm() {
+type SignUpFormProps = {
+  planSelection: PlanSelection | null;
+};
+
+export function SignUpForm({ planSelection }: SignUpFormProps) {
   const router = useRouter();
   const signUpMutation = useSignUpMutation();
   const form = useForm<SignUpInput>({
@@ -25,11 +33,14 @@ export function SignUpForm() {
   });
 
   const handleSubmit = form.handleSubmit((values) => {
-    signUpMutation.mutate(values, {
-      onSuccess: ({ requiresEmailConfirmation }) => {
-        if (!requiresEmailConfirmation) router.replace(ROUTES.home);
+    signUpMutation.mutate(
+      { ...values, ...planSelection },
+      {
+        onSuccess: ({ requiresEmailConfirmation }) => {
+          if (!requiresEmailConfirmation) router.replace(ROUTES.home);
+        },
       },
-    });
+    );
   });
 
   if (
@@ -74,7 +85,14 @@ export function SignUpForm() {
             <AuthSubmitButton isPending={signUpMutation.isPending}>
               Criar conta
             </AuthSubmitButton>
-            <GoogleSignIn label="Cadastrar com Google" />
+            <GoogleSignIn
+              label="Cadastrar com Google"
+              nextPath={
+                planSelection
+                  ? `${ROUTES.newOrganization}?${buildPlanSelectionQuery(planSelection)}`
+                  : undefined
+              }
+            />
           </div>
         </FieldGroup>
       </form>

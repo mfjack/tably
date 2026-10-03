@@ -10,6 +10,7 @@ import {
   formatPlanPrice,
   LANDING_PLANS,
 } from "@/features/landing/landing-info";
+import { buildPlanSelectionQuery } from "@/features/subscriptions/plans";
 import { ROUTES } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
@@ -121,7 +122,11 @@ export function LandingPricing() {
               variant={plan.isHighlighted ? "default" : "outline"}
               className="h-11"
               nativeButton={false}
-              render={<Link href={ROUTES.signUp} />}
+              render={
+                <Link
+                  href={`${ROUTES.signUp}?${buildPlanSelectionQuery({ plan: plan.id, billingCycle: cycle })}`}
+                />
+              }
             >
               Testar 14 dias grátis
             </Button>

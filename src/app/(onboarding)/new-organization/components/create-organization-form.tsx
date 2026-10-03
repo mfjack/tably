@@ -18,14 +18,17 @@ import {
   type CreateOrganizationInput,
   createOrganizationSchema,
 } from "@/features/organizations/schemas";
+import type { PlanSelection } from "@/features/subscriptions/plans";
 import { TermsAcceptanceField } from "./terms-acceptance-field";
 
 type CreateOrganizationFormProps = {
   canCancel: boolean;
+  planSelection: PlanSelection | null;
 };
 
 export function CreateOrganizationForm({
   canCancel,
+  planSelection,
 }: CreateOrganizationFormProps) {
   const router = useRouter();
   const createOrganizationMutation = useCreateOrganizationMutation();
@@ -36,12 +39,15 @@ export function CreateOrganizationForm({
   });
 
   const handleSubmit = form.handleSubmit((values) => {
-    createOrganizationMutation.mutate(values, {
-      onSuccess: ({ slug }) => {
-        router.replace(buildOrganizationPath(slug, DEFAULT_MODULE_PATH));
-        router.refresh();
+    createOrganizationMutation.mutate(
+      { ...values, ...planSelection },
+      {
+        onSuccess: ({ slug }) => {
+          router.replace(buildOrganizationPath(slug, DEFAULT_MODULE_PATH));
+          router.refresh();
+        },
       },
-    });
+    );
   });
 
   return (

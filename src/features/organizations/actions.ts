@@ -5,6 +5,10 @@ import {
   hasModuleAccess,
   MODULE_ACCESS_DENIED_MESSAGE,
 } from "@/features/operators/module-access";
+import type {
+  BillingCycle,
+  SubscriptionPlan,
+} from "@/features/subscriptions/plans";
 import {
   type ActionResult,
   actionFailure,
@@ -29,6 +33,26 @@ const FORBIDDEN_MESSAGE =
 
 export type CreatedOrganization = { slug: string };
 
+async function applyPlanSelection(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  organizationId: string,
+  plan: SubscriptionPlan | undefined,
+  billingCycle: BillingCycle | undefined,
+) {
+  if (plan) {
+    await supabase.rpc("choose_subscription_plan", {
+      p_organization_id: organizationId,
+      p_plan: plan,
+    });
+  }
+  if (billingCycle === "yearly") {
+    await supabase.rpc("choose_billing_cycle", {
+      p_organization_id: organizationId,
+      p_billing_cycle: billingCycle,
+    });
+  }
+}
+
 export async function createOrganization(
   input: CreateOrganizationInput,
 ): Promise<ActionResult<CreatedOrganization>> {
@@ -37,7 +61,7 @@ export async function createOrganization(
     return actionFailure("Confira os campos e tente novamente.");
   }
 
-  const { name } = parsedInput.data;
+  const { name, plan, billingCycle } = parsedInput.data;
   const baseSlug = slugify(name);
   const supabase = await createClient();
 
@@ -56,6 +80,7 @@ export async function createOrganization(
           terms_accepted_by: (await supabase.auth.getUser()).data.user?.id,
         })
         .eq("slug", data.slug);
+      await applyPlanSelection(supabase, data.id, plan, billingCycle);
       return actionSuccess({ slug: data.slug });
     }
     if (error.code !== UNIQUE_VIOLATION_CODE) break;

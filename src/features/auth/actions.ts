@@ -60,13 +60,17 @@ export async function signUp(
   const parsedInput = signUpSchema.safeParse(input);
   if (!parsedInput.success) return actionFailure(INVALID_FORM_MESSAGE);
 
-  const { name, email, password } = parsedInput.data;
+  const { name, email, password, plan, billingCycle } = parsedInput.data;
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      data: { full_name: name },
+      data: {
+        full_name: name,
+        selected_plan: plan,
+        selected_billing_cycle: billingCycle,
+      },
       emailRedirectTo: buildAuthCallbackUrl(ROUTES.home),
     },
   });
