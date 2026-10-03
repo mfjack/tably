@@ -18,7 +18,7 @@ import { useSearchParamState } from "@/hooks/use-search-param-state";
 import { formatCurrency } from "@/lib/format";
 import { PayslipDialog } from "./payslip-dialog";
 
-const YEAR_PATTERN = /^d{4}$/;
+const YEAR_PATTERN = /^\d{4}$/;
 
 function parseYear(rawValue: string) {
   return YEAR_PATTERN.test(rawValue) ? rawValue : null;
