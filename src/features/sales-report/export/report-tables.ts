@@ -14,7 +14,9 @@ import {
   getCostShare,
   getGrossProfit,
   getHourlySeries,
+  getNetRevenue,
   getOperatorClosings,
+  getTotalFees,
   getWorstSellers,
   hasWeekdayChart,
   sumPaymentTotals,
@@ -68,6 +70,8 @@ function buildSummaryTable(report: SalesReport): ReportTable {
     headers: ["Indicador", "Valor"],
     rows: [
       [text("Faturamento"), money(summary.revenue)],
+      [text("Taxas de pagamento"), money(getTotalFees(report))],
+      [text("Valor a receber"), money(getNetRevenue(report))],
       [text("Faturamento do período anterior"), money(previousSummary.revenue)],
       [text("Pedidos"), count(summary.orderCount)],
       [text("Pedidos do período anterior"), count(previousSummary.orderCount)],

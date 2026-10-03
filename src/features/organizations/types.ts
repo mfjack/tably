@@ -22,6 +22,7 @@ export type UserOrganization = {
   address: string | null;
   menu: OrganizationMenuSettings;
   checkout: OrganizationCheckoutSettings;
+  paymentFees: OrganizationPaymentFees;
   loyalty: LoyaltySettings;
   subscription: Subscription | null;
 };
@@ -33,6 +34,12 @@ export type OrganizationCheckoutSettings = {
   isSplitBillEnabled: boolean;
   isCustomerAccountPaymentEnabled: boolean;
   loyaltyProgram: LoyaltyProgram | null;
+};
+
+export type OrganizationPaymentFees = {
+  creditCardFeePercent: number;
+  debitCardFeePercent: number;
+  pixFeePercent: number;
 };
 
 export type OrganizationMenuSettings = {

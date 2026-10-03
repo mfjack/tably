@@ -24,6 +24,10 @@ export type SalesByPaymentMethod = {
   orderCount: number;
 };
 
+export type SalesByPaymentMethodWithFee = SalesByPaymentMethod & {
+  fee: number;
+};
+
 export type SalesByOperatorPayment = SalesByPaymentMethod & {
   operatorName: string | null;
 };
@@ -62,7 +66,7 @@ export type SalesReport = {
   summary: SalesSummary;
   previousSummary: Pick<SalesSummary, "revenue" | "orderCount">;
   canceled: CanceledSummary;
-  byPaymentMethod: SalesByPaymentMethod[];
+  byPaymentMethod: SalesByPaymentMethodWithFee[];
   byOperatorPayment: SalesByOperatorPayment[];
   accountReceipts: SalesByOperatorPayment[];
   byDay: SalesByDay[];

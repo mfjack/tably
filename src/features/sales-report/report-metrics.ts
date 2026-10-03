@@ -49,6 +49,27 @@ export function getGrossProfit(report: SalesReport): number {
   return report.summary.revenue - report.summary.cost;
 }
 
+export function getTotalFees(report: SalesReport): number {
+  return report.byPaymentMethod.reduce(
+    (total, payment) => total + payment.fee,
+    0,
+  );
+}
+
+export function getNetRevenue(report: SalesReport): number {
+  return report.summary.revenue - getTotalFees(report);
+}
+
+export function getPaymentMethodFee(
+  report: SalesReport,
+  method: PaymentMethod,
+): number {
+  return (
+    report.byPaymentMethod.find((payment) => payment.method === method)?.fee ??
+    0
+  );
+}
+
 export function getCostShare(cost: number, revenue: number): number | null {
   return cost > 0 && revenue > 0 ? cost / revenue : null;
 }

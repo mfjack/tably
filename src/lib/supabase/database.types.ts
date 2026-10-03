@@ -501,93 +501,6 @@ export type Database = {
           },
         ]
       }
-      finance_automation_settings: {
-        Row: {
-          is_customer_payments_enabled: boolean
-          is_payroll_enabled: boolean
-          is_sales_enabled: boolean
-          is_stock_purchases_enabled: boolean
-          organization_id: string
-          start_date: string
-          stock_purchase_account_id: string | null
-          updated_at: string
-        }
-        Insert: {
-          is_customer_payments_enabled?: boolean
-          is_payroll_enabled?: boolean
-          is_sales_enabled?: boolean
-          is_stock_purchases_enabled?: boolean
-          organization_id: string
-          start_date: string
-          stock_purchase_account_id?: string | null
-          updated_at?: string
-        }
-        Update: {
-          is_customer_payments_enabled?: boolean
-          is_payroll_enabled?: boolean
-          is_sales_enabled?: boolean
-          is_stock_purchases_enabled?: boolean
-          organization_id?: string
-          start_date?: string
-          stock_purchase_account_id?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "finance_automation_settings_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: true
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "finance_automation_settings_stock_purchase_account_id_orga_fkey"
-            columns: ["stock_purchase_account_id", "organization_id"]
-            isOneToOne: false
-            referencedRelation: "financial_accounts"
-            referencedColumns: ["id", "organization_id"]
-          },
-        ]
-      }
-      finance_payment_method_settings: {
-        Row: {
-          account_id: string | null
-          fee_percent: number
-          organization_id: string
-          payment_method: Database["public"]["Enums"]["payment_method"]
-          settlement_days: number
-        }
-        Insert: {
-          account_id?: string | null
-          fee_percent?: number
-          organization_id: string
-          payment_method: Database["public"]["Enums"]["payment_method"]
-          settlement_days?: number
-        }
-        Update: {
-          account_id?: string | null
-          fee_percent?: number
-          organization_id?: string
-          payment_method?: Database["public"]["Enums"]["payment_method"]
-          settlement_days?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "finance_payment_method_settings_account_id_organization_id_fkey"
-            columns: ["account_id", "organization_id"]
-            isOneToOne: false
-            referencedRelation: "financial_accounts"
-            referencedColumns: ["id", "organization_id"]
-          },
-          {
-            foreignKeyName: "finance_payment_method_settings_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       financial_accounts: {
         Row: {
           created_at: string
@@ -1493,6 +1406,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           customer_account_id: string | null
+          fee_percent: number
           id: string
           method: Database["public"]["Enums"]["payment_method"]
           order_id: string
@@ -1505,6 +1419,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           customer_account_id?: string | null
+          fee_percent?: number
           id?: string
           method: Database["public"]["Enums"]["payment_method"]
           order_id: string
@@ -1517,6 +1432,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           customer_account_id?: string | null
+          fee_percent?: number
           id?: string
           method?: Database["public"]["Enums"]["payment_method"]
           order_id?: string
@@ -1596,6 +1512,8 @@ export type Database = {
           discounted_by: string | null
           id: string
           is_takeaway: boolean
+          loyalty_reward_amount: number
+          loyalty_reward_product_name: string | null
           note: string | null
           number: number
           organization_id: string
@@ -1624,6 +1542,8 @@ export type Database = {
           discounted_by?: string | null
           id?: string
           is_takeaway?: boolean
+          loyalty_reward_amount?: number
+          loyalty_reward_product_name?: string | null
           note?: string | null
           number: number
           organization_id: string
@@ -1652,6 +1572,8 @@ export type Database = {
           discounted_by?: string | null
           id?: string
           is_takeaway?: boolean
+          loyalty_reward_amount?: number
+          loyalty_reward_product_name?: string | null
           note?: string | null
           number?: number
           organization_id?: string
@@ -1710,6 +1632,8 @@ export type Database = {
           address: string | null
           created_at: string
           created_by: string | null
+          credit_card_fee_percent: number
+          debit_card_fee_percent: number
           hidden_modules: Database["public"]["Enums"]["app_module"][]
           id: string
           is_customer_account_payment_enabled: boolean
@@ -1726,7 +1650,7 @@ export type Database = {
           menu_title: string | null
           name: string
           phone: string | null
-          pos_seen_at: string | null
+          pix_fee_percent: number
           service_fee_percent: number
           slug: string
           takeaway_fee: number
@@ -1741,6 +1665,8 @@ export type Database = {
           address?: string | null
           created_at?: string
           created_by?: string | null
+          credit_card_fee_percent?: number
+          debit_card_fee_percent?: number
           hidden_modules?: Database["public"]["Enums"]["app_module"][]
           id?: string
           is_customer_account_payment_enabled?: boolean
@@ -1757,7 +1683,7 @@ export type Database = {
           menu_title?: string | null
           name: string
           phone?: string | null
-          pos_seen_at?: string | null
+          pix_fee_percent?: number
           service_fee_percent?: number
           slug: string
           takeaway_fee?: number
@@ -1772,6 +1698,8 @@ export type Database = {
           address?: string | null
           created_at?: string
           created_by?: string | null
+          credit_card_fee_percent?: number
+          debit_card_fee_percent?: number
           hidden_modules?: Database["public"]["Enums"]["app_module"][]
           id?: string
           is_customer_account_payment_enabled?: boolean
@@ -1788,7 +1716,7 @@ export type Database = {
           menu_title?: string | null
           name?: string
           phone?: string | null
-          pos_seen_at?: string | null
+          pix_fee_percent?: number
           service_fee_percent?: number
           slug?: string
           takeaway_fee?: number
@@ -2881,6 +2809,15 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      apply_loyalty_reward: {
+        Args: {
+          p_order_id: string
+          p_phone: string
+          p_product_name: string
+          p_unit_price: number
+        }
+        Returns: undefined
+      }
       apply_order_adjustments: {
         Args: {
           p_discount_type: string
@@ -2982,6 +2919,8 @@ export type Database = {
           address: string | null
           created_at: string
           created_by: string | null
+          credit_card_fee_percent: number
+          debit_card_fee_percent: number
           hidden_modules: Database["public"]["Enums"]["app_module"][]
           id: string
           is_customer_account_payment_enabled: boolean
@@ -2998,7 +2937,7 @@ export type Database = {
           menu_title: string | null
           name: string
           phone: string | null
-          pos_seen_at: string | null
+          pix_fee_percent: number
           service_fee_percent: number
           slug: string
           takeaway_fee: number
@@ -3190,6 +3129,8 @@ export type Database = {
           discounted_by: string | null
           id: string
           is_takeaway: boolean
+          loyalty_reward_amount: number
+          loyalty_reward_product_name: string | null
           note: string | null
           number: number
           organization_id: string
@@ -3231,14 +3172,6 @@ export type Database = {
         }
         Returns: Json
       }
-      nth_business_day: {
-        Args: {
-          p_count: number
-          p_month_start: string
-          p_organization_id: string
-        }
-        Returns: string
-      }
       open_cash_session: {
         Args: { p_opening_amount: number; p_organization_id: string }
         Returns: string
@@ -3254,15 +3187,13 @@ export type Database = {
           p_discount_type?: string
           p_discount_value?: number
           p_has_service_fee?: boolean
+          p_loyalty_phone?: string
+          p_loyalty_reward_product_id?: string
           p_order_id: string
           p_payment_method?: Database["public"]["Enums"]["payment_method"]
           p_payments?: Json
         }
         Returns: number
-      }
-      payment_method_label: {
-        Args: { p_method: Database["public"]["Enums"]["payment_method"] }
-        Returns: string
       }
       place_online_order: {
         Args: {
@@ -3285,6 +3216,8 @@ export type Database = {
           p_has_service_fee?: boolean
           p_is_takeaway?: boolean
           p_items: Json
+          p_loyalty_phone?: string
+          p_loyalty_reward_product_id?: string
           p_note?: string
           p_organization_id: string
           p_payment_method?: Database["public"]["Enums"]["payment_method"]
@@ -3425,6 +3358,16 @@ export type Database = {
         Args: { p_is_done: boolean; p_task_id: string }
         Returns: undefined
       }
+      settle_order: {
+        Args: {
+          p_order_id: string
+          p_organization_id: string
+          p_paid_at: string
+          p_payments: Json
+          p_total: number
+        }
+        Returns: undefined
+      }
       sync_financial_recurrences: {
         Args: { p_organization_id: string; p_until: string }
         Returns: undefined
@@ -3435,10 +3378,6 @@ export type Database = {
           p_frequency: Database["public"]["Enums"]["task_frequency"]
         }
         Returns: string
-      }
-      touch_pos_presence: {
-        Args: { p_organization_id: string }
-        Returns: undefined
       }
       verify_operator_pin: {
         Args: { p_operator_id: string; p_pin: string }

@@ -34,7 +34,7 @@ const salesReportRowSchema = z.object({
   previous_summary: summarySchema,
   canceled: z.object({ order_count: z.number(), total: z.number() }),
   by_payment_method: z.array(
-    summarySchema.extend({ method: paymentMethodSchema }),
+    summarySchema.extend({ method: paymentMethodSchema, fee: z.number() }),
   ),
   by_operator_payment: z.array(
     summarySchema.extend({
@@ -105,6 +105,7 @@ export async function getSalesReport(
     byPaymentMethod: report.by_payment_method.map((payment) => ({
       method: payment.method,
       revenue: payment.revenue,
+      fee: payment.fee,
       orderCount: payment.order_count,
     })),
     byOperatorPayment: report.by_operator_payment.map((payment) => ({

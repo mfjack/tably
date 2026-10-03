@@ -20,8 +20,10 @@ import {
   getCostShare,
   getGrossProfit,
   getHourlySeries,
+  getNetRevenue,
   getOperatorClosings,
   getPeak,
+  getTotalFees,
   getWorstSellers,
   hasWeekdayChart,
   type PaymentTotals,
@@ -83,9 +85,16 @@ function buildReportHtml({
     : null;
   const costShare = getCostShare(summary.cost, summary.revenue);
   const operatorClosings = getOperatorClosings(report);
+  const totalFees = getTotalFees(report);
 
   const summaryRows = [
     buildRow("Faturamento", formatCurrency(summary.revenue), true),
+    totalFees > 0
+      ? buildRow("Taxas de pagamento", formatCurrency(totalFees))
+      : "",
+    totalFees > 0
+      ? buildRow("Valor a receber", formatCurrency(getNetRevenue(report)))
+      : "",
     buildRow("Pedidos", summary.orderCount.toString()),
     buildRow("Ticket médio", formatCurrency(getAverageTicket(report))),
     buildRow("Itens vendidos", summary.itemCount.toString()),

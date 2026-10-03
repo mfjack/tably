@@ -14,6 +14,7 @@ import { LoyaltySettingsForm } from "./loyalty-settings-form";
 import { MenuSettings } from "./menu-settings";
 import { OperatorsSettings } from "./operators-settings";
 import { OrganizationSettingsForm } from "./organization-settings-form";
+import { PaymentFeesForm } from "./payment-fees-form";
 import { ProfileForm } from "./profile-form";
 import { SubscriptionSettings } from "./subscription-settings";
 import { ThermalPrinterSettings } from "./thermal-printer-settings";
@@ -100,9 +101,13 @@ export function SettingsView({
                   organization={organization}
                 />
               </TabsContent>
-              <TabsContent value="checkout">
+              <TabsContent value="checkout" className="flex flex-col gap-6">
                 <CheckoutSettingsForm
                   key={organization.id}
+                  organization={organization}
+                />
+                <PaymentFeesForm
+                  key={`${organization.id}-payment-fees`}
                   organization={organization}
                 />
               </TabsContent>

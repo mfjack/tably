@@ -22,6 +22,8 @@ import {
   createOrganizationSchema,
   type OrganizationSettingsInput,
   organizationSettingsSchema,
+  type PaymentFeesInput,
+  paymentFeesSchema,
 } from "./schemas";
 import { buildSlugCandidate, slugify } from "./slug";
 import type { OrganizationId } from "./types";
@@ -155,6 +157,38 @@ export async function updateCheckoutSettings(
     .select("id");
 
   if (error) return actionFailure("Não foi possível salvar as alterações.");
+  if (data.length === 0) return actionFailure(FORBIDDEN_MESSAGE);
+
+  return actionSuccess();
+}
+
+export async function updatePaymentFees(
+  organizationId: OrganizationId,
+  input: PaymentFeesInput,
+): Promise<ActionResult> {
+  if (!(await hasModuleAccess(organizationId, "settings"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
+
+  const parsedInput = paymentFeesSchema.safeParse(input);
+  if (!parsedInput.success) {
+    return actionFailure("Confira os campos e tente novamente.");
+  }
+
+  const { creditCardFeePercent, debitCardFeePercent, pixFeePercent } =
+    parsedInput.data;
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("organizations")
+    .update({
+      credit_card_fee_percent: creditCardFeePercent ?? 0,
+      debit_card_fee_percent: debitCardFeePercent ?? 0,
+      pix_fee_percent: pixFeePercent ?? 0,
+    })
+    .eq("id", organizationId)
+    .select("id");
+
+  if (error) return actionFailure("Não foi possível salvar as taxas.");
   if (data.length === 0) return actionFailure(FORBIDDEN_MESSAGE);
 
   return actionSuccess();

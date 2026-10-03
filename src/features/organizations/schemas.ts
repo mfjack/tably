@@ -69,3 +69,17 @@ export const checkoutSettingsSchema = z
   });
 
 export type CheckoutSettingsInput = z.infer<typeof checkoutSettingsSchema>;
+
+const feePercentSchema = z
+  .number()
+  .min(0, "Não pode ser negativo.")
+  .max(100, "No máximo 100%.")
+  .optional();
+
+export const paymentFeesSchema = z.object({
+  creditCardFeePercent: feePercentSchema,
+  debitCardFeePercent: feePercentSchema,
+  pixFeePercent: feePercentSchema,
+});
+
+export type PaymentFeesInput = z.infer<typeof paymentFeesSchema>;

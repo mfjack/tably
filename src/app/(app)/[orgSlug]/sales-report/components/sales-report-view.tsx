@@ -27,6 +27,8 @@ import {
   getChange,
   getCostShare,
   getGrossProfit,
+  getNetRevenue,
+  getTotalFees,
   getWorstSellers,
 } from "@/features/sales-report/report-metrics";
 import type {
@@ -57,7 +59,7 @@ type SalesReportViewProps = {
 function SalesReportSkeleton() {
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {Array.from({ length: KPI_CARD_COUNT }, (_, cardIndex) => (
           <Skeleton
             key={`kpi-${cardIndex.toString()}`}
@@ -77,6 +79,7 @@ type SalesReportContentProps = {
 function SalesReportContent({ report }: SalesReportContentProps) {
   const { summary, previousSummary, canceled } = report;
   const costShare = getCostShare(summary.cost, summary.revenue);
+  const totalFees = getTotalFees(report);
 
   if (summary.orderCount === 0) {
     return (
@@ -102,6 +105,15 @@ function SalesReportContent({ report }: SalesReportContentProps) {
           value={formatCurrency(summary.revenue)}
           change={getChange(summary.revenue, previousSummary.revenue)}
           detail={`${summary.itemCount} ${summary.itemCount === 1 ? "item vendido" : "itens vendidos"}`}
+        />
+        <KpiCard
+          label="Vou receber"
+          value={formatCurrency(getNetRevenue(report))}
+          detail={
+            totalFees > 0
+              ? `Taxas de pagamento ${formatCurrency(totalFees)}`
+              : "Sem taxas de pagamento"
+          }
         />
         <KpiCard
           label="Pedidos"
