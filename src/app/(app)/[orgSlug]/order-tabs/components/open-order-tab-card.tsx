@@ -1,5 +1,6 @@
 import { formatDistanceToNowStrict } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { QrCode } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { OrderDetails, OrderId } from "@/features/orders/types";
 import { formatCurrency } from "@/lib/format";
@@ -34,7 +35,15 @@ export function OpenOrderTabCard({ order, onSelect }: OpenOrderTabCardProps) {
             })}
           </p>
         </div>
-        {order.isTakeaway && <Badge variant="secondary">Para levar</Badge>}
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          {order.isFromMenu && (
+            <Badge variant="outline">
+              <QrCode aria-hidden />
+              Pelo cardápio
+            </Badge>
+          )}
+          {order.isTakeaway && <Badge variant="secondary">Para levar</Badge>}
+        </div>
       </div>
       <div className="flex w-full items-baseline justify-between gap-2">
         <span className="text-muted-foreground text-sm">

@@ -53,7 +53,8 @@ const ORDER_DETAILS_COLUMNS = `
       category:categories!products_category_id_organization_id_fkey(created_at, position)
     )
   ),
-  order_payments(method, amount, amount_received)
+  order_payments(method, amount, amount_received),
+  online_orders(id)
 `;
 
 const PAID_ORDERS_LIMIT = 200;
@@ -90,6 +91,7 @@ type OrderDetailsRow = {
     amount: number;
     amount_received: number | null;
   }>;
+  online_orders: Array<{ id: string }>;
 };
 
 type OrderDetailsItemRow = OrderDetailsRow["order_items"][number];
@@ -132,6 +134,7 @@ function toOrderDetails(row: OrderDetailsRow): OrderDetails {
     total: row.total,
     createdAt: row.created_at,
     paidAt: row.paid_at,
+    isFromMenu: row.online_orders.length > 0,
     payments: row.order_payments
       .map((payment) => ({
         method: payment.method,
