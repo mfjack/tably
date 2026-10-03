@@ -32,6 +32,7 @@ import {
   getGrossProfit,
   getNetRevenue,
   getTotalFees,
+  getTotalSurcharge,
   getWorstSellers,
 } from "@/features/sales-report/report-metrics";
 import type {
@@ -45,6 +46,7 @@ import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
 import { CashSessionsSection } from "./cash-sessions-section";
 import { KpiCard } from "./kpi-card";
+import { LoyaltyReportSection } from "./loyalty-report-section";
 import { PaymentMethodsSection } from "./payment-methods-section";
 import { ProductLookupSection } from "./product-lookup-section";
 import { ProductsRankingSection } from "./products-ranking-section";
@@ -60,6 +62,7 @@ type SalesReportViewProps = {
   title: string;
   ticketBusiness: OrderTicketBusiness;
   paymentFees: OrganizationPaymentFees;
+  isLoyaltyEnabled: boolean;
 };
 
 function SalesReportSkeleton() {
@@ -81,12 +84,18 @@ function SalesReportSkeleton() {
 type SalesReportContentProps = {
   report: SalesReport;
   paymentFees: OrganizationPaymentFees;
+  isLoyaltyEnabled: boolean;
 };
 
-function SalesReportContent({ report, paymentFees }: SalesReportContentProps) {
+function SalesReportContent({
+  report,
+  paymentFees,
+  isLoyaltyEnabled,
+}: SalesReportContentProps) {
   const { summary, previousSummary, canceled } = report;
   const costShare = getCostShare(summary.cost, summary.revenue);
   const totalFees = getTotalFees(report);
+  const totalSurcharge = getTotalSurcharge(report);
 
   if (summary.orderCount === 0) {
     return (
@@ -117,9 +126,11 @@ function SalesReportContent({ report, paymentFees }: SalesReportContentProps) {
           label="Vou receber"
           value={formatCurrency(getNetRevenue(report))}
           detail={
-            totalFees > 0
-              ? `Taxas de pagamento ${formatCurrency(totalFees)}`
-              : "Sem taxas de pagamento"
+            totalFees === 0
+              ? "Sem taxas de pagamento"
+              : totalSurcharge > 0
+                ? `Taxas ${formatCurrency(totalFees)} · cliente pagou ${formatCurrency(totalSurcharge)}`
+                : `Taxas de pagamento ${formatCurrency(totalFees)}`
           }
         />
         <KpiCard
@@ -151,6 +162,7 @@ function SalesReportContent({ report, paymentFees }: SalesReportContentProps) {
 
       <ProductLookupSection key={report.startDate} report={report} />
       <PaymentMethodsSection report={report} paymentFees={paymentFees} />
+      {isLoyaltyEnabled && <LoyaltyReportSection loyalty={report.loyalty} />}
 
       <SalesCharts report={report} />
 
@@ -181,6 +193,7 @@ export function SalesReportView({
   title,
   ticketBusiness,
   paymentFees,
+  isLoyaltyEnabled,
 }: SalesReportViewProps) {
   const [period, setPeriod] = useSearchParamState<SalesReportPeriod>({
     key: "period",
@@ -241,7 +254,11 @@ export function SalesReportView({
                   salesReportQuery.isPlaceholderData && "opacity-60",
                 )}
               >
-                <SalesReportContent report={report} paymentFees={paymentFees} />
+                <SalesReportContent
+                  report={report}
+                  paymentFees={paymentFees}
+                  isLoyaltyEnabled={isLoyaltyEnabled}
+                />
               </div>
             ) : (
               <SalesReportSkeleton />

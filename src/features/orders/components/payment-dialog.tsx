@@ -494,6 +494,7 @@ export function PaymentDialog({
               computedAmount={computedAmounts?.[index]}
               onRemove={isSplit ? () => removePerson(index) : undefined}
               methods={paymentMethods}
+              paymentFees={checkoutSettings.paymentFees}
             />
           ))}
         {isPaidByReward && (

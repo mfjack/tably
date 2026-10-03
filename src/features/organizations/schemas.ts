@@ -80,6 +80,7 @@ export const paymentFeesSchema = z.object({
   creditCardFeePercent: feePercentSchema,
   debitCardFeePercent: feePercentSchema,
   pixFeePercent: feePercentSchema,
+  isPassedOnToCustomer: z.boolean(),
 });
 
 export type PaymentFeesInput = z.infer<typeof paymentFeesSchema>;

@@ -28,6 +28,7 @@ export type OrderPayment = {
   method: PaymentMethod;
   amount: number;
   amountReceived: number | null;
+  surcharge: number;
 };
 
 export type OrderDetails = {

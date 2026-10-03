@@ -26,6 +26,7 @@ export type SalesByPaymentMethod = {
 
 export type SalesByPaymentMethodWithFee = SalesByPaymentMethod & {
   fee: number;
+  surcharge: number;
 };
 
 export type SalesByOperatorPayment = SalesByPaymentMethod & {
@@ -60,12 +61,21 @@ export type ProductSales = {
   orderCount: number;
 };
 
+export type LoyaltySummary = {
+  stampsGiven: number;
+  rewardsRedeemed: number;
+  rewardCost: number;
+  activeCustomers: number;
+  newCustomers: number;
+};
+
 export type SalesReport = {
   startDate: string;
   endDate: string;
   summary: SalesSummary;
   previousSummary: Pick<SalesSummary, "revenue" | "orderCount">;
   canceled: CanceledSummary;
+  loyalty: LoyaltySummary;
   byPaymentMethod: SalesByPaymentMethodWithFee[];
   byOperatorPayment: SalesByOperatorPayment[];
   accountReceipts: SalesByOperatorPayment[];

@@ -7,6 +7,7 @@ import {
   getOrderCustomerLabel,
   getOrderPaymentChange,
 } from "@/features/orders/order-details-ticket";
+import { LOYALTY_REWARD_PAYMENT_LABEL } from "@/features/orders/order-payments";
 import { getPaymentMethodLabel } from "@/features/orders/payment-methods";
 import type { OrderDetails } from "@/features/orders/types";
 import { formatCurrency } from "@/lib/format";
@@ -26,6 +27,9 @@ export function PaidOrderDialog({
   onPrint,
 }: PaidOrderDialogProps) {
   const change = order ? getOrderPaymentChange(order) : 0;
+  const paymentLineCount = order
+    ? order.payments.length + (order.loyaltyReward > 0 ? 1 : 0)
+    : 0;
 
   return (
     <DetailsDialog
@@ -63,10 +67,10 @@ export function PaidOrderDialog({
             ]}
           />
           <OrderItemsList order={order} />
-          {order.payments.length > 0 && (
+          {paymentLineCount > 0 && (
             <section className="flex flex-col gap-2">
               <h3 className="font-semibold text-sm">
-                {order.payments.length > 1
+                {paymentLineCount > 1
                   ? "Formas de pagamento"
                   : "Forma de pagamento"}
               </h3>
@@ -78,10 +82,21 @@ export function PaidOrderDialog({
                   >
                     <span>{getPaymentMethodLabel(payment.method)}</span>
                     <span className="tabular-nums">
-                      {formatCurrency(payment.amountReceived ?? payment.amount)}
+                      {formatCurrency(
+                        (payment.amountReceived ?? payment.amount) +
+                          payment.surcharge,
+                      )}
                     </span>
                   </li>
                 ))}
+                {order.loyaltyReward > 0 && (
+                  <li className="flex justify-between gap-3">
+                    <span>{LOYALTY_REWARD_PAYMENT_LABEL}</span>
+                    <span className="tabular-nums">
+                      {formatCurrency(order.loyaltyReward)}
+                    </span>
+                  </li>
+                )}
                 {change > 0 && (
                   <li className="flex justify-between gap-3 text-muted-foreground">
                     <span>Troco</span>

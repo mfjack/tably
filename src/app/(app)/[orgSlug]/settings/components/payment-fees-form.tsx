@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { NumberField } from "@/components/form/number-field";
+import { SwitchField } from "@/components/form/switch-field";
 import { FieldGroup } from "@/components/ui/field";
 import { useUpdatePaymentFeesMutation } from "@/features/organizations/hooks/use-update-payment-fees-mutation";
 import {
@@ -23,6 +24,7 @@ function toFormValues({ paymentFees }: UserOrganization): PaymentFeesInput {
     creditCardFeePercent: paymentFees.creditCardFeePercent || undefined,
     debitCardFeePercent: paymentFees.debitCardFeePercent || undefined,
     pixFeePercent: paymentFees.pixFeePercent || undefined,
+    isPassedOnToCustomer: paymentFees.isPassedOnToCustomer,
   };
 }
 
@@ -79,6 +81,12 @@ export function PaymentFeesForm({ organization }: PaymentFeesFormProps) {
           placeholder="Ex.: 0 %"
         />
       </FieldGroup>
+      <SwitchField
+        control={form.control}
+        name="isPassedOnToCustomer"
+        label="Repassar a taxa ao cliente"
+        description="No cartão e no Pix com taxa, o valor cobrado já inclui a taxa. Você recebe o valor da venda inteiro."
+      />
     </SettingsFormSection>
   );
 }

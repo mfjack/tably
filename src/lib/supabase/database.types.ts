@@ -1411,6 +1411,7 @@ export type Database = {
           method: Database["public"]["Enums"]["payment_method"]
           order_id: string
           organization_id: string
+          surcharge: number
         }
         Insert: {
           amount: number
@@ -1424,6 +1425,7 @@ export type Database = {
           method: Database["public"]["Enums"]["payment_method"]
           order_id: string
           organization_id: string
+          surcharge?: number
         }
         Update: {
           amount?: number
@@ -1437,6 +1439,7 @@ export type Database = {
           method?: Database["public"]["Enums"]["payment_method"]
           order_id?: string
           organization_id?: string
+          surcharge?: number
         }
         Relationships: [
           {
@@ -1636,6 +1639,7 @@ export type Database = {
           debit_card_fee_percent: number
           hidden_modules: Database["public"]["Enums"]["app_module"][]
           id: string
+          is_card_fee_passed_on: boolean
           is_customer_account_payment_enabled: boolean
           is_discount_enabled: boolean
           is_menu_published: boolean
@@ -1669,6 +1673,7 @@ export type Database = {
           debit_card_fee_percent?: number
           hidden_modules?: Database["public"]["Enums"]["app_module"][]
           id?: string
+          is_card_fee_passed_on?: boolean
           is_customer_account_payment_enabled?: boolean
           is_discount_enabled?: boolean
           is_menu_published?: boolean
@@ -1702,6 +1707,7 @@ export type Database = {
           debit_card_fee_percent?: number
           hidden_modules?: Database["public"]["Enums"]["app_module"][]
           id?: string
+          is_card_fee_passed_on?: boolean
           is_customer_account_payment_enabled?: boolean
           is_discount_enabled?: boolean
           is_menu_published?: boolean
@@ -2923,6 +2929,7 @@ export type Database = {
           debit_card_fee_percent: number
           hidden_modules: Database["public"]["Enums"]["app_module"][]
           id: string
+          is_card_fee_passed_on: boolean
           is_customer_account_payment_enabled: boolean
           is_discount_enabled: boolean
           is_menu_published: boolean

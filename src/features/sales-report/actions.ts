@@ -32,9 +32,20 @@ const salesReportRowSchema = z.object({
     item_count: z.number(),
   }),
   previous_summary: summarySchema,
+  loyalty: z.object({
+    stamps_given: z.number(),
+    rewards_redeemed: z.number(),
+    reward_cost: z.number(),
+    active_customers: z.number(),
+    new_customers: z.number(),
+  }),
   canceled: z.object({ order_count: z.number(), total: z.number() }),
   by_payment_method: z.array(
-    summarySchema.extend({ method: paymentMethodSchema, fee: z.number() }),
+    summarySchema.extend({
+      method: paymentMethodSchema,
+      fee: z.number(),
+      surcharge: z.number(),
+    }),
   ),
   by_operator_payment: z.array(
     summarySchema.extend({
@@ -102,10 +113,18 @@ export async function getSalesReport(
       orderCount: report.canceled.order_count,
       total: report.canceled.total,
     },
+    loyalty: {
+      stampsGiven: report.loyalty.stamps_given,
+      rewardsRedeemed: report.loyalty.rewards_redeemed,
+      rewardCost: report.loyalty.reward_cost,
+      activeCustomers: report.loyalty.active_customers,
+      newCustomers: report.loyalty.new_customers,
+    },
     byPaymentMethod: report.by_payment_method.map((payment) => ({
       method: payment.method,
       revenue: payment.revenue,
       fee: payment.fee,
+      surcharge: payment.surcharge,
       orderCount: payment.order_count,
     })),
     byOperatorPayment: report.by_operator_payment.map((payment) => ({

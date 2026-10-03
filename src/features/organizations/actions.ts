@@ -175,8 +175,12 @@ export async function updatePaymentFees(
     return actionFailure("Confira os campos e tente novamente.");
   }
 
-  const { creditCardFeePercent, debitCardFeePercent, pixFeePercent } =
-    parsedInput.data;
+  const {
+    creditCardFeePercent,
+    debitCardFeePercent,
+    pixFeePercent,
+    isPassedOnToCustomer,
+  } = parsedInput.data;
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("organizations")
@@ -184,6 +188,7 @@ export async function updatePaymentFees(
       credit_card_fee_percent: creditCardFeePercent ?? 0,
       debit_card_fee_percent: debitCardFeePercent ?? 0,
       pix_fee_percent: pixFeePercent ?? 0,
+      is_card_fee_passed_on: isPassedOnToCustomer,
     })
     .eq("id", organizationId)
     .select("id");

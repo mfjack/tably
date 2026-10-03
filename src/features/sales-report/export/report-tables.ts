@@ -17,6 +17,7 @@ import {
   getNetRevenue,
   getOperatorClosings,
   getTotalFees,
+  getTotalSurcharge,
   getWorstSellers,
   hasWeekdayChart,
   sumPaymentTotals,
@@ -71,6 +72,7 @@ function buildSummaryTable(report: SalesReport): ReportTable {
     rows: [
       [text("Faturamento"), money(summary.revenue)],
       [text("Taxas de pagamento"), money(getTotalFees(report))],
+      [text("Taxa repassada ao cliente"), money(getTotalSurcharge(report))],
       [text("Valor a receber"), money(getNetRevenue(report))],
       [text("Faturamento do período anterior"), money(previousSummary.revenue)],
       [text("Pedidos"), count(summary.orderCount)],
@@ -220,11 +222,36 @@ function buildWeekdaysTable(report: SalesReport): ReportTable {
   };
 }
 
+function hasLoyaltyActivity(report: SalesReport): boolean {
+  const { loyalty } = report;
+  return (
+    loyalty.stampsGiven > 0 ||
+    loyalty.rewardsRedeemed > 0 ||
+    loyalty.newCustomers > 0
+  );
+}
+
+function buildLoyaltyTable(report: SalesReport): ReportTable {
+  const { loyalty } = report;
+  return {
+    title: "Fidelidade",
+    headers: ["Indicador", "Valor"],
+    rows: [
+      [text("Selos dados"), count(loyalty.stampsGiven)],
+      [text("Prêmios resgatados"), count(loyalty.rewardsRedeemed)],
+      [text("Valor dos prêmios"), money(loyalty.rewardCost)],
+      [text("Clientes que pontuaram"), count(loyalty.activeCustomers)],
+      [text("Clientes novos"), count(loyalty.newCustomers)],
+    ],
+  };
+}
+
 export function buildReportTables(report: SalesReport): ReportTable[] {
   return [
     buildSummaryTable(report),
     buildPaymentsTable(report),
     ...(report.accountReceipts.length > 0 ? [buildReceiptsTable(report)] : []),
+    ...(hasLoyaltyActivity(report) ? [buildLoyaltyTable(report)] : []),
     buildOperatorsTable(report),
     buildProductsTable("Produtos mais vendidos", getBestSellers(report)),
     buildProductsTable("Produtos menos vendidos", getWorstSellers(report)),

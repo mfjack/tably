@@ -41,6 +41,7 @@ export default async function SalesReportPage({
         title={salesReportModule.label}
         ticketBusiness={toOrderTicketBusiness(organization)}
         paymentFees={organization.paymentFees}
+        isLoyaltyEnabled={organization.checkout.loyaltyProgram !== null}
       />
     </HydrationBoundary>
   );

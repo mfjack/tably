@@ -10,3 +10,14 @@ export function getPaymentMethodFeePercent(
   if (method === "pix") return paymentFees.pixFeePercent;
   return 0;
 }
+
+export function getPaymentSurcharge(
+  paymentFees: OrganizationPaymentFees,
+  method: PaymentMethod,
+  amount: number,
+): number {
+  if (!paymentFees.isPassedOnToCustomer) return 0;
+  const feePercent = getPaymentMethodFeePercent(paymentFees, method);
+  if (feePercent <= 0 || feePercent >= 100) return 0;
+  return Math.round((amount / (1 - feePercent / 100) - amount) * 100) / 100;
+}

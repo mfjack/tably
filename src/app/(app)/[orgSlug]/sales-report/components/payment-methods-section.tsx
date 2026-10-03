@@ -13,6 +13,7 @@ import {
   getOperatorPayments,
   getOperatorReceipts,
   getPaymentMethodFee,
+  getPaymentMethodSurcharge,
   sumPaymentTotals,
 } from "@/features/sales-report/report-metrics";
 import type { SalesReport } from "@/features/sales-report/types";
@@ -42,6 +43,7 @@ type PaymentMethodTileProps = {
   share: number;
   receivedFromAccounts: number;
   fee: number;
+  surcharge: number;
   feePercent: number;
 };
 
@@ -52,6 +54,7 @@ function PaymentMethodTile({
   share,
   receivedFromAccounts,
   fee,
+  surcharge,
   feePercent,
 }: PaymentMethodTileProps) {
   const { label, icon: Icon } = PAYMENT_METHODS[method];
@@ -80,7 +83,8 @@ function PaymentMethodTile({
         </span>
         {fee > 0 && (
           <span className="text-muted-foreground text-xs tabular-nums">
-            Taxa {formatCurrency(fee)} · recebe {formatCurrency(revenue - fee)}
+            Taxa {formatCurrency(fee)} · recebe{" "}
+            {formatCurrency(revenue + surcharge - fee)}
           </span>
         )}
         {receivedFromAccounts > 0 && (
@@ -137,6 +141,9 @@ export function PaymentMethodsSection({
             orderCount={payments[method].orderCount}
             receivedFromAccounts={receipts[method].revenue}
             fee={selectedOperator ? 0 : getPaymentMethodFee(report, method)}
+            surcharge={
+              selectedOperator ? 0 : getPaymentMethodSurcharge(report, method)
+            }
             feePercent={getPaymentMethodFeePercent(paymentFees, method)}
             share={
               total.revenue > 0 ? payments[method].revenue / total.revenue : 0

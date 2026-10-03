@@ -43,7 +43,7 @@ export function buildOrderDetailsTicket(
     createdAt: new Date(order.paidAt ?? order.createdAt),
     payments: order.payments.map((payment) => ({
       label: getPaymentMethodLabel(payment.method),
-      amount: payment.amountReceived ?? payment.amount,
+      amount: (payment.amountReceived ?? payment.amount) + payment.surcharge,
     })),
     change: change > 0 ? change : undefined,
   };

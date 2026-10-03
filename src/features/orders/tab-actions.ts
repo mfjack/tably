@@ -54,7 +54,7 @@ const ORDER_DETAILS_COLUMNS = `
       category:categories!products_category_id_organization_id_fkey(created_at, position)
     )
   ),
-  order_payments(method, amount, amount_received),
+  order_payments(method, amount, amount_received, surcharge),
   online_orders(id)
 `;
 
@@ -92,6 +92,7 @@ type OrderDetailsRow = {
     method: PaymentMethod;
     amount: number;
     amount_received: number | null;
+    surcharge: number;
   }>;
   online_orders: Array<{ id: string }>;
 };
@@ -143,6 +144,7 @@ function toOrderDetails(row: OrderDetailsRow): OrderDetails {
         method: payment.method,
         amount: payment.amount,
         amountReceived: payment.amount_received,
+        surcharge: payment.surcharge,
       }))
       .sort((first, second) => second.amount - first.amount),
     attendantName:

@@ -56,8 +56,27 @@ export function getTotalFees(report: SalesReport): number {
   );
 }
 
+export function getTotalSurcharge(report: SalesReport): number {
+  return report.byPaymentMethod.reduce(
+    (total, payment) => total + payment.surcharge,
+    0,
+  );
+}
+
 export function getNetRevenue(report: SalesReport): number {
-  return report.summary.revenue - getTotalFees(report);
+  return (
+    report.summary.revenue + getTotalSurcharge(report) - getTotalFees(report)
+  );
+}
+
+export function getPaymentMethodSurcharge(
+  report: SalesReport,
+  method: PaymentMethod,
+): number {
+  return (
+    report.byPaymentMethod.find((payment) => payment.method === method)
+      ?.surcharge ?? 0
+  );
 }
 
 export function getPaymentMethodFee(

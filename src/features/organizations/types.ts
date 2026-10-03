@@ -34,12 +34,14 @@ export type OrganizationCheckoutSettings = {
   isSplitBillEnabled: boolean;
   isCustomerAccountPaymentEnabled: boolean;
   loyaltyProgram: LoyaltyProgram | null;
+  paymentFees: OrganizationPaymentFees;
 };
 
 export type OrganizationPaymentFees = {
   creditCardFeePercent: number;
   debitCardFeePercent: number;
   pixFeePercent: number;
+  isPassedOnToCustomer: boolean;
 };
 
 export type OrganizationMenuSettings = {
