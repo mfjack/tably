@@ -39,8 +39,7 @@ const STAGE_MESSAGES = {
   preparing: "Estamos preparando seu pedido.",
   ready: "Seu pedido está pronto! Pode retirar no balcão.",
   delivered: "Pedido entregue. Bom apetite!",
-  rejected:
-    "Não conseguimos aceitar esse pedido pelo cardápio. Fale com a gente no balcão.",
+  rejected: "Não conseguimos aceitar esse pedido pelo cardápio.",
 } as const satisfies Record<OnlineOrderStage, string>;
 
 const READY_VIBRATION_PATTERN = [200, 100, 200];
