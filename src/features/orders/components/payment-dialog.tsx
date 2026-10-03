@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { FieldError, FieldGroup } from "@/components/ui/field";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useOpenCashSessionQuery } from "@/features/cash-register/hooks/use-open-cash-session-query";
 import { useCustomerAccountsQuery } from "@/features/customer-accounts/hooks/use-customer-accounts-query";
 import {
   EMPTY_LOYALTY_CHECKOUT,
@@ -191,6 +192,7 @@ export function PaymentDialog({
   const [assignments, setAssignments] = useState<UnitAssignments>({});
   const [assignmentError, setAssignmentError] = useState<string | null>(null);
   const customerAccountsQuery = useCustomerAccountsQuery(organizationId);
+  const cashSessionQuery = useOpenCashSessionQuery(organizationId);
   const activeAccounts = useMemo(
     () =>
       (customerAccountsQuery.data ?? []).filter((account) => account.isActive),
@@ -249,6 +251,9 @@ export function PaymentDialog({
   );
   const remainingCents = toCents(orderTotal) - paidCents;
   const change = getPaymentsChange(payments ?? [], orderTotal);
+  const cashInDrawer = cashSessionQuery.data?.expectedCash;
+  const isChangeShort =
+    cashInDrawer !== undefined && toCents(change) > toCents(cashInDrawer);
   const paymentsError =
     form.formState.errors.payments?.root?.message ?? assignmentError;
 
@@ -431,11 +436,30 @@ export function PaymentDialog({
           />
         ))}
         {change > 0 && (
-          <div className="flex items-baseline justify-between rounded-lg bg-muted px-4 py-3">
-            <span className="text-muted-foreground text-sm">Troco</span>
-            <span aria-live="polite" className="font-bold text-lg tabular-nums">
-              {formatCurrency(change)}
-            </span>
+          <div
+            className={cn(
+              "flex flex-col gap-1 rounded-lg px-4 py-3",
+              isChangeShort ? "bg-destructive/10" : "bg-muted",
+            )}
+          >
+            <div className="flex items-baseline justify-between">
+              <span className="text-muted-foreground text-sm">Troco</span>
+              <span
+                aria-live="polite"
+                className={cn(
+                  "font-bold text-lg tabular-nums",
+                  isChangeShort && "text-destructive",
+                )}
+              >
+                {formatCurrency(change)}
+              </span>
+            </div>
+            {isChangeShort && cashInDrawer !== undefined && (
+              <p role="alert" className="text-destructive text-xs">
+                Não tem troco suficiente: há{" "}
+                {formatCurrency(Math.max(cashInDrawer, 0))} em dinheiro no caixa
+              </p>
+            )}
           </div>
         )}
         {!isSplit && checkoutSettings.isSplitBillEnabled && (
