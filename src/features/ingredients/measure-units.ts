@@ -12,6 +12,7 @@ export const MEASURE_UNITS = {
 export const MEASURE_UNIT_VALUES = [
   "unit",
   "g",
+  "ml",
 ] as const satisfies readonly MeasureUnit[];
 
 export type SelectableMeasureUnit = (typeof MEASURE_UNIT_VALUES)[number];
