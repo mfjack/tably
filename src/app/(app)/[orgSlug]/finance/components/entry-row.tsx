@@ -4,13 +4,13 @@ import {
   Copy,
   FileText,
   MoreHorizontal,
+  PackageOpen,
   Paperclip,
   Pencil,
   Receipt,
   Repeat,
   Trash2,
   Undo2,
-  Zap,
 } from "lucide-react";
 import { useRef } from "react";
 import { toast } from "sonner";
@@ -33,17 +33,22 @@ import {
   ENTRY_SOURCE_LABELS,
   getEntryStatus,
   getEntryStatusLabel,
-  isDeletableEntry,
-  isSystemManagedEntry,
   RECURRENCE_FREQUENCY_LABELS,
 } from "@/features/finance/labels";
-import type { FinancialEntry } from "@/features/finance/types";
+import type { EntryStatus, FinancialEntry } from "@/features/finance/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import { getIsoWeekday } from "@/features/time-clock/time-utils";
 import { formatCurrency, formatDateKey } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 type DocumentField = "document" | "receipt";
+
+const STATUS_BADGE_VARIANTS = {
+  overdue: "destructive",
+  due_today: "outline",
+  open: "outline",
+  paid: "success",
+} as const satisfies Record<EntryStatus, "destructive" | "outline" | "success">;
 
 type EntryRowProps = {
   organizationId: OrganizationId;
@@ -63,10 +68,8 @@ export function EntryRow({
   onDelete,
 }: EntryRowProps) {
   const status = getEntryStatus(entry, today);
-  const isAutomatic = entry.source !== "manual";
-  const isSystemManaged = isSystemManagedEntry(entry);
-  const isDeletable = isDeletableEntry(entry);
   const isExpense = entry.kind === "expense";
+  const isAutomatic = entry.source !== "manual";
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pendingFieldRef = useRef<DocumentField>("document");
   const uploadMutation = useUploadFinancialDocumentMutation(organizationId);
@@ -107,6 +110,10 @@ export function EntryRow({
     });
   }
 
+  function payEntry() {
+    onPay(entry);
+  }
+
   async function copyDigitableLine() {
     if (!entry.digitableLine) return;
     try {
@@ -118,8 +125,8 @@ export function EntryRow({
   }
 
   return (
-    <li className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
-      <div className="flex w-12 shrink-0 flex-col leading-tight">
+    <li className="grid grid-cols-[auto_minmax(0,1fr)_auto_auto] items-start gap-x-3 gap-y-2 px-4 py-3 sm:grid-cols-[auto_minmax(0,1fr)_auto_auto_auto] sm:items-center sm:gap-x-4">
+      <div className="col-start-1 row-start-1 flex w-12 flex-col leading-tight">
         <span className="font-semibold tabular-nums">
           {day}/{month}
         </span>
@@ -128,12 +135,12 @@ export function EntryRow({
         </span>
       </div>
 
-      <div className="flex min-w-0 flex-1 basis-48 flex-col gap-1">
+      <div className="col-start-2 row-start-1 flex min-w-0 flex-col gap-1">
         <span className="truncate font-medium">{entry.description}</span>
         <div className="flex flex-wrap items-center gap-1.5 text-muted-foreground text-xs">
           {isAutomatic && (
             <Badge variant="secondary">
-              <Zap aria-hidden />
+              <PackageOpen aria-hidden />
               {ENTRY_SOURCE_LABELS[entry.source]}
             </Badge>
           )}
@@ -166,46 +173,32 @@ export function EntryRow({
         )}
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="flex flex-col items-end">
-          <span
-            className={cn(
-              "font-semibold tabular-nums",
-              status === "overdue" && "text-destructive",
-            )}
-          >
-            {formatCurrency(entry.paidAmount ?? entry.amount)}
-          </span>
-          <Badge
-            variant={
-              status === "overdue"
-                ? "destructive"
-                : status === "paid"
-                  ? "secondary"
-                  : "outline"
-            }
-          >
-            {getEntryStatusLabel(status, entry.kind)}
-          </Badge>
-        </div>
+      <div className="col-start-3 row-start-1 flex flex-col items-end gap-1">
+        <span
+          className={cn(
+            "whitespace-nowrap font-semibold tabular-nums",
+            status === "overdue" && "text-destructive",
+            status === "paid" && "text-emerald-600 dark:text-emerald-400",
+          )}
+        >
+          {formatCurrency(entry.paidAmount ?? entry.amount)}
+        </span>
+        <Badge variant={STATUS_BADGE_VARIANTS[status]}>
+          {getEntryStatusLabel(status, entry.kind)}
+        </Badge>
+      </div>
 
-        {!entry.paidAt && isSystemManaged && (
-          <span className="max-w-28 text-right text-muted-foreground text-xs">
-            {entry.accountId
-              ? "Entra sozinho no vencimento"
-              : "Escolha a conta em Automação"}
-          </span>
-        )}
-        {!entry.paidAt && !isSystemManaged && (
-          <Button
-            variant="outline"
-            className="h-9"
-            onClick={() => onPay(entry)}
-          >
-            {isExpense ? "Pagar" : "Receber"}
-          </Button>
-        )}
+      {!entry.paidAt && (
+        <Button
+          variant="outline"
+          className="col-span-3 col-start-2 row-start-2 h-9 justify-self-end sm:col-span-1 sm:col-start-4 sm:row-start-1"
+          onClick={payEntry}
+        >
+          {isExpense ? "Pagar" : "Receber"}
+        </Button>
+      )}
 
+      <div className="col-start-4 row-start-1 sm:col-start-5">
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
@@ -232,7 +225,7 @@ export function EntryRow({
                 Copiar código do boleto
               </DropdownMenuItem>
             )}
-            {entry.paidAt && !isSystemManaged && (
+            {entry.paidAt && (
               <DropdownMenuItem
                 onClick={() =>
                   undoPaymentMutation.mutate(entry.id, {
@@ -302,18 +295,14 @@ export function EntryRow({
                 Anexar comprovante
               </DropdownMenuItem>
             )}
-            {isDeletable && (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  variant="destructive"
-                  onClick={() => onDelete(entry)}
-                >
-                  <Trash2 aria-hidden />
-                  Excluir
-                </DropdownMenuItem>
-              </>
-            )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => onDelete(entry)}
+            >
+              <Trash2 aria-hidden />
+              Excluir
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
         <input

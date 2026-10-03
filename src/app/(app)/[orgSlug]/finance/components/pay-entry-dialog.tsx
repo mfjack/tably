@@ -78,7 +78,7 @@ export function PayEntryDialog({
           <TextField
             control={form.control}
             name="paidAt"
-            label="Data"
+            label={isExpense ? "Data do pagamento" : "Data do recebimento"}
             type="date"
           />
           <NumberField
