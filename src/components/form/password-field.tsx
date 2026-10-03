@@ -9,6 +9,7 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "@/components/ui/input-group";
+import { onlyDigits } from "@/lib/masks";
 import { FormFieldShell, getFieldDescriptionId } from "./form-field-shell";
 import {
   FORM_INPUT_GROUP_CLASS_NAME,
@@ -21,6 +22,7 @@ type PasswordFieldProps<TFieldValues extends FieldValues> = Omit<
   "autoComplete"
 > & {
   autoComplete: "current-password" | "new-password";
+  maxDigits?: number;
 };
 
 export function PasswordField<TFieldValues extends FieldValues>({
@@ -32,6 +34,7 @@ export function PasswordField<TFieldValues extends FieldValues>({
   isLabelHidden,
   placeholder = "••••••••",
   autoComplete,
+  maxDigits,
 }: PasswordFieldProps<TFieldValues>) {
   const inputId = useId();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -53,6 +56,14 @@ export function PasswordField<TFieldValues extends FieldValues>({
           <InputGroup className={FORM_INPUT_GROUP_CLASS_NAME}>
             <InputGroupInput
               {...field}
+              onChange={(event) =>
+                field.onChange(
+                  maxDigits === undefined
+                    ? event.target.value
+                    : onlyDigits(event.target.value).slice(0, maxDigits),
+                )
+              }
+              inputMode={maxDigits === undefined ? undefined : "numeric"}
               value={field.value ?? ""}
               id={inputId}
               type={isPasswordVisible ? "text" : "password"}

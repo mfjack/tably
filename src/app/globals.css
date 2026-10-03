@@ -125,6 +125,10 @@
   *::-webkit-scrollbar {
     display: none;
   }
+  input::-ms-reveal,
+  input::-ms-clear {
+    display: none;
+  }
   body {
     @apply bg-background text-foreground;
     caret-color: transparent;

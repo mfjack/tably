@@ -1,6 +1,8 @@
 import * as z from "zod";
 import { Constants } from "@/lib/supabase/database.types";
 
+export const PIN_LENGTH = 4;
+
 const PIN_PATTERN = /^\d{4}$/;
 
 export const operatorPinSchema = z

@@ -13,6 +13,7 @@ import { useSaveOperatorMutation } from "@/features/operators/hooks/use-save-ope
 import {
   type OperatorInput,
   operatorSchema,
+  PIN_LENGTH,
 } from "@/features/operators/schemas";
 import type { Operator } from "@/features/operators/types";
 import type {
@@ -131,6 +132,7 @@ export function OperatorFormDialog({
               isEditing ? "Deixe vazio para manter" : "Vazio: cria no 1º acesso"
             }
             autoComplete="new-password"
+            maxDigits={PIN_LENGTH}
           />
         </div>
         <PageAccessField
