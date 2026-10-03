@@ -1140,6 +1140,137 @@ export type Database = {
           },
         ]
       }
+      loyalty_customers: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          organization_id: string
+          phone: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          organization_id: string
+          phone: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          organization_id?: string
+          phone?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_customers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loyalty_settings: {
+        Row: {
+          created_at: string
+          is_enabled: boolean
+          minimum_purchase: number
+          organization_id: string
+          reward_description: string
+          stamps_required: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          is_enabled?: boolean
+          minimum_purchase?: number
+          organization_id: string
+          reward_description?: string
+          stamps_required?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          is_enabled?: boolean
+          minimum_purchase?: number
+          organization_id?: string
+          reward_description?: string
+          stamps_required?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loyalty_transactions: {
+        Row: {
+          created_at: string
+          created_by_name: string | null
+          customer_id: string
+          id: string
+          kind: Database["public"]["Enums"]["loyalty_transaction_kind"]
+          note: string | null
+          order_id: string | null
+          organization_id: string
+          stamps: number
+        }
+        Insert: {
+          created_at?: string
+          created_by_name?: string | null
+          customer_id: string
+          id?: string
+          kind: Database["public"]["Enums"]["loyalty_transaction_kind"]
+          note?: string | null
+          order_id?: string | null
+          organization_id: string
+          stamps: number
+        }
+        Update: {
+          created_at?: string
+          created_by_name?: string | null
+          customer_id?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["loyalty_transaction_kind"]
+          note?: string | null
+          order_id?: string | null
+          organization_id?: string
+          stamps?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_transactions_customer_id_organization_id_fkey"
+            columns: ["customer_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "loyalty_customers"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "loyalty_transactions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loyalty_transactions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       memberships: {
         Row: {
           created_at: string
@@ -2691,6 +2822,10 @@ export type Database = {
         Args: { p_ingredient_id: string; p_quantity: number }
         Returns: undefined
       }
+      adjust_loyalty_stamps: {
+        Args: { p_customer_id: string; p_note: string; p_stamps: number }
+        Returns: number
+      }
       admin_list_subscriptions: { Args: never; Returns: Json }
       admin_record_subscription_payment: {
         Args: {
@@ -2922,6 +3057,7 @@ export type Database = {
         Args: { p_from: string; p_organization_id: string; p_to: string }
         Returns: Json
       }
+      get_loyalty_balance: { Args: { p_customer_id: string }; Returns: number }
       get_online_order_status: {
         Args: { p_online_order_id: string }
         Returns: Json
@@ -2941,6 +3077,17 @@ export type Database = {
           p_period: Database["public"]["Enums"]["sales_report_period"]
         }
         Returns: Json
+      }
+      grant_module_to_settings_operators: {
+        Args: {
+          p_module: Database["public"]["Enums"]["app_module"]
+          p_organization_id: string
+        }
+        Returns: undefined
+      }
+      has_loyalty_stamp_today: {
+        Args: { p_customer_id: string }
+        Returns: boolean
       }
       has_role: {
         Args: {
@@ -2972,6 +3119,19 @@ export type Database = {
           p_start_date: string
         }
         Returns: Json
+      }
+      list_loyalty_customers: {
+        Args: { p_organization_id: string }
+        Returns: {
+          balance: number
+          created_at: string
+          id: string
+          last_visit_at: string
+          name: string
+          phone: string
+          total_earned: number
+          total_redeemed: number
+        }[]
       }
       list_my_owned_organizations: {
         Args: never
@@ -3113,6 +3273,10 @@ export type Database = {
           order_total: number
         }[]
       }
+      record_loyalty_purchase: {
+        Args: { p_name?: string; p_order_id: string; p_phone: string }
+        Returns: number
+      }
       record_order_payments: {
         Args: {
           p_order_id: string
@@ -3129,6 +3293,10 @@ export type Database = {
           p_index: number
         }
         Returns: string
+      }
+      redeem_loyalty_reward: {
+        Args: { p_customer_id: string }
+        Returns: number
       }
       register_account_payment: {
         Args: {
@@ -3265,6 +3433,7 @@ export type Database = {
         | "payroll"
         | "finance"
         | "dashboard"
+        | "loyalty"
       billing_cycle: "monthly" | "yearly"
       cash_movement_kind: "withdrawal" | "supply"
       employment_type: "clt" | "apprentice" | "intern"
@@ -3285,6 +3454,7 @@ export type Database = {
         | "payroll_fgts"
         | "payroll_taxes"
       kitchen_ticket_status: "waiting" | "preparing" | "ready" | "delivered"
+      loyalty_transaction_kind: "earn" | "redeem" | "adjust"
       measure_unit: "unit" | "g" | "kg" | "ml" | "l"
       member_role: "owner" | "manager" | "cashier" | "kitchen" | "waiter"
       online_order_status: "pending" | "accepted" | "rejected"
@@ -3472,6 +3642,7 @@ export const Constants = {
         "payroll",
         "finance",
         "dashboard",
+        "loyalty",
       ],
       billing_cycle: ["monthly", "yearly"],
       cash_movement_kind: ["withdrawal", "supply"],
@@ -3495,6 +3666,7 @@ export const Constants = {
         "payroll_taxes",
       ],
       kitchen_ticket_status: ["waiting", "preparing", "ready", "delivered"],
+      loyalty_transaction_kind: ["earn", "redeem", "adjust"],
       measure_unit: ["unit", "g", "kg", "ml", "l"],
       member_role: ["owner", "manager", "cashier", "kitchen", "waiter"],
       online_order_status: ["pending", "accepted", "rejected"],

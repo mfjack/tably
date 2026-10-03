@@ -13,6 +13,16 @@ import { FieldError, FieldGroup } from "@/components/ui/field";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCustomerAccountsQuery } from "@/features/customer-accounts/hooks/use-customer-accounts-query";
 import {
+  EMPTY_LOYALTY_CHECKOUT,
+  LoyaltyCheckoutFields,
+  type LoyaltyCheckoutFormInput,
+} from "@/features/loyalty/components/loyalty-checkout-fields";
+import { useLoyaltyCustomerLookupQuery } from "@/features/loyalty/hooks/use-loyalty-customer-lookup-query";
+import {
+  LOYALTY_PHONE_PATTERN,
+  type LoyaltyCheckoutInput,
+} from "@/features/loyalty/schemas";
+import {
   createPaymentFormSchema,
   type OrderPaymentInput,
   type PaymentFormInput,
@@ -77,6 +87,14 @@ const UNASSIGNED_ITEMS_MESSAGE = "Escolha quem paga cada item.";
 const EMPTY_PAYMENT_LINE = {} as PaymentFormInput["payments"][number];
 
 const INVALID_DISCOUNT_MESSAGE = "Confira o valor do desconto.";
+const INCOMPLETE_LOYALTY_PHONE_MESSAGE =
+  "Complete o celular da fidelidade ou apague o campo.";
+const LOYALTY_LOOKUP_PENDING_MESSAGE = "Aguarde a busca do cliente.";
+const MISSING_LOYALTY_NAME_MESSAGE = "Informe o nome do cliente novo.";
+
+type LoyaltyCheckoutResult =
+  | { status: "valid"; input: LoyaltyCheckoutInput | undefined }
+  | { status: "invalid"; message: string };
 
 function toOrderAdjustments(
   values: AdjustmentsFormInput,
@@ -178,6 +196,16 @@ export function PaymentDialog({
       (customerAccountsQuery.data ?? []).filter((account) => account.isActive),
     [customerAccountsQuery.data],
   );
+  const loyaltyProgram = checkoutSettings.loyaltyProgram;
+  const loyaltyForm = useForm<LoyaltyCheckoutFormInput>({
+    defaultValues: EMPTY_LOYALTY_CHECKOUT,
+  });
+  const loyaltyValues = useWatch({ control: loyaltyForm.control });
+  const loyaltyPhone = loyaltyProgram ? (loyaltyValues.phone ?? "") : "";
+  const loyaltyLookupQuery = useLoyaltyCustomerLookupQuery(
+    organizationId,
+    loyaltyPhone,
+  );
   const billUnits = useMemo(
     () => expandBillUnits(summary.lines),
     [summary.lines],
@@ -233,6 +261,7 @@ export function PaymentDialog({
       discountType: "percent",
       discountValue: undefined,
     });
+    loyaltyForm.reset(EMPTY_LOYALTY_CHECKOUT);
     setSplitMode("equal");
     setAssignments({});
     setAssignmentError(null);
@@ -240,6 +269,7 @@ export function PaymentDialog({
     isOpen,
     form,
     adjustmentsForm,
+    loyaltyForm,
     isServiceFeeSuggested,
     canChargeServiceFee,
   ]);
@@ -251,11 +281,34 @@ export function PaymentDialog({
     });
   }, [computedAmountsKey, form]);
 
-  const submitPayments = form.handleSubmit(({ payments: submittedPayments }) =>
-    onConfirm(submittedPayments, adjustments, orderTotal),
-  );
+  function getLoyaltyCheckout(): LoyaltyCheckoutResult {
+    if (!loyaltyPhone) return { status: "valid", input: undefined };
+    if (!LOYALTY_PHONE_PATTERN.test(loyaltyPhone)) {
+      return { status: "invalid", message: INCOMPLETE_LOYALTY_PHONE_MESSAGE };
+    }
+    if (
+      loyaltyLookupQuery.fetchStatus === "fetching" &&
+      loyaltyLookupQuery.data === undefined
+    ) {
+      return { status: "invalid", message: LOYALTY_LOOKUP_PENDING_MESSAGE };
+    }
+    const name = loyaltyValues.name?.trim() ?? "";
+    if (loyaltyLookupQuery.data === null && !name) {
+      return { status: "invalid", message: MISSING_LOYALTY_NAME_MESSAGE };
+    }
+    return {
+      status: "valid",
+      input: { phone: loyaltyPhone, name: name || undefined },
+    };
+  }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    const loyaltyCheckout = getLoyaltyCheckout();
+    if (loyaltyCheckout.status === "invalid") {
+      event.preventDefault();
+      setAssignmentError(loyaltyCheckout.message);
+      return;
+    }
     if (isDiscountIncomplete) {
       event.preventDefault();
       setAssignmentError(INVALID_DISCOUNT_MESSAGE);
@@ -266,6 +319,14 @@ export function PaymentDialog({
       setAssignmentError(UNASSIGNED_ITEMS_MESSAGE);
       return;
     }
+    const submitPayments = form.handleSubmit(
+      ({ payments: submittedPayments }) =>
+        onConfirm(
+          submittedPayments,
+          { ...adjustments, loyalty: loyaltyCheckout.input },
+          orderTotal,
+        ),
+    );
     void submitPayments(event);
   }
 
@@ -323,6 +384,14 @@ export function PaymentDialog({
           isDiscountEnabled={checkoutSettings.isDiscountEnabled}
           totals={totals}
         />
+        {loyaltyProgram && (
+          <LoyaltyCheckoutFields
+            organizationId={organizationId}
+            program={loyaltyProgram}
+            control={loyaltyForm.control}
+            orderTotal={orderTotal}
+          />
+        )}
         {isSplit && (
           <Tabs
             value={splitMode}

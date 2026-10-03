@@ -2,11 +2,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { CurrentUser } from "@/features/auth/types";
 import { APP_MODULES } from "@/features/modules/app-modules";
 import type { UserOrganization } from "@/features/organizations/types";
-import { getOperatorLimit } from "@/features/subscriptions/subscription-state";
+import {
+  getOperatorLimit,
+  getPlanHiddenModules,
+} from "@/features/subscriptions/subscription-state";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
 import { CheckoutSettingsForm } from "./checkout-settings-form";
 import { DeleteAccountSection } from "./delete-account-section";
+import { LoyaltySettingsForm } from "./loyalty-settings-form";
 import { MenuSettings } from "./menu-settings";
 import { OperatorsSettings } from "./operators-settings";
 import { OrganizationSettingsForm } from "./organization-settings-form";
@@ -36,6 +40,7 @@ export function SettingsView({
     ? [
         "organization",
         "checkout",
+        "loyalty",
         "subscription",
         "operators",
         "menu",
@@ -63,6 +68,9 @@ export function SettingsView({
                 </TabsTrigger>
                 <TabsTrigger value="checkout" className="shrink-0 px-4">
                   Vendas
+                </TabsTrigger>
+                <TabsTrigger value="loyalty" className="shrink-0 px-4">
+                  Fidelidade
                 </TabsTrigger>
                 {organization.subscription && (
                   <TabsTrigger value="subscription" className="shrink-0 px-4">
@@ -96,6 +104,16 @@ export function SettingsView({
                 <CheckoutSettingsForm
                   key={organization.id}
                   organization={organization}
+                />
+              </TabsContent>
+              <TabsContent value="loyalty">
+                <LoyaltySettingsForm
+                  key={organization.id}
+                  organization={organization}
+                  isAvailableInPlan={
+                    getPlanHiddenModules(organization.subscription, ["loyalty"])
+                      .length === 0
+                  }
                 />
               </TabsContent>
               {organization.subscription && (

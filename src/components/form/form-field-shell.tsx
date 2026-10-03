@@ -11,6 +11,7 @@ type FormFieldShellProps = {
   inputId: string;
   label: string;
   description?: string;
+  isDescriptionCompact?: boolean;
   labelAction?: ReactNode;
   isLabelHidden?: boolean;
   error?: FormFieldError;
@@ -25,6 +26,7 @@ export function FormFieldShell({
   inputId,
   label,
   description,
+  isDescriptionCompact = false,
   labelAction,
   isLabelHidden = false,
   error,
@@ -51,7 +53,10 @@ export function FormFieldShell({
         />
       ) : (
         description && (
-          <FieldDescription id={descriptionId} className="text-[0.8125rem]">
+          <FieldDescription
+            id={descriptionId}
+            className={isDescriptionCompact ? "text-xs" : "text-[0.8125rem]"}
+          >
             {description}
           </FieldDescription>
         )

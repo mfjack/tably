@@ -1,5 +1,6 @@
 "use server";
 
+import { recordLoyaltyPurchase } from "@/features/loyalty/record-loyalty-purchase";
 import {
   hasAnyModuleAccess,
   hasModuleAccess,
@@ -66,6 +67,10 @@ export async function placeOrder(
     return actionFailure(
       getOrderErrorMessage(error, "Não foi possível registrar o pedido."),
     );
+  }
+
+  if (payments && adjustments?.loyalty) {
+    await recordLoyaltyPurchase(data.order_id as OrderId, adjustments.loyalty);
   }
 
   return actionSuccess({

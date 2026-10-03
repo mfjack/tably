@@ -1,3 +1,4 @@
+import type { LoyaltyProgram, LoyaltySettings } from "@/features/loyalty/types";
 import type { Subscription } from "@/features/subscriptions/subscription-state";
 import type { Brand } from "@/lib/brand";
 import type { Database } from "@/lib/supabase/database.types";
@@ -21,6 +22,7 @@ export type UserOrganization = {
   address: string | null;
   menu: OrganizationMenuSettings;
   checkout: OrganizationCheckoutSettings;
+  loyalty: LoyaltySettings;
   subscription: Subscription | null;
 };
 
@@ -30,6 +32,7 @@ export type OrganizationCheckoutSettings = {
   isDiscountEnabled: boolean;
   isSplitBillEnabled: boolean;
   isCustomerAccountPaymentEnabled: boolean;
+  loyaltyProgram: LoyaltyProgram | null;
 };
 
 export type OrganizationMenuSettings = {

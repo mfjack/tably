@@ -1,4 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
+import { useInvalidateLoyalty } from "@/features/loyalty/hooks/use-invalidate-loyalty";
 import type { OrganizationId } from "@/features/organizations/types";
 import { unwrapActionResult } from "@/lib/action-result";
 import { placeOrder } from "../actions";
@@ -16,11 +17,17 @@ export function getPlaceOrderMutationKey(organizationId: OrganizationId) {
 
 export function usePlaceOrderMutation(organizationId: OrganizationId) {
   const invalidateOrders = useInvalidateOrders(organizationId);
+  const invalidateLoyalty = useInvalidateLoyalty(organizationId);
+
+  function handleSuccess(_data: unknown, { input }: PlaceOrderVariables) {
+    void invalidateOrders();
+    if (input.adjustments?.loyalty) void invalidateLoyalty();
+  }
 
   return useMutation({
     mutationKey: getPlaceOrderMutationKey(organizationId),
     mutationFn: async ({ input, request }: PlaceOrderVariables) =>
       unwrapActionResult(await placeOrder(organizationId, input, request)),
-    onSuccess: invalidateOrders,
+    onSuccess: handleSuccess,
   });
 }

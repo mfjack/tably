@@ -6,6 +6,7 @@ export type FormFieldProps<TFieldValues extends FieldValues> = {
   name: FieldPath<TFieldValues>;
   label: string;
   description?: string;
+  isDescriptionCompact?: boolean;
   labelAction?: ReactNode;
   isLabelHidden?: boolean;
   placeholder?: string;

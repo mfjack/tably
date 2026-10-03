@@ -44,6 +44,7 @@ export const LANDING_PLANS = [
       "Fornecedores e compras",
       "Financeiro: contas a pagar e receber",
       "Fiado: conta de clientes",
+      "Programa de fidelidade com selos",
       "Até 5 operadores",
     ],
     isHighlighted: true,

@@ -1,5 +1,6 @@
 "use server";
 
+import { recordLoyaltyPurchase } from "@/features/loyalty/record-loyalty-purchase";
 import {
   hasAnyModuleAccess,
   hasModuleAccess,
@@ -300,6 +301,8 @@ export async function payOrder(
       getOrderErrorMessage(error, "Não foi possível registrar o pagamento."),
     );
   }
+
+  await recordLoyaltyPurchase(orderId, parsedAdjustments.data.loyalty);
   return actionSuccess();
 }
 

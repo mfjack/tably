@@ -1,4 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
+import { useInvalidateLoyalty } from "@/features/loyalty/hooks/use-invalidate-loyalty";
 import type { OrganizationId } from "@/features/organizations/types";
 import { unwrapActionResult } from "@/lib/action-result";
 import type { OrderAdjustmentsInput } from "../order-adjustments";
@@ -19,11 +20,17 @@ export function getPayOrderMutationKey(organizationId: OrganizationId) {
 
 export function usePayOrderMutation(organizationId: OrganizationId) {
   const invalidateOrders = useInvalidateOrders(organizationId);
+  const invalidateLoyalty = useInvalidateLoyalty(organizationId);
+
+  function handleSuccess(_data: unknown, { adjustments }: PayOrderVariables) {
+    void invalidateOrders();
+    if (adjustments.loyalty) void invalidateLoyalty();
+  }
 
   return useMutation({
     mutationKey: getPayOrderMutationKey(organizationId),
     mutationFn: async ({ orderId, payments, adjustments }: PayOrderVariables) =>
       unwrapActionResult(await payOrder(orderId, payments, adjustments)),
-    onSuccess: invalidateOrders,
+    onSuccess: handleSuccess,
   });
 }

@@ -5,6 +5,7 @@ import {
   ChefHat,
   ClipboardList,
   Clock,
+  Gift,
   LayoutGrid,
   ListChecks,
   type LucideIcon,
@@ -126,6 +127,13 @@ export const APP_MODULE_GROUPS = [
         description: "Contas a pagar e receber, saldo e extrato.",
         path: "finance",
         icon: Banknote,
+      },
+      {
+        id: "loyalty",
+        label: "Fidelidade",
+        description: "Clientes, selos e prêmios do programa de fidelidade.",
+        path: "loyalty",
+        icon: Gift,
       },
       {
         id: "sales_report",

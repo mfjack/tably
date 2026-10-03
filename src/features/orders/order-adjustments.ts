@@ -1,4 +1,5 @@
 import * as z from "zod";
+import { loyaltyCheckoutSchema } from "@/features/loyalty/schemas";
 
 export const DISCOUNT_TYPES = ["percent", "amount"] as const;
 
@@ -14,6 +15,7 @@ export const orderDiscountSchema = z.object({
 export const orderAdjustmentsSchema = z.object({
   discount: orderDiscountSchema.optional(),
   hasServiceFee: z.boolean(),
+  loyalty: loyaltyCheckoutSchema.optional(),
 });
 
 export type OrderDiscountInput = z.infer<typeof orderDiscountSchema>;

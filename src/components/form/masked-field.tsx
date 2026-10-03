@@ -38,6 +38,7 @@ export function MaskedField<TFieldValues extends FieldValues>({
   name,
   label,
   description,
+  isDescriptionCompact,
   labelAction,
   isLabelHidden,
   placeholder,
@@ -61,6 +62,7 @@ export function MaskedField<TFieldValues extends FieldValues>({
           inputId={inputId}
           label={label}
           description={description}
+          isDescriptionCompact={isDescriptionCompact}
           labelAction={labelAction}
           isLabelHidden={isLabelHidden}
           error={fieldState.error}
