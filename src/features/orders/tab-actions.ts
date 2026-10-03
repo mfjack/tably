@@ -20,6 +20,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { getOrderErrorMessage } from "./messages";
 import {
+  hasLoyaltyReward,
   type OrderAdjustmentsInput,
   orderAdjustmentsSchema,
   toOrderAdjustmentsPayload,
@@ -30,8 +31,8 @@ import {
   type OrderPaymentInput,
   type OrderRequestInput,
   orderItemSchema,
-  orderPaymentsSchema,
   orderRequestSchema,
+  payOrderPaymentsSchema,
 } from "./schemas";
 import type {
   OrderDetails,
@@ -42,7 +43,7 @@ import type {
 
 const ORDER_DETAILS_COLUMNS = `
   id, customer_name, is_takeaway, note, subtotal, takeaway_fee,
-  service_fee_amount, discount_amount, total,
+  service_fee_amount, discount_amount, loyalty_reward_amount, total,
   created_at, paid_at,
   created_by_operator_name, paid_by_operator_name,
   attendant:profiles!orders_created_by_profile_fkey(full_name),
@@ -68,6 +69,7 @@ type OrderDetailsRow = {
   takeaway_fee: number;
   service_fee_amount: number;
   discount_amount: number;
+  loyalty_reward_amount: number;
   total: number;
   created_at: string;
   paid_at: string | null;
@@ -131,6 +133,7 @@ function toOrderDetails(row: OrderDetailsRow): OrderDetails {
     takeawayFee: row.takeaway_fee,
     serviceFee: row.service_fee_amount,
     discount: row.discount_amount,
+    loyaltyReward: row.loyalty_reward_amount,
     total: row.total,
     createdAt: row.created_at,
     paidAt: row.paid_at,
@@ -281,9 +284,14 @@ export async function payOrder(
   payments: OrderPaymentInput[],
   adjustments: OrderAdjustmentsInput,
 ): Promise<ActionResult> {
-  const parsedPayments = orderPaymentsSchema.safeParse(payments);
+  const parsedPayments = payOrderPaymentsSchema.safeParse(payments);
   const parsedAdjustments = orderAdjustmentsSchema.safeParse(adjustments);
-  if (!parsedPayments.success || !parsedAdjustments.success) {
+  if (
+    !parsedPayments.success ||
+    !parsedAdjustments.success ||
+    (parsedPayments.data.length === 0 &&
+      !hasLoyaltyReward(parsedAdjustments.data))
+  ) {
     return actionFailure("Escolha a forma de pagamento.");
   }
 
@@ -298,7 +306,10 @@ export async function payOrder(
   }
   const { error } = await supabase.rpc("pay_order", {
     p_order_id: orderId,
-    p_payments: toOrderPaymentsPayload(parsedPayments.data),
+    p_payments:
+      parsedPayments.data.length > 0
+        ? toOrderPaymentsPayload(parsedPayments.data)
+        : undefined,
     ...toOrderAdjustmentsPayload(parsedAdjustments.data),
   });
 

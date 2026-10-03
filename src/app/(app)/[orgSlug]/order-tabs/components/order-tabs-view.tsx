@@ -245,8 +245,10 @@ export function OrderTabsView({
           customerName: selectedOrder?.customerName ?? undefined,
           lines:
             selectedOrder?.items.map((item) => ({
+              productId: item.productId,
               productName: item.productName,
               quantity: item.quantity,
+              unitPrice: item.unitPrice,
               total: item.total,
             })) ?? [],
           takeawayFee: selectedOrder?.takeawayFee ?? 0,

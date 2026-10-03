@@ -37,6 +37,7 @@ export function buildOrderDetailsTicket(
     takeawayFee: order.takeawayFee,
     serviceFee: order.serviceFee,
     discount: order.discount,
+    loyaltyReward: order.loyaltyReward,
     total: order.total,
     note: order.note ?? undefined,
     createdAt: new Date(order.paidAt ?? order.createdAt),

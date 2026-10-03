@@ -92,10 +92,19 @@ export function calculateOrderTotals({
   };
 }
 
+export function hasLoyaltyReward(
+  adjustments: OrderAdjustmentsInput | undefined,
+): boolean {
+  return Boolean(adjustments?.loyalty?.rewardProductId);
+}
+
 export function toOrderAdjustmentsPayload(adjustments: OrderAdjustmentsInput) {
+  const rewardProductId = adjustments.loyalty?.rewardProductId;
   return {
     p_discount_type: adjustments.discount?.type,
     p_discount_value: adjustments.discount?.value,
     p_has_service_fee: adjustments.hasServiceFee,
+    p_loyalty_phone: rewardProductId ? adjustments.loyalty?.phone : undefined,
+    p_loyalty_reward_product_id: rewardProductId,
   };
 }

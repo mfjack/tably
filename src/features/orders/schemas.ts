@@ -22,10 +22,6 @@ export const orderPaymentSchema = z.object({
   customerAccountId: z.string().optional(),
 });
 
-export const orderPaymentsSchema = z
-  .array(orderPaymentSchema)
-  .min(1, "Escolha a forma de pagamento.");
-
 export const orderCustomerSchema = z.object({
   customerName: z
     .string()
@@ -35,14 +31,22 @@ export const orderCustomerSchema = z.object({
   isTakeaway: z.boolean(),
 });
 
-export const placeOrderSchema = z.object({
-  items: z.array(orderItemSchema).min(1, "Adicione produtos ao pedido."),
-  note: z.string().trim().max(500, "Observação muito longa.").optional(),
-  payments: orderPaymentsSchema.optional(),
-  adjustments: orderAdjustmentsSchema.optional(),
-  customer: orderCustomerSchema.optional(),
-  sendToKitchen: z.boolean(),
-});
+export const placeOrderSchema = z
+  .object({
+    items: z.array(orderItemSchema).min(1, "Adicione produtos ao pedido."),
+    note: z.string().trim().max(500, "Observação muito longa.").optional(),
+    payments: z.array(orderPaymentSchema).optional(),
+    adjustments: orderAdjustmentsSchema.optional(),
+    customer: orderCustomerSchema.optional(),
+    sendToKitchen: z.boolean(),
+  })
+  .refine(
+    ({ payments, adjustments }) =>
+      payments?.length !== 0 || Boolean(adjustments?.loyalty?.rewardProductId),
+    { message: "Escolha a forma de pagamento.", path: ["payments"] },
+  );
+
+export const payOrderPaymentsSchema = z.array(orderPaymentSchema);
 
 export const orderRequestSchema = z.object({
   requestId: z.uuid(),

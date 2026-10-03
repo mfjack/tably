@@ -17,6 +17,7 @@ import {
   EMPTY_LOYALTY_CHECKOUT,
   LoyaltyCheckoutFields,
   type LoyaltyCheckoutFormInput,
+  type LoyaltyRewardOption,
 } from "@/features/loyalty/components/loyalty-checkout-fields";
 import { useLoyaltyCustomerLookupQuery } from "@/features/loyalty/hooks/use-loyalty-customer-lookup-query";
 import {
@@ -61,7 +62,11 @@ import {
   type AdjustmentsFormInput,
   OrderAdjustmentsFields,
 } from "./order-adjustments-fields";
-import { OrderSummary, type OrderSummaryData } from "./order-summary";
+import {
+  OrderSummary,
+  type OrderSummaryData,
+  type OrderSummaryLine,
+} from "./order-summary";
 import { PaymentLineFields } from "./payment-line-fields";
 
 type PaymentDialogProps = {
@@ -123,6 +128,23 @@ function formatUnassignedCount(count: number) {
   return count === 1 ? "1 item sem pessoa" : `${count} itens sem pessoa`;
 }
 
+function getRewardOptions(
+  lines: readonly OrderSummaryLine[],
+): LoyaltyRewardOption[] {
+  const optionsByProductId = new Map<string, LoyaltyRewardOption>();
+  for (const line of lines) {
+    if (!line.productId || line.unitPrice === undefined) continue;
+    const currentOption = optionsByProductId.get(line.productId);
+    if (currentOption && currentOption.unitPrice >= line.unitPrice) continue;
+    optionsByProductId.set(line.productId, {
+      productId: line.productId,
+      productName: line.productName,
+      unitPrice: line.unitPrice,
+    });
+  }
+  return [...optionsByProductId.values()];
+}
+
 export function PaymentDialog({
   organizationId,
   isOpen,
@@ -158,8 +180,38 @@ export function PaymentDialog({
     discountValue: adjustmentValues.discountValue,
   });
   const subtotal = summary.lines.reduce((total, line) => total + line.total, 0);
+  const [selectedRewardProductId, setSelectedRewardProductId] = useState<
+    string | null
+  >(null);
+  const rewardOptions = useMemo(
+    () => getRewardOptions(summary.lines),
+    [summary.lines],
+  );
+  const loyaltyProgram = checkoutSettings.loyaltyProgram;
+  const loyaltyForm = useForm<LoyaltyCheckoutFormInput>({
+    defaultValues: EMPTY_LOYALTY_CHECKOUT,
+  });
+  const loyaltyValues = useWatch({ control: loyaltyForm.control });
+  const loyaltyPhone = loyaltyProgram ? (loyaltyValues.phone ?? "") : "";
+  const loyaltyLookupQuery = useLoyaltyCustomerLookupQuery(
+    organizationId,
+    loyaltyPhone,
+  );
+  const loyaltyCustomer = loyaltyLookupQuery.data;
+  const isRewardAvailable =
+    loyaltyProgram !== null &&
+    LOYALTY_PHONE_PATTERN.test(loyaltyPhone) &&
+    loyaltyCustomer !== undefined &&
+    loyaltyCustomer !== null &&
+    loyaltyCustomer.balance >= loyaltyProgram.stampsRequired;
+  const rewardOption = isRewardAvailable
+    ? rewardOptions.find(
+        (option) => option.productId === selectedRewardProductId,
+      )
+    : undefined;
+  const rewardAmount = Math.min(rewardOption?.unitPrice ?? 0, subtotal);
   const totals = calculateOrderTotals({
-    subtotal,
+    subtotal: subtotal - rewardAmount,
     takeawayFee: summary.takeawayFee,
     isTakeaway: summary.isTakeaway ?? false,
     serviceFeePercent,
@@ -170,8 +222,12 @@ export function PaymentDialog({
     ...summary,
     serviceFee: totals.serviceFee,
     discount: totals.discount,
+    loyaltyReward: rewardOption
+      ? { productName: rewardOption.productName, amount: rewardAmount }
+      : undefined,
     total: orderTotal,
   };
+  const isPaidByReward = rewardOption !== undefined && orderTotal === 0;
   const adjustmentDelta = totals.serviceFee - totals.discount;
   const isDiscountIncomplete =
     (adjustmentValues.hasDiscount ?? false) &&
@@ -197,16 +253,6 @@ export function PaymentDialog({
     () =>
       (customerAccountsQuery.data ?? []).filter((account) => account.isActive),
     [customerAccountsQuery.data],
-  );
-  const loyaltyProgram = checkoutSettings.loyaltyProgram;
-  const loyaltyForm = useForm<LoyaltyCheckoutFormInput>({
-    defaultValues: EMPTY_LOYALTY_CHECKOUT,
-  });
-  const loyaltyValues = useWatch({ control: loyaltyForm.control });
-  const loyaltyPhone = loyaltyProgram ? (loyaltyValues.phone ?? "") : "";
-  const loyaltyLookupQuery = useLoyaltyCustomerLookupQuery(
-    organizationId,
-    loyaltyPhone,
   );
   const billUnits = useMemo(
     () => expandBillUnits(summary.lines),
@@ -267,6 +313,7 @@ export function PaymentDialog({
       discountValue: undefined,
     });
     loyaltyForm.reset(EMPTY_LOYALTY_CHECKOUT);
+    setSelectedRewardProductId(null);
     setSplitMode("equal");
     setAssignments({});
     setAssignmentError(null);
@@ -303,7 +350,11 @@ export function PaymentDialog({
     }
     return {
       status: "valid",
-      input: { phone: loyaltyPhone, name: name || undefined },
+      input: {
+        phone: loyaltyPhone,
+        name: name || undefined,
+        rewardProductId: rewardOption?.productId,
+      },
     };
   }
 
@@ -322,6 +373,11 @@ export function PaymentDialog({
     if (unassignedCount > 0) {
       event.preventDefault();
       setAssignmentError(UNASSIGNED_ITEMS_MESSAGE);
+      return;
+    }
+    if (isPaidByReward) {
+      event.preventDefault();
+      onConfirm([], { ...adjustments, loyalty: loyaltyCheckout.input }, 0);
       return;
     }
     const submitPayments = form.handleSubmit(
@@ -395,6 +451,10 @@ export function PaymentDialog({
             program={loyaltyProgram}
             control={loyaltyForm.control}
             orderTotal={orderTotal}
+            rewardOptions={rewardOptions}
+            rewardProductId={selectedRewardProductId}
+            isRewardAvailable={isRewardAvailable && !isSplit}
+            onRewardProductChange={setSelectedRewardProductId}
           />
         )}
         {isSplit && (
@@ -421,21 +481,27 @@ export function PaymentDialog({
             onAssign={assignUnit}
           />
         )}
-        {fields.map((field, index) => (
-          <PaymentLineFields
-            key={field.id}
-            control={form.control}
-            index={index}
-            isSplit={isSplit}
-            orderTotal={orderTotal}
-            remainingAmount={Math.max(remainingCents, 0) / 100}
-            accounts={activeAccounts}
-            computedAmount={computedAmounts?.[index]}
-            onRemove={isSplit ? () => removePerson(index) : undefined}
-            methods={paymentMethods}
-          />
-        ))}
-        {change > 0 && (
+        {!isPaidByReward &&
+          fields.map((field, index) => (
+            <PaymentLineFields
+              key={field.id}
+              control={form.control}
+              index={index}
+              isSplit={isSplit}
+              orderTotal={orderTotal}
+              remainingAmount={Math.max(remainingCents, 0) / 100}
+              accounts={activeAccounts}
+              computedAmount={computedAmounts?.[index]}
+              onRemove={isSplit ? () => removePerson(index) : undefined}
+              methods={paymentMethods}
+            />
+          ))}
+        {isPaidByReward && (
+          <p className="rounded-lg bg-primary/10 px-4 py-3 font-medium text-primary text-sm">
+            O prêmio cobre o pedido. Não precisa escolher forma de pagamento.
+          </p>
+        )}
+        {!isPaidByReward && change > 0 && (
           <div
             className={cn(
               "flex flex-col gap-1 rounded-lg px-4 py-3",
@@ -462,7 +528,7 @@ export function PaymentDialog({
             )}
           </div>
         )}
-        {!isSplit && checkoutSettings.isSplitBillEnabled && (
+        {!isSplit && !rewardOption && checkoutSettings.isSplitBillEnabled && (
           <Button
             type="button"
             variant="outline"

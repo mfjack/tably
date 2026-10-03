@@ -51,7 +51,9 @@ export async function placeOrder(
         note: item.note,
       })),
       p_note: note || undefined,
-      p_payments: payments ? toOrderPaymentsPayload(payments) : undefined,
+      p_payments: payments?.length
+        ? toOrderPaymentsPayload(payments)
+        : undefined,
       p_customer_name: customer?.customerName,
       p_is_takeaway: customer?.isTakeaway ?? false,
       p_send_to_kitchen: sendToKitchen,

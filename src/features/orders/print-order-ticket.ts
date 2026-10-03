@@ -31,6 +31,7 @@ export type OrderTicket = {
   takeawayFee: number;
   serviceFee?: number;
   discount?: number;
+  loyaltyReward?: number;
   total: number;
   note?: string;
   createdAt: Date;
@@ -95,9 +96,14 @@ function buildTicketHtml(ticket: OrderTicket): string {
   const hasTakeawayFee = ticket.takeawayFee > 0;
   const serviceFee = ticket.serviceFee ?? 0;
   const discount = ticket.discount ?? 0;
+  const loyaltyReward = ticket.loyaltyReward ?? 0;
   const hasPayments = (ticket.payments?.length ?? 0) > 0;
   const hasTotalRow =
-    hasTakeawayFee || serviceFee > 0 || discount > 0 || hasPayments;
+    hasTakeawayFee ||
+    serviceFee > 0 ||
+    discount > 0 ||
+    loyaltyReward > 0 ||
+    hasPayments;
   const totals = [
     buildRow("Subtotal", formatCurrency(ticket.subtotal)),
     hasTakeawayFee
@@ -105,6 +111,9 @@ function buildTicketHtml(ticket: OrderTicket): string {
       : "",
     serviceFee > 0
       ? buildRow("Taxa de serviço", formatCurrency(serviceFee))
+      : "",
+    loyaltyReward > 0
+      ? buildRow("Prêmio fidelidade", `- ${formatCurrency(loyaltyReward)}`)
       : "",
     discount > 0 ? buildRow("Desconto", `- ${formatCurrency(discount)}`) : "",
     hasTotalRow ? buildRow("Total", formatCurrency(ticket.total), true) : "",

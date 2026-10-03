@@ -1,9 +1,16 @@
 import { formatCurrency } from "@/lib/format";
 
 export type OrderSummaryLine = {
+  productId?: string | null;
   productName: string;
   quantity: number;
+  unitPrice?: number;
   total: number;
+};
+
+export type OrderSummaryLoyaltyReward = {
+  productName: string;
+  amount: number;
 };
 
 export type OrderSummaryData = {
@@ -13,6 +20,7 @@ export type OrderSummaryData = {
   isTakeaway?: boolean;
   serviceFee?: number;
   discount?: number;
+  loyaltyReward?: OrderSummaryLoyaltyReward;
   total: number;
 };
 
@@ -62,6 +70,16 @@ export function OrderSummary({ summary }: OrderSummaryProps) {
             <span>Taxa de serviço</span>
             <span className="tabular-nums">
               {formatCurrency(summary.serviceFee ?? 0)}
+            </span>
+          </li>
+        )}
+        {summary.loyaltyReward && (
+          <li className="flex items-baseline justify-between gap-4 text-primary text-sm">
+            <span className="min-w-0 truncate">
+              Prêmio da fidelidade · {summary.loyaltyReward.productName}
+            </span>
+            <span className="shrink-0 tabular-nums">
+              − {formatCurrency(summary.loyaltyReward.amount)}
             </span>
           </li>
         )}

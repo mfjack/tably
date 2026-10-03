@@ -1,15 +1,13 @@
 "use client";
 
-import { Gift } from "lucide-react";
+import { Check, Gift } from "lucide-react";
 import { type Control, useWatch } from "react-hook-form";
-import { toast } from "sonner";
 import { MaskedField } from "@/components/form/masked-field";
 import { TextField } from "@/components/form/text-field";
 import { Button } from "@/components/ui/button";
 import type { OrganizationId } from "@/features/organizations/types";
 import { formatCurrency } from "@/lib/format";
 import { useLoyaltyCustomerLookupQuery } from "../hooks/use-loyalty-customer-lookup-query";
-import { useRedeemLoyaltyRewardMutation } from "../hooks/use-redeem-loyalty-reward-mutation";
 import { LOYALTY_PHONE_PATTERN } from "../schemas";
 import type { LoyaltyCustomerLookup, LoyaltyProgram } from "../types";
 
@@ -23,30 +21,91 @@ export const EMPTY_LOYALTY_CHECKOUT: LoyaltyCheckoutFormInput = {
   name: "",
 };
 
+export type LoyaltyRewardOption = {
+  productId: string;
+  productName: string;
+  unitPrice: number;
+};
+
 type LoyaltyCheckoutFieldsProps = {
   organizationId: OrganizationId;
   program: LoyaltyProgram;
   control: Control<LoyaltyCheckoutFormInput>;
   orderTotal: number;
+  rewardOptions: readonly LoyaltyRewardOption[];
+  rewardProductId: string | null;
+  isRewardAvailable: boolean;
+  onRewardProductChange: (productId: string | null) => void;
 };
+
+type RewardPickerProps = {
+  program: LoyaltyProgram;
+  options: readonly LoyaltyRewardOption[];
+  selectedProductId: string | null;
+  onChange: (productId: string | null) => void;
+};
+
+function RewardPicker({
+  program,
+  options,
+  selectedProductId,
+  onChange,
+}: RewardPickerProps) {
+  return (
+    <fieldset className="flex flex-col gap-2">
+      <legend className="mb-2 flex items-center gap-1.5 font-medium text-sm">
+        <Gift aria-hidden className="size-4 text-primary" />
+        Prêmio disponível: {program.rewardDescription}
+      </legend>
+      <p className="text-muted-foreground text-xs">
+        Escolha o item que sai de graça.
+      </p>
+      <div className="flex flex-col gap-2">
+        {options.map((option) => {
+          const isSelected = option.productId === selectedProductId;
+          return (
+            <Button
+              key={option.productId}
+              type="button"
+              variant={isSelected ? "default" : "outline"}
+              className="h-10 justify-between"
+              aria-pressed={isSelected}
+              onClick={() => onChange(isSelected ? null : option.productId)}
+            >
+              <span className="flex min-w-0 items-center gap-2">
+                {isSelected && <Check aria-hidden />}
+                <span className="truncate">{option.productName}</span>
+              </span>
+              <span className="shrink-0 tabular-nums">
+                {formatCurrency(option.unitPrice)}
+              </span>
+            </Button>
+          );
+        })}
+      </div>
+    </fieldset>
+  );
+}
 
 type CustomerStatusProps = {
   customer: LoyaltyCustomerLookup;
   program: LoyaltyProgram;
-  isRedeeming: boolean;
-  onRedeem: () => void;
+  isRewardAvailable: boolean;
+  rewardOptions: readonly LoyaltyRewardOption[];
+  rewardProductId: string | null;
+  onRewardProductChange: (productId: string | null) => void;
 };
 
 function CustomerStatus({
   customer,
   program,
-  isRedeeming,
-  onRedeem,
+  isRewardAvailable,
+  rewardOptions,
+  rewardProductId,
+  onRewardProductChange,
 }: CustomerStatusProps) {
-  const canRedeem = customer.balance >= program.stampsRequired;
-
   return (
-    <div className="flex flex-col gap-2 rounded-lg bg-muted px-4 py-3">
+    <div className="flex flex-col gap-3 rounded-lg bg-muted px-4 py-3">
       <p className="text-sm">
         <span className="font-semibold">{customer.name}</span>
         <span className="text-muted-foreground">
@@ -54,7 +113,7 @@ function CustomerStatus({
           · {customer.balance} de {program.stampsRequired} selos
         </span>
       </p>
-      {customer.hasStampToday && (
+      {customer.hasStampToday && !isRewardAvailable && (
         <p
           role="status"
           className="rounded-md bg-amber-500/15 px-2.5 py-1.5 font-medium text-amber-800 text-xs dark:text-amber-300"
@@ -62,17 +121,13 @@ function CustomerStatus({
           Selo de hoje já foi ganho. Esta compra não soma outro selo.
         </p>
       )}
-      {canRedeem && (
-        <Button
-          type="button"
-          variant="outline"
-          className="h-10 justify-start"
-          disabled={isRedeeming}
-          onClick={onRedeem}
-        >
-          <Gift aria-hidden />
-          Resgatar prêmio: {program.rewardDescription}
-        </Button>
+      {isRewardAvailable && rewardOptions.length > 0 && (
+        <RewardPicker
+          program={program}
+          options={rewardOptions}
+          selectedProductId={rewardProductId}
+          onChange={onRewardProductChange}
+        />
       )}
     </div>
   );
@@ -83,10 +138,13 @@ export function LoyaltyCheckoutFields({
   program,
   control,
   orderTotal,
+  rewardOptions,
+  rewardProductId,
+  isRewardAvailable,
+  onRewardProductChange,
 }: LoyaltyCheckoutFieldsProps) {
   const phone = useWatch({ control, name: "phone" });
   const lookupQuery = useLoyaltyCustomerLookupQuery(organizationId, phone);
-  const redeemMutation = useRedeemLoyaltyRewardMutation(organizationId);
   const isPhoneComplete = LOYALTY_PHONE_PATTERN.test(phone);
   const customer = lookupQuery.data;
   const isSearching =
@@ -96,19 +154,6 @@ export function LoyaltyCheckoutFields({
     !isSearching &&
     (lookupQuery.isError || lookupQuery.isPaused);
   const earnsStamp = orderTotal >= program.minimumPurchase;
-
-  function redeemReward() {
-    if (!customer) return;
-    redeemMutation.mutate(customer.id, {
-      onSuccess: () => {
-        toast.success("Prêmio resgatado.", {
-          description: `Entregue ${program.rewardDescription} sem cobrar.`,
-        });
-        void lookupQuery.refetch();
-      },
-      onError: (error) => toast.error(error.message),
-    });
-  }
 
   return (
     <section className="flex flex-col gap-3">
@@ -133,8 +178,10 @@ export function LoyaltyCheckoutFields({
         <CustomerStatus
           customer={customer}
           program={program}
-          isRedeeming={redeemMutation.isPending}
-          onRedeem={redeemReward}
+          isRewardAvailable={isRewardAvailable}
+          rewardOptions={rewardOptions}
+          rewardProductId={rewardProductId}
+          onRewardProductChange={onRewardProductChange}
         />
       )}
       {isPhoneComplete && (customer === null || isLookupUnavailable) && (

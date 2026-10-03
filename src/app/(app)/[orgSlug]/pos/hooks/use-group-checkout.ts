@@ -73,8 +73,10 @@ export function useGroupCheckout({
     ? {
         customerName: currentGroup.customerName,
         lines: currentGroup.cartLines.map((cartLine) => ({
+          productId: cartLine.product.id,
           productName: cartLine.product.name,
           quantity: cartLine.quantity,
+          unitPrice: cartLine.product.price,
           total: cartLine.total,
         })),
         takeawayFee: 0,

@@ -82,6 +82,14 @@ export function OrderItemsList({
               </span>
             </li>
           )}
+          {order.loyaltyReward > 0 && (
+            <li className="flex items-baseline justify-between gap-4 text-primary text-sm">
+              <span>Prêmio da fidelidade</span>
+              <span className="tabular-nums">
+                − {formatCurrency(order.loyaltyReward)}
+              </span>
+            </li>
+          )}
           {order.discount > 0 && (
             <li className="flex items-baseline justify-between gap-4 text-primary text-sm">
               <span>Desconto</span>

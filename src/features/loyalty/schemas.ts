@@ -35,6 +35,7 @@ export const loyaltySettingsSchema = z
 export const loyaltyCheckoutSchema = z.object({
   phone: phoneSchema,
   name: z.string().trim().max(80, "Nome muito longo.").optional(),
+  rewardProductId: z.uuid().optional(),
 });
 
 export const loyaltyCustomerSchema = z.object({

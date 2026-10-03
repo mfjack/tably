@@ -16,6 +16,10 @@ const ORDER_ERROR_MESSAGES: Readonly<Record<string, string>> = {
     "Desconto inválido. Ele precisa ser maior que zero e menor que o total.",
   TB015: "O desconto está desligado nas configurações de vendas.",
   TB016: "A venda na conta está desligada nas configurações de vendas.",
+  TB020: "A fidelidade está desligada nas configurações.",
+  TB022: "O cliente não tem selos suficientes para o prêmio.",
+  TB023: "O item escolhido como prêmio não está no pedido.",
+  TB024: "Cliente da fidelidade não encontrado. Confira o celular.",
   "22023": "Confira o pedido e o valor recebido.",
   "42501": "Você não tem permissão para vender neste estabelecimento.",
 };

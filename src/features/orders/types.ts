@@ -39,6 +39,7 @@ export type OrderDetails = {
   takeawayFee: number;
   serviceFee: number;
   discount: number;
+  loyaltyReward: number;
   total: number;
   createdAt: string;
   paidAt: string | null;

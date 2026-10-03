@@ -127,6 +127,11 @@ export function encodeOrderTicket(
       ["Taxa de servico", formatCurrency(ticket.serviceFee ?? 0)],
     ]);
   }
+  if ((ticket.loyaltyReward ?? 0) > 0) {
+    encoder.table(columns, [
+      ["Premio fidelidade", `- ${formatCurrency(ticket.loyaltyReward ?? 0)}`],
+    ]);
+  }
   if ((ticket.discount ?? 0) > 0) {
     encoder.table(columns, [
       ["Desconto", `- ${formatCurrency(ticket.discount ?? 0)}`],
