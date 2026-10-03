@@ -20,6 +20,7 @@ import { useTaskListsQuery } from "@/features/tasks/hooks/use-task-lists-query";
 import type { Task, TaskBoard, TaskList } from "@/features/tasks/types";
 import { useSearchParamState } from "@/hooks/use-search-param-state";
 import { createOptionParser } from "@/lib/search-params";
+import { cn } from "@/lib/utils";
 import { ListEmptyState } from "../../components/list-empty-state";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
@@ -172,9 +173,13 @@ export function TasksView({
             onCreate={openCreateForm}
           />
         ) : (
-          <div className="flex flex-col gap-4">
+          <div className="flex min-h-0 flex-col gap-4">
             {activeOperatorId && (
-              <Tabs value={filter} onValueChange={changeFilter}>
+              <Tabs
+                value={filter}
+                onValueChange={changeFilter}
+                className="shrink-0"
+              >
                 <TabsList className="group-data-horizontal/tabs:h-10">
                   <TabsTrigger value="all" className="px-4">
                     Todas
@@ -190,7 +195,7 @@ export function TasksView({
                 Nenhuma tarefa atribuída a você.
               </p>
             ) : (
-              <div className={GRID_CLASS_NAME}>
+              <div className={cn(GRID_CLASS_NAME, "min-h-0 overflow-y-auto")}>
                 {taskLists.map((taskList) => (
                   <TaskListCard
                     key={taskList.id}

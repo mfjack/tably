@@ -176,7 +176,7 @@ export function TimeClockView({
         description="Escolha seu nome e digite o PIN. O horário salvo é o do servidor."
       />
       <PageContent>
-        <div className="flex flex-1 flex-col items-center justify-center gap-10 py-4">
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-10 py-4">
           <LiveClock />
 
           {step.kind === "done" ? (
@@ -263,9 +263,9 @@ export function TimeClockView({
               </p>
             </div>
           ) : (
-            <div className="flex w-full max-w-3xl flex-col items-center gap-6">
+            <div className="flex min-h-0 w-full max-w-3xl flex-col items-center gap-6">
               {(employees?.length ?? 0) > SEARCH_THRESHOLD && (
-                <InputGroup className="h-11 w-full max-w-xs rounded-lg">
+                <InputGroup className="h-11 w-full max-w-xs shrink-0 rounded-lg">
                   <InputGroupAddon>
                     <Search aria-hidden />
                   </InputGroupAddon>
@@ -278,7 +278,7 @@ export function TimeClockView({
                   />
                 </InputGroup>
               )}
-              <ul className="flex flex-wrap justify-center gap-4">
+              <ul className="flex min-h-0 flex-wrap justify-center gap-4 overflow-y-auto p-1">
                 {visibleEmployees.map((employee) => (
                   <li key={employee.id}>
                     <button

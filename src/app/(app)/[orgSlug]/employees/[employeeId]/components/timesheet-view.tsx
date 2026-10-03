@@ -220,8 +220,8 @@ export function TimesheetView({
         }
       />
       <PageContent>
-        <div className="flex flex-col gap-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex min-h-0 flex-col gap-5">
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-1 rounded-lg border px-1 py-1">
               <Button
                 variant="ghost"
@@ -290,117 +290,119 @@ export function TimesheetView({
             </div>
           </div>
 
-          {timesheetQuery.error ? (
-            <Alert variant="destructive">
-              <AlertDescription>
-                {timesheetQuery.error.message}
-              </AlertDescription>
-            </Alert>
-          ) : !data ? (
-            <div className="flex flex-col gap-3">
-              <Skeleton className="h-24 rounded-2xl" />
-              <Skeleton className="h-96 rounded-2xl" />
-            </div>
-          ) : (
-            <>
-              {!data.schedule && (
-                <Alert>
-                  <AlertDescription>
-                    Esse funcionário está sem jornada. Sem o horário contratual
-                    não dá para calcular atrasos, faltas e horas extras. Defina
-                    a jornada no cadastro.
-                  </AlertDescription>
-                </Alert>
-              )}
-              {data.timesheet.summary.inconsistentDays > 0 && (
-                <Alert variant="destructive">
-                  <AlertDescription>
-                    {data.timesheet.summary.inconsistentDays}{" "}
-                    {data.timesheet.summary.inconsistentDays === 1
-                      ? "dia está"
-                      : "dias estão"}{" "}
-                    com marcação faltando. Inclua a marcação que falta com o
-                    motivo, ou desconsidere a que estiver errada.
-                  </AlertDescription>
-                </Alert>
-              )}
+          <div className="flex min-h-0 flex-col gap-5 overflow-y-auto">
+            {timesheetQuery.error ? (
+              <Alert variant="destructive">
+                <AlertDescription>
+                  {timesheetQuery.error.message}
+                </AlertDescription>
+              </Alert>
+            ) : !data ? (
+              <div className="flex flex-col gap-3">
+                <Skeleton className="h-24 rounded-2xl" />
+                <Skeleton className="h-96 rounded-2xl" />
+              </div>
+            ) : (
+              <>
+                {!data.schedule && (
+                  <Alert>
+                    <AlertDescription>
+                      Esse funcionário está sem jornada. Sem o horário
+                      contratual não dá para calcular atrasos, faltas e horas
+                      extras. Defina a jornada no cadastro.
+                    </AlertDescription>
+                  </Alert>
+                )}
+                {data.timesheet.summary.inconsistentDays > 0 && (
+                  <Alert variant="destructive">
+                    <AlertDescription>
+                      {data.timesheet.summary.inconsistentDays}{" "}
+                      {data.timesheet.summary.inconsistentDays === 1
+                        ? "dia está"
+                        : "dias estão"}{" "}
+                      com marcação faltando. Inclua a marcação que falta com o
+                      motivo, ou desconsidere a que estiver errada.
+                    </AlertDescription>
+                  </Alert>
+                )}
 
-              <TimesheetSummaryGrid data={data} />
+                <TimesheetSummaryGrid data={data} />
 
-              <section className="overflow-hidden rounded-2xl border bg-card">
-                <div className="hidden grid-cols-[4.5rem_minmax(0,1.4fr)_5rem_5rem_5rem_minmax(0,1.2fr)_2rem] gap-x-3 border-b px-4 py-2.5 text-muted-foreground text-xs md:grid">
-                  <span>Dia</span>
-                  <span>Marcações</span>
-                  <span className="text-right">Previsto</span>
-                  <span className="text-right">Trabalhado</span>
-                  <span className="text-right">Saldo</span>
-                  <span>Ocorrências</span>
-                  <span className="sr-only">Ações</span>
-                </div>
-                <ul className="divide-y">
-                  {data.timesheet.days.map((day) => (
-                    <TimesheetDayRow
-                      key={day.date}
-                      day={day}
-                      onOpenPunch={setSelectedPunch}
-                      onAddPunch={setManualPunchDate}
-                      onAddTimeOff={setTimeOffDate}
-                    />
-                  ))}
-                </ul>
-              </section>
-
-              {data.timeOff.length > 0 && (
-                <section className="flex flex-col gap-3">
-                  <h2 className="font-semibold">Ausências no mês</h2>
-                  <ul className="flex flex-col divide-y rounded-2xl border bg-card">
-                    {data.timeOff.map((timeOff) => (
-                      <li
-                        key={timeOff.id}
-                        className="flex items-center gap-3 px-4 py-3"
-                      >
-                        <div className="flex min-w-0 flex-1 flex-col">
-                          <span className="font-medium text-sm">
-                            {TIME_OFF_KIND_LABELS[timeOff.kind]} ·{" "}
-                            {formatDateKey(timeOff.startDate)}
-                            {timeOff.endDate !== timeOff.startDate &&
-                              ` a ${formatDateKey(timeOff.endDate)}`}
-                          </span>
-                          {(timeOff.notes || timeOff.createdByName) && (
-                            <span className="truncate text-muted-foreground text-xs">
-                              {[
-                                timeOff.notes,
-                                timeOff.createdByName &&
-                                  `lançado por ${timeOff.createdByName}`,
-                              ]
-                                .filter(Boolean)
-                                .join(" · ")}
-                            </span>
-                          )}
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          aria-label="Excluir ausência"
-                          className="text-destructive"
-                          disabled={deleteTimeOffMutation.isPending}
-                          onClick={() =>
-                            deleteTimeOffMutation.mutate(timeOff.id, {
-                              onSuccess: () =>
-                                toast.success("Ausência excluída."),
-                              onError: (error) => toast.error(error.message),
-                            })
-                          }
-                        >
-                          <Trash2 aria-hidden />
-                        </Button>
-                      </li>
+                <section className="overflow-hidden rounded-2xl border bg-card">
+                  <div className="hidden grid-cols-[4.5rem_minmax(0,1.4fr)_5rem_5rem_5rem_minmax(0,1.2fr)_2rem] gap-x-3 border-b px-4 py-2.5 text-muted-foreground text-xs md:grid">
+                    <span>Dia</span>
+                    <span>Marcações</span>
+                    <span className="text-right">Previsto</span>
+                    <span className="text-right">Trabalhado</span>
+                    <span className="text-right">Saldo</span>
+                    <span>Ocorrências</span>
+                    <span className="sr-only">Ações</span>
+                  </div>
+                  <ul className="divide-y">
+                    {data.timesheet.days.map((day) => (
+                      <TimesheetDayRow
+                        key={day.date}
+                        day={day}
+                        onOpenPunch={setSelectedPunch}
+                        onAddPunch={setManualPunchDate}
+                        onAddTimeOff={setTimeOffDate}
+                      />
                     ))}
                   </ul>
                 </section>
-              )}
-            </>
-          )}
+
+                {data.timeOff.length > 0 && (
+                  <section className="flex flex-col gap-3">
+                    <h2 className="font-semibold">Ausências no mês</h2>
+                    <ul className="flex flex-col divide-y rounded-2xl border bg-card">
+                      {data.timeOff.map((timeOff) => (
+                        <li
+                          key={timeOff.id}
+                          className="flex items-center gap-3 px-4 py-3"
+                        >
+                          <div className="flex min-w-0 flex-1 flex-col">
+                            <span className="font-medium text-sm">
+                              {TIME_OFF_KIND_LABELS[timeOff.kind]} ·{" "}
+                              {formatDateKey(timeOff.startDate)}
+                              {timeOff.endDate !== timeOff.startDate &&
+                                ` a ${formatDateKey(timeOff.endDate)}`}
+                            </span>
+                            {(timeOff.notes || timeOff.createdByName) && (
+                              <span className="truncate text-muted-foreground text-xs">
+                                {[
+                                  timeOff.notes,
+                                  timeOff.createdByName &&
+                                    `lançado por ${timeOff.createdByName}`,
+                                ]
+                                  .filter(Boolean)
+                                  .join(" · ")}
+                              </span>
+                            )}
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            aria-label="Excluir ausência"
+                            className="text-destructive"
+                            disabled={deleteTimeOffMutation.isPending}
+                            onClick={() =>
+                              deleteTimeOffMutation.mutate(timeOff.id, {
+                                onSuccess: () =>
+                                  toast.success("Ausência excluída."),
+                                onError: (error) => toast.error(error.message),
+                              })
+                            }
+                          >
+                            <Trash2 aria-hidden />
+                          </Button>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </PageContent>
 
