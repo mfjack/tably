@@ -2,6 +2,7 @@
 
 import { SerwistProvider } from "@serwist/turbopack/react";
 import {
+  MutationCache,
   onlineManager,
   type Query,
   QueryClient,
@@ -12,6 +13,10 @@ import { type ReactNode, useState } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { OFFLINE_QUERY_STORAGE_PREFIX } from "@/lib/offline-cache";
+import {
+  isStaleDeploymentError,
+  reloadForNewDeployment,
+} from "@/lib/stale-deployment";
 
 const ONE_MINUTE_IN_MS = 60 * 1000;
 const ONE_WEEK_IN_MS = 7 * 24 * 60 * ONE_MINUTE_IN_MS;
@@ -32,6 +37,10 @@ function isOfflineQuery(query: Query) {
   );
 }
 
+function handleMutationError(error: Error) {
+  if (isStaleDeploymentError(error)) reloadForNewDeployment();
+}
+
 function createQueryClient() {
   const isBrowser = typeof window !== "undefined";
   if (isBrowser) onlineManager.setOnline(window.navigator.onLine);
@@ -45,6 +54,7 @@ function createQueryClient() {
   });
 
   return new QueryClient({
+    mutationCache: new MutationCache({ onError: handleMutationError }),
     defaultOptions: {
       queries: {
         staleTime: ONE_MINUTE_IN_MS,
