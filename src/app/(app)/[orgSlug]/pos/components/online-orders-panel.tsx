@@ -12,7 +12,6 @@ import { playNewTicketSound } from "@/features/kitchen/play-new-ticket-sound";
 import { useAcceptOnlineOrderMutation } from "@/features/online-orders/hooks/use-accept-online-order-mutation";
 import { useOnlineOrdersRealtime } from "@/features/online-orders/hooks/use-online-orders-realtime";
 import { usePendingOnlineOrdersQuery } from "@/features/online-orders/hooks/use-pending-online-orders-query";
-import { usePosPresence } from "@/features/online-orders/hooks/use-pos-presence";
 import { useRejectOnlineOrderMutation } from "@/features/online-orders/hooks/use-reject-online-order-mutation";
 import type { PendingOnlineOrder } from "@/features/online-orders/types";
 import {
@@ -50,7 +49,6 @@ export function OnlineOrdersPanel({
   const rejectMutation = useRejectOnlineOrderMutation(organizationId);
   const pendingCount = pendingOrders.length;
 
-  usePosPresence(organizationId);
   useOnlineOrdersRealtime(organizationId, (customerName) => {
     playNewTicketSound();
     toast(

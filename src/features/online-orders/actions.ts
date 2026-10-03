@@ -206,19 +206,3 @@ export async function rejectOnlineOrder(
 
   return actionSuccess();
 }
-
-export async function touchPosPresence(
-  organizationId: OrganizationId,
-): Promise<ActionResult> {
-  if (!(await hasModuleAccess(organizationId, "pos"))) {
-    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
-  }
-  const supabase = await createClient();
-  const { error } = await supabase.rpc("touch_pos_presence", {
-    p_organization_id: organizationId,
-  });
-
-  return error
-    ? actionFailure("Não foi possível atualizar o status do PDV.")
-    : actionSuccess();
-}

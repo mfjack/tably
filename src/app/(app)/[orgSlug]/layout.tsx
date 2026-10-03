@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { getCurrentUser } from "@/features/auth/queries";
+import { buildOrganizationPath } from "@/features/modules/app-modules";
 import {
   canAccessSettings,
   getEffectiveHiddenModules,
@@ -14,6 +15,7 @@ import {
 import { getSubscriptionState } from "@/features/subscriptions/subscription-state";
 import { AppSidebar } from "./components/app-sidebar";
 import { OfflineOrderSync } from "./components/offline-order-sync";
+import { OnlineOrdersNotifier } from "./components/online-orders-notifier";
 import { OperatorAutoLock } from "./components/operator-auto-lock";
 import { OperatorLockScreen } from "./components/operator-lock-screen";
 import { ServerDataRefresher } from "./components/server-data-refresher";
@@ -65,6 +67,11 @@ export default async function OrganizationLayout({
     );
   }
 
+  const hiddenModules = getEffectiveHiddenModules(
+    organization.hiddenModules,
+    access,
+  );
+
   return (
     <SidebarProvider
       defaultOpen={false}
@@ -74,10 +81,7 @@ export default async function OrganizationLayout({
         organization={organization}
         organizations={organizations}
         currentUser={currentUser}
-        hiddenModules={getEffectiveHiddenModules(
-          organization.hiddenModules,
-          access,
-        )}
+        hiddenModules={hiddenModules}
         canAccessSettings={canAccessSettings(access)}
         activeOperatorName={
           access.mode === "unlocked" ? access.operator.name : null
@@ -96,6 +100,13 @@ export default async function OrganizationLayout({
       <SidebarOverlay />
       <ServerDataRefresher />
       <OfflineOrderSync />
+      {organization.menu.isOnlineOrderingEnabled &&
+        !hiddenModules.includes("pos") && (
+          <OnlineOrdersNotifier
+            organizationId={organization.id}
+            posHref={buildOrganizationPath(organization.slug, "pos")}
+          />
+        )}
       {access.mode === "unlocked" && (
         <OperatorAutoLock organizationId={organization.id} isUnlocked />
       )}
