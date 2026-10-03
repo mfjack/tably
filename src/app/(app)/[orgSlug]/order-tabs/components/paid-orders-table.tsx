@@ -41,7 +41,7 @@ function getOrderPaidAt(order: OrderDetails) {
 }
 
 function getOrderPaymentLabel(order: OrderDetails) {
-  return formatOrderPaymentMethods(order.payments);
+  return formatOrderPaymentMethods(order);
 }
 
 export function PaidOrdersTable({

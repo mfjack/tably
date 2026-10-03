@@ -48,11 +48,15 @@ export function isCustomerAccountOnly(payments: readonly OrderPaymentInput[]) {
   return payments.length === 1 && payments[0]?.method === "customer_account";
 }
 
-export function formatOrderPaymentMethods(
-  payments: readonly OrderPayment[],
-): string {
-  if (payments.length === 0) return "—";
-  return payments
-    .map((payment) => getPaymentMethodLabel(payment.method))
-    .join(" + ");
+export const LOYALTY_REWARD_PAYMENT_LABEL = "Prêmio fidelidade";
+
+export function formatOrderPaymentMethods(order: {
+  payments: readonly OrderPayment[];
+  loyaltyReward: number;
+}): string {
+  const labels = order.payments.map((payment) =>
+    getPaymentMethodLabel(payment.method),
+  );
+  if (order.loyaltyReward > 0) labels.push(LOYALTY_REWARD_PAYMENT_LABEL);
+  return labels.length > 0 ? labels.join(" + ") : "—";
 }
