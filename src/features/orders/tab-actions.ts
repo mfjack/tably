@@ -1,6 +1,9 @@
 "use server";
 
-import { recordLoyaltyPurchase } from "@/features/loyalty/record-loyalty-purchase";
+import {
+  findOnlineOrderLoyalty,
+  recordLoyaltyPurchase,
+} from "@/features/loyalty/record-loyalty-purchase";
 import {
   hasAnyModuleAccess,
   hasModuleAccess,
@@ -302,7 +305,10 @@ export async function payOrder(
     );
   }
 
-  await recordLoyaltyPurchase(orderId, parsedAdjustments.data.loyalty);
+  await recordLoyaltyPurchase(
+    orderId,
+    parsedAdjustments.data.loyalty ?? (await findOnlineOrderLoyalty(orderId)),
+  );
   return actionSuccess();
 }
 

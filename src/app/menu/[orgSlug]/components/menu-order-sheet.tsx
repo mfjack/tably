@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { MaskedField } from "@/components/form/masked-field";
 import { TextField } from "@/components/form/text-field";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
@@ -16,6 +17,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import type { PublicLoyaltyProgram } from "@/features/menu/types";
 import { usePlaceOnlineOrderMutation } from "@/features/online-orders/hooks/use-place-online-order-mutation";
 import { useMenuCartStore } from "@/features/online-orders/menu-cart-store";
 import { ONLINE_ORDER_NAME_IN_USE_MESSAGE } from "@/features/online-orders/messages";
@@ -30,6 +32,7 @@ import { buildOrderPath } from "./menu-order-path";
 
 type MenuOrderSheetProps = {
   menuSlug: string;
+  loyaltyProgram: PublicLoyaltyProgram | null;
   cartLines: readonly MenuCartLine[];
   total: number;
   isOpen: boolean;
@@ -38,6 +41,7 @@ type MenuOrderSheetProps = {
 
 export function MenuOrderSheet({
   menuSlug,
+  loyaltyProgram,
   cartLines,
   total,
   isOpen,
@@ -45,6 +49,8 @@ export function MenuOrderSheet({
 }: MenuOrderSheetProps) {
   const router = useRouter();
   const savedCustomerName = useMenuCartStore((state) => state.customerName);
+  const savedCustomerPhone = useMenuCartStore((state) => state.customerPhone);
+  const setCustomerPhone = useMenuCartStore((state) => state.setCustomerPhone);
   const decrementItem = useMenuCartStore((state) => state.decrementItem);
   const setItemNote = useMenuCartStore((state) => state.setItemNote);
   const clearCart = useMenuCartStore((state) => state.clearCart);
@@ -57,7 +63,10 @@ export function MenuOrderSheet({
 
   const form = useForm<OnlineOrderCustomerInput>({
     resolver: zodResolver(onlineOrderCustomerSchema),
-    values: { customerName: savedCustomerName },
+    values: {
+      customerName: savedCustomerName,
+      customerPhone: loyaltyProgram ? savedCustomerPhone : "",
+    },
     resetOptions: { keepDirtyValues: true },
   });
 
@@ -101,6 +110,7 @@ export function MenuOrderSheet({
       {
         onSuccess: (placedOrderId) => {
           setCustomerName(values.customerName);
+          if (loyaltyProgram) setCustomerPhone(values.customerPhone);
           addRecentOrder(menuSlug, placedOrderId);
           clearCart(menuSlug);
           setPendingOrderId(null);
@@ -155,6 +165,18 @@ export function MenuOrderSheet({
                 autoComplete="given-name"
                 description="É por ele que vamos chamar você quando o pedido ficar pronto."
               />
+              {loyaltyProgram && (
+                <MaskedField
+                  control={form.control}
+                  name="customerPhone"
+                  label="Celular para a fidelidade"
+                  description={`Opcional. Junte ${loyaltyProgram.stampsRequired} selos e ganhe ${loyaltyProgram.rewardDescription}.`}
+                  isDescriptionCompact
+                  mask="phone"
+                  placeholder="00 00000-0000"
+                  autoComplete="tel-national"
+                />
+              )}
             </FieldGroup>
 
             <SheetFooter>

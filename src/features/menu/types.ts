@@ -22,3 +22,8 @@ export type PublicMenu = {
   acceptsOrders: boolean;
   sections: PublicMenuSection[];
 };
+
+export type PublicLoyaltyProgram = {
+  stampsRequired: number;
+  rewardDescription: string;
+};

@@ -69,7 +69,8 @@ export async function placeOnlineOrder(
     return actionFailure("Confira o pedido e tente de novo.");
   }
 
-  const { onlineOrderId, deviceId, customerName, items } = parsedInput.data;
+  const { onlineOrderId, deviceId, customerName, customerPhone, items } =
+    parsedInput.data;
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("place_online_order", {
     p_slug: menuSlug,
@@ -87,6 +88,14 @@ export async function placeOnlineOrder(
     return actionFailure(
       getOnlineOrderErrorMessage(error, "Não foi possível enviar o pedido."),
     );
+  }
+
+  if (customerPhone) {
+    await supabase.rpc("set_online_order_phone", {
+      p_online_order_id: onlineOrderId,
+      p_device_id: deviceId,
+      p_phone: customerPhone,
+    });
   }
 
   return actionSuccess(data as OnlineOrderId);

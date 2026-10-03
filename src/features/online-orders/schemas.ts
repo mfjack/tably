@@ -20,6 +20,12 @@ export const onlineOrderCustomerSchema = z.object({
     .trim()
     .min(1, "Informe seu nome.")
     .max(60, "Nome muito longo."),
+  customerPhone: z
+    .string()
+    .refine(
+      (phone) => phone === "" || /^d{10,11}$/.test(phone),
+      "Informe o celular com DDD.",
+    ),
 });
 
 export const placeOnlineOrderSchema = onlineOrderCustomerSchema.extend({

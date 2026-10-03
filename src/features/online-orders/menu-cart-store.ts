@@ -23,6 +23,7 @@ export type RecentOnlineOrder = {
 type MenuCartState = {
   deviceId: OnlineOrderDeviceId | null;
   customerName: string;
+  customerPhone: string;
   itemsByMenu: Record<string, MenuCartItem[] | undefined>;
   recentOrdersByMenu: Record<string, RecentOnlineOrder[] | undefined>;
   getDeviceId: () => OnlineOrderDeviceId;
@@ -41,6 +42,7 @@ type MenuCartState = {
   ) => void;
   clearCart: (menuSlug: string) => void;
   setCustomerName: (customerName: string) => void;
+  setCustomerPhone: (customerPhone: string) => void;
   addRecentOrder: (menuSlug: string, onlineOrderId: OnlineOrderId) => void;
 };
 
@@ -91,6 +93,7 @@ export const useMenuCartStore = create<MenuCartState>()(
       return {
         deviceId: null,
         customerName: "",
+        customerPhone: "",
         itemsByMenu: {},
         recentOrdersByMenu: {},
         getDeviceId: () => {
@@ -132,6 +135,7 @@ export const useMenuCartStore = create<MenuCartState>()(
             itemsByMenu: { ...state.itemsByMenu, [menuSlug]: [] },
           })),
         setCustomerName: (customerName) => set({ customerName }),
+        setCustomerPhone: (customerPhone) => set({ customerPhone }),
         addRecentOrder: (menuSlug, onlineOrderId) =>
           set((state) => ({
             recentOrdersByMenu: {

@@ -1,0 +1,27 @@
+"use server";
+
+import {
+  type ActionResult,
+  actionFailure,
+  actionSuccess,
+} from "@/lib/action-result";
+import { createClient } from "@/lib/supabase/server";
+import { LOYALTY_PHONE_PATTERN } from "./schemas";
+
+export async function getPublicLoyaltyBalance(
+  menuSlug: string,
+  phone: string,
+): Promise<ActionResult<number>> {
+  if (!LOYALTY_PHONE_PATTERN.test(phone)) {
+    return actionFailure("Informe o celular com DDD.");
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_public_loyalty_balance", {
+    p_slug: menuSlug,
+    p_phone: phone,
+  });
+
+  if (error) return actionFailure("Não foi possível consultar seus selos.");
+  return actionSuccess(data);
+}

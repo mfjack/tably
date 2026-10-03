@@ -4,7 +4,10 @@ import { ReceiptText, ShoppingBag } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import type { PublicMenuItem } from "@/features/menu/types";
+import type {
+  PublicLoyaltyProgram,
+  PublicMenuItem,
+} from "@/features/menu/types";
 import {
   useHydratedMenuCartStore,
   useLatestRecentOrder,
@@ -25,6 +28,7 @@ const MenuOrderSheet = dynamic(() =>
 
 type MenuOrderBarProps = {
   menuSlug: string;
+  loyaltyProgram: PublicLoyaltyProgram | null;
   acceptsOrders: boolean;
   items: readonly PublicMenuItem[];
   className?: string;
@@ -32,6 +36,7 @@ type MenuOrderBarProps = {
 
 export function MenuOrderBar({
   menuSlug,
+  loyaltyProgram,
   acceptsOrders,
   items,
   className,
@@ -112,6 +117,7 @@ export function MenuOrderBar({
       {hasOpenedSheet && (
         <MenuOrderSheet
           menuSlug={menuSlug}
+          loyaltyProgram={loyaltyProgram}
           cartLines={cartLines}
           total={total}
           isOpen={isSheetOpen && hasCartItems}

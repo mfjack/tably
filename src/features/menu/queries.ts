@@ -5,7 +5,7 @@ import * as z from "zod";
 import type { CategoryId } from "@/features/categories/types";
 import type { ProductId } from "@/features/products/types";
 import { createClient } from "@/lib/supabase/server";
-import type { PublicMenu } from "./types";
+import type { PublicLoyaltyProgram, PublicMenu } from "./types";
 
 const publicMenuSchema = z.object({
   title: z.string(),
@@ -39,5 +39,28 @@ export const getPublicMenu = cache(
 
     const parsedMenu = publicMenuSchema.safeParse(data);
     return parsedMenu.success ? parsedMenu.data : null;
+  },
+);
+
+const publicLoyaltyProgramSchema = z.object({
+  stamps_required: z.number(),
+  reward_description: z.string(),
+});
+
+export const getPublicLoyaltyProgram = cache(
+  async (organizationSlug: string): Promise<PublicLoyaltyProgram | null> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("get_public_loyalty_program", {
+      p_slug: organizationSlug,
+    });
+    if (error || data === null) return null;
+
+    const parsedProgram = publicLoyaltyProgramSchema.safeParse(data);
+    return parsedProgram.success
+      ? {
+          stampsRequired: parsedProgram.data.stamps_required,
+          rewardDescription: parsedProgram.data.reward_description,
+        }
+      : null;
   },
 );

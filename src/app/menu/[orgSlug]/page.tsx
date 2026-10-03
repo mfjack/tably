@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getPublicMenu } from "@/features/menu/queries";
+import {
+  getPublicLoyaltyProgram,
+  getPublicMenu,
+} from "@/features/menu/queries";
 import { MenuCategoryNav } from "./components/menu-category-nav";
+import { MenuLoyaltyDialog } from "./components/menu-loyalty-dialog";
 import { MenuOrderBar } from "./components/menu-order-bar";
 import { MenuSection } from "./components/menu-section";
 
@@ -18,7 +22,10 @@ export default async function PublicMenuPage({
   params,
 }: PageProps<"/menu/[orgSlug]">) {
   const { orgSlug } = await params;
-  const menu = await getPublicMenu(orgSlug);
+  const [menu, loyaltyProgram] = await Promise.all([
+    getPublicMenu(orgSlug),
+    getPublicLoyaltyProgram(orgSlug),
+  ]);
   if (!menu) notFound();
 
   const instagramHandle = menu.instagram?.replace(/^@/, "");
@@ -31,6 +38,11 @@ export default async function PublicMenuPage({
           <h1 className="font-bold text-3xl tracking-tight">{menu.title}</h1>
           {menu.tagline && (
             <p className="text-muted-foreground">{menu.tagline}</p>
+          )}
+          {loyaltyProgram && (
+            <div className="pt-3">
+              <MenuLoyaltyDialog menuSlug={orgSlug} program={loyaltyProgram} />
+            </div>
           )}
         </header>
 
@@ -76,6 +88,7 @@ export default async function PublicMenuPage({
       </div>
       <MenuOrderBar
         menuSlug={orgSlug}
+        loyaltyProgram={loyaltyProgram}
         acceptsOrders={menu.acceptsOrders}
         items={menuItems}
       />

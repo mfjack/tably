@@ -1305,6 +1305,7 @@ export type Database = {
           accepted_customer_name: string | null
           created_at: string
           customer_name: string
+          customer_phone: string | null
           decided_at: string | null
           decided_by: string | null
           device_id: string
@@ -1320,6 +1321,7 @@ export type Database = {
           accepted_customer_name?: string | null
           created_at?: string
           customer_name: string
+          customer_phone?: string | null
           decided_at?: string | null
           decided_by?: string | null
           device_id: string
@@ -1335,6 +1337,7 @@ export type Database = {
           accepted_customer_name?: string | null
           created_at?: string
           customer_name?: string
+          customer_phone?: string | null
           decided_at?: string | null
           decided_by?: string | null
           device_id?: string
@@ -3044,6 +3047,24 @@ export type Database = {
         Returns: undefined
       }
       get_account_balance: { Args: { p_account_id: string }; Returns: number }
+      get_available_loyalty_settings: {
+        Args: { p_organization_id: string }
+        Returns: {
+          created_at: string
+          is_enabled: boolean
+          minimum_purchase: number
+          organization_id: string
+          reward_description: string
+          stamps_required: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "loyalty_settings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       get_financial_analysis: {
         Args: {
           p_from: string
@@ -3070,6 +3091,11 @@ export type Database = {
         Args: { p_organization_id: string }
         Returns: number
       }
+      get_public_loyalty_balance: {
+        Args: { p_phone: string; p_slug: string }
+        Returns: number
+      }
+      get_public_loyalty_program: { Args: { p_slug: string }; Returns: Json }
       get_public_menu: { Args: { p_slug: string }; Returns: Json }
       get_sales_report: {
         Args: {
@@ -3384,6 +3410,14 @@ export type Database = {
         Args: {
           p_status: Database["public"]["Enums"]["kitchen_ticket_status"]
           p_ticket_id: string
+        }
+        Returns: undefined
+      }
+      set_online_order_phone: {
+        Args: {
+          p_device_id: string
+          p_online_order_id: string
+          p_phone: string
         }
         Returns: undefined
       }
