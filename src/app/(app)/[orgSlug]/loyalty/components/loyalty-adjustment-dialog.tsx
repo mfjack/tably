@@ -30,7 +30,7 @@ function formatStamps(stamps: number) {
 function formatBalanceChange(change: number) {
   if (change > 0) return `Vai ganhar ${formatStamps(change)}.`;
   if (change < 0) return `Vai perder ${formatStamps(-change)}.`;
-  return "Toque em + ou − para mudar.";
+  return undefined;
 }
 
 export function LoyaltyAdjustmentDialog({
@@ -86,11 +86,6 @@ export function LoyaltyAdjustmentDialog({
       isOpen={isOpen}
       onOpenChange={closeDialog}
       title={customer ? `Ajustar selos de ${customer.name}` : "Ajustar selos"}
-      description={
-        customer
-          ? `Hoje: ${formatStamps(currentBalance)} de ${program.stampsRequired}.`
-          : undefined
-      }
       submitLabel="Ajustar"
       isSubmitting={adjustMutation.isPending}
       onSubmit={handleSubmit}
