@@ -146,6 +146,7 @@ export function LoyaltyView({
       />
       <LoyaltyAdjustmentDialog
         organizationId={organizationId}
+        program={program}
         customer={customerToAdjust}
         onClose={closeAdjustment}
       />

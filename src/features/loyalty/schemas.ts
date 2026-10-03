@@ -49,6 +49,12 @@ export const loyaltyCustomerSchema = z.object({
     .optional(),
 });
 
+const adjustmentNoteSchema = z
+  .string()
+  .trim()
+  .min(1, "Explique o motivo.")
+  .max(200);
+
 export const loyaltyAdjustmentSchema = z.object({
   stamps: z
     .number({ error: "Informe a quantidade de selos." })
@@ -56,8 +62,24 @@ export const loyaltyAdjustmentSchema = z.object({
     .min(-MAX_STAMPS_ADJUSTMENT, `No máximo ${MAX_STAMPS_ADJUSTMENT} selos.`)
     .max(MAX_STAMPS_ADJUSTMENT, `No máximo ${MAX_STAMPS_ADJUSTMENT} selos.`)
     .refine((stamps) => stamps !== 0, "Informe a quantidade de selos."),
-  note: z.string().trim().min(1, "Explique o motivo.").max(200),
+  note: adjustmentNoteSchema,
 });
+
+export function createLoyaltyBalanceFormSchema(currentBalance: number) {
+  return z
+    .object({
+      balance: z.number().int().min(0),
+      note: adjustmentNoteSchema,
+    })
+    .refine((values) => values.balance !== currentBalance, {
+      message: "Toque em + ou − para mudar os selos.",
+      path: ["balance"],
+    });
+}
+
+export type LoyaltyBalanceFormInput = z.infer<
+  ReturnType<typeof createLoyaltyBalanceFormSchema>
+>;
 
 export type LoyaltySettingsInput = z.infer<typeof loyaltySettingsSchema>;
 export type LoyaltyCheckoutInput = z.infer<typeof loyaltyCheckoutSchema>;

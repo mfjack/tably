@@ -1,49 +1,64 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
-import { type DefaultValues, useForm } from "react-hook-form";
+import { useEffect, useMemo } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { FormDialog } from "@/components/dialog/form-dialog";
-import { NumberField } from "@/components/form/number-field";
+import { StepperField } from "@/components/form/stepper-field";
 import { TextField } from "@/components/form/text-field";
 import { FieldGroup } from "@/components/ui/field";
 import { useAdjustLoyaltyStampsMutation } from "@/features/loyalty/hooks/use-adjust-loyalty-stamps-mutation";
 import {
-  type LoyaltyAdjustmentInput,
-  loyaltyAdjustmentSchema,
+  createLoyaltyBalanceFormSchema,
+  type LoyaltyBalanceFormInput,
 } from "@/features/loyalty/schemas";
-import type { LoyaltyCustomer } from "@/features/loyalty/types";
+import type { LoyaltyCustomer, LoyaltyProgram } from "@/features/loyalty/types";
 import type { OrganizationId } from "@/features/organizations/types";
-
-const EMPTY_ADJUSTMENT_FORM: DefaultValues<LoyaltyAdjustmentInput> = {
-  stamps: undefined,
-  note: "",
-};
 
 type LoyaltyAdjustmentDialogProps = {
   organizationId: OrganizationId;
+  program: LoyaltyProgram;
   customer: LoyaltyCustomer | null;
   onClose: () => void;
 };
 
+function formatStamps(stamps: number) {
+  return `${stamps} ${stamps === 1 ? "selo" : "selos"}`;
+}
+
+function formatBalanceChange(change: number) {
+  if (change > 0) return `Vai ganhar ${formatStamps(change)}.`;
+  if (change < 0) return `Vai perder ${formatStamps(-change)}.`;
+  return "Toque em + ou − para mudar.";
+}
+
 export function LoyaltyAdjustmentDialog({
   organizationId,
+  program,
   customer,
   onClose,
 }: LoyaltyAdjustmentDialogProps) {
   const adjustMutation = useAdjustLoyaltyStampsMutation(organizationId);
-  const form = useForm<LoyaltyAdjustmentInput>({
-    resolver: zodResolver(loyaltyAdjustmentSchema),
-    defaultValues: EMPTY_ADJUSTMENT_FORM,
+  const currentBalance = customer?.balance ?? 0;
+  const maxBalance = Math.max(program.stampsRequired, currentBalance);
+  const formSchema = useMemo(
+    () => createLoyaltyBalanceFormSchema(currentBalance),
+    [currentBalance],
+  );
+  const form = useForm<LoyaltyBalanceFormInput>({
+    resolver: zodResolver(formSchema),
+    defaultValues: { balance: currentBalance, note: "" },
   });
+  const balance =
+    useWatch({ control: form.control, name: "balance" }) ?? currentBalance;
   const isOpen = customer !== null;
 
   useEffect(() => {
     if (!isOpen) return;
-    form.reset(EMPTY_ADJUSTMENT_FORM);
+    form.reset({ balance: currentBalance, note: "" });
     adjustMutation.reset();
-  }, [isOpen, form, adjustMutation.reset]);
+  }, [isOpen, currentBalance, form, adjustMutation.reset]);
 
   function closeDialog(isDialogOpen: boolean) {
     if (!isDialogOpen) onClose();
@@ -52,7 +67,10 @@ export function LoyaltyAdjustmentDialog({
   const handleSubmit = form.handleSubmit((values) => {
     if (!customer) return;
     adjustMutation.mutate(
-      { customerId: customer.id, input: values },
+      {
+        customerId: customer.id,
+        input: { stamps: values.balance - currentBalance, note: values.note },
+      },
       {
         onSuccess: () => {
           toast.success("Selos ajustados.");
@@ -70,7 +88,7 @@ export function LoyaltyAdjustmentDialog({
       title={customer ? `Ajustar selos de ${customer.name}` : "Ajustar selos"}
       description={
         customer
-          ? `Hoje: ${customer.balance} selos. Use número negativo para tirar, como -2.`
+          ? `Hoje: ${formatStamps(currentBalance)} de ${program.stampsRequired}.`
           : undefined
       }
       submitLabel="Ajustar"
@@ -78,13 +96,16 @@ export function LoyaltyAdjustmentDialog({
       onSubmit={handleSubmit}
     >
       <FieldGroup>
-        <NumberField
+        <StepperField
           control={form.control}
-          name="stamps"
+          name="balance"
           label="Selos"
-          format="integer"
-          allowsNegative
-          placeholder="Ex.: 2 ou -2"
+          description={formatBalanceChange(balance - currentBalance)}
+          min={0}
+          max={maxBalance}
+          formatValue={(value) => `${value} de ${program.stampsRequired}`}
+          decreaseLabel="Tirar um selo"
+          increaseLabel="Dar um selo"
         />
         <TextField
           control={form.control}
