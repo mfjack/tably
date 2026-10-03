@@ -18,6 +18,7 @@ import {
 } from "@/lib/database-errors";
 import { fromSelectFieldValue } from "@/lib/optional-select-value";
 import { createClient } from "@/lib/supabase/server";
+import { canChangeMeasureUnit } from "./measure-units";
 import {
   type IngredientFormInput,
   ingredientFormSchema,
@@ -109,23 +110,35 @@ export async function updateIngredient(
   const parsedInput = ingredientFormSchema.safeParse(input);
   if (!parsedInput.success) return actionFailure(INVALID_FORM_MESSAGE);
 
-  const { name, brand, minimumStock, currentStock, supplierId, expiresAt } =
-    parsedInput.data;
+  const {
+    name,
+    brand,
+    unit,
+    minimumStock,
+    currentStock,
+    supplierId,
+    expiresAt,
+  } = parsedInput.data;
   const supabase = await createClient();
   const { data: ingredient } = await supabase
     .from("ingredients")
-    .select("organization_id")
+    .select("organization_id, unit")
     .eq("id", ingredientId)
     .maybeSingle();
   if (
-    !(await hasModuleAccessToRecord(ingredient?.organization_id, "ingredients"))
+    !ingredient ||
+    !(await hasModuleAccessToRecord(ingredient.organization_id, "ingredients"))
   ) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
+  if (!canChangeMeasureUnit(ingredient.unit, unit)) {
+    return actionFailure("Essa unidade de medida não pode ser trocada.");
   }
   const { error } = await supabase
     .from("ingredients")
     .update({
       name,
+      unit,
       brand: brand || null,
       minimum_stock: minimumStock ?? 0,
       supplier_id: fromSelectFieldValue<SupplierId>(supplierId) ?? null,

@@ -11,6 +11,7 @@ import { TextField } from "@/components/form/text-field";
 import { FieldGroup } from "@/components/ui/field";
 import { useSaveIngredientMutation } from "@/features/ingredients/hooks/use-save-ingredient-mutation";
 import {
+  getEditableMeasureUnitOptions,
   getUnitSymbol,
   MEASURE_UNIT_OPTIONS,
   toSelectableMeasureUnit,
@@ -97,14 +98,18 @@ export function IngredientFormDialog({
     );
   });
 
+  const unitOptions = ingredient
+    ? getEditableMeasureUnitOptions(ingredient.unit)
+    : MEASURE_UNIT_OPTIONS;
+
   const unitField = (
     <SelectField
       control={form.control}
       name="unit"
       label="Unidade de medida"
       placeholder="Selecione"
-      options={MEASURE_UNIT_OPTIONS}
-      isDisabled={isEditing}
+      options={unitOptions}
+      isDisabled={unitOptions.length < 2}
     />
   );
 

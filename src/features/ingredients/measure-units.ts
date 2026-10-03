@@ -23,11 +23,45 @@ export function toSelectableMeasureUnit(
   return MEASURE_UNIT_VALUES.find((selectableUnit) => selectableUnit === unit);
 }
 
-export const MEASURE_UNIT_OPTIONS: readonly SelectOption[] =
-  MEASURE_UNIT_VALUES.map((unit) => ({
+function toMeasureUnitOption(unit: SelectableMeasureUnit): SelectOption {
+  return {
     value: unit,
     label: `${MEASURE_UNITS[unit].label} (${MEASURE_UNITS[unit].symbol})`,
-  }));
+  };
+}
+
+export const MEASURE_UNIT_OPTIONS: readonly SelectOption[] =
+  MEASURE_UNIT_VALUES.map(toMeasureUnitOption);
+
+const INTERCHANGEABLE_MEASURE_UNITS = [
+  "g",
+  "ml",
+] as const satisfies readonly SelectableMeasureUnit[];
+
+function isInterchangeableMeasureUnit(unit: MeasureUnit) {
+  return INTERCHANGEABLE_MEASURE_UNITS.some(
+    (interchangeableUnit) => interchangeableUnit === unit,
+  );
+}
+
+export function canChangeMeasureUnit(
+  currentUnit: MeasureUnit,
+  nextUnit: MeasureUnit,
+) {
+  return (
+    currentUnit === nextUnit ||
+    (isInterchangeableMeasureUnit(currentUnit) &&
+      isInterchangeableMeasureUnit(nextUnit))
+  );
+}
+
+export function getEditableMeasureUnitOptions(
+  currentUnit: MeasureUnit,
+): readonly SelectOption[] {
+  return MEASURE_UNIT_VALUES.filter((unit) =>
+    canChangeMeasureUnit(currentUnit, unit),
+  ).map(toMeasureUnitOption);
+}
 
 export function getUnitSymbol(unit: MeasureUnit): string {
   return MEASURE_UNITS[unit].symbol;
