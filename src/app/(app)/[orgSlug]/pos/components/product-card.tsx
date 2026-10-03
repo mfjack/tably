@@ -56,7 +56,7 @@ function ProductCardComponent({ product, onAdd }: ProductCardProps) {
     >
       <div
         className={cn(
-          "relative flex h-20 items-center justify-center overflow-hidden rounded-lg bg-foreground/5 text-muted-foreground/70",
+          "relative flex aspect-video items-center justify-center overflow-hidden rounded-lg bg-foreground/5 text-muted-foreground/70",
           isLow && "bg-destructive/10",
           isOut && "text-muted-foreground/40",
         )}
