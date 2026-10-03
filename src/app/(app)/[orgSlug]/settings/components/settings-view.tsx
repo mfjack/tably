@@ -59,7 +59,7 @@ export function SettingsView({
               ? initialTab
               : defaultTab
           }
-          className="gap-6"
+          className="min-h-0 gap-6"
         >
           <TabsList className="w-full justify-start overflow-x-auto group-data-horizontal/tabs:h-10 sm:w-fit">
             {canManageOrganization && (
@@ -95,13 +95,19 @@ export function SettingsView({
           </TabsList>
           {canManageOrganization && (
             <>
-              <TabsContent value="organization">
+              <TabsContent
+                value="organization"
+                className="min-h-0 overflow-y-auto"
+              >
                 <OrganizationSettingsForm
                   key={organization.id}
                   organization={organization}
                 />
               </TabsContent>
-              <TabsContent value="checkout" className="flex flex-col gap-6">
+              <TabsContent
+                value="checkout"
+                className="flex min-h-0 flex-col gap-6 overflow-y-auto"
+              >
                 <CheckoutSettingsForm
                   key={organization.id}
                   organization={organization}
@@ -111,7 +117,7 @@ export function SettingsView({
                   organization={organization}
                 />
               </TabsContent>
-              <TabsContent value="loyalty">
+              <TabsContent value="loyalty" className="min-h-0 overflow-y-auto">
                 <LoyaltySettingsForm
                   key={organization.id}
                   organization={organization}
@@ -122,14 +128,20 @@ export function SettingsView({
                 />
               </TabsContent>
               {organization.subscription && (
-                <TabsContent value="subscription">
+                <TabsContent
+                  value="subscription"
+                  className="min-h-0 overflow-y-auto"
+                >
                   <SubscriptionSettings
                     organization={organization}
                     subscription={organization.subscription}
                   />
                 </TabsContent>
               )}
-              <TabsContent value="operators">
+              <TabsContent
+                value="operators"
+                className="min-h-0 overflow-y-auto"
+              >
                 <OperatorsSettings
                   organizationId={organization.id}
                   operatorLimit={getOperatorLimit(organization.subscription)}
@@ -141,7 +153,7 @@ export function SettingsView({
                   )}
                 />
               </TabsContent>
-              <TabsContent value="menu">
+              <TabsContent value="menu" className="min-h-0 overflow-y-auto">
                 <MenuSettings
                   key={organization.id}
                   organization={organization}
@@ -149,10 +161,13 @@ export function SettingsView({
               </TabsContent>
             </>
           )}
-          <TabsContent value="printer">
+          <TabsContent value="printer" className="min-h-0 overflow-y-auto">
             <ThermalPrinterSettings />
           </TabsContent>
-          <TabsContent value="profile" className="flex flex-col gap-6">
+          <TabsContent
+            value="profile"
+            className="flex min-h-0 flex-col gap-6 overflow-y-auto"
+          >
             <ProfileForm
               email={currentUser.email}
               fullName={currentUser.fullName}
