@@ -23,6 +23,7 @@ const publicMenuSchema = z.object({
           name: z.string(),
           detail: z.string().nullable(),
           price: z.number(),
+          isAvailable: z.boolean(),
         }),
       ),
     }),

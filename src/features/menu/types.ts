@@ -6,6 +6,7 @@ export type PublicMenuItem = {
   name: string;
   detail: string | null;
   price: number;
+  isAvailable: boolean;
 };
 
 export type PublicMenuSection = {
