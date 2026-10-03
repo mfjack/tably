@@ -48,7 +48,9 @@ import { ProductsRankingSection } from "./products-ranking-section";
 import { SalesCharts } from "./sales-charts";
 import { SalesReportExportMenu } from "./sales-report-export-menu";
 
-const KPI_CARD_COUNT = 4;
+const KPI_CARD_COUNT = 5;
+const KPI_GRID_CLASS_NAME =
+  "grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5";
 
 type SalesReportViewProps = {
   organizationId: OrganizationId;
@@ -59,7 +61,7 @@ type SalesReportViewProps = {
 function SalesReportSkeleton() {
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <div className={KPI_GRID_CLASS_NAME}>
         {Array.from({ length: KPI_CARD_COUNT }, (_, cardIndex) => (
           <Skeleton
             key={`kpi-${cardIndex.toString()}`}
@@ -99,7 +101,7 @@ function SalesReportContent({ report }: SalesReportContentProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className={KPI_GRID_CLASS_NAME}>
         <KpiCard
           label="Faturamento"
           value={formatCurrency(summary.revenue)}
