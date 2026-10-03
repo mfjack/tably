@@ -8,7 +8,8 @@ import { DIALOG_ACTION_BUTTON_CLASS_NAME } from "@/components/dialog/dialog-styl
 import { MaskedField } from "@/components/form/masked-field";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
-import { usePublicLoyaltyBalanceQuery } from "@/features/loyalty/hooks/use-public-loyalty-balance-query";
+import { usePublicLoyaltyStatusQuery } from "@/features/loyalty/hooks/use-public-loyalty-status-query";
+import type { PublicLoyaltyStatus } from "@/features/loyalty/types";
 import type { PublicLoyaltyProgram } from "@/features/menu/types";
 import { cn } from "@/lib/utils";
 
@@ -22,19 +23,23 @@ type MenuLoyaltyDialogProps = {
 };
 
 type StampCardProps = {
-  balance: number;
+  status: PublicLoyaltyStatus;
   program: PublicLoyaltyProgram;
 };
 
-function StampCard({ balance, program }: StampCardProps) {
+function StampCard({ status, program }: StampCardProps) {
+  const { balance, firstName, hasStampToday } = status;
   const filledStamps = Math.min(balance, program.stampsRequired);
   const missingStamps = program.stampsRequired - filledStamps;
 
   return (
     <div className="flex flex-col gap-4 rounded-2xl bg-muted p-4">
-      <p className="font-semibold">
-        {balance} de {program.stampsRequired} selos
-      </p>
+      <div className="flex flex-col gap-0.5">
+        {firstName && <p className="text-sm">Olá, {firstName}!</p>}
+        <p className="font-semibold">
+          {balance} de {program.stampsRequired} selos
+        </p>
+      </div>
       <ul className="grid grid-cols-5 gap-2" aria-hidden>
         {Array.from({ length: program.stampsRequired }, (_, index) => (
           <li
@@ -55,6 +60,11 @@ function StampCard({ balance, program }: StampCardProps) {
           ? `Você já pode trocar por ${program.rewardDescription}. Peça no caixa.`
           : `Faltam ${missingStamps} ${missingStamps === 1 ? "selo" : "selos"} para ganhar ${program.rewardDescription}.`}
       </p>
+      {hasStampToday && (
+        <p className="text-muted-foreground text-xs">
+          Você já ganhou o selo de hoje. O próximo vale a partir de amanhã.
+        </p>
+      )}
     </div>
   );
 }
@@ -66,7 +76,7 @@ export function MenuLoyaltyDialog({
   const [isOpen, setIsOpen] = useState(false);
   const form = useForm<LoyaltyLookupForm>({ defaultValues: { phone: "" } });
   const phone = useWatch({ control: form.control, name: "phone" });
-  const balanceQuery = usePublicLoyaltyBalanceQuery(menuSlug, phone);
+  const statusQuery = usePublicLoyaltyStatusQuery(menuSlug, phone);
 
   function openDialog() {
     setIsOpen(true);
@@ -122,18 +132,18 @@ export function MenuLoyaltyDialog({
               autoComplete="tel-national"
             />
           </FieldGroup>
-          {balanceQuery.isFetching && balanceQuery.data === undefined && (
+          {statusQuery.isFetching && statusQuery.data === undefined && (
             <p className="text-muted-foreground text-sm">
               Buscando seus selos…
             </p>
           )}
-          {balanceQuery.error && (
+          {statusQuery.error && (
             <p className="text-destructive text-sm">
-              {balanceQuery.error.message}
+              {statusQuery.error.message}
             </p>
           )}
-          {balanceQuery.data !== undefined && (
-            <StampCard balance={balanceQuery.data} program={program} />
+          {statusQuery.data && (
+            <StampCard status={statusQuery.data} program={program} />
           )}
         </div>
       </DetailsDialog>

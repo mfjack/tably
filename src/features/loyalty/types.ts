@@ -40,3 +40,9 @@ export type LoyaltyTransaction = {
   createdByName: string | null;
   createdAt: string;
 };
+
+export type PublicLoyaltyStatus = {
+  firstName: string | null;
+  balance: number;
+  hasStampToday: boolean;
+};

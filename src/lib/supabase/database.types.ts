@@ -3091,11 +3091,11 @@ export type Database = {
         Args: { p_organization_id: string }
         Returns: number
       }
-      get_public_loyalty_balance: {
-        Args: { p_phone: string; p_slug: string }
-        Returns: number
-      }
       get_public_loyalty_program: { Args: { p_slug: string }; Returns: Json }
+      get_public_loyalty_status: {
+        Args: { p_phone: string; p_slug: string }
+        Returns: Json
+      }
       get_public_menu: { Args: { p_slug: string }; Returns: Json }
       get_sales_report: {
         Args: {

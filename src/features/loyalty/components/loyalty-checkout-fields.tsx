@@ -55,8 +55,11 @@ function CustomerStatus({
         </span>
       </p>
       {customer.hasStampToday && (
-        <p className="text-muted-foreground text-xs">
-          Já ganhou o selo de hoje. O próximo vale a partir de amanhã.
+        <p
+          role="status"
+          className="rounded-md bg-amber-500/15 px-2.5 py-1.5 font-medium text-amber-800 text-xs dark:text-amber-300"
+        >
+          Selo de hoje já foi ganho. Esta compra não soma outro selo.
         </p>
       )}
       {canRedeem && (

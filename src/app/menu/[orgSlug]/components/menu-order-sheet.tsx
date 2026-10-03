@@ -28,6 +28,7 @@ import {
 import { formatCurrency } from "@/lib/format";
 import { MenuCartItemCard, type MenuCartLine } from "./menu-cart-item-card";
 import { MenuItemNoteDialog } from "./menu-item-note-dialog";
+import { MenuOrderLoyaltyHint } from "./menu-order-loyalty-hint";
 import { buildOrderPath } from "./menu-order-path";
 
 type MenuOrderSheetProps = {
@@ -175,6 +176,13 @@ export function MenuOrderSheet({
                   mask="phone"
                   placeholder="00 00000-0000"
                   autoComplete="tel-national"
+                />
+              )}
+              {loyaltyProgram && (
+                <MenuOrderLoyaltyHint
+                  menuSlug={menuSlug}
+                  program={loyaltyProgram}
+                  control={form.control}
                 />
               )}
             </FieldGroup>

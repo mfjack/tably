@@ -1,4 +1,5 @@
 import * as z from "zod";
+import { LOYALTY_PHONE_PATTERN } from "@/features/loyalty/schemas";
 import { CART_ITEM_NOTE_MAX_LENGTH } from "@/features/pos/cart-items";
 
 export const ONLINE_ORDER_MAX_ITEM_QUANTITY = 50;
@@ -23,7 +24,7 @@ export const onlineOrderCustomerSchema = z.object({
   customerPhone: z
     .string()
     .refine(
-      (phone) => phone === "" || /^d{10,11}$/.test(phone),
+      (phone) => phone === "" || LOYALTY_PHONE_PATTERN.test(phone),
       "Informe o celular com DDD.",
     ),
 });

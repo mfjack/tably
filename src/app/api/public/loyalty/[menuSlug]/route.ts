@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { getPublicLoyaltyBalance } from "@/features/loyalty/public-actions";
+import { getPublicLoyaltyStatus } from "@/features/loyalty/public-actions";
 import { jsonActionResult } from "@/lib/api/route-responses";
 
 export async function GET(
@@ -8,5 +8,5 @@ export async function GET(
 ) {
   const { menuSlug } = await params;
   const phone = request.nextUrl.searchParams.get("phone") ?? "";
-  return jsonActionResult(await getPublicLoyaltyBalance(menuSlug, phone));
+  return jsonActionResult(await getPublicLoyaltyStatus(menuSlug, phone));
 }
