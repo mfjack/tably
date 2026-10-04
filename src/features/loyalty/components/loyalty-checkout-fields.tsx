@@ -7,6 +7,7 @@ import { TextField } from "@/components/form/text-field";
 import { Button } from "@/components/ui/button";
 import type { OrganizationId } from "@/features/organizations/types";
 import { formatCurrency } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { useLoyaltyCustomerLookupQuery } from "../hooks/use-loyalty-customer-lookup-query";
 import { LOYALTY_PHONE_PATTERN } from "../schemas";
 import type { LoyaltyCustomerLookup, LoyaltyProgram } from "../types";
@@ -53,9 +54,9 @@ function RewardPicker({
 }: RewardPickerProps) {
   return (
     <fieldset className="flex flex-col gap-2">
-      <legend className="mb-2 flex items-center gap-1.5 font-medium text-sm">
-        <Gift aria-hidden className="size-4 text-primary" />
-        Prêmio disponível: {program.rewardDescription}
+      <legend className="mb-2 flex items-center gap-1.5 font-semibold text-primary text-sm">
+        <Gift aria-hidden className="size-4" />
+        Este cliente tem um prêmio para usar: {program.rewardDescription}
       </legend>
       <p className="text-muted-foreground text-xs">
         Escolha o item que sai de graça.
@@ -105,7 +106,14 @@ function CustomerStatus({
   onRewardProductChange,
 }: CustomerStatusProps) {
   return (
-    <div className="flex flex-col gap-3 rounded-lg bg-muted px-4 py-3">
+    <div
+      className={cn(
+        "flex flex-col gap-3 rounded-lg px-4 py-3",
+        isRewardAvailable
+          ? "border border-primary/40 bg-primary/10"
+          : "bg-muted",
+      )}
+    >
       <p className="text-sm">
         <span className="font-semibold">{customer.name}</span>
         <span className="text-muted-foreground">
