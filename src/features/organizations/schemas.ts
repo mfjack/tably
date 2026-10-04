@@ -1,5 +1,6 @@
 import * as z from "zod";
 import { MAX_SERVICE_FEE_PERCENT } from "@/features/orders/order-adjustments";
+import { RECEIVABLE_PAYMENT_METHOD_VALUES } from "@/features/orders/payment-methods";
 import {
   BILLING_CYCLES,
   SUBSCRIPTION_PLANS,
@@ -57,6 +58,9 @@ export const checkoutSettingsSchema = z
     isDiscountEnabled: z.boolean(),
     isSplitBillEnabled: z.boolean(),
     isCustomerAccountPaymentEnabled: z.boolean(),
+    acceptedPaymentMethods: z
+      .array(z.enum(RECEIVABLE_PAYMENT_METHOD_VALUES))
+      .min(1, "Escolha pelo menos uma forma de pagamento."),
   })
   .superRefine((values, context) => {
     if (values.isServiceFeeEnabled && values.serviceFeePercent === undefined) {

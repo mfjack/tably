@@ -1,6 +1,5 @@
 import * as z from "zod";
 import { RECEIVABLE_PAYMENT_METHOD_VALUES } from "@/features/orders/payment-methods";
-import type { PaymentMethod } from "@/features/orders/types";
 
 export const customerAccountSchema = z.object({
   name: z
@@ -23,17 +22,12 @@ export const customerAccountSchema = z.object({
 });
 
 export function createAccountPaymentSchema(balance: number) {
-  const receivablePaymentMethods = RECEIVABLE_PAYMENT_METHOD_VALUES as [
-    PaymentMethod,
-    ...PaymentMethod[],
-  ];
-
   return z.object({
     amount: z
       .number({ error: "Informe o valor recebido." })
       .positive("O valor deve ser maior que zero.")
       .max(balance, "O valor é maior que o saldo devedor."),
-    method: z.enum(receivablePaymentMethods, {
+    method: z.enum(RECEIVABLE_PAYMENT_METHOD_VALUES, {
       error: "Escolha a forma de pagamento.",
     }),
     note: z.string().trim().max(300, "Observação muito longa."),

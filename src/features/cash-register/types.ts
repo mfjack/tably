@@ -19,6 +19,8 @@ export type CashMovement = {
 export type CashPaymentTotal = {
   method: PaymentMethod;
   amount: number;
+  surcharge: number;
+  fee: number;
 };
 
 export type CashSessionSummary = {

@@ -1,8 +1,11 @@
 import { format } from "date-fns";
+import type { ReactNode } from "react";
+import { InfoTooltip } from "@/components/info-tooltip";
 import { getPaymentMethodLabel } from "@/features/orders/payment-methods";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { getCashDifference } from "../cash-difference";
+import { getNetPaymentAmount, sumPayments } from "../cash-payment-totals";
 import type { CashMovementKind, CashSessionSummary } from "../types";
 
 const MOVEMENT_LABELS = {
@@ -15,6 +18,7 @@ const DATE_TIME_FORMAT = "dd/MM, HH:mm";
 type SummaryRowProps = {
   label: string;
   value: string;
+  info?: ReactNode;
   isStrong?: boolean;
   className?: string;
 };
@@ -22,6 +26,7 @@ type SummaryRowProps = {
 function SummaryRow({
   label,
   value,
+  info,
   isStrong = false,
   className,
 }: SummaryRowProps) {
@@ -36,7 +41,10 @@ function SummaryRow({
       <span className={cn(!isStrong && !className && "text-muted-foreground")}>
         {label}
       </span>
-      <span className="tabular-nums">{value}</span>
+      <span className="flex items-center gap-1 tabular-nums">
+        {info}
+        {value}
+      </span>
     </div>
   );
 }
@@ -58,6 +66,8 @@ type CashSessionDetailsProps = {
 
 export function CashSessionDetails({ summary }: CashSessionDetailsProps) {
   const difference = getCashDifference(summary);
+  const totalSurcharge = sumPayments(summary.payments, "surcharge");
+  const totalFee = sumPayments(summary.payments, "fee");
   const isClosed = summary.closedAt !== null;
 
   return (
@@ -75,15 +85,33 @@ export function CashSessionDetails({ summary }: CashSessionDetailsProps) {
             <SummaryRow
               key={payment.method}
               label={getPaymentMethodLabel(payment.method)}
-              value={formatCurrency(payment.amount)}
+              value={formatCurrency(payment.amount + payment.surcharge)}
+              info={
+                payment.fee > 0 && (
+                  <InfoTooltip
+                    label={`Taxa e valor que cai de ${getPaymentMethodLabel(payment.method)}`}
+                  >
+                    Taxa {formatCurrency(payment.fee)} · cai{" "}
+                    {formatCurrency(getNetPaymentAmount(payment))}
+                  </InfoTooltip>
+                )
+              }
             />
           ))
         )}
         <SummaryRow
           label={`Total (${summary.orderCount} ${summary.orderCount === 1 ? "venda" : "vendas"})`}
-          value={formatCurrency(summary.receivedTotal)}
+          value={formatCurrency(summary.receivedTotal + totalSurcharge)}
           isStrong
         />
+        {totalFee > 0 && (
+          <SummaryRow
+            label="Vou receber, descontadas as taxas"
+            value={formatCurrency(
+              summary.receivedTotal + totalSurcharge - totalFee,
+            )}
+          />
+        )}
       </section>
 
       <section className="flex flex-col gap-2 border-t pt-4">

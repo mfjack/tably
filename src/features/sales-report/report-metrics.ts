@@ -74,8 +74,8 @@ export function getPaymentMethodSurcharge(
   method: PaymentMethod,
 ): number {
   return (
-    report.byPaymentMethod.find((payment) => payment.method === method)
-      ?.surcharge ?? 0
+    (report.byPaymentMethod.find((payment) => payment.method === method)
+      ?.surcharge ?? 0) + sumReceipts(report, method, "surcharge")
   );
 }
 
@@ -84,9 +84,19 @@ export function getPaymentMethodFee(
   method: PaymentMethod,
 ): number {
   return (
-    report.byPaymentMethod.find((payment) => payment.method === method)?.fee ??
-    0
+    (report.byPaymentMethod.find((payment) => payment.method === method)?.fee ??
+      0) + sumReceipts(report, method, "fee")
   );
+}
+
+function sumReceipts(
+  report: SalesReport,
+  method: PaymentMethod,
+  field: "fee" | "surcharge",
+): number {
+  return report.accountReceipts
+    .filter((receipt) => receipt.method === method)
+    .reduce((total, receipt) => total + receipt[field], 0);
 }
 
 export function getCostShare(cost: number, revenue: number): number | null {

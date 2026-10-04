@@ -84,7 +84,7 @@ function PaymentMethodTile({
         {fee > 0 && (
           <span className="text-muted-foreground text-xs tabular-nums">
             Taxa {formatCurrency(fee)} · recebe{" "}
-            {formatCurrency(revenue + surcharge - fee)}
+            {formatCurrency(revenue + receivedFromAccounts + surcharge - fee)}
           </span>
         )}
         {receivedFromAccounts > 0 && (

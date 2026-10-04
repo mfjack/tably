@@ -5,6 +5,7 @@ import {
   hasModuleAccessToRecord,
   MODULE_ACCESS_DENIED_MESSAGE,
 } from "@/features/operators/module-access";
+import { PAYMENT_METHOD_NOT_ACCEPTED_MESSAGE } from "@/features/orders/messages";
 import type { OrderId } from "@/features/orders/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import {
@@ -28,6 +29,7 @@ const ACCOUNT_ERROR_MESSAGES: Readonly<Record<string, string>> = {
   "42501": "Você não tem permissão para gerenciar contas.",
   P0002: "Essa conta não existe mais. Atualize a tela.",
   TB006: "O valor é maior que o saldo devedor.",
+  TB025: PAYMENT_METHOD_NOT_ACCEPTED_MESSAGE,
   "22023": "Confira o valor e a forma de pagamento.",
 };
 

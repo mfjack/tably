@@ -57,6 +57,8 @@ const salesReportRowSchema = z.object({
     summarySchema.extend({
       method: paymentMethodSchema,
       operator_name: z.string().nullable(),
+      fee: z.number(),
+      surcharge: z.number(),
     }),
   ),
   by_day: z.array(summarySchema.extend({ date: z.string() })),
@@ -137,6 +139,8 @@ export async function getSalesReport(
       operatorName: receipt.operator_name,
       method: receipt.method,
       revenue: receipt.revenue,
+      fee: receipt.fee,
+      surcharge: receipt.surcharge,
       orderCount: receipt.order_count,
     })),
     byDay: report.by_day.map((day) => ({

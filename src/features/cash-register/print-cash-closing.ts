@@ -10,6 +10,7 @@ import { formatCurrency } from "@/lib/format";
 import { escapeHtml } from "@/lib/print-html";
 import { printReceipt } from "@/lib/print-receipt";
 import { getCashDifference } from "./cash-difference";
+import { sumPayments } from "./cash-payment-totals";
 import type { CashSessionSummary } from "./types";
 
 const DATE_TIME_FORMAT = "dd/MM/yyyy, HH:mm";
@@ -35,10 +36,23 @@ function buildSections(summary: CashSessionSummary): ClosingRow[][] {
       ...summary.payments.map(
         (payment): ClosingRow => [
           getPaymentMethodLabel(payment.method),
-          formatCurrency(payment.amount),
+          formatCurrency(payment.amount + payment.surcharge),
         ],
       ),
-      ["Total recebido", formatCurrency(summary.receivedTotal)],
+      [
+        "Total recebido",
+        formatCurrency(
+          summary.receivedTotal + sumPayments(summary.payments, "surcharge"),
+        ),
+      ],
+      ...(sumPayments(summary.payments, "fee") > 0
+        ? [
+            [
+              "Taxas",
+              `- ${formatCurrency(sumPayments(summary.payments, "fee"))}`,
+            ] as ClosingRow,
+          ]
+        : []),
     ],
     [
       ["Troco inicial", formatCurrency(summary.openingAmount)],

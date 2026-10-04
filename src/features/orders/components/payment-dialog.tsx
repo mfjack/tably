@@ -40,10 +40,7 @@ import {
   type OrderAdjustmentsInput,
 } from "../order-adjustments";
 import { getPaymentsChange } from "../order-payments";
-import {
-  PAYMENT_METHOD_VALUES,
-  RECEIVABLE_PAYMENT_METHOD_VALUES,
-} from "../payment-methods";
+import { sortPaymentMethods } from "../payment-methods";
 import {
   countUnassignedUnits,
   distributeAdjustment,
@@ -162,9 +159,12 @@ export function PaymentDialog({
     ? checkoutSettings.serviceFeePercent
     : 0;
   const canChargeServiceFee = !summary.isTakeaway && serviceFeePercent > 0;
-  const paymentMethods = checkoutSettings.isCustomerAccountPaymentEnabled
-    ? PAYMENT_METHOD_VALUES
-    : RECEIVABLE_PAYMENT_METHOD_VALUES;
+  const paymentMethods = sortPaymentMethods([
+    ...checkoutSettings.acceptedPaymentMethods,
+    ...(checkoutSettings.isCustomerAccountPaymentEnabled
+      ? (["customer_account"] as const)
+      : []),
+  ]);
   const adjustmentsForm = useForm<AdjustmentsFormInput>({
     defaultValues: {
       hasServiceFee: false,

@@ -46,6 +46,7 @@ export type Database = {
           cash_session_id: string | null
           created_at: string
           created_by: string | null
+          fee_percent: number
           id: string
           kind: Database["public"]["Enums"]["account_entry_kind"]
           note: string | null
@@ -53,6 +54,7 @@ export type Database = {
           order_id: string | null
           organization_id: string
           payment_method: Database["public"]["Enums"]["payment_method"] | null
+          surcharge: number
         }
         Insert: {
           account_id: string
@@ -60,6 +62,7 @@ export type Database = {
           cash_session_id?: string | null
           created_at?: string
           created_by?: string | null
+          fee_percent?: number
           id?: string
           kind: Database["public"]["Enums"]["account_entry_kind"]
           note?: string | null
@@ -67,6 +70,7 @@ export type Database = {
           order_id?: string | null
           organization_id: string
           payment_method?: Database["public"]["Enums"]["payment_method"] | null
+          surcharge?: number
         }
         Update: {
           account_id?: string
@@ -74,6 +78,7 @@ export type Database = {
           cash_session_id?: string | null
           created_at?: string
           created_by?: string | null
+          fee_percent?: number
           id?: string
           kind?: Database["public"]["Enums"]["account_entry_kind"]
           note?: string | null
@@ -81,6 +86,7 @@ export type Database = {
           order_id?: string | null
           organization_id?: string
           payment_method?: Database["public"]["Enums"]["payment_method"] | null
+          surcharge?: number
         }
         Relationships: [
           {
@@ -1632,6 +1638,7 @@ export type Database = {
       }
       organizations: {
         Row: {
+          accepted_payment_methods: Database["public"]["Enums"]["payment_method"][]
           address: string | null
           created_at: string
           created_by: string | null
@@ -1666,6 +1673,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          accepted_payment_methods?: Database["public"]["Enums"]["payment_method"][]
           address?: string | null
           created_at?: string
           created_by?: string | null
@@ -1700,6 +1708,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          accepted_payment_methods?: Database["public"]["Enums"]["payment_method"][]
           address?: string | null
           created_at?: string
           created_by?: string | null
@@ -2841,6 +2850,13 @@ export type Database = {
         }
         Returns: undefined
       }
+      assert_payment_method_accepted: {
+        Args: {
+          p_method: Database["public"]["Enums"]["payment_method"]
+          p_organization_id: string
+        }
+        Returns: undefined
+      }
       build_cash_session_summary: {
         Args: { p_session_id: string }
         Returns: Json
@@ -2922,6 +2938,7 @@ export type Database = {
       create_organization: {
         Args: { p_name: string; p_slug: string }
         Returns: {
+          accepted_payment_methods: Database["public"]["Enums"]["payment_method"][]
           address: string | null
           created_at: string
           created_by: string | null
@@ -3035,6 +3052,21 @@ export type Database = {
       }
       get_operator_limit: {
         Args: { p_organization_id: string }
+        Returns: number
+      }
+      get_payment_fee_percent: {
+        Args: {
+          p_method: Database["public"]["Enums"]["payment_method"]
+          p_organization_id: string
+        }
+        Returns: number
+      }
+      get_payment_surcharge: {
+        Args: {
+          p_amount: number
+          p_fee_percent: number
+          p_organization_id: string
+        }
         Returns: number
       }
       get_public_loyalty_program: { Args: { p_slug: string }; Returns: Json }

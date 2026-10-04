@@ -2,17 +2,19 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useForm, useWatch } from "react-hook-form";
+import { useController, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { NumberField } from "@/components/form/number-field";
 import { SwitchField } from "@/components/form/switch-field";
 import { FieldGroup } from "@/components/ui/field";
+import { isReceivablePaymentMethod } from "@/features/orders/payment-methods";
 import { useUpdateCheckoutSettingsMutation } from "@/features/organizations/hooks/use-update-checkout-settings-mutation";
 import {
   type CheckoutSettingsInput,
   checkoutSettingsSchema,
 } from "@/features/organizations/schemas";
 import type { UserOrganization } from "@/features/organizations/types";
+import { AcceptedPaymentMethodsField } from "./accepted-payment-methods-field";
 import { SettingsFormSection } from "./settings-form-section";
 
 type CheckoutSettingsFormProps = {
@@ -32,6 +34,9 @@ function toFormValues({
     isDiscountEnabled: checkout.isDiscountEnabled,
     isSplitBillEnabled: checkout.isSplitBillEnabled,
     isCustomerAccountPaymentEnabled: checkout.isCustomerAccountPaymentEnabled,
+    acceptedPaymentMethods: checkout.acceptedPaymentMethods.filter(
+      isReceivablePaymentMethod,
+    ),
   };
 }
 
@@ -45,6 +50,10 @@ export function CheckoutSettingsForm({
   const form = useForm<CheckoutSettingsInput>({
     resolver: zodResolver(checkoutSettingsSchema),
     defaultValues: toFormValues(organization),
+  });
+  const acceptedMethodsField = useController({
+    control: form.control,
+    name: "acceptedPaymentMethods",
   });
   const [isTakeawayEnabled, isServiceFeeEnabled] = useWatch({
     control: form.control,
@@ -71,6 +80,11 @@ export function CheckoutSettingsForm({
       onSubmit={handleSubmit}
     >
       <FieldGroup>
+        <AcceptedPaymentMethodsField
+          value={acceptedMethodsField.field.value}
+          errorMessage={acceptedMethodsField.fieldState.error?.message}
+          onChange={acceptedMethodsField.field.onChange}
+        />
         <SwitchField
           control={form.control}
           name="isTakeawayEnabled"

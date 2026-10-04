@@ -1,4 +1,5 @@
 import type { LoyaltyProgram, LoyaltySettings } from "@/features/loyalty/types";
+import type { PaymentMethod } from "@/features/orders/types";
 import type { Subscription } from "@/features/subscriptions/subscription-state";
 import type { Brand } from "@/lib/brand";
 import type { Database } from "@/lib/supabase/database.types";
@@ -35,6 +36,7 @@ export type OrganizationCheckoutSettings = {
   isCustomerAccountPaymentEnabled: boolean;
   loyaltyProgram: LoyaltyProgram | null;
   paymentFees: OrganizationPaymentFees;
+  acceptedPaymentMethods: PaymentMethod[];
 };
 
 export type OrganizationPaymentFees = {

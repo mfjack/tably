@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useMemo } from "react";
-import { type DefaultValues, useForm } from "react-hook-form";
+import { type DefaultValues, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { FormDialog } from "@/components/dialog/form-dialog";
 import { NumberField } from "@/components/form/number-field";
@@ -14,9 +14,13 @@ import {
   createAccountPaymentSchema,
 } from "@/features/customer-accounts/schemas";
 import type { CustomerAccount } from "@/features/customer-accounts/types";
+import { CardSurchargeNotice } from "@/features/orders/components/card-surcharge-notice";
 import { PaymentMethodField } from "@/features/orders/components/payment-method-field";
-import { RECEIVABLE_PAYMENT_METHOD_VALUES } from "@/features/orders/payment-methods";
-import type { OrganizationId } from "@/features/organizations/types";
+import type { PaymentMethod } from "@/features/orders/types";
+import type {
+  OrganizationId,
+  OrganizationPaymentFees,
+} from "@/features/organizations/types";
 import { formatCurrency } from "@/lib/format";
 
 const EMPTY_PAYMENT_FORM: DefaultValues<AccountPaymentInput> = { note: "" };
@@ -24,12 +28,16 @@ const EMPTY_PAYMENT_FORM: DefaultValues<AccountPaymentInput> = { note: "" };
 type AccountPaymentDialogProps = {
   organizationId: OrganizationId;
   account: CustomerAccount | null;
+  paymentFees: OrganizationPaymentFees;
+  acceptedPaymentMethods: readonly PaymentMethod[];
   onClose: () => void;
 };
 
 export function AccountPaymentDialog({
   organizationId,
   account,
+  paymentFees,
+  acceptedPaymentMethods,
   onClose,
 }: AccountPaymentDialogProps) {
   const balance = account?.balance ?? 0;
@@ -42,6 +50,10 @@ export function AccountPaymentDialog({
   const form = useForm<AccountPaymentInput>({
     resolver: zodResolver(paymentSchema),
     defaultValues: EMPTY_PAYMENT_FORM,
+  });
+  const [amount, method] = useWatch({
+    control: form.control,
+    name: ["amount", "method"],
   });
 
   useEffect(() => {
@@ -92,7 +104,12 @@ export function AccountPaymentDialog({
         <PaymentMethodField
           control={form.control}
           name="method"
-          methods={RECEIVABLE_PAYMENT_METHOD_VALUES}
+          methods={acceptedPaymentMethods}
+        />
+        <CardSurchargeNotice
+          paymentFees={paymentFees}
+          method={method}
+          amount={amount ?? 0}
         />
         <TextField
           control={form.control}

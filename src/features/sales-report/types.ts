@@ -33,6 +33,11 @@ export type SalesByOperatorPayment = SalesByPaymentMethod & {
   operatorName: string | null;
 };
 
+export type SalesAccountReceipt = SalesByOperatorPayment & {
+  fee: number;
+  surcharge: number;
+};
+
 export type SalesByDay = {
   date: string;
   revenue: number;
@@ -78,7 +83,7 @@ export type SalesReport = {
   loyalty: LoyaltySummary;
   byPaymentMethod: SalesByPaymentMethodWithFee[];
   byOperatorPayment: SalesByOperatorPayment[];
-  accountReceipts: SalesByOperatorPayment[];
+  accountReceipts: SalesAccountReceipt[];
   byDay: SalesByDay[];
   byHour: SalesByHour[];
   byWeekday: SalesByWeekday[];

@@ -6,7 +6,10 @@ import {
   hasModuleAccess,
   MODULE_ACCESS_DENIED_MESSAGE,
 } from "@/features/operators/module-access";
-import { PAYMENT_METHOD_VALUES } from "@/features/orders/payment-methods";
+import {
+  PAYMENT_METHOD_VALUES,
+  sortByPaymentMethod,
+} from "@/features/orders/payment-methods";
 import type { OrganizationId } from "@/features/organizations/types";
 import {
   type ActionResult,
@@ -46,7 +49,12 @@ const cashSessionSummarySchema = z.object({
   withdrawals: z.number(),
   expectedCash: z.number(),
   payments: z.array(
-    z.object({ method: z.enum(PAYMENT_METHOD_VALUES), amount: z.number() }),
+    z.object({
+      method: z.enum(PAYMENT_METHOD_VALUES),
+      amount: z.number(),
+      surcharge: z.number(),
+      fee: z.number(),
+    }),
   ),
   movements: z.array(
     z.object({
@@ -67,6 +75,7 @@ function toCashSessionSummary(data: unknown): CashSessionSummary | null {
   return {
     ...parsedSummary.data,
     id: parsedSummary.data.id as CashSessionId,
+    payments: sortByPaymentMethod(parsedSummary.data.payments),
   };
 }
 

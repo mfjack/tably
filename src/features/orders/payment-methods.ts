@@ -21,9 +21,39 @@ export const PAYMENT_METHOD_VALUES = Object.keys(PAYMENT_METHODS) as [
   ...PaymentMethod[],
 ];
 
-export const RECEIVABLE_PAYMENT_METHOD_VALUES = PAYMENT_METHOD_VALUES.filter(
-  (method) => method !== "customer_account",
-);
+export const RECEIVABLE_PAYMENT_METHOD_VALUES = [
+  "credit_card",
+  "debit_card",
+  "pix",
+  "cash",
+] as const satisfies readonly PaymentMethod[];
+
+export type ReceivablePaymentMethod =
+  (typeof RECEIVABLE_PAYMENT_METHOD_VALUES)[number];
+
+export function isReceivablePaymentMethod(
+  method: PaymentMethod,
+): method is ReceivablePaymentMethod {
+  return RECEIVABLE_PAYMENT_METHOD_VALUES.some(
+    (receivableMethod) => receivableMethod === method,
+  );
+}
+
+export function sortByPaymentMethod<TItem extends { method: PaymentMethod }>(
+  items: readonly TItem[],
+): TItem[] {
+  return [...items].sort(
+    (first, second) =>
+      PAYMENT_METHOD_VALUES.indexOf(first.method) -
+      PAYMENT_METHOD_VALUES.indexOf(second.method),
+  );
+}
+
+export function sortPaymentMethods(
+  methods: readonly PaymentMethod[],
+): PaymentMethod[] {
+  return PAYMENT_METHOD_VALUES.filter((method) => methods.includes(method));
+}
 
 export function getPaymentMethodLabel(method: PaymentMethod): string {
   return PAYMENT_METHODS[method].label;

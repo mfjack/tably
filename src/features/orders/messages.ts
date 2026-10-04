@@ -1,5 +1,8 @@
 import { CASH_REGISTER_CLOSED_MESSAGE } from "@/features/cash-register/messages";
 
+export const PAYMENT_METHOD_NOT_ACCEPTED_MESSAGE =
+  "Essa forma de pagamento não é aceita. Confira em Configurações → Vendas.";
+
 export const CUSTOMER_NAME_IN_USE_MESSAGE =
   "Já existe uma comanda aberta ou um pedido na cozinha com esse nome. Use outro nome ou um sobrenome.";
 
@@ -20,6 +23,7 @@ const ORDER_ERROR_MESSAGES: Readonly<Record<string, string>> = {
   TB022: "O cliente não tem selos suficientes para o prêmio.",
   TB023: "O item escolhido como prêmio não está no pedido.",
   TB024: "Cliente da fidelidade não encontrado. Confira o celular.",
+  TB025: PAYMENT_METHOD_NOT_ACCEPTED_MESSAGE,
   "22023": "Confira o pedido e o valor recebido.",
   "42501": "Você não tem permissão para vender neste estabelecimento.",
 };

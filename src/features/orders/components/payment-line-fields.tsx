@@ -6,13 +6,13 @@ import { NumberField } from "@/components/form/number-field";
 import { SelectField } from "@/components/form/select-field";
 import { Button } from "@/components/ui/button";
 import type { CustomerAccount } from "@/features/customer-accounts/types";
-import { getPaymentSurcharge } from "@/features/organizations/payment-fees";
 import type { OrganizationPaymentFees } from "@/features/organizations/types";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { PAYMENT_METHOD_VALUES, PAYMENT_METHODS } from "../payment-methods";
 import type { PaymentFormInput } from "../schemas";
 import type { PaymentMethod } from "../types";
+import { CardSurchargeNotice } from "./card-surcharge-notice";
 import { PaymentMethodField } from "./payment-method-field";
 
 function toPaymentMethodOptions(methods: readonly PaymentMethod[]) {
@@ -63,24 +63,12 @@ export function PaymentLineFields({
       `payments.${index}.amount`,
     ],
   });
-  const chargedBase = isSplit
-    ? (computedAmount ?? typedAmount ?? 0)
-    : orderTotal;
-  const surcharge = method
-    ? getPaymentSurcharge(paymentFees, method, chargedBase)
-    : 0;
-  const surchargeNotice = surcharge > 0 && (
-    <p className="rounded-lg bg-muted px-3 py-2 text-sm">
-      Cobre{" "}
-      <strong className="font-semibold tabular-nums">
-        {formatCurrency(chargedBase + surcharge)}
-      </strong>{" "}
-      na maquininha
-      <span className="text-muted-foreground">
-        {" "}
-        · inclui {formatCurrency(surcharge)} de taxa
-      </span>
-    </p>
+  const surchargeNotice = (
+    <CardSurchargeNotice
+      paymentFees={paymentFees}
+      method={method}
+      amount={isSplit ? (computedAmount ?? typedAmount ?? 0) : orderTotal}
+    />
   );
   const selectedAccount = accounts.find(
     (account) => account.id === customerAccountId,

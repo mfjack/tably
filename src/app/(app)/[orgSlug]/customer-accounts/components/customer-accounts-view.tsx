@@ -14,7 +14,11 @@ import type {
   CustomerAccount,
   CustomerAccountId,
 } from "@/features/customer-accounts/types";
-import type { OrganizationId } from "@/features/organizations/types";
+import type { PaymentMethod } from "@/features/orders/types";
+import type {
+  OrganizationId,
+  OrganizationPaymentFees,
+} from "@/features/organizations/types";
 import { formatCurrency } from "@/lib/format";
 import { ListEmptyState } from "../../components/list-empty-state";
 import { PageContent } from "../../components/page-content";
@@ -41,12 +45,16 @@ type CustomerAccountsViewProps = {
   organizationId: OrganizationId;
   title: string;
   description: string;
+  paymentFees: OrganizationPaymentFees;
+  acceptedPaymentMethods: readonly PaymentMethod[];
 };
 
 export function CustomerAccountsView({
   organizationId,
   title,
   description,
+  paymentFees,
+  acceptedPaymentMethods,
 }: CustomerAccountsViewProps) {
   const accountsQuery = useCustomerAccountsQuery(organizationId);
   const [formState, setFormState] = useState<AccountFormState>({
@@ -167,6 +175,8 @@ export function CustomerAccountsView({
       <AccountPaymentDialog
         organizationId={organizationId}
         account={findAccount(paymentAccountId)}
+        paymentFees={paymentFees}
+        acceptedPaymentMethods={acceptedPaymentMethods}
         onClose={() => setPaymentAccountId(null)}
       />
     </>
