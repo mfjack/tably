@@ -1,8 +1,8 @@
 "use client";
 
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { useEffect, useState } from "react";
+import { formatWeekdayAndDate } from "@/lib/format-date";
 
 const TICK_INTERVAL_IN_MS = 1000;
 
@@ -23,8 +23,8 @@ export function LiveClock() {
       <p className="font-semibold text-5xl tabular-nums tracking-tight sm:text-6xl">
         {now ? format(now, "HH:mm:ss") : "--:--:--"}
       </p>
-      <p className="text-muted-foreground text-sm first-letter:uppercase">
-        {now ? format(now, "EEEE, d 'de' MMMM", { locale: ptBR }) : " "}
+      <p className="text-muted-foreground text-sm">
+        {now ? formatWeekdayAndDate(now) : " "}
       </p>
     </div>
   );

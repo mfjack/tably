@@ -1,5 +1,5 @@
-import { format, getDaysInMonth, parseISO } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { getDaysInMonth, parseISO } from "date-fns";
+import { formatMonthAndYear } from "@/lib/format-date";
 
 export const MINUTES_PER_HOUR = 60;
 export const MINUTES_PER_DAY = 1440;
@@ -43,10 +43,7 @@ export function shiftMonthKey(monthKey: string, offset: number): string {
 }
 
 export function formatMonthLabel(monthKey: string): string {
-  const label = format(parseISO(getMonthStart(monthKey)), "MMMM 'de' yyyy", {
-    locale: ptBR,
-  });
-  return label.charAt(0).toUpperCase() + label.slice(1);
+  return formatMonthAndYear(parseISO(getMonthStart(monthKey)));
 }
 
 export function getIsoWeekday(date: string): number {

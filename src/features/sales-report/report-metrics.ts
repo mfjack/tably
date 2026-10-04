@@ -1,7 +1,7 @@
 import { format, parseISO } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { PAYMENT_METHOD_VALUES } from "@/features/orders/payment-methods";
 import type { PaymentMethod } from "@/features/orders/types";
+import { formatWeekdayAndDate } from "@/lib/format-date";
 import type {
   ProductSales,
   SalesByHour,
@@ -205,9 +205,7 @@ export function getWorstSellers(report: SalesReport): ProductSales[] {
 
 export function formatReportPeriod(report: SalesReport): string {
   if (report.startDate === report.endDate) {
-    return format(parseISO(report.startDate), "EEEE, d 'de' MMMM", {
-      locale: ptBR,
-    });
+    return formatWeekdayAndDate(parseISO(report.startDate));
   }
   return `${format(parseISO(report.startDate), "dd/MM")} a ${format(parseISO(report.endDate), "dd/MM/yyyy")}`;
 }

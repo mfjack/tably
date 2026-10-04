@@ -11,16 +11,13 @@ import {
 } from "@/features/sales-report/report-metrics";
 import type { SalesReport } from "@/features/sales-report/types";
 import { formatCurrency } from "@/lib/format";
+import { capitalize } from "@/lib/format-date";
 import { type ReportBar, ReportBarChart } from "./report-bar-chart";
 import { ReportSection } from "./report-section";
 
 type SalesChartsProps = {
   report: SalesReport;
 };
-
-function capitalize(value: string) {
-  return value.charAt(0).toLocaleUpperCase("pt-BR") + value.slice(1);
-}
 
 function formatDayLabel(date: string, pattern: string) {
   return capitalize(format(parseISO(date), pattern, { locale: ptBR }));
