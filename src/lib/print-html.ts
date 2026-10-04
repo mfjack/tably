@@ -76,6 +76,6 @@ export function printHtml(html: string): void {
     window.print();
   } catch {
     cleanUp();
-    toast.error(PRINT_FAILURE_MESSAGE);
+    toast.error(PRINT_FAILURE_MESSAGE, { richColors: true });
   }
 }

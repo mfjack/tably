@@ -19,8 +19,9 @@ function buildThermalFailureMessage(error: unknown): string {
 async function printOnThermalPrinter({ html, encode }: ReceiptPrintJob) {
   try {
     await printThermalReceipt(await encode(getThermalPaperColumns()));
+    toast.success("Impresso.", { richColors: true });
   } catch (error) {
-    toast.error(buildThermalFailureMessage(error));
+    toast.error(buildThermalFailureMessage(error), { richColors: true });
     printHtml(html);
   }
 }
