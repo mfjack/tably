@@ -3110,6 +3110,10 @@ export type Database = {
         Args: { p_customer_name: string; p_organization_id: string }
         Returns: boolean
       }
+      is_kitchen_enabled: {
+        Args: { p_organization_id: string }
+        Returns: boolean
+      }
       is_member: { Args: { org_id: string }; Returns: boolean }
       is_operator_employee_active: {
         Args: { p_operator_id: string }

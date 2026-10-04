@@ -72,6 +72,7 @@ type PosViewProps = {
   orderTabsHref: string;
   canOpenOrderTabs: boolean;
   kitchenHref: string | null;
+  isKitchenEnabled: boolean;
 };
 
 const OFFLINE_CATALOG_MESSAGE =
@@ -92,6 +93,7 @@ export function PosView({
   orderTabsHref,
   canOpenOrderTabs,
   kitchenHref,
+  isKitchenEnabled,
 }: PosViewProps) {
   const router = useRouter();
   const isCartHydrated = useHydratedCartStore();
@@ -144,6 +146,7 @@ export function PosView({
     tabTarget,
     cartTabId: activeCartTabId,
     categoryOrder,
+    isKitchenEnabled,
     onOrderPlaced: (cartTabId) => {
       if (cartTabId) finishCartTab(organizationId, cartTabId);
     },
@@ -237,6 +240,7 @@ export function PosView({
   const groupCheckout = useGroupCheckout({
     placeGroupOrder: checkout.placeGroupOrder,
     printGroupedOrders: checkout.printGroupedOrders,
+    isKitchenEnabled,
     onTabFinished: (cartTabId) => finishCartTab(organizationId, cartTabId),
   });
 
@@ -304,6 +308,7 @@ export function PosView({
                   organizationId={organizationId}
                   ticketBusiness={ticketBusiness}
                   kitchenHref={kitchenHref}
+                  isKitchenEnabled={isKitchenEnabled}
                 />
               )}
               {canOpenOrderTabs && (

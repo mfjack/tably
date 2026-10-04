@@ -25,6 +25,7 @@ type UseGroupCheckoutOptions = {
     sendToKitchen: boolean,
   ) => Promise<GroupPlacementResult>;
   printGroupedOrders: (entries: readonly GroupedOrderTicketEntry[]) => void;
+  isKitchenEnabled: boolean;
   onTabFinished: (cartTabId: CartTabId) => void;
 };
 
@@ -49,11 +50,13 @@ function getSuccessMessage(
   customerName: string,
   isPaid: boolean,
   isKitchen: boolean,
+  isKitchenEnabled: boolean,
 ) {
   if (isPaid) {
-    return isKitchen
+    if (!isKitchen) return `Pagamento de ${customerName} registrado.`;
+    return isKitchenEnabled
       ? `Pedido de ${customerName} pago e enviado para a cozinha.`
-      : `Pagamento de ${customerName} registrado.`;
+      : `Pedido de ${customerName} pago.`;
   }
   return isKitchen
     ? `Comanda de ${customerName} aberta.`
@@ -63,6 +66,7 @@ function getSuccessMessage(
 export function useGroupCheckout({
   placeGroupOrder,
   printGroupedOrders,
+  isKitchenEnabled,
   onTabFinished,
 }: UseGroupCheckoutOptions) {
   const [flow, setFlow] = useState<GroupCheckoutFlow | null>(null);
@@ -113,7 +117,12 @@ export function useGroupCheckout({
 
     onTabFinished(currentGroup.cartTabId);
     toast.success(
-      getSuccessMessage(currentGroup.customerName, Boolean(payment), isKitchen),
+      getSuccessMessage(
+        currentGroup.customerName,
+        Boolean(payment),
+        isKitchen,
+        isKitchenEnabled,
+      ),
       {
         description:
           [

@@ -63,6 +63,7 @@ type UsePosCheckoutOptions = {
   tabTarget: OrderTabTarget | null;
   cartTabId: CartTabId | null;
   categoryOrder: CategoryOrder;
+  isKitchenEnabled: boolean;
   onOrderPlaced: (cartTabId: CartTabId | null) => void;
   onItemsAddedToTab: (cartTabId: CartTabId | null) => void;
 };
@@ -103,6 +104,7 @@ export function usePosCheckout({
   tabTarget,
   cartTabId,
   categoryOrder,
+  isKitchenEnabled,
   onOrderPlaced,
   onItemsAddedToTab,
 }: UsePosCheckoutOptions) {
@@ -325,7 +327,9 @@ export function usePosCheckout({
         finishCheckout(placement);
         toast.success(
           payments
-            ? `Pedido de ${customer.customerName} pago e enviado para a cozinha.`
+            ? isKitchenEnabled
+              ? `Pedido de ${customer.customerName} pago e enviado para a cozinha.`
+              : `Pedido de ${customer.customerName} pago.`
             : `Comanda de ${customer.customerName} aberta.`,
           {
             description: buildToastDescription(

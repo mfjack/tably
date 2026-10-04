@@ -16,6 +16,8 @@ export type UserOrganization = {
   slug: string;
   role: MemberRole;
   hiddenModules: AppModuleId[];
+  manuallyHiddenModules: AppModuleId[];
+  selectableModules: AppModuleId[];
   takeawayFee: number;
   isTakeawayEnabled: boolean;
   taxId: string | null;

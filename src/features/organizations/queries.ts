@@ -63,6 +63,8 @@ function toSubscription(row: SubscriptionRow): Subscription | null {
   };
 }
 
+const TOGGLED_MODULES: readonly AppModuleId[] = ["loyalty"];
+
 const USER_ORGANIZATION_COLUMNS =
   "id, name, slug, hidden_modules, takeaway_fee, is_takeaway_enabled, service_fee_percent, is_service_fee_enabled, is_discount_enabled, is_split_bill_enabled, is_customer_account_payment_enabled, credit_card_fee_percent, debit_card_fee_percent, pix_fee_percent, is_card_fee_passed_on, accepted_payment_methods, tax_id, phone, address, menu_title, menu_tagline, menu_instagram, menu_note, is_online_ordering_enabled, memberships!inner(role, user_id), subscription:subscriptions(plan, billing_cycle, monthly_price, yearly_price, trial_ends_at, paid_until, payment_reported_at), loyalty:loyalty_settings(is_enabled, stamps_required, minimum_purchase, reward_description)";
 
@@ -83,11 +85,20 @@ export const getUserOrganizations = cache(
     return data.map((organization) => {
       const subscription = toSubscription(organization.subscription);
       const loyalty = toLoyaltySettings(organization.loyalty);
+      const planHiddenModules = getPlanHiddenModules(
+        subscription,
+        APP_MODULE_IDS,
+      );
       const hiddenModules: AppModuleId[] = [
         ...organization.hidden_modules,
-        ...getPlanHiddenModules(subscription, APP_MODULE_IDS),
+        ...planHiddenModules,
         ...(loyalty.isEnabled ? [] : (["loyalty"] as const)),
       ];
+      const selectableModules = APP_MODULE_IDS.filter(
+        (moduleId) =>
+          !TOGGLED_MODULES.includes(moduleId) &&
+          !planHiddenModules.includes(moduleId),
+      );
 
       const paymentFees = {
         creditCardFeePercent: organization.credit_card_fee_percent,
@@ -101,6 +112,8 @@ export const getUserOrganizations = cache(
         slug: organization.slug,
         role: organization.memberships[0].role,
         hiddenModules,
+        manuallyHiddenModules: organization.hidden_modules,
+        selectableModules,
         subscription,
         loyalty,
         takeawayFee: organization.takeaway_fee,

@@ -20,7 +20,9 @@ import {
   type CreateOrganizationInput,
   checkoutSettingsSchema,
   createOrganizationSchema,
+  type OrganizationModulesInput,
   type OrganizationSettingsInput,
+  organizationModulesSchema,
   organizationSettingsSchema,
   type PaymentFeesInput,
   paymentFeesSchema,
@@ -195,6 +197,32 @@ export async function updatePaymentFees(
     .select("id");
 
   if (error) return actionFailure("Não foi possível salvar as taxas.");
+  if (data.length === 0) return actionFailure(FORBIDDEN_MESSAGE);
+
+  return actionSuccess();
+}
+
+export async function updateOrganizationModules(
+  organizationId: OrganizationId,
+  input: OrganizationModulesInput,
+): Promise<ActionResult> {
+  if (!(await hasModuleAccess(organizationId, "settings"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
+
+  const parsedInput = organizationModulesSchema.safeParse(input);
+  if (!parsedInput.success) {
+    return actionFailure("Confira as páginas e tente novamente.");
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("organizations")
+    .update({ hidden_modules: [...new Set(parsedInput.data.hiddenModules)] })
+    .eq("id", organizationId)
+    .select("id");
+
+  if (error) return actionFailure("Não foi possível salvar as páginas.");
   if (data.length === 0) return actionFailure(FORBIDDEN_MESSAGE);
 
   return actionSuccess();

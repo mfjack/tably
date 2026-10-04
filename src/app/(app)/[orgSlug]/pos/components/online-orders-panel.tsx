@@ -27,6 +27,7 @@ type OnlineOrdersPanelProps = {
   organizationId: OrganizationId;
   ticketBusiness: OrderTicketBusiness;
   kitchenHref: string | null;
+  isKitchenEnabled: boolean;
 };
 
 const ELAPSED_TIME_REFRESH_IN_MS = 30_000;
@@ -40,6 +41,7 @@ export function OnlineOrdersPanel({
   organizationId,
   ticketBusiness,
   kitchenHref,
+  isKitchenEnabled,
 }: OnlineOrdersPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
   const now = useNow(ELAPSED_TIME_REFRESH_IN_MS);
@@ -77,7 +79,11 @@ export function OnlineOrdersPanel({
           note: order.note ?? undefined,
           createdAt: new Date(),
         });
-        toast.success(`Comanda de ${customerName} aberta e enviada à cozinha.`);
+        toast.success(
+          isKitchenEnabled
+            ? `Comanda de ${customerName} aberta e enviada à cozinha.`
+            : `Comanda de ${customerName} aberta.`,
+        );
       },
       onError: (error) => toast.error(error.message),
     });

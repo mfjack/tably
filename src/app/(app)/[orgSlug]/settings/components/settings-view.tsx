@@ -12,6 +12,7 @@ import { CheckoutSettingsForm } from "./checkout-settings-form";
 import { DeleteAccountSection } from "./delete-account-section";
 import { LoyaltySettingsForm } from "./loyalty-settings-form";
 import { MenuSettings } from "./menu-settings";
+import { ModuleVisibilityForm } from "./module-visibility-form";
 import { OperatorsSettings } from "./operators-settings";
 import { OrganizationSettingsForm } from "./organization-settings-form";
 import { PaymentFeesForm } from "./payment-fees-form";
@@ -40,6 +41,7 @@ export function SettingsView({
   const availableTabs = canManageOrganization
     ? [
         "organization",
+        "modules",
         "checkout",
         "loyalty",
         "subscription",
@@ -66,6 +68,9 @@ export function SettingsView({
               <>
                 <TabsTrigger value="organization" className="shrink-0 px-4">
                   Estabelecimento
+                </TabsTrigger>
+                <TabsTrigger value="modules" className="shrink-0 px-4">
+                  Páginas
                 </TabsTrigger>
                 <TabsTrigger value="checkout" className="shrink-0 px-4">
                   Vendas
@@ -102,6 +107,14 @@ export function SettingsView({
                 <OrganizationSettingsForm
                   key={organization.id}
                   organization={organization}
+                />
+              </TabsContent>
+              <TabsContent value="modules" className="min-h-0 overflow-y-auto">
+                <ModuleVisibilityForm
+                  key={organization.id}
+                  organizationId={organization.id}
+                  hiddenModules={organization.manuallyHiddenModules}
+                  selectableModules={organization.selectableModules}
                 />
               </TabsContent>
               <TabsContent

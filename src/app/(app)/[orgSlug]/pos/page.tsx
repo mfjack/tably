@@ -29,6 +29,7 @@ export default async function PosPage({ params }: PageProps<"/[orgSlug]/pos">) {
       checkoutSettings={organization.checkout}
       isOnlineOrderingEnabled={organization.menu.isOnlineOrderingEnabled}
       canOpenOrderTabs={accessibleModuleIds.includes("order_tabs")}
+      isKitchenEnabled={!organization.hiddenModules.includes("kitchen")}
       kitchenHref={
         accessibleModuleIds.includes("kitchen")
           ? buildOrganizationPath(

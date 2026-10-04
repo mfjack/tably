@@ -6,6 +6,7 @@ import {
   SUBSCRIPTION_PLANS,
 } from "@/features/subscriptions/plans";
 import { isValidCnpj } from "@/lib/masks";
+import { Constants } from "@/lib/supabase/database.types";
 
 const organizationNameSchema = z
   .string()
@@ -79,6 +80,14 @@ const feePercentSchema = z
   .min(0, "Não pode ser negativo.")
   .max(100, "No máximo 100%.")
   .optional();
+
+export const organizationModulesSchema = z.object({
+  hiddenModules: z.array(z.enum(Constants.public.Enums.app_module)),
+});
+
+export type OrganizationModulesInput = z.infer<
+  typeof organizationModulesSchema
+>;
 
 export const paymentFeesSchema = z.object({
   creditCardFeePercent: feePercentSchema,
