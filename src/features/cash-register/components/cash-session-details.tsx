@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import type { ReactNode } from "react";
-import { InfoTooltip } from "@/components/info-tooltip";
+import { InfoHint } from "@/components/info-hint";
 import { getPaymentMethodLabel } from "@/features/orders/payment-methods";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -88,12 +88,12 @@ export function CashSessionDetails({ summary }: CashSessionDetailsProps) {
               value={formatCurrency(payment.amount + payment.surcharge)}
               info={
                 payment.fee > 0 && (
-                  <InfoTooltip
+                  <InfoHint
                     label={`Taxa e valor que cai de ${getPaymentMethodLabel(payment.method)}`}
                   >
                     Taxa {formatCurrency(payment.fee)} · cai{" "}
                     {formatCurrency(getNetPaymentAmount(payment))}
-                  </InfoTooltip>
+                  </InfoHint>
                 )
               }
             />
