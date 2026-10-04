@@ -60,6 +60,7 @@ import { PosHeaderDescription } from "./pos-header-description";
 import { ProductGrid } from "./product-grid";
 import { ProductSearchInput } from "./product-search-input";
 import { TabNameDialog } from "./tab-name-dialog";
+import { ThermalPrinterWarning } from "./thermal-printer-warning";
 
 type PosViewProps = {
   organizationId: OrganizationId;
@@ -72,6 +73,7 @@ type PosViewProps = {
   orderTabsHref: string;
   canOpenOrderTabs: boolean;
   kitchenHref: string | null;
+  printerSettingsHref: string;
   isKitchenEnabled: boolean;
 };
 
@@ -93,6 +95,7 @@ export function PosView({
   orderTabsHref,
   canOpenOrderTabs,
   kitchenHref,
+  printerSettingsHref,
   isKitchenEnabled,
 }: PosViewProps) {
   const router = useRouter();
@@ -297,6 +300,7 @@ export function PosView({
           description={<PosHeaderDescription />}
           actions={
             <>
+              <ThermalPrinterWarning settingsHref={printerSettingsHref} />
               <OfflineStatus organizationId={organizationId} />
               <CashRegisterPanel
                 organizationId={organizationId}

@@ -18,6 +18,7 @@ const PAPER_COLUMNS = {
 
 const DEFAULT_PAPER_WIDTH: ThermalPaperWidth = "80mm";
 const DEFAULT_PRINTER_NAME = "Impressora térmica";
+const TRANSFER_TIMEOUT_IN_MS = 8_000;
 
 type ConnectedThermalPrinter = {
   device: USBDevice;
@@ -203,6 +204,7 @@ export async function connectThermalPrinter(): Promise<string> {
 
 export async function reconnectThermalPrinter(): Promise<string | null> {
   if (!isThermalPrintingSupported()) return null;
+  if (connectedPrinter?.device.opened) return connectedPrinter.productName;
 
   const savedDevice = getSavedDevice();
   if (!savedDevice) return null;
@@ -221,16 +223,35 @@ export async function reconnectThermalPrinter(): Promise<string | null> {
   return printer.productName;
 }
 
+export function forgetThermalPrinter(device: USBDevice) {
+  if (connectedPrinter?.device === device) connectedPrinter = null;
+}
+
+function rejectAfterTimeout(): Promise<never> {
+  return new Promise((_, reject) => {
+    setTimeout(
+      () => reject(new Error("a impressora não respondeu")),
+      TRANSFER_TIMEOUT_IN_MS,
+    );
+  });
+}
+
 async function transferReceiptBytes(bytes: Uint8Array) {
   if (!connectedPrinter) await reconnectThermalPrinter();
   if (!connectedPrinter) {
     throw new Error("Nenhuma impressora térmica conectada.");
   }
 
-  await connectedPrinter.device.transferOut(
-    connectedPrinter.endpointNumber,
-    bytes as BufferSource,
-  );
+  const printer = connectedPrinter;
+  try {
+    await Promise.race([
+      printer.device.transferOut(printer.endpointNumber, bytes as BufferSource),
+      rejectAfterTimeout(),
+    ]);
+  } catch (error) {
+    connectedPrinter = null;
+    throw error;
+  }
 }
 
 export function printThermalReceipt(bytes: Uint8Array): Promise<void> {
