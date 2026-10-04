@@ -291,7 +291,8 @@ export function AnalysisPanel({
               Resultado de {formatMonthLabel(monthKey).toLowerCase()}
             </h2>
             <p className="text-muted-foreground text-sm">
-              Vendas do mês menos custos e despesas com vencimento no mês.
+              Vendas recebidas no mês menos custos e despesas com vencimento no
+              mês. Venda na conta do cliente entra quando ele paga.
             </p>
           </div>
           <div className="divide-y overflow-hidden rounded-2xl border bg-card">
