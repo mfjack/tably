@@ -46,6 +46,13 @@ function AccountEntryRow({ entry }: { entry: AccountEntry }) {
     <li className="flex items-start justify-between gap-4 py-3">
       <div className="min-w-0">
         <p className="font-medium text-sm">{describeEntry(entry)}</p>
+        {entry.items.length > 0 && (
+          <p className="text-sm">
+            {entry.items
+              .map((item) => `${item.quantity}x ${item.productName}`)
+              .join(", ")}
+          </p>
+        )}
         <p className="truncate text-muted-foreground text-xs">
           {details.join(" · ")}
         </p>

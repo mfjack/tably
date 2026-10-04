@@ -102,7 +102,7 @@ export async function listAccountEntries(
   const { data, error } = await supabase
     .from("account_entries")
     .select(
-      "id, kind, amount, order_id, payment_method, note, operator_name, created_at",
+      "id, kind, amount, order_id, payment_method, note, operator_name, created_at, order:orders(order_items(product_name, quantity))",
     )
     .eq("account_id", accountId)
     .order("created_at", { ascending: false })
@@ -120,6 +120,10 @@ export async function listAccountEntries(
       note: entry.note,
       operatorName: entry.operator_name,
       createdAt: entry.created_at,
+      items: (entry.order?.order_items ?? []).map((item) => ({
+        productName: item.product_name,
+        quantity: item.quantity,
+      })),
     })),
   );
 }

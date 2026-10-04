@@ -27,4 +27,10 @@ export type AccountEntry = {
   note: string | null;
   operatorName: string | null;
   createdAt: string;
+  items: AccountEntryItem[];
+};
+
+export type AccountEntryItem = {
+  productName: string;
+  quantity: number;
 };
