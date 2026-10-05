@@ -81,7 +81,7 @@ export function DataTable<TData extends RowData>({
         {toolbarActions}
       </div>
 
-      <div className="flex min-h-0 flex-col gap-3 overflow-y-auto md:hidden">
+      <div className="flex min-h-0 flex-col gap-3 overflow-y-auto *:shrink-0 md:hidden">
         {isLoading
           ? Array.from({ length: LOADING_ROW_COUNT }, (_, rowIndex) => (
               <Skeleton

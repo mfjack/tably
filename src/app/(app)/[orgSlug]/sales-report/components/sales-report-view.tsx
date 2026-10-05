@@ -239,7 +239,7 @@ export function SalesReportView({
             </TabsList>
           </Tabs>
 
-          <div className="flex min-h-0 flex-col gap-6 overflow-y-auto">
+          <div className="flex min-h-0 flex-col gap-6 overflow-y-auto *:shrink-0">
             {salesReportQuery.error ? (
               <Alert variant="destructive">
                 <AlertDescription>

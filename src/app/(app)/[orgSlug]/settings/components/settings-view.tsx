@@ -119,7 +119,7 @@ export function SettingsView({
               </TabsContent>
               <TabsContent
                 value="checkout"
-                className="flex min-h-0 flex-col gap-6 overflow-y-auto"
+                className="flex min-h-0 flex-col gap-6 overflow-y-auto *:shrink-0"
               >
                 <CheckoutSettingsForm
                   key={organization.id}
@@ -179,7 +179,7 @@ export function SettingsView({
           </TabsContent>
           <TabsContent
             value="profile"
-            className="flex min-h-0 flex-col gap-6 overflow-y-auto"
+            className="flex min-h-0 flex-col gap-6 overflow-y-auto *:shrink-0"
           >
             <ProfileForm
               email={currentUser.email}

@@ -198,7 +198,7 @@ export function OrderTabsView({
           </TabsList>
           <TabsContent
             value="open"
-            className="flex min-h-0 flex-col overflow-y-auto"
+            className="flex min-h-0 flex-col overflow-y-auto *:shrink-0"
           >
             <OpenOrderTabsGrid
               orders={openOrderTabsQuery.data}
