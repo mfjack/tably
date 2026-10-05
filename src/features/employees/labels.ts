@@ -14,6 +14,7 @@ export const EMPLOYMENT_TYPE_LABELS = {
 export const OVERTIME_POLICY_LABELS = {
   paid: "Pagar horas extras",
   hour_bank: "Banco de horas",
+  absences_only: "Não pagar extras/descontar falta",
 } as const satisfies Record<OvertimePolicy, string>;
 
 export const EMPLOYEE_STATUS_LABELS = {

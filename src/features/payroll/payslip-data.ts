@@ -3,7 +3,7 @@ import "server-only";
 import * as z from "zod";
 import type { Employee, EmployeeId } from "@/features/employees/types";
 import type { OrganizationId } from "@/features/organizations/types";
-import type { Tables } from "@/lib/supabase/database.types";
+import { Constants, type Tables } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
 import {
   storedInssBracketsSchema,
@@ -33,8 +33,8 @@ const employeeSnapshotSchema = z.object({
   cbo: z.string().nullable().optional(),
   admissionDate: z.string(),
   salary: z.number(),
-  employmentType: z.enum(["clt", "apprentice", "intern"]),
-  overtimePolicy: z.enum(["paid", "hour_bank"]),
+  employmentType: z.enum(Constants.public.Enums.employment_type),
+  overtimePolicy: z.enum(Constants.public.Enums.overtime_policy),
   dependents: z.number(),
 });
 

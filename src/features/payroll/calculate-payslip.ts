@@ -133,6 +133,7 @@ export function calculatePayslip({
   const taxableEarnings: number[] = [];
   const baseReductions: number[] = [];
   const isHourBank = employee.overtimePolicy === "hour_bank";
+  const paysOvertime = employee.overtimePolicy === "paid";
   const vacationDays = Math.min(summary.vacationDays, COMMERCIAL_MONTH_DAYS);
   const paidDays = Math.max(0, getPaidDays(employee, monthKey) - vacationDays);
   const dailySalary = employee.salary / COMMERCIAL_MONTH_DAYS;
@@ -166,7 +167,7 @@ export function calculatePayslip({
 
   let variableEarnings = 0;
 
-  if (!isHourBank) {
+  if (paysOvertime) {
     const overtimeAmount = roundCurrency(
       hourlyRate *
         (1 + settings.overtimeRate) *
@@ -277,16 +278,18 @@ export function calculatePayslip({
       },
       { reducesBase: true },
     );
-    addItem(
-      {
-        code: "shortfall",
-        description: "Atrasos e saídas antecipadas",
-        reference: formatMinutes(summary.shortfallMinutes),
-        kind: "deduction",
-        amount: hourlyRate * toHours(summary.shortfallMinutes),
-      },
-      { reducesBase: true },
-    );
+    if (paysOvertime) {
+      addItem(
+        {
+          code: "shortfall",
+          description: "Atrasos e saídas antecipadas",
+          reference: formatMinutes(summary.shortfallMinutes),
+          kind: "deduction",
+          amount: hourlyRate * toHours(summary.shortfallMinutes),
+        },
+        { reducesBase: true },
+      );
+    }
   }
 
   const sum = (values: readonly number[]) =>
