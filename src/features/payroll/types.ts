@@ -48,7 +48,17 @@ export type PayrollSettings = {
   restDayOvertimeRate: number;
   nightShiftRate: number;
   transportVoucherRate: number;
+  salaryPayment: SalaryPaymentSchedule;
   updatedAt: string | null;
+};
+
+export type SalaryPaymentRule =
+  Database["public"]["Enums"]["salary_payment_rule"];
+
+export type SalaryPaymentSchedule = {
+  rule: SalaryPaymentRule;
+  day: number | null;
+  isNextMonth: boolean;
 };
 
 export type PayslipItemKind = "earning" | "deduction";

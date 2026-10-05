@@ -179,6 +179,11 @@ export async function readPayrollSettings(
     restDayOvertimeRate: row.rest_day_overtime_rate,
     nightShiftRate: row.night_shift_rate,
     transportVoucherRate: row.transport_voucher_rate,
+    salaryPayment: {
+      rule: row.salary_payment_rule,
+      day: row.salary_payment_day,
+      isNextMonth: row.is_salary_paid_next_month,
+    },
     updatedAt: row.updated_at,
   };
 }

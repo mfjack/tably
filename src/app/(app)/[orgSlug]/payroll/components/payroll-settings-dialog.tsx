@@ -3,10 +3,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Trash2 } from "lucide-react";
 import { useEffect } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { FormDialog } from "@/components/dialog/form-dialog";
 import { NumberField } from "@/components/form/number-field";
+import { SelectField } from "@/components/form/select-field";
+import { SwitchField } from "@/components/form/switch-field";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
@@ -18,12 +20,25 @@ import {
   payrollSettingsSchema,
   toPayrollSettingsInput,
 } from "@/features/payroll/schemas";
+import type { SalaryPaymentRule } from "@/features/payroll/types";
 
 type PayrollSettingsDialogProps = {
   organizationId: OrganizationId;
   isOpen: boolean;
   onClose: () => void;
 };
+
+const SALARY_PAYMENT_RULE_OPTIONS = [
+  {
+    value: "fifth_business_day",
+    label: "Quinto dia útil do mês seguinte",
+  },
+  { value: "last_day", label: "Último dia do mês trabalhado" },
+  { value: "fixed_day", label: "Dia fixo" },
+] as const satisfies readonly {
+  value: SalaryPaymentRule;
+  label: string;
+}[];
 
 function SectionTitle({ children }: { children: string }) {
   return (
@@ -42,6 +57,10 @@ export function PayrollSettingsDialog({
   const saveMutation = useSavePayrollSettingsMutation(organizationId);
   const form = useForm<PayrollSettingsInput>({
     resolver: zodResolver(payrollSettingsSchema),
+  });
+  const salaryPaymentRule = useWatch({
+    control: form.control,
+    name: "salaryPaymentRule",
   });
   const inssBrackets = useFieldArray({
     control: form.control,
@@ -89,6 +108,32 @@ export function PayrollSettingsDialog({
               governo. Confira com seu contador e atualize sempre que mudarem.
             </AlertDescription>
           </Alert>
+
+          <SectionTitle>Pagamento do salário</SectionTitle>
+          <SelectField
+            control={form.control}
+            name="salaryPaymentRule"
+            label="Quando o salário é pago"
+            options={SALARY_PAYMENT_RULE_OPTIONS}
+            description="A data vai para o holerite e para a conta a pagar no Financeiro."
+          />
+          {salaryPaymentRule === "fixed_day" && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <NumberField
+                control={form.control}
+                name="salaryPaymentDay"
+                label="Dia"
+                format="integer"
+                placeholder="Ex.: 5"
+              />
+              <SwitchField
+                control={form.control}
+                name="isSalaryPaidNextMonth"
+                label="No mês seguinte"
+                description="Ex.: salário de setembro pago em outubro."
+              />
+            </div>
+          )}
 
           <SectionTitle>INSS (progressivo)</SectionTitle>
           <div className="flex flex-col gap-3">

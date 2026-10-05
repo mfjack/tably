@@ -43,7 +43,7 @@ import {
   formatMinutes,
   formatSignedMinutes,
 } from "@/features/time-clock/time-utils";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatDateKey } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const MANUAL_ITEM_KIND_OPTIONS = [
@@ -208,6 +208,11 @@ export function PayslipDialog({
                 {payslip.employee.jobTitle} · salário{" "}
                 {formatCurrency(payslip.employee.salary)}
               </span>
+              {payslip.paymentDueDate && (
+                <span className="text-muted-foreground text-xs">
+                  Pagamento em {formatDateKey(payslip.paymentDueDate)}
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <Badge variant={isIssued ? "default" : "secondary"}>

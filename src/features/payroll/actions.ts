@@ -12,7 +12,11 @@ import {
   getOrganizationClock,
   loadTimesheet,
 } from "@/features/time-clock/load-timesheet";
-import { getMonthEnd, getMonthStart } from "@/features/time-clock/time-utils";
+import {
+  getMonthEnd,
+  getMonthKey,
+  getMonthStart,
+} from "@/features/time-clock/time-utils";
 import {
   type ActionResult,
   actionFailure,
@@ -29,6 +33,10 @@ import {
   toPayslip,
 } from "./payslip-data";
 import {
+  getSalaryPaymentDate,
+  getSalaryPaymentMonths,
+} from "./salary-payment-date";
+import {
   fromPayrollSettingsInput,
   type ManualPayslipItemInput,
   manualPayslipItemSchema,
@@ -42,6 +50,7 @@ import type {
   PayrollSettings,
   Payslip,
   PayslipId,
+  SalaryPaymentSchedule,
 } from "./types";
 
 export async function getPayrollSettings(
@@ -138,6 +147,26 @@ export async function getPayrollMonth(
   });
 }
 
+async function resolveSalaryPaymentDate(
+  organizationId: OrganizationId,
+  monthKey: string,
+  schedule: SalaryPaymentSchedule,
+): Promise<string> {
+  const [firstMonthKey, lastMonthKey] = getSalaryPaymentMonths(monthKey);
+  const supabase = await createClient();
+  const { data: holidayRows } = await supabase
+    .from("holidays")
+    .select("holiday_date")
+    .eq("organization_id", organizationId)
+    .gte("holiday_date", getMonthStart(firstMonthKey))
+    .lte("holiday_date", getMonthEnd(lastMonthKey));
+  return getSalaryPaymentDate(
+    monthKey,
+    schedule,
+    new Set((holidayRows ?? []).map((holiday) => holiday.holiday_date)),
+  );
+}
+
 async function writePayslip(
   organizationId: OrganizationId,
   employeeId: EmployeeId,
@@ -153,6 +182,11 @@ async function writePayslip(
   }
 
   const supabase = await createClient();
+  const paymentDueDate = await resolveSalaryPaymentDate(
+    organizationId,
+    monthKey,
+    settings.salaryPayment,
+  );
   const { data: existingRow, error: existingError } = await supabase
     .from("payslips")
     .select(PAYSLIP_COLUMNS)
@@ -200,6 +234,7 @@ async function writePayslip(
       fgts_base: totals.fgtsBase,
       fgts_amount: totals.fgtsAmount,
       hour_bank_balance_minutes: totals.hourBankBalanceMinutes,
+      payment_due_date: paymentDueDate,
     },
     { onConflict: "employee_id,reference_month,kind" },
   );
@@ -300,11 +335,16 @@ async function setPayslipStatus(
   payslipId: PayslipId,
   status: Payslip["status"],
   fallbackMessage: string,
+  paymentDueDate?: string,
 ): Promise<ActionResult> {
   const supabase = await createClient();
   const { error } = await supabase
     .from("payslips")
-    .update({ status })
+    .update(
+      paymentDueDate
+        ? { status, payment_due_date: paymentDueDate }
+        : { status },
+    )
     .eq("id", payslipId)
     .eq("organization_id", organizationId);
 
@@ -322,11 +362,32 @@ export async function issuePayslip(
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }
 
+  const supabase = await createClient();
+  const { data: payslipRow } = await supabase
+    .from("payslips")
+    .select("kind, reference_month")
+    .eq("id", payslipId)
+    .eq("organization_id", organizationId)
+    .maybeSingle();
+  const settings =
+    payslipRow?.kind === "monthly"
+      ? await readPayrollSettings(organizationId)
+      : null;
+  const paymentDueDate =
+    payslipRow && settings
+      ? await resolveSalaryPaymentDate(
+          organizationId,
+          getMonthKey(payslipRow.reference_month),
+          settings.salaryPayment,
+        )
+      : undefined;
+
   return setPayslipStatus(
     organizationId,
     payslipId,
     "issued",
     "Não foi possível emitir o holerite.",
+    paymentDueDate,
   );
 }
 

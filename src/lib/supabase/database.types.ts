@@ -1754,10 +1754,13 @@ export type Database = {
           irrf_reduction_factor: number
           irrf_reduction_up_to: number
           irrf_simplified_deduction: number
+          is_salary_paid_next_month: boolean
           night_shift_rate: number
           organization_id: string
           overtime_rate: number
           rest_day_overtime_rate: number
+          salary_payment_day: number | null
+          salary_payment_rule: Database["public"]["Enums"]["salary_payment_rule"]
           transport_voucher_rate: number
           updated_at: string
         }
@@ -1770,10 +1773,13 @@ export type Database = {
           irrf_reduction_factor?: number
           irrf_reduction_up_to?: number
           irrf_simplified_deduction?: number
+          is_salary_paid_next_month?: boolean
           night_shift_rate?: number
           organization_id: string
           overtime_rate?: number
           rest_day_overtime_rate?: number
+          salary_payment_day?: number | null
+          salary_payment_rule?: Database["public"]["Enums"]["salary_payment_rule"]
           transport_voucher_rate?: number
           updated_at?: string
         }
@@ -1786,10 +1792,13 @@ export type Database = {
           irrf_reduction_factor?: number
           irrf_reduction_up_to?: number
           irrf_simplified_deduction?: number
+          is_salary_paid_next_month?: boolean
           night_shift_rate?: number
           organization_id?: string
           overtime_rate?: number
           rest_day_overtime_rate?: number
+          salary_payment_day?: number | null
+          salary_payment_rule?: Database["public"]["Enums"]["salary_payment_rule"]
           transport_voucher_rate?: number
           updated_at?: string
         }
@@ -3014,6 +3023,10 @@ export type Database = {
         Args: { p_delivered_at: string; p_ticket_id: string }
         Returns: undefined
       }
+      describe_payslip_payable: {
+        Args: { p_payslip: Database["public"]["Tables"]["payslips"]["Row"] }
+        Returns: string
+      }
       ensure_operator_with_settings: {
         Args: { p_organization_id: string }
         Returns: undefined
@@ -3505,6 +3518,7 @@ export type Database = {
         | "quarterly"
         | "semiannual"
         | "yearly"
+      salary_payment_rule: "fifth_business_day" | "last_day" | "fixed_day"
       sales_report_period:
         | "today"
         | "yesterday"
@@ -3721,6 +3735,7 @@ export const Constants = {
         "semiannual",
         "yearly",
       ],
+      salary_payment_rule: ["fifth_business_day", "last_day", "fixed_day"],
       sales_report_period: [
         "today",
         "yesterday",

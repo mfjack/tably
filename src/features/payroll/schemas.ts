@@ -1,4 +1,5 @@
 import * as z from "zod";
+import { Constants } from "@/lib/supabase/database.types";
 import type {
   InssBracket,
   IrrfBracket,
@@ -16,44 +17,59 @@ const percentSchema = (message: string) =>
 
 export const monthKeySchema = z.string().regex(MONTH_KEY_PATTERN);
 
-export const payrollSettingsSchema = z.object({
-  inssBrackets: z
-    .array(
-      z.object({
-        upTo: moneySchema("Informe o limite."),
-        ratePercent: percentSchema("Informe a alíquota."),
-      }),
-    )
-    .min(1),
-  irrfBrackets: z
-    .array(
-      z.object({
-        upTo: z.number().min(0).optional(),
-        ratePercent: percentSchema("Informe a alíquota."),
-        deduction: moneySchema("Informe a parcela a deduzir."),
-      }),
-    )
-    .min(1),
-  irrfDependentDeduction: moneySchema("Informe o valor."),
-  irrfSimplifiedDeduction: moneySchema("Informe o valor."),
-  irrfExemptUpTo: moneySchema("Informe o valor."),
-  irrfReductionUpTo: moneySchema("Informe o valor."),
-  irrfReductionConstant: moneySchema("Informe o valor."),
-  irrfReductionFactor: z.number({ error: "Informe o fator." }).min(0),
-  overtimePercent: z
-    .number({ error: "Informe o percentual." })
-    .min(50, "A CLT exige no mínimo 50%."),
-  restDayOvertimePercent: z
-    .number({ error: "Informe o percentual." })
-    .min(100, "A CLT exige no mínimo 100%."),
-  nightShiftPercent: z
-    .number({ error: "Informe o percentual." })
-    .min(20, "A CLT exige no mínimo 20%."),
-  transportVoucherPercent: z
-    .number({ error: "Informe o percentual." })
-    .min(0)
-    .max(6, "O desconto máximo é 6%."),
-});
+export const payrollSettingsSchema = z
+  .object({
+    inssBrackets: z
+      .array(
+        z.object({
+          upTo: moneySchema("Informe o limite."),
+          ratePercent: percentSchema("Informe a alíquota."),
+        }),
+      )
+      .min(1),
+    irrfBrackets: z
+      .array(
+        z.object({
+          upTo: z.number().min(0).optional(),
+          ratePercent: percentSchema("Informe a alíquota."),
+          deduction: moneySchema("Informe a parcela a deduzir."),
+        }),
+      )
+      .min(1),
+    irrfDependentDeduction: moneySchema("Informe o valor."),
+    irrfSimplifiedDeduction: moneySchema("Informe o valor."),
+    irrfExemptUpTo: moneySchema("Informe o valor."),
+    irrfReductionUpTo: moneySchema("Informe o valor."),
+    irrfReductionConstant: moneySchema("Informe o valor."),
+    irrfReductionFactor: z.number({ error: "Informe o fator." }).min(0),
+    overtimePercent: z
+      .number({ error: "Informe o percentual." })
+      .min(50, "A CLT exige no mínimo 50%."),
+    restDayOvertimePercent: z
+      .number({ error: "Informe o percentual." })
+      .min(100, "A CLT exige no mínimo 100%."),
+    nightShiftPercent: z
+      .number({ error: "Informe o percentual." })
+      .min(20, "A CLT exige no mínimo 20%."),
+    transportVoucherPercent: z
+      .number({ error: "Informe o percentual." })
+      .min(0)
+      .max(6, "O desconto máximo é 6%."),
+    salaryPaymentRule: z.enum(Constants.public.Enums.salary_payment_rule),
+    salaryPaymentDay: z
+      .number()
+      .int("Use um dia inteiro.")
+      .min(1, "Escolha um dia de 1 a 31.")
+      .max(31, "Escolha um dia de 1 a 31.")
+      .optional(),
+    isSalaryPaidNextMonth: z.boolean(),
+  })
+  .refine(
+    (values) =>
+      values.salaryPaymentRule !== "fixed_day" ||
+      values.salaryPaymentDay !== undefined,
+    { message: "Informe o dia do pagamento.", path: ["salaryPaymentDay"] },
+  );
 
 export type PayrollSettingsInput = z.infer<typeof payrollSettingsSchema>;
 
@@ -90,6 +106,9 @@ export function toPayrollSettingsInput(
     restDayOvertimePercent: toPercent(settings.restDayOvertimeRate),
     nightShiftPercent: toPercent(settings.nightShiftRate),
     transportVoucherPercent: toPercent(settings.transportVoucherRate),
+    salaryPaymentRule: settings.salaryPayment.rule,
+    salaryPaymentDay: settings.salaryPayment.day ?? undefined,
+    isSalaryPaidNextMonth: settings.salaryPayment.isNextMonth,
   };
 }
 
@@ -124,6 +143,12 @@ export function fromPayrollSettingsInput(input: PayrollSettingsInput) {
     rest_day_overtime_rate: toRate(input.restDayOvertimePercent),
     night_shift_rate: toRate(input.nightShiftPercent),
     transport_voucher_rate: toRate(input.transportVoucherPercent),
+    salary_payment_rule: input.salaryPaymentRule,
+    salary_payment_day:
+      input.salaryPaymentRule === "fixed_day"
+        ? (input.salaryPaymentDay ?? null)
+        : null,
+    is_salary_paid_next_month: input.isSalaryPaidNextMonth,
   };
 }
 
