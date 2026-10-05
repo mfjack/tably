@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import type { EmployeeId } from "@/features/employees/types";
 import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
 import type { OrganizationId } from "@/features/organizations/types";
@@ -33,7 +33,12 @@ import { formatCurrency } from "@/lib/format";
 import { ListEmptyState } from "../../components/list-empty-state";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
-import { DEFAULT_PAYROLL_TAB, parsePayrollTab } from "../payroll-search-params";
+import { TeamTabs } from "../../components/team-tabs";
+import {
+  DEFAULT_PAYROLL_TAB,
+  PAYROLL_TABS,
+  parsePayrollTab,
+} from "../payroll-search-params";
 import { PayrollSettingsDialog } from "./payroll-settings-dialog";
 import { PayslipDialog } from "./payslip-dialog";
 import { ThirteenthPanel } from "./thirteenth-panel";
@@ -46,6 +51,8 @@ type PayrollViewProps = {
   business: OrderTicketBusiness;
   initialMonthKey: string;
   employeesHref: string;
+  payrollHref: string;
+  canAccessEmployees: boolean;
 };
 
 function getRowStatus(row: PayrollRow) {
@@ -64,6 +71,8 @@ export function PayrollView({
   business,
   initialMonthKey,
   employeesHref,
+  payrollHref,
+  canAccessEmployees,
 }: PayrollViewProps) {
   const [monthKey, setMonthKey] = useSearchParamState({
     key: "month",
@@ -172,17 +181,12 @@ export function PayrollView({
       />
       <PageContent>
         <Tabs value={tab} onValueChange={changeTab} className="min-h-0 gap-5">
-          <TabsList className="group-data-horizontal/tabs:h-10">
-            <TabsTrigger value="monthly" className="px-3">
-              Mensal
-            </TabsTrigger>
-            <TabsTrigger value="vacations" className="px-3">
-              Férias
-            </TabsTrigger>
-            <TabsTrigger value="thirteenth" className="px-3">
-              13º salário
-            </TabsTrigger>
-          </TabsList>
+          <TeamTabs
+            employeesHref={employeesHref}
+            payrollHref={payrollHref}
+            pageTabs={PAYROLL_TABS}
+            isTeamVisible={canAccessEmployees}
+          />
           <TabsContent value="vacations" className="min-h-0 overflow-y-auto">
             <VacationsPanel
               organizationId={organizationId}

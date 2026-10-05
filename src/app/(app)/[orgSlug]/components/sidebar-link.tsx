@@ -16,14 +16,26 @@ import {
 
 type SidebarLinkProps = {
   href: string;
+  activeHrefs?: readonly string[];
   label: string;
   icon: LucideIcon;
 };
 
-export function SidebarLink({ href, label, icon: Icon }: SidebarLinkProps) {
+function matchesPath(pathname: string, href: string) {
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+export function SidebarLink({
+  href,
+  activeHrefs = [],
+  label,
+  icon: Icon,
+}: SidebarLinkProps) {
   const pathname = usePathname();
   const { setOpen, setOpenMobile } = useSidebar();
-  const isActive = pathname === href || pathname.startsWith(`${href}/`);
+  const isActive = [href, ...activeHrefs].some((candidate) =>
+    matchesPath(pathname, candidate),
+  );
 
   return (
     <SidebarMenuItem>

@@ -1,7 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { APP_MODULES, getAppModule } from "@/features/modules/app-modules";
-import { requireVisibleModule } from "@/features/modules/require-visible-module";
+import {
+  APP_MODULES,
+  buildOrganizationPath,
+  getAppModule,
+} from "@/features/modules/app-modules";
+import {
+  getAccessibleModuleIds,
+  requireVisibleModule,
+} from "@/features/modules/require-visible-module";
 import { canManageOrganization } from "@/features/organizations/permissions";
 import { getOrganizationClock } from "@/features/time-clock/load-timesheet";
 import { EmployeesView } from "./components/employees-view";
@@ -17,7 +24,10 @@ export default async function EmployeesPage({
   const organization = await requireVisibleModule(orgSlug, "employees");
   if (!canManageOrganization(organization.role)) notFound();
 
-  const clock = await getOrganizationClock(organization.id);
+  const [clock, accessibleModuleIds] = await Promise.all([
+    getOrganizationClock(organization.id),
+    getAccessibleModuleIds(organization),
+  ]);
   if (!clock) notFound();
 
   return (
@@ -30,6 +40,12 @@ export default async function EmployeesPage({
       visibleModuleIds={APP_MODULES.map(({ id }) => id).filter(
         (moduleId) => !organization.hiddenModules.includes(moduleId),
       )}
+      employeesHref={buildOrganizationPath(organization.slug, "employees")}
+      payrollHref={
+        accessibleModuleIds.includes("payroll")
+          ? buildOrganizationPath(organization.slug, "payroll")
+          : null
+      }
     />
   );
 }

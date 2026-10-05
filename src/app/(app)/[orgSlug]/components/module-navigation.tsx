@@ -8,6 +8,8 @@ import {
   SidebarMenu,
 } from "@/components/ui/sidebar";
 import {
+  APP_MODULES,
+  type AppModule,
   buildOrganizationPath,
   getVisibleModuleGroups,
 } from "@/features/modules/app-modules";
@@ -28,6 +30,22 @@ export function ModuleNavigation({
     [hiddenModules],
   );
 
+  function isMergedIntoVisibleParent(appModule: AppModule) {
+    return (
+      appModule.parentModuleId !== undefined &&
+      !hiddenModules.includes(appModule.parentModuleId)
+    );
+  }
+
+  function getChildModules(moduleId: AppModuleId) {
+    return APP_MODULES.filter(
+      (appModule) =>
+        "parentModuleId" in appModule &&
+        appModule.parentModuleId === moduleId &&
+        !hiddenModules.includes(appModule.id),
+    );
+  }
+
   return moduleGroups.map((group) => (
     <SidebarGroup key={group.label} className="py-1">
       <SidebarGroupLabel className="group-data-[collapsible=icon]:pointer-events-none">
@@ -35,14 +53,19 @@ export function ModuleNavigation({
       </SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu className="gap-1.5">
-          {group.modules.map((appModule) => (
-            <SidebarLink
-              key={appModule.id}
-              href={buildOrganizationPath(organizationSlug, appModule.path)}
-              label={appModule.label}
-              icon={appModule.icon}
-            />
-          ))}
+          {group.modules
+            .filter((appModule) => !isMergedIntoVisibleParent(appModule))
+            .map((appModule) => (
+              <SidebarLink
+                key={appModule.id}
+                href={buildOrganizationPath(organizationSlug, appModule.path)}
+                activeHrefs={getChildModules(appModule.id).map((childModule) =>
+                  buildOrganizationPath(organizationSlug, childModule.path),
+                )}
+                label={appModule.label}
+                icon={appModule.icon}
+              />
+            ))}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>

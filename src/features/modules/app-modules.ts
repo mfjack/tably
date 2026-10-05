@@ -25,6 +25,7 @@ export type AppModule = {
   description: string;
   path: string;
   icon: LucideIcon;
+  parentModuleId?: AppModuleId;
 };
 
 export type AppModuleGroup = {
@@ -155,6 +156,7 @@ export const APP_MODULE_GROUPS = [
         description: "Holerites com horas extras, faltas e impostos.",
         path: "payroll",
         icon: Wallet,
+        parentModuleId: "employees",
       },
     ],
   },

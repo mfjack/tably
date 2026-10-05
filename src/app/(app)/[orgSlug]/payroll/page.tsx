@@ -6,7 +6,10 @@ import {
   getAppModule,
 } from "@/features/modules/app-modules";
 import { prefetchModuleQueries } from "@/features/modules/prefetch-module-queries";
-import { requireVisibleModule } from "@/features/modules/require-visible-module";
+import {
+  getAccessibleModuleIds,
+  requireVisibleModule,
+} from "@/features/modules/require-visible-module";
 import { canManageOrganization } from "@/features/organizations/permissions";
 import { getPayrollMonth } from "@/features/payroll/actions";
 import { getPayrollMonthQueryKey } from "@/features/payroll/hooks/use-payroll-month-query";
@@ -18,6 +21,7 @@ import { PayrollView } from "./components/payroll-view";
 import { DEFAULT_PAYROLL_TAB, parsePayrollTab } from "./payroll-search-params";
 
 const payrollModule = getAppModule("payroll");
+const employeesModule = getAppModule("employees");
 
 export const metadata: Metadata = { title: payrollModule.label };
 
@@ -29,7 +33,10 @@ export default async function PayrollPage({
   const organization = await requireVisibleModule(orgSlug, "payroll");
   if (!canManageOrganization(organization.role)) notFound();
 
-  const clock = await getOrganizationClock(organization.id);
+  const [clock, accessibleModuleIds] = await Promise.all([
+    getOrganizationClock(organization.id),
+    getAccessibleModuleIds(organization),
+  ]);
   if (!clock) notFound();
 
   const initialMonthKey = getMonthKey(clock.today);
@@ -59,7 +66,7 @@ export default async function PayrollPage({
     <HydrationBoundary state={dehydratedState}>
       <PayrollView
         organizationId={organization.id}
-        title={payrollModule.label}
+        title={employeesModule.label}
         description={payrollModule.description}
         business={{
           name: organization.name,
@@ -69,6 +76,8 @@ export default async function PayrollPage({
         }}
         initialMonthKey={initialMonthKey}
         employeesHref={buildOrganizationPath(organization.slug, "employees")}
+        payrollHref={buildOrganizationPath(organization.slug, "payroll")}
+        canAccessEmployees={accessibleModuleIds.includes("employees")}
       />
     </HydrationBoundary>
   );

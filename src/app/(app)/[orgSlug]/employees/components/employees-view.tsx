@@ -5,6 +5,7 @@ import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/dialog/confirm-dialog";
 import { Button } from "@/components/ui/button";
+import { Tabs } from "@/components/ui/tabs";
 import { useDeleteEmployeeMutation } from "@/features/employees/hooks/use-delete-employee-mutation";
 import { useEmployeesQuery } from "@/features/employees/hooks/use-employees-query";
 import { useResetEmployeePinMutation } from "@/features/employees/hooks/use-reset-employee-pin-mutation";
@@ -21,6 +22,7 @@ import type {
 import { ListEmptyState } from "../../components/list-empty-state";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
+import { TeamTabs } from "../../components/team-tabs";
 import { EmployeeFormDialog } from "./employee-form-dialog";
 import { EmployeesTable } from "./employees-table";
 import { HolidaysDialog } from "./holidays-dialog";
@@ -42,6 +44,8 @@ type EmployeesViewProps = {
   description: string;
   today: string;
   visibleModuleIds: AppModuleId[];
+  employeesHref: string;
+  payrollHref: string | null;
 };
 
 export function EmployeesView({
@@ -51,6 +55,8 @@ export function EmployeesView({
   description,
   today,
   visibleModuleIds,
+  employeesHref,
+  payrollHref,
 }: EmployeesViewProps) {
   const employeesQuery = useEmployeesQuery(organizationId);
   const workSchedulesQuery = useWorkSchedulesQuery(organizationId);
@@ -134,27 +140,34 @@ export function EmployeesView({
         }
       />
       <PageContent>
-        <EmployeesTable
-          employees={employeesQuery.data}
-          workSchedules={workSchedulesQuery.data ?? EMPTY_WORK_SCHEDULES}
-          today={today}
-          getTimesheetHref={getTimesheetHref}
-          isLoading={employeesQuery.isPending}
-          errorMessage={employeesQuery.error?.message}
-          emptyState={
-            <ListEmptyState
-              icon={Users}
-              title="Nenhum funcionário ainda"
-              description="Cadastre a equipe com CPF, salário e jornada. Cada pessoa recebe um PIN para bater o ponto."
-              createLabel="Cadastrar primeiro funcionário"
-              canCreate
-              onCreate={openCreateForm}
-            />
-          }
-          onEdit={openEditForm}
-          onResetPin={setEmployeeToResetPin}
-          onDelete={setEmployeeToDelete}
-        />
+        <Tabs value="team" className="min-h-0 flex-1 gap-5">
+          <TeamTabs
+            employeesHref={employeesHref}
+            payrollHref={payrollHref}
+            pageTabs={["team"]}
+          />
+          <EmployeesTable
+            employees={employeesQuery.data}
+            workSchedules={workSchedulesQuery.data ?? EMPTY_WORK_SCHEDULES}
+            today={today}
+            getTimesheetHref={getTimesheetHref}
+            isLoading={employeesQuery.isPending}
+            errorMessage={employeesQuery.error?.message}
+            emptyState={
+              <ListEmptyState
+                icon={Users}
+                title="Nenhum funcionário ainda"
+                description="Cadastre a equipe com CPF, salário e jornada. Cada pessoa recebe um PIN para bater o ponto."
+                createLabel="Cadastrar primeiro funcionário"
+                canCreate
+                onCreate={openCreateForm}
+              />
+            }
+            onEdit={openEditForm}
+            onResetPin={setEmployeeToResetPin}
+            onDelete={setEmployeeToDelete}
+          />
+        </Tabs>
       </PageContent>
 
       <EmployeeFormDialog
@@ -190,7 +203,7 @@ export function EmployeesView({
         isOpen={employeeToDelete !== null}
         onOpenChange={(isOpen) => !isOpen && setEmployeeToDelete(null)}
         title="Excluir funcionário?"
-        description={`${employeeToDelete?.name ?? ""} só pode ser excluído se ainda não tiver marcações de ponto nem holerites. Para quem saiu da empresa, informe a data de desligamento.`}
+        description={`O cadastro de ${employeeToDelete?.name ?? ""} será apagado. Essa ação não pode ser desfeita.`}
         confirmLabel="Excluir"
         isConfirming={deleteEmployeeMutation.isPending}
         onConfirm={confirmDelete}
