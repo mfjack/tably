@@ -58,6 +58,7 @@ export type EmployeeSystemAccess = {
 
 export type EmployeeWithAccess = Employee & {
   systemAccess: EmployeeSystemAccess | null;
+  canDelete: boolean;
 };
 
 export type EmployeeSummary = Pick<Employee, "id" | "name" | "jobTitle">;

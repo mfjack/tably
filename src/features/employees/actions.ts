@@ -68,7 +68,7 @@ export async function listEmployees(
   const { data, error } = await supabase
     .from("employees")
     .select(
-      `${EMPLOYEE_COLUMNS}, operators(id, allowed_modules, can_access_settings)`,
+      `${EMPLOYEE_COLUMNS}, operators(id, allowed_modules, can_access_settings), time_punches(count), payslips(count)`,
     )
     .eq("organization_id", organizationId)
     .order("name");
@@ -78,8 +78,12 @@ export async function listEmployees(
   return actionSuccess(
     data.map((row) => {
       const operator = row.operators[0];
+      const hasRecords =
+        (row.time_punches[0]?.count ?? 0) > 0 ||
+        (row.payslips[0]?.count ?? 0) > 0;
       return {
         ...toEmployee(row),
+        canDelete: !hasRecords,
         systemAccess: operator
           ? {
               operatorId: operator.id as OperatorId,

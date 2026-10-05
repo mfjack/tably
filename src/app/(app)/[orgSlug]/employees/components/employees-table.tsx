@@ -178,13 +178,15 @@ export function EmployeesTable({
               icon={Pencil}
               onClick={() => onEdit(row.original)}
             />
-            <DataTableRowActionButton
-              label="Excluir"
-              accessibleLabel={`Excluir ${row.original.name}`}
-              icon={Trash2}
-              variant="destructive"
-              onClick={() => onDelete(row.original)}
-            />
+            {row.original.canDelete && (
+              <DataTableRowActionButton
+                label="Excluir"
+                accessibleLabel={`Excluir ${row.original.name}`}
+                icon={Trash2}
+                variant="destructive"
+                onClick={() => onDelete(row.original)}
+              />
+            )}
           </div>
         ),
       }),
