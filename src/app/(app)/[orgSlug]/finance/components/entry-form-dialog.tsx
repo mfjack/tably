@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ScanBarcode } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { type DefaultValues, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -13,12 +12,10 @@ import { SelectField } from "@/components/form/select-field";
 import { SwitchField } from "@/components/form/switch-field";
 import { TextField } from "@/components/form/text-field";
 import { TextareaField } from "@/components/form/textarea-field";
-import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { parseBoleto } from "@/features/finance/boleto";
-import { BoletoScannerDialog } from "@/features/finance/components/boleto-scanner-dialog";
 import { useCreateFinancialEntryMutation } from "@/features/finance/hooks/use-create-financial-entry-mutation";
 import { useUpdateFinancialEntryMutation } from "@/features/finance/hooks/use-update-financial-entry-mutation";
 import {
@@ -127,7 +124,6 @@ export function EntryFormDialog({
   const editingEntry = state.mode === "edit" ? state.entry : null;
   const scopeId = useId();
   const [scope, setScope] = useState<EntryEditScope>("single");
-  const [isScannerOpen, setIsScannerOpen] = useState(false);
   const createMutation = useCreateFinancialEntryMutation(organizationId);
   const updateMutation = useUpdateFinancialEntryMutation(organizationId);
   const { supplierOptions, hasSuppliers } = useSupplierOptions(
@@ -200,11 +196,6 @@ export function EntryFormDialog({
   }, [digitableLine, today, form]);
 
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
-
-  function fillScannedBoleto(scannedLine: string) {
-    setIsScannerOpen(false);
-    form.setValue("digitableLine", scannedLine, { shouldDirty: true });
-  }
   const kindLabel = ENTRY_KIND_LABELS[kind].toLowerCase();
 
   const handleSubmit = form.handleSubmit((values) => {
@@ -261,18 +252,6 @@ export function EntryFormDialog({
             mask="boleto"
             placeholder="Cole ou digite os números"
             autoComplete="off"
-            labelAction={
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-7 px-2"
-                onClick={() => setIsScannerOpen(true)}
-              >
-                <ScanBarcode aria-hidden />
-                Escanear
-              </Button>
-            }
           />
         )}
         <TextField
@@ -462,11 +441,6 @@ export function EntryFormDialog({
           placeholder="Ex.: Pagar pelo app do banco"
         />
       </FieldGroup>
-      <BoletoScannerDialog
-        isOpen={isScannerOpen}
-        onClose={() => setIsScannerOpen(false)}
-        onDetected={fillScannedBoleto}
-      />
     </FormDialog>
   );
 }

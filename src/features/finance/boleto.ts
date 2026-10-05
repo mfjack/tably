@@ -143,42 +143,6 @@ function parseUtilityLine(line: string, today: string): BoletoParseResult {
   };
 }
 
-const BARCODE_LENGTH = 44;
-const UTILITY_BLOCK_LENGTH = 11;
-
-function withModulo10(digits: string): string {
-  return `${digits}${calculateModulo10(digits)}`;
-}
-
-export function barcodeToDigitableLine(barcode: string): string | null {
-  const digits = onlyDigits(barcode);
-  if (digits.length !== BARCODE_LENGTH) return null;
-
-  if (digits.startsWith(UTILITY_PREFIX)) {
-    const usesModulo10 = digits[2] === "6" || digits[2] === "7";
-    return [0, 1, 2, 3]
-      .map((index) => {
-        const block = digits.slice(
-          index * UTILITY_BLOCK_LENGTH,
-          (index + 1) * UTILITY_BLOCK_LENGTH,
-        );
-        const checkDigit = usesModulo10
-          ? calculateModulo10(block)
-          : calculateUtilityModulo11(block);
-        return `${block}${checkDigit}`;
-      })
-      .join("");
-  }
-
-  return [
-    withModulo10(`${digits.slice(0, 4)}${digits.slice(19, 24)}`),
-    withModulo10(digits.slice(24, 34)),
-    withModulo10(digits.slice(34, 44)),
-    digits[4],
-    digits.slice(5, 19),
-  ].join("");
-}
-
 export function parseBoleto(input: string, today: string): BoletoParseResult {
   const digits = onlyDigits(input);
 
