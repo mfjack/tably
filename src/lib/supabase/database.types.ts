@@ -2754,6 +2754,15 @@ export type Database = {
         }
         Returns: number
       }
+      add_manual_time_punches: {
+        Args: {
+          p_employee_id: string
+          p_punched_ats: string[]
+          p_reason: string
+          p_work_date: string
+        }
+        Returns: undefined
+      }
       add_order_items: {
         Args: {
           p_items: Json
@@ -3475,7 +3484,7 @@ export type Database = {
       member_role: "owner" | "manager" | "cashier" | "kitchen" | "waiter"
       online_order_status: "pending" | "accepted" | "rejected"
       order_status: "in_kitchen" | "ready" | "completed" | "canceled"
-      overtime_policy: "paid" | "hour_bank"
+      overtime_policy: "paid" | "hour_bank" | "absences_only"
       payment_method:
         | "cash"
         | "pix"
@@ -3510,6 +3519,7 @@ export type Database = {
         | "vacation"
         | "day_off"
         | "justified_absence"
+        | "unjustified_absence"
       time_punch_source: "clock" | "manual"
     }
     CompositeTypes: {
@@ -3687,7 +3697,7 @@ export const Constants = {
       member_role: ["owner", "manager", "cashier", "kitchen", "waiter"],
       online_order_status: ["pending", "accepted", "rejected"],
       order_status: ["in_kitchen", "ready", "completed", "canceled"],
-      overtime_policy: ["paid", "hour_bank"],
+      overtime_policy: ["paid", "hour_bank", "absences_only"],
       payment_method: [
         "cash",
         "pix",
@@ -3726,6 +3736,7 @@ export const Constants = {
         "vacation",
         "day_off",
         "justified_absence",
+        "unjustified_absence",
       ],
       time_punch_source: ["clock", "manual"],
     },

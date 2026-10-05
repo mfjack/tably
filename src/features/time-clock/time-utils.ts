@@ -130,7 +130,14 @@ export function formatMinutes(totalMinutes: number): string {
   const absoluteMinutes = Math.abs(Math.round(totalMinutes));
   const hours = Math.floor(absoluteMinutes / MINUTES_PER_HOUR);
   const minutes = absoluteMinutes % MINUTES_PER_HOUR;
-  return `${sign}${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+  if (hours === 0) return minutes === 0 ? "0h" : `${sign}${minutes}min`;
+  if (minutes === 0) return `${sign}${hours}h`;
+  return `${sign}${hours}h ${minutes.toString().padStart(2, "0")}min`;
+}
+
+export function formatClockTime(time: string): string {
+  const [hours, minutes] = time.split(":");
+  return minutes === "00" ? `${hours}h` : `${hours}h${minutes}`;
 }
 
 export function formatSignedMinutes(totalMinutes: number): string {

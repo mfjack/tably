@@ -12,15 +12,19 @@ import { FieldGroup } from "@/components/ui/field";
 import type { EmployeeId } from "@/features/employees/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import { useSaveTimeOffMutation } from "@/features/time-clock/hooks/use-save-time-off-mutation";
-import { TIME_OFF_KIND_LABELS } from "@/features/time-clock/labels";
+import {
+  SELECTABLE_TIME_OFF_KINDS,
+  TIME_OFF_KIND_LABELS,
+} from "@/features/time-clock/labels";
 import {
   type TimeOffInput,
   timeOffSchema,
 } from "@/features/time-clock/schemas";
 
-const TIME_OFF_KIND_OPTIONS = Object.entries(TIME_OFF_KIND_LABELS).map(
-  ([value, label]) => ({ value, label }),
-);
+const TIME_OFF_KIND_OPTIONS = SELECTABLE_TIME_OFF_KINDS.map((kind) => ({
+  value: kind,
+  label: TIME_OFF_KIND_LABELS[kind],
+}));
 
 type TimeOffDialogProps = {
   organizationId: OrganizationId;
@@ -70,7 +74,7 @@ export function TimeOffDialog({
       isOpen={initialDate !== null}
       onOpenChange={(isOpen) => !isOpen && onClose()}
       title="Lançar ausência"
-      description="Dias de atestado, férias, folga ou falta justificada não contam como falta nem descontam no holerite."
+      description="Atestado, férias e folga não descontam no holerite. Falta desconta o dia e o DSR da semana."
       submitLabel="Lançar"
       isSubmitting={saveMutation.isPending}
       onSubmit={handleSubmit}

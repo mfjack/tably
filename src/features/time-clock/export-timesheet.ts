@@ -10,6 +10,7 @@ import { formatDateKey } from "@/lib/format";
 import { formatCbo, formatCnpj, formatCpf, formatPis } from "@/lib/masks";
 import { TIME_OFF_KIND_LABELS } from "./labels";
 import {
+  formatClockTime,
   formatMinutes,
   formatMonthLabel,
   formatSignedMinutes,
@@ -67,7 +68,7 @@ function describePunches(day: TimesheetDay): string {
     .filter((punch) => !punch.voiding)
     .map(
       (punch) =>
-        `${punch.localTime}${punch.isNextDay ? "+1" : ""}${punch.source === "manual" ? "*" : ""}`,
+        `${formatClockTime(punch.localTime)}${punch.isNextDay ? "+1" : ""}${punch.source === "manual" ? "*" : ""}`,
     )
     .join("  ");
 }
@@ -210,7 +211,7 @@ export async function exportTimesheetPdf({
       .filter((punch) => punch.source === "manual" || punch.voiding)
       .map((punch) => [
         formatDateKey(day.date).slice(0, 5),
-        `${punch.localTime}${punch.isNextDay ? "+1" : ""}`,
+        `${formatClockTime(punch.localTime)}${punch.isNextDay ? "+1" : ""}`,
         punch.nsr.toString(),
         punch.voiding ? "Desconsiderada" : "Incluída",
         punch.voiding?.reason ?? punch.reason ?? "",

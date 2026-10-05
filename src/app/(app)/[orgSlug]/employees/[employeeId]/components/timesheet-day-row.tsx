@@ -1,4 +1,4 @@
-import { CalendarOff, MoreHorizontal, PenLine, Plus } from "lucide-react";
+import { CalendarOff, MoreHorizontal, PenLine } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +13,7 @@ import {
 } from "@/features/employees/work-schedule-labels";
 import { TIME_OFF_KIND_LABELS } from "@/features/time-clock/labels";
 import {
+  formatClockTime,
   formatMinutes,
   formatSignedMinutes,
 } from "@/features/time-clock/time-utils";
@@ -25,7 +26,7 @@ import { cn } from "@/lib/utils";
 type TimesheetDayRowProps = {
   day: TimesheetDay;
   onOpenPunch: (punch: TimesheetPunch) => void;
-  onAddPunch: (date: string) => void;
+  onAdjustDay: (date: string) => void;
   onAddTimeOff: (date: string) => void;
 };
 
@@ -34,7 +35,11 @@ function getDayBadges(day: TimesheetDay) {
   if (day.kind === "holiday") {
     badges.push({ label: day.holidayName ?? "Feriado", isAlert: false });
   }
-  if (day.kind === "time_off" && day.timeOffKind) {
+  if (
+    day.kind === "time_off" &&
+    day.timeOffKind &&
+    day.timeOffKind !== "unjustified_absence"
+  ) {
     badges.push({
       label: TIME_OFF_KIND_LABELS[day.timeOffKind],
       isAlert: false,
@@ -80,7 +85,7 @@ function getDayBadges(day: TimesheetDay) {
 export function TimesheetDayRow({
   day,
   onOpenPunch,
-  onAddPunch,
+  onAdjustDay,
   onAddTimeOff,
 }: TimesheetDayRowProps) {
   const isOutside = day.kind === "not_employed";
@@ -95,14 +100,20 @@ export function TimesheetDayRow({
         (day.kind === "rest_day" || day.kind === "holiday") && "bg-muted/40",
       )}
     >
-      <div className="flex flex-col leading-tight">
+      <button
+        type="button"
+        disabled={isOutside}
+        aria-label={`Ajustar dia ${dayOfMonth}/${month}`}
+        className="flex flex-col rounded-md text-left leading-tight transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed"
+        onClick={() => onAdjustDay(day.date)}
+      >
         <span className="font-semibold tabular-nums">
           {dayOfMonth}/{month}
         </span>
         <span className="text-muted-foreground text-xs">
           {getWeekdayShortLabel(day.weekday)}
         </span>
-      </div>
+      </button>
 
       <div className="flex min-w-0 flex-col gap-1">
         <div className="flex flex-wrap gap-1.5">
@@ -129,7 +140,7 @@ export function TimesheetDayRow({
                 )}
                 onClick={() => onOpenPunch(punch)}
               >
-                {punch.localTime}
+                {formatClockTime(punch.localTime)}
                 {punch.isNextDay && <sup className="text-[0.625rem]">+1</sup>}
                 {punch.source === "manual" && (
                   <PenLine aria-label="ajuste" className="size-3" />
@@ -205,9 +216,9 @@ export function TimesheetDayRow({
             <MoreHorizontal aria-hidden />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="min-w-48">
-            <DropdownMenuItem onClick={() => onAddPunch(day.date)}>
-              <Plus aria-hidden />
-              Incluir marcação
+            <DropdownMenuItem onClick={() => onAdjustDay(day.date)}>
+              <PenLine aria-hidden />
+              Ajustar dia
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onAddTimeOff(day.date)}>
               <CalendarOff aria-hidden />

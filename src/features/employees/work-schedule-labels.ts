@@ -1,4 +1,7 @@
-import { MINUTES_PER_HOUR } from "@/features/time-clock/time-utils";
+import {
+  formatClockTime,
+  MINUTES_PER_HOUR,
+} from "@/features/time-clock/time-utils";
 import { getWeeklyMinutes } from "@/features/time-clock/timesheet";
 import { formatQuantity } from "@/lib/format";
 import type { WorkSchedule, WorkScheduleDay } from "./types";
@@ -32,9 +35,11 @@ export function getWeekdayShortLabel(weekday: number): string {
 }
 
 export function describeScheduleDay(day: WorkScheduleDay): string {
+  const start = formatClockTime(day.startTime);
+  const end = formatClockTime(day.endTime);
   return day.breakStartTime && day.breakEndTime
-    ? `${day.startTime}–${day.breakStartTime} · ${day.breakEndTime}–${day.endTime}`
-    : `${day.startTime}–${day.endTime}`;
+    ? `${start}–${formatClockTime(day.breakStartTime)} · ${formatClockTime(day.breakEndTime)}–${end}`
+    : `${start}–${end}`;
 }
 
 export function describeWorkSchedule(schedule: WorkSchedule): string {

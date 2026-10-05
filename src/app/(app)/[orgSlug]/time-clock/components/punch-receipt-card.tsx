@@ -8,7 +8,10 @@ import {
   getPunchLabel,
   printPunchReceipt,
 } from "@/features/time-clock/print-punch-receipt";
-import { getZonedParts } from "@/features/time-clock/time-utils";
+import {
+  formatClockTime,
+  getZonedParts,
+} from "@/features/time-clock/time-utils";
 import type { PunchReceipt } from "@/features/time-clock/types";
 import { formatDateKey } from "@/lib/format";
 import { formatCpf } from "@/lib/masks";
@@ -77,7 +80,8 @@ export function PunchReceiptCard({
               key={punchedAt}
               className="rounded-md bg-muted px-2 py-1 text-xs tabular-nums"
             >
-              {getPunchLabel(index)} · {getZonedParts(punchedAt, timeZone).time}
+              {getPunchLabel(index)} ·{" "}
+              {formatClockTime(getZonedParts(punchedAt, timeZone).time)}
             </span>
           ))}
         </dd>

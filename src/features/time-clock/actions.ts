@@ -19,8 +19,8 @@ import {
   type TimesheetData,
 } from "./load-timesheet";
 import {
-  type ManualPunchInput,
-  manualPunchSchema,
+  type DayPunchesInput,
+  dayPunchesSchema,
   registerPunchResultSchema,
   type TimeOffInput,
   timeOffSchema,
@@ -51,6 +51,8 @@ function getTimeClockErrorMessage(
     (error.code && TIME_CLOCK_ERROR_MESSAGES[error.code]) ?? fallbackMessage
   );
 }
+
+const OVERLAPPING_TIME_OFF_CODE = "23P01";
 
 export async function listTimeClockEmployees(
   organizationId: OrganizationId,
@@ -127,32 +129,36 @@ export async function getTimesheet(
   return actionSuccess(timesheetData);
 }
 
-export async function addManualPunch(
+export async function addDayPunches(
   organizationId: OrganizationId,
   employeeId: EmployeeId,
-  input: ManualPunchInput,
+  input: DayPunchesInput,
 ): Promise<ActionResult> {
   if (!(await hasModuleAccess(organizationId, "employees"))) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }
 
-  const parsedInput = manualPunchSchema.safeParse(input);
+  const parsedInput = dayPunchesSchema.safeParse(input);
   if (!parsedInput.success) {
-    return actionFailure("Confira os campos e tente novamente.");
+    return actionFailure("Confira os horários e tente novamente.");
   }
 
   const clock = await getOrganizationClock(organizationId);
   if (!clock) return actionFailure("Não foi possível ajustar o ponto.");
 
-  const { workDate, time, isNextDay, reason } = parsedInput.data;
-  const punchDate = isNextDay
-    ? format(addDays(parseISO(workDate), 1), "yyyy-MM-dd")
-    : workDate;
+  const { workDate, punches, reason } = parsedInput.data;
+  const nextDate = format(addDays(parseISO(workDate), 1), "yyyy-MM-dd");
   const supabase = await createClient();
-  const { error } = await supabase.rpc("add_manual_time_punch", {
+  const { error } = await supabase.rpc("add_manual_time_punches", {
     p_employee_id: employeeId,
-    p_punched_at: zonedDateTimeToIso(punchDate, time, clock.timeZone),
     p_work_date: workDate,
+    p_punched_ats: punches.map((punch) =>
+      zonedDateTimeToIso(
+        punch.isNextDay ? nextDate : workDate,
+        punch.time,
+        clock.timeZone,
+      ),
+    ),
     p_reason: reason,
   });
 
@@ -220,6 +226,11 @@ export async function saveTimeOff(
     notes: notes || null,
   });
 
+  if (error?.code === OVERLAPPING_TIME_OFF_CODE) {
+    return actionFailure(
+      "Já existe uma ausência lançada nesse período. Exclua a anterior para lançar outra.",
+    );
+  }
   if (error) return actionFailure("Não foi possível lançar a ausência.");
   return actionSuccess();
 }

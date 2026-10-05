@@ -12,7 +12,10 @@ import {
   type VoidPunchInput,
   voidPunchSchema,
 } from "@/features/time-clock/schemas";
-import { getZonedParts } from "@/features/time-clock/time-utils";
+import {
+  formatClockTime,
+  getZonedParts,
+} from "@/features/time-clock/time-utils";
 import type { TimesheetPunch } from "@/features/time-clock/timesheet";
 import { formatDateKey } from "@/lib/format";
 
@@ -77,7 +80,7 @@ export function PunchDetailsDialog({
     <FormDialog
       isOpen={punch !== null}
       onOpenChange={(isOpen) => !isOpen && onClose()}
-      title={`Marcação das ${punch?.localTime ?? ""}`}
+      title={`Marcação das ${punch ? formatClockTime(punch.localTime) : ""}`}
       description="Marcações nunca são apagadas. Se estiver errada, desconsidere com um motivo: ela continua guardada e aparece no espelho."
       submitLabel={isVoided ? "Fechar" : "Desconsiderar"}
       isSubmitting={voidMutation.isPending}

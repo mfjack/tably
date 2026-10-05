@@ -9,7 +9,7 @@ import {
   Download,
   FileSpreadsheet,
   FileText,
-  Plus,
+  PenLine,
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
@@ -44,7 +44,7 @@ import { formatDateKey } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { PageContent } from "../../../components/page-content";
 import { PageHeader } from "../../../components/page-header";
-import { ManualPunchDialog } from "./manual-punch-dialog";
+import { DayAdjustmentDialog } from "./day-adjustment-dialog";
 import { PunchDetailsDialog } from "./punch-details-dialog";
 import { TimeOffDialog } from "./time-off-dialog";
 import { TimesheetDayRow } from "./timesheet-day-row";
@@ -155,13 +155,15 @@ export function TimesheetView({
     monthKey,
   );
   const deleteTimeOffMutation = useDeleteTimeOffMutation(organizationId);
-  const [manualPunchDate, setManualPunchDate] = useState<string | null>(null);
+  const [adjustDate, setAdjustDate] = useState<string | null>(null);
   const [timeOffDate, setTimeOffDate] = useState<string | null>(null);
   const [selectedPunch, setSelectedPunch] = useState<TimesheetPunch | null>(
     null,
   );
   const [isExporting, setIsExporting] = useState(false);
   const data = timesheetQuery.data;
+  const adjustedDay =
+    data?.timesheet.days.find((day) => day.date === adjustDate) ?? null;
   const defaultDate = data?.today.startsWith(monthKey)
     ? data.today
     : `${monthKey}-01`;
@@ -248,10 +250,10 @@ export function TimesheetView({
                 variant="outline"
                 className="h-10"
                 disabled={!data}
-                onClick={() => setManualPunchDate(defaultDate)}
+                onClick={() => setAdjustDate(defaultDate)}
               >
-                <Plus aria-hidden />
-                Incluir marcação
+                <PenLine aria-hidden />
+                Ajustar dia
               </Button>
               <Button
                 variant="outline"
@@ -290,7 +292,7 @@ export function TimesheetView({
             </div>
           </div>
 
-          <div className="flex min-h-0 flex-col gap-5 overflow-y-auto">
+          <div className="flex min-h-0 flex-col gap-5 overflow-y-auto *:shrink-0">
             {timesheetQuery.error ? (
               <Alert variant="destructive">
                 <AlertDescription>
@@ -344,7 +346,7 @@ export function TimesheetView({
                         key={day.date}
                         day={day}
                         onOpenPunch={setSelectedPunch}
-                        onAddPunch={setManualPunchDate}
+                        onAdjustDay={setAdjustDate}
                         onAddTimeOff={setTimeOffDate}
                       />
                     ))}
@@ -406,11 +408,13 @@ export function TimesheetView({
         </div>
       </PageContent>
 
-      <ManualPunchDialog
+      <DayAdjustmentDialog
+        key={adjustDate ?? "closed"}
         organizationId={organizationId}
         employeeId={employeeId}
-        initialDate={manualPunchDate}
-        onClose={() => setManualPunchDate(null)}
+        day={adjustedDay}
+        onOpenPunch={setSelectedPunch}
+        onClose={() => setAdjustDate(null)}
       />
       <TimeOffDialog
         organizationId={organizationId}

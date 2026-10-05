@@ -347,6 +347,12 @@ export function buildTimesheet(input: TimesheetInput): Timesheet {
           day.shortfallMinutes = Math.max(0, -day.balanceMinutes);
         }
       }
+    } else if (timeOff?.kind === "unjustified_absence") {
+      day.isAbsence = true;
+      if (scheduleDay) {
+        day.expectedMinutes = getExpectedMinutes(toScheduleWindow(scheduleDay));
+        day.balanceMinutes = -day.expectedMinutes;
+      }
     } else if ((kind === "rest_day" || kind === "holiday") && !day.isPending) {
       day.restDayWorkedMinutes = day.workedMinutes;
       day.balanceMinutes = day.workedMinutes;

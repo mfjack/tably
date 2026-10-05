@@ -6,7 +6,15 @@ export const TIME_OFF_KIND_LABELS = {
   vacation: "Férias",
   day_off: "Folga",
   justified_absence: "Falta justificada",
+  unjustified_absence: "Falta",
 } as const satisfies Record<TimeOffKind, string>;
+
+export const SELECTABLE_TIME_OFF_KINDS = [
+  "medical_certificate",
+  "vacation",
+  "day_off",
+  "unjustified_absence",
+] as const satisfies readonly TimeOffKind[];
 
 export const TIMESHEET_DAY_KIND_LABELS = {
   workday: "Dia útil",
