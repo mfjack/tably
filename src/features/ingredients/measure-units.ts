@@ -67,6 +67,22 @@ export function getUnitSymbol(unit: MeasureUnit): string {
   return MEASURE_UNITS[unit].symbol;
 }
 
+const COST_DISPLAY_UNITS = {
+  unit: { factor: 1, symbol: "un" },
+  g: { factor: 1000, symbol: "kg" },
+  kg: { factor: 1, symbol: "kg" },
+  ml: { factor: 1000, symbol: "L" },
+  l: { factor: 1, symbol: "L" },
+} as const satisfies Record<MeasureUnit, { factor: number; symbol: string }>;
+
+export function getDisplayUnitCost(
+  unitCost: number,
+  unit: MeasureUnit,
+): { amount: number; symbol: string } {
+  const { factor, symbol } = COST_DISPLAY_UNITS[unit];
+  return { amount: unitCost * factor, symbol };
+}
+
 export type StockStatus = "out" | "low" | "ok";
 
 export function getStockStatus(

@@ -7,9 +7,12 @@ import { createDataTableColumnHelper } from "@/components/data-table/data-table-
 import { DataTableRowActionButton } from "@/components/data-table/data-table-row-action-button";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { useDataTable } from "@/components/data-table/use-data-table";
-import { getUnitSymbol } from "@/features/ingredients/measure-units";
+import {
+  getDisplayUnitCost,
+  getUnitSymbol,
+} from "@/features/ingredients/measure-units";
 import type { Ingredient } from "@/features/ingredients/types";
-import { formatQuantity, formatUnitCost } from "@/lib/format";
+import { formatCurrency, formatQuantity } from "@/lib/format";
 import { ExpiryCell } from "./expiry-cell";
 import { StockStatusBadge } from "./stock-status-badge";
 
@@ -74,12 +77,23 @@ export function IngredientsTable({
         columnHelper.accessor("unitCost", {
           header: "Custo",
           enableGlobalFilter: false,
-          cell: ({ row }) => (
-            <span className="text-muted-foreground tabular-nums">
-              {formatUnitCost(row.original.unitCost)} /{" "}
-              {getUnitSymbol(row.original.unit)}
-            </span>
-          ),
+          cell: ({ row }) => {
+            const { unitCost, unit, currentStock } = row.original;
+            const displayCost = getDisplayUnitCost(unitCost, unit);
+            const stockValue = Math.max(currentStock, 0) * unitCost;
+            return (
+              <div className="flex flex-col tabular-nums">
+                <span>
+                  {formatCurrency(displayCost.amount)} / {displayCost.symbol}
+                </span>
+                {stockValue > 0 && (
+                  <span className="text-muted-foreground text-xs">
+                    {formatCurrency(stockValue)} em estoque
+                  </span>
+                )}
+              </div>
+            );
+          },
         }),
         columnHelper.accessor("expiresAt", {
           header: "Validade",
