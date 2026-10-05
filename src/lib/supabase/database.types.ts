@@ -2061,6 +2061,64 @@ export type Database = {
         }
         Relationships: []
       }
+      purchase_invoices: {
+        Row: {
+          access_key: string
+          created_at: string
+          created_by: string | null
+          id: string
+          issued_at: string | null
+          number: string | null
+          organization_id: string
+          supplier_id: string | null
+          total_amount: number
+        }
+        Insert: {
+          access_key: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          issued_at?: string | null
+          number?: string | null
+          organization_id: string
+          supplier_id?: string | null
+          total_amount?: number
+        }
+        Update: {
+          access_key?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          issued_at?: string | null
+          number?: string | null
+          organization_id?: string
+          supplier_id?: string | null
+          total_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_invoices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_invoices_supplier_id_organization_id_fkey"
+            columns: ["supplier_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_purchase_summaries"
+            referencedColumns: ["supplier_id", "organization_id"]
+          },
+          {
+            foreignKeyName: "purchase_invoices_supplier_id_organization_id_fkey"
+            columns: ["supplier_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
       stock_entries: {
         Row: {
           created_at: string
@@ -2272,6 +2330,68 @@ export type Database = {
           },
         ]
       }
+      supplier_products: {
+        Row: {
+          created_at: string
+          id: string
+          ingredient_id: string
+          organization_id: string
+          product_code: string
+          supplier_id: string
+          units_per_package: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ingredient_id: string
+          organization_id: string
+          product_code: string
+          supplier_id: string
+          units_per_package: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ingredient_id?: string
+          organization_id?: string
+          product_code?: string
+          supplier_id?: string
+          units_per_package?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_products_ingredient_id_organization_id_fkey"
+            columns: ["ingredient_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "supplier_products_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_products_supplier_id_organization_id_fkey"
+            columns: ["supplier_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_purchase_summaries"
+            referencedColumns: ["supplier_id", "organization_id"]
+          },
+          {
+            foreignKeyName: "supplier_products_supplier_id_organization_id_fkey"
+            columns: ["supplier_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
       suppliers: {
         Row: {
           contact_name: string | null
@@ -2283,6 +2403,7 @@ export type Database = {
           phone: string | null
           purchase_url: string | null
           supplied_items: string | null
+          tax_id: string | null
           updated_at: string
         }
         Insert: {
@@ -2295,6 +2416,7 @@ export type Database = {
           phone?: string | null
           purchase_url?: string | null
           supplied_items?: string | null
+          tax_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -2307,6 +2429,7 @@ export type Database = {
           phone?: string | null
           purchase_url?: string | null
           supplied_items?: string | null
+          tax_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -3121,6 +3244,10 @@ export type Database = {
           roles: Database["public"]["Enums"]["member_role"][]
         }
         Returns: boolean
+      }
+      import_purchase_invoice: {
+        Args: { p_invoice: Json; p_organization_id: string }
+        Returns: string
       }
       is_accepting_online_orders: {
         Args: {

@@ -1,6 +1,6 @@
 "use client";
 
-import { Package, Plus, ShoppingCart } from "lucide-react";
+import { FileUp, Package, Plus, ShoppingCart } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useIngredientsQuery } from "@/features/ingredients/hooks/use-ingredients-query";
@@ -15,8 +15,11 @@ import { PageHeader } from "../../components/page-header";
 import { DeleteIngredientDialog } from "./delete-ingredient-dialog";
 import { IngredientFormDialog } from "./ingredient-form-dialog";
 import { IngredientsTable } from "./ingredients-table";
+import { InvoiceImportDialog } from "./invoice-import-dialog";
 import { ShoppingListDialog } from "./shopping-list-dialog";
 import { StockEntryDialog } from "./stock-entry-dialog";
+
+const EMPTY_INGREDIENTS: Ingredient[] = [];
 
 type IngredientFormState =
   | { mode: "closed" }
@@ -41,6 +44,7 @@ export function IngredientsView({
   const ingredientsQuery = useIngredientsQuery(organizationId);
   const suppliersQuery = useSuppliersQuery(organizationId);
   const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
+  const [isInvoiceImportOpen, setIsInvoiceImportOpen] = useState(false);
   const lowStockCount = useMemo(
     () => (ingredientsQuery.data ?? []).filter(isRunningLow).length,
     [ingredientsQuery.data],
@@ -82,6 +86,16 @@ export function IngredientsView({
                 </span>
               )}
             </Button>
+            {canManage && (
+              <Button
+                variant="outline"
+                className="h-10"
+                onClick={() => setIsInvoiceImportOpen(true)}
+              >
+                <FileUp aria-hidden />
+                <span className="max-sm:sr-only">Importar nota</span>
+              </Button>
+            )}
             {canManage && (
               <Button className="h-10" onClick={openCreateForm}>
                 <Plus aria-hidden />
@@ -137,6 +151,12 @@ export function IngredientsView({
         organizationId={organizationId}
         ingredient={ingredientToDelete}
         onClose={() => setIngredientToDelete(null)}
+      />
+      <InvoiceImportDialog
+        organizationId={organizationId}
+        isOpen={isInvoiceImportOpen}
+        ingredients={ingredientsQuery.data ?? EMPTY_INGREDIENTS}
+        onClose={() => setIsInvoiceImportOpen(false)}
       />
     </>
   );
