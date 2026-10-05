@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { type DefaultValues, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { FormDialog } from "@/components/dialog/form-dialog";
+import { DateField } from "@/components/form/date-field";
 import { NumberField } from "@/components/form/number-field";
 import { SelectField } from "@/components/form/select-field";
 import { TextField } from "@/components/form/text-field";
@@ -185,11 +186,10 @@ export function IngredientFormDialog({
               format="currency"
               placeholder="Ex.: $ 60,00"
             />
-            <TextField
+            <DateField
               control={form.control}
               name="paymentDueDate"
               label="Data de pagamento"
-              type="date"
             />
           </div>
         )}
@@ -210,12 +210,7 @@ export function IngredientFormDialog({
               : "Cadastre fornecedores no módulo Fornecedores para vinculá-los."
           }
         />
-        <TextField
-          control={form.control}
-          name="expiresAt"
-          label="Validade"
-          type="date"
-        />
+        <DateField control={form.control} name="expiresAt" label="Validade" />
       </FieldGroup>
     </FormDialog>
   );

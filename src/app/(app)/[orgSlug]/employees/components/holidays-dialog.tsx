@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { DetailsDialog } from "@/components/dialog/details-dialog";
 import { DIALOG_ACTION_BUTTON_CLASS_NAME } from "@/components/dialog/dialog-styles";
+import { DateField } from "@/components/form/date-field";
 import { TextField } from "@/components/form/text-field";
 import { Button } from "@/components/ui/button";
 import { DialogClose } from "@/components/ui/dialog";
@@ -129,12 +130,11 @@ export function HolidaysDialog({
           noValidate
           className="grid grid-cols-[1fr_1fr_auto] items-start gap-2"
         >
-          <TextField
+          <DateField
             control={form.control}
             name="date"
             label="Data"
             isLabelHidden
-            type="date"
           />
           <TextField
             control={form.control}

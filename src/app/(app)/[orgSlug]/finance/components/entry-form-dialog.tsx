@@ -5,6 +5,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { type DefaultValues, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { FormDialog } from "@/components/dialog/form-dialog";
+import { DateField } from "@/components/form/date-field";
 import { MaskedField } from "@/components/form/masked-field";
 import { NumberField } from "@/components/form/number-field";
 import { SelectField } from "@/components/form/select-field";
@@ -274,7 +275,7 @@ export function EntryFormDialog({
             format="currency"
             placeholder="Ex.: $ 150,00"
           />
-          <TextField
+          <DateField
             control={form.control}
             name="dueDate"
             label={
@@ -284,7 +285,6 @@ export function EntryFormDialog({
                   ? "Vencimento"
                   : "Primeiro vencimento"
             }
-            type="date"
           />
           <SelectField
             control={form.control}
@@ -329,12 +329,11 @@ export function EntryFormDialog({
                 />
               )}
               {repeat === "recurring" && (
-                <TextField
+                <DateField
                   control={form.control}
                   name="endDate"
                   label="Até (opcional)"
                   description="Vazio: repete sem data para acabar."
-                  type="date"
                 />
               )}
             </div>
@@ -354,7 +353,7 @@ export function EntryFormDialog({
               }
             />
             {isPaid && (
-              <TextField
+              <DateField
                 control={form.control}
                 name="paidAt"
                 label={
@@ -362,7 +361,6 @@ export function EntryFormDialog({
                     ? "Data do pagamento"
                     : "Data do recebimento"
                 }
-                type="date"
               />
             )}
           </>
@@ -427,12 +425,11 @@ export function EntryFormDialog({
               label="Frequência"
               options={FREQUENCY_OPTIONS}
             />
-            <TextField
+            <DateField
               control={form.control}
               name="endDate"
               label="Até (opcional)"
               description="Vazio: repete sem data para acabar."
-              type="date"
             />
           </div>
         )}

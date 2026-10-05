@@ -5,10 +5,10 @@ import { useEffect, useMemo } from "react";
 import { type DefaultValues, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { FormDialog } from "@/components/dialog/form-dialog";
+import { DateField } from "@/components/form/date-field";
 import { NumberField } from "@/components/form/number-field";
 import { SelectField } from "@/components/form/select-field";
 import { SwitchField } from "@/components/form/switch-field";
-import { TextField } from "@/components/form/text-field";
 import { FieldGroup } from "@/components/ui/field";
 import type { OrganizationId } from "@/features/organizations/types";
 import { useCreateVacationMutation } from "@/features/payroll/hooks/use-create-vacation-mutation";
@@ -109,11 +109,10 @@ export function VacationFormDialog({
           </p>
         )}
         <div className="grid grid-cols-2 gap-4">
-          <TextField
+          <DateField
             control={form.control}
             name="startDate"
             label="Primeiro dia"
-            type="date"
           />
           <NumberField
             control={form.control}

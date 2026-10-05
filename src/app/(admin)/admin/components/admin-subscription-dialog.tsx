@@ -6,9 +6,9 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { FormDialog } from "@/components/dialog/form-dialog";
+import { DateField } from "@/components/form/date-field";
 import { NumberField } from "@/components/form/number-field";
 import { SelectField } from "@/components/form/select-field";
-import { TextField } from "@/components/form/text-field";
 import { TextareaField } from "@/components/form/textarea-field";
 import { FieldGroup } from "@/components/ui/field";
 import { useUpdateAdminSubscriptionMutation } from "@/features/subscriptions/hooks/use-update-admin-subscription-mutation";
@@ -115,11 +115,10 @@ export function AdminSubscriptionDialog({
           format="currency"
           placeholder="Ex.: $ 490,00"
         />
-        <TextField
+        <DateField
           control={form.control}
           name="trialEndsAt"
           label="Teste grátis até"
-          type="date"
         />
         <TextareaField
           control={form.control}

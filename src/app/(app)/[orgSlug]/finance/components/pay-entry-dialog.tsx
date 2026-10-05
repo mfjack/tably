@@ -5,8 +5,8 @@ import { useEffect } from "react";
 import { type DefaultValues, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { FormDialog } from "@/components/dialog/form-dialog";
+import { DateField } from "@/components/form/date-field";
 import { NumberField } from "@/components/form/number-field";
-import { TextField } from "@/components/form/text-field";
 import { FieldGroup } from "@/components/ui/field";
 import { usePayFinancialEntryMutation } from "@/features/finance/hooks/use-pay-financial-entry-mutation";
 import { type PayEntryInput, payEntrySchema } from "@/features/finance/schemas";
@@ -75,11 +75,10 @@ export function PayEntryDialog({
     >
       <FieldGroup>
         <div className="grid grid-cols-2 gap-4">
-          <TextField
+          <DateField
             control={form.control}
             name="paidAt"
             label={isExpense ? "Data do pagamento" : "Data do recebimento"}
-            type="date"
           />
           <NumberField
             control={form.control}

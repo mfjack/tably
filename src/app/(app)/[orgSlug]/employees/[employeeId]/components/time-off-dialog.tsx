@@ -5,8 +5,8 @@ import { useEffect } from "react";
 import { type DefaultValues, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { FormDialog } from "@/components/dialog/form-dialog";
+import { DateField } from "@/components/form/date-field";
 import { SelectField } from "@/components/form/select-field";
-import { TextField } from "@/components/form/text-field";
 import { TextareaField } from "@/components/form/textarea-field";
 import { FieldGroup } from "@/components/ui/field";
 import type { EmployeeId } from "@/features/employees/types";
@@ -87,18 +87,8 @@ export function TimeOffDialog({
           options={TIME_OFF_KIND_OPTIONS}
         />
         <div className="grid grid-cols-2 gap-4">
-          <TextField
-            control={form.control}
-            name="startDate"
-            label="De"
-            type="date"
-          />
-          <TextField
-            control={form.control}
-            name="endDate"
-            label="Até"
-            type="date"
-          />
+          <DateField control={form.control} name="startDate" label="De" />
+          <DateField control={form.control} name="endDate" label="Até" />
         </div>
         <TextareaField
           control={form.control}

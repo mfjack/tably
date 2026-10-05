@@ -10,6 +10,7 @@ import {
 } from "react-hook-form";
 import { toast } from "sonner";
 import { FormDialog } from "@/components/dialog/form-dialog";
+import { DateField } from "@/components/form/date-field";
 import { MaskedField } from "@/components/form/masked-field";
 import { NumberField } from "@/components/form/number-field";
 import { SelectField } from "@/components/form/select-field";
@@ -210,11 +211,10 @@ export function EmployeeFormDialog({
             placeholder="000.00000.00-0"
             autoComplete="off"
           />
-          <TextField
+          <DateField
             control={form.control}
             name="birthDate"
             label="Nascimento"
-            type="date"
           />
           <MaskedField
             control={form.control}
@@ -250,18 +250,16 @@ export function EmployeeFormDialog({
             label="Tipo de contrato"
             options={EMPLOYMENT_TYPE_OPTIONS}
           />
-          <TextField
+          <DateField
             control={form.control}
             name="admissionDate"
             label="Admissão"
-            type="date"
           />
-          <TextField
+          <DateField
             control={form.control}
             name="effectiveDate"
             label="Efetivação"
             description="Fim da experiência. Deixe vazio se já é efetivo."
-            type="date"
           />
           <NumberField
             control={form.control}
@@ -270,12 +268,11 @@ export function EmployeeFormDialog({
             format="currency"
             placeholder="Ex.: $ 1.800,00"
           />
-          <TextField
+          <DateField
             control={form.control}
             name="terminationDate"
             label="Desligamento"
             description="Preencha só quando o funcionário sair."
-            type="date"
           />
         </div>
 

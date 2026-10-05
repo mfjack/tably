@@ -5,9 +5,9 @@ import { useEffect } from "react";
 import { type DefaultValues, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { FormDialog } from "@/components/dialog/form-dialog";
+import { DateField } from "@/components/form/date-field";
 import { NumberField } from "@/components/form/number-field";
 import { SelectField } from "@/components/form/select-field";
-import { TextField } from "@/components/form/text-field";
 import { FieldGroup } from "@/components/ui/field";
 import { useCreateStockEntryMutation } from "@/features/ingredients/hooks/use-create-stock-entry-mutation";
 import { getUnitSymbol } from "@/features/ingredients/measure-units";
@@ -120,18 +120,16 @@ export function StockEntryDialog({
               : "Cadastre fornecedores no módulo Fornecedores para vinculá-los às compras."
           }
         />
-        <TextField
+        <DateField
           control={form.control}
           name="paymentDueDate"
           label="Data de pagamento"
-          type="date"
           description="Com data, a compra entra como conta a pagar no financeiro. Deixe em branco se já pagou."
         />
-        <TextField
+        <DateField
           control={form.control}
           name="expiresAt"
           label="Validade do lote"
-          type="date"
           description="Se informada, passa a ser a validade do insumo."
         />
         {ingredient && (
