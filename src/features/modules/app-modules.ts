@@ -72,13 +72,6 @@ export const APP_MODULE_GROUPS = [
         path: "tasks",
         icon: ListChecks,
       },
-      {
-        id: "time_clock",
-        label: "Ponto",
-        description: "Registro de entrada e saída da equipe com PIN.",
-        path: "time-clock",
-        icon: Clock,
-      },
     ],
   },
   {
@@ -157,6 +150,13 @@ export const APP_MODULE_GROUPS = [
         path: "payroll",
         icon: Wallet,
         parentModuleId: "employees",
+      },
+      {
+        id: "time_clock",
+        label: "Ponto",
+        description: "Registro de entrada e saída da equipe com PIN.",
+        path: "time-clock",
+        icon: Clock,
       },
     ],
   },
