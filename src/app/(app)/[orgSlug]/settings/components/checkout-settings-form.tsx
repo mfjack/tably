@@ -133,7 +133,7 @@ export function CheckoutSettingsForm({
           control={form.control}
           name="isCustomerAccountPaymentEnabled"
           label="Venda na conta"
-          description="Mostra a forma de pagamento Conta, para lançar a venda na conta do cliente e receber depois."
+          description="Mostra a forma de pagamento Conta e a página Contas, para lançar a venda na conta do cliente e receber depois."
         />
       </FieldGroup>
     </SettingsFormSection>
