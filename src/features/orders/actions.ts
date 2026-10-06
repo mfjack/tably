@@ -42,6 +42,18 @@ export async function placeOrder(
   const { items, note, payments, adjustments, customer, sendToKitchen } =
     parsedInput.data;
   const supabase = await createClient();
+  if (!payments) {
+    const { data: organization } = await supabase
+      .from("organizations")
+      .select("is_order_tabs_enabled")
+      .eq("id", organizationId)
+      .maybeSingle();
+    if (!organization?.is_order_tabs_enabled) {
+      return actionFailure(
+        "As comandas estão desligadas. Receba o pagamento para registrar o pedido.",
+      );
+    }
+  }
   const { data, error } = await supabase
     .rpc("place_order", {
       p_organization_id: organizationId,

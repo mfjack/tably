@@ -126,6 +126,33 @@ export async function updateOrganizationSettings(
   return actionSuccess();
 }
 
+async function getOrderTabsDisableBlocker(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  organizationId: OrganizationId,
+): Promise<string | null> {
+  const [{ data: organization }, { count }] = await Promise.all([
+    supabase
+      .from("organizations")
+      .select("is_online_ordering_enabled")
+      .eq("id", organizationId)
+      .maybeSingle(),
+    supabase
+      .from("orders")
+      .select("id", { count: "exact", head: true })
+      .eq("organization_id", organizationId)
+      .is("paid_at", null)
+      .neq("status", "canceled")
+      .not("customer_name", "is", null),
+  ]);
+  if (organization?.is_online_ordering_enabled) {
+    return "Os pedidos pelo cardápio viram comandas. Desligue Receber pedidos pelo cardápio antes de desligar as comandas.";
+  }
+  if (count) {
+    return `Ainda há ${count === 1 ? "1 comanda aberta" : `${count} comandas abertas`}. Cobre ou cancele antes de desligar.`;
+  }
+  return null;
+}
+
 export async function updateCheckoutSettings(
   organizationId: OrganizationId,
   input: CheckoutSettingsInput,
@@ -141,6 +168,13 @@ export async function updateCheckoutSettings(
 
   const { serviceFeePercent, takeawayFee, ...settings } = parsedInput.data;
   const supabase = await createClient();
+  if (!settings.isOrderTabsEnabled) {
+    const blockingReason = await getOrderTabsDisableBlocker(
+      supabase,
+      organizationId,
+    );
+    if (blockingReason) return actionFailure(blockingReason);
+  }
   const { data, error } = await supabase
     .from("organizations")
     .update({
@@ -152,6 +186,7 @@ export async function updateCheckoutSettings(
         : {}),
       is_discount_enabled: settings.isDiscountEnabled,
       is_split_bill_enabled: settings.isSplitBillEnabled,
+      is_order_tabs_enabled: settings.isOrderTabsEnabled,
       is_customer_account_payment_enabled:
         settings.isCustomerAccountPaymentEnabled,
       accepted_payment_methods: settings.acceptedPaymentMethods,

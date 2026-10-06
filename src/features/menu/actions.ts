@@ -13,6 +13,8 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { type MenuSettingsInput, menuSettingsSchema } from "./schemas";
 
+const CHECK_VIOLATION_CODE = "23514";
+
 export async function updateMenuSettings(
   organizationId: OrganizationId,
   input: MenuSettingsInput,
@@ -41,6 +43,11 @@ export async function updateMenuSettings(
     .eq("id", organizationId)
     .select("id");
 
+  if (error?.code === CHECK_VIOLATION_CODE) {
+    return actionFailure(
+      "Os pedidos pelo cardápio viram comandas. Ligue as Comandas em Configurações > Vendas primeiro.",
+    );
+  }
   if (error || data.length === 0) {
     return actionFailure("Não foi possível salvar o cardápio.");
   }

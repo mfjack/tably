@@ -1651,6 +1651,7 @@ export type Database = {
           is_discount_enabled: boolean
           is_menu_published: boolean
           is_online_ordering_enabled: boolean
+          is_order_tabs_enabled: boolean
           is_service_fee_enabled: boolean
           is_split_bill_enabled: boolean
           is_takeaway_enabled: boolean
@@ -1686,6 +1687,7 @@ export type Database = {
           is_discount_enabled?: boolean
           is_menu_published?: boolean
           is_online_ordering_enabled?: boolean
+          is_order_tabs_enabled?: boolean
           is_service_fee_enabled?: boolean
           is_split_bill_enabled?: boolean
           is_takeaway_enabled?: boolean
@@ -1721,6 +1723,7 @@ export type Database = {
           is_discount_enabled?: boolean
           is_menu_published?: boolean
           is_online_ordering_enabled?: boolean
+          is_order_tabs_enabled?: boolean
           is_service_fee_enabled?: boolean
           is_split_bill_enabled?: boolean
           is_takeaway_enabled?: boolean
@@ -3043,6 +3046,10 @@ export type Database = {
         Args: { p_order_id: string }
         Returns: undefined
       }
+      count_day_punches: {
+        Args: { p_employee_id: string; p_work_date: string }
+        Returns: number
+      }
       create_employee_pin: {
         Args: { p_employee_id: string; p_pin: string }
         Returns: undefined
@@ -3092,6 +3099,7 @@ export type Database = {
           is_discount_enabled: boolean
           is_menu_published: boolean
           is_online_ordering_enabled: boolean
+          is_order_tabs_enabled: boolean
           is_service_fee_enabled: boolean
           is_split_bill_enabled: boolean
           is_takeaway_enabled: boolean
@@ -3345,6 +3353,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      max_day_punches: { Args: never; Returns: number }
       move_order_stock: {
         Args: {
           p_allow_negative?: boolean

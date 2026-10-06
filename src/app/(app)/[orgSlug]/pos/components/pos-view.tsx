@@ -430,17 +430,19 @@ export function PosView({
         onClose={checkout.cancelCheckout}
         onConfirm={checkout.confirmPayment}
         secondaryAction={
-          isQuickPayment
-            ? {
-                label: "Criar comanda",
-                isPending: false,
-                onClick: checkout.startTabCreation,
-              }
-            : {
-                label: "Abrir comanda",
-                isPending: checkout.isOpeningTab,
-                onClick: checkout.openKitchenTab,
-              }
+          !checkoutSettings.isOrderTabsEnabled
+            ? undefined
+            : isQuickPayment
+              ? {
+                  label: "Criar comanda",
+                  isPending: false,
+                  onClick: checkout.startTabCreation,
+                }
+              : {
+                  label: "Abrir comanda",
+                  isPending: checkout.isOpeningTab,
+                  onClick: checkout.openKitchenTab,
+                }
         }
       />
       <ItemNoteDialog
@@ -476,14 +478,18 @@ export function PosView({
           onConfirm={(payments, adjustments, total) =>
             void groupCheckout.submit({ payments, adjustments, total })
           }
-          secondaryAction={{
-            label:
-              groupCheckout.mode === "kitchen"
-                ? "Abrir comanda"
-                : "Criar comanda",
-            isPending: false,
-            onClick: () => void groupCheckout.submit(undefined),
-          }}
+          secondaryAction={
+            checkoutSettings.isOrderTabsEnabled
+              ? {
+                  label:
+                    groupCheckout.mode === "kitchen"
+                      ? "Abrir comanda"
+                      : "Criar comanda",
+                  isPending: false,
+                  onClick: () => void groupCheckout.submit(undefined),
+                }
+              : undefined
+          }
         />
       )}
       <CartTabNameDialog

@@ -33,6 +33,7 @@ function toFormValues({
     serviceFeePercent: checkout.serviceFeePercent || undefined,
     isDiscountEnabled: checkout.isDiscountEnabled,
     isSplitBillEnabled: checkout.isSplitBillEnabled,
+    isOrderTabsEnabled: checkout.isOrderTabsEnabled,
     isCustomerAccountPaymentEnabled: checkout.isCustomerAccountPaymentEnabled,
     acceptedPaymentMethods: checkout.acceptedPaymentMethods.filter(
       isReceivablePaymentMethod,
@@ -84,6 +85,12 @@ export function CheckoutSettingsForm({
           value={acceptedMethodsField.field.value}
           errorMessage={acceptedMethodsField.fieldState.error?.message}
           onChange={acceptedMethodsField.field.onChange}
+        />
+        <SwitchField
+          control={form.control}
+          name="isOrderTabsEnabled"
+          label="Comandas"
+          description="Mostra a página Comandas e permite abrir comanda no PDV, para o cliente pagar depois."
         />
         <SwitchField
           control={form.control}
