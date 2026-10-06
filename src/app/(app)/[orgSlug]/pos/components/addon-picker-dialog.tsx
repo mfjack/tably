@@ -5,7 +5,10 @@ import { DetailsDialog } from "@/components/dialog/details-dialog";
 import { DIALOG_ACTION_BUTTON_CLASS_NAME } from "@/components/dialog/dialog-styles";
 import { ToggleChip } from "@/components/toggle-chip";
 import { Button } from "@/components/ui/button";
-import { getAddonsTotal } from "@/features/product-addons/item-addons";
+import {
+  formatAddonLabel,
+  getAddonsTotal,
+} from "@/features/product-addons/item-addons";
 import type { ProductAddonId } from "@/features/product-addons/types";
 import type { Product } from "@/features/products/types";
 import { formatCurrency } from "@/lib/format";
@@ -71,13 +74,14 @@ function AddonPickerContent({
         <p className="text-muted-foreground text-sm">
           Escolha os adicionais ou toque em Adicionar para levar sem nenhum.
         </p>
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-2 gap-2">
           {availableAddons.map((addon) => (
             <ToggleChip
               key={addon.id}
-              label={`${addon.name} · + ${formatCurrency(addon.price)}`}
+              label={formatAddonLabel(addon)}
               isSelected={selectedIds.includes(addon.id)}
               onToggle={() => toggleAddon(addon.id)}
+              className="w-full justify-center"
             />
           ))}
         </div>

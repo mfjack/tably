@@ -1,4 +1,5 @@
 import * as z from "zod";
+import { formatCurrency } from "@/lib/format";
 import type { OrderItemAddon, ProductAddonId } from "./types";
 
 const orderItemAddonsSchema = z.array(
@@ -23,6 +24,14 @@ export function getAddonsTotal(
   addons: readonly Pick<OrderItemAddon, "price">[],
 ): number {
   return addons.reduce((total, addon) => total + addon.price, 0);
+}
+
+export function formatAddonLabel(
+  addon: Pick<OrderItemAddon, "name" | "price">,
+): string {
+  return addon.price > 0
+    ? `${addon.name} · + ${formatCurrency(addon.price)}`
+    : addon.name;
 }
 
 export function formatAddonNames(

@@ -5,8 +5,8 @@ import { ToggleChip } from "@/components/toggle-chip";
 import { FieldDescription, FieldLegend, FieldSet } from "@/components/ui/field";
 import type { OrganizationId } from "@/features/organizations/types";
 import { useProductAddonsQuery } from "@/features/product-addons/hooks/use-product-addons-query";
+import { formatAddonLabel } from "@/features/product-addons/item-addons";
 import type { ProductFormInput } from "@/features/products/schemas";
-import { formatCurrency } from "@/lib/format";
 
 type ProductAddonsFieldProps = {
   organizationId: OrganizationId;
@@ -45,7 +45,7 @@ export function ProductAddonsField({
           {addons.map((addon) => (
             <ToggleChip
               key={addon.id}
-              label={`${addon.name} · ${formatCurrency(addon.price)}`}
+              label={formatAddonLabel(addon)}
               isSelected={selectedIds.includes(addon.id)}
               onToggle={() => toggleAddon(addon.id)}
             />

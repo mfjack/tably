@@ -5,9 +5,15 @@ type ToggleChipProps = {
   label: string;
   isSelected: boolean;
   onToggle: () => void;
+  className?: string;
 };
 
-export function ToggleChip({ label, isSelected, onToggle }: ToggleChipProps) {
+export function ToggleChip({
+  label,
+  isSelected,
+  onToggle,
+  className,
+}: ToggleChipProps) {
   return (
     <button
       type="button"
@@ -17,6 +23,7 @@ export function ToggleChip({ label, isSelected, onToggle }: ToggleChipProps) {
         isSelected
           ? "border-primary bg-primary/10 text-primary"
           : "bg-background text-muted-foreground hover:bg-muted",
+        className,
       )}
       onClick={onToggle}
     >
