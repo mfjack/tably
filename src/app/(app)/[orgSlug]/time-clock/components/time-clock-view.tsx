@@ -17,7 +17,10 @@ import type { OrganizationId } from "@/features/organizations/types";
 import { useCreatePinAndRegisterPunchMutation } from "@/features/time-clock/hooks/use-create-pin-and-register-punch-mutation";
 import { useRegisterTimePunchMutation } from "@/features/time-clock/hooks/use-register-time-punch-mutation";
 import { useTimeClockEmployeesQuery } from "@/features/time-clock/hooks/use-time-clock-employees-query";
-import { getZonedParts } from "@/features/time-clock/time-utils";
+import {
+  formatClockTime,
+  getZonedParts,
+} from "@/features/time-clock/time-utils";
 import type {
   PunchReceipt,
   RegisterPunchResult,
@@ -55,7 +58,9 @@ function getFailureMessage(
     case "locked":
       return `Muitas tentativas erradas. Tente de novo às ${getZonedParts(result.lockedUntil, timeZone).time}.`;
     case "duplicate":
-      return `Ponto já registrado às ${getZonedParts(result.punchedAt, timeZone).time}. Aguarde 1 minuto para marcar de novo.`;
+      return `Ponto já registrado às ${formatClockTime(getZonedParts(result.punchedAt, timeZone).time)}. Aguarde 10 minutos para marcar de novo.`;
+    case "day_complete":
+      return "Você já marcou os 4 pontos de hoje: entrada, intervalo, volta e saída. Para corrigir, fale com o gerente.";
     case "inactive":
       return "Esse cadastro não está ativo hoje. Fale com o gerente.";
     case "not_found":

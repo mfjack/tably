@@ -41,6 +41,8 @@ const TIME_CLOCK_ERROR_MESSAGES: Readonly<Record<string, string>> = {
   P0002: "Registro não encontrado. Atualize a tela.",
   TB010: "Esse PIN já foi criado. Digite o seu PIN.",
   TB008: "Marcações de ponto não podem ser alteradas nem apagadas.",
+  TB031:
+    "Esse dia já tem as 4 marcações. Desconsidere a marcação errada antes de incluir outra.",
 };
 
 function getTimeClockErrorMessage(

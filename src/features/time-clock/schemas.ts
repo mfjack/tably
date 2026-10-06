@@ -79,5 +79,6 @@ export const registerPunchResultSchema = z.discriminatedUnion("status", [
   z.object({ status: z.literal("locked"), lockedUntil: z.string() }),
   z.object({ status: z.literal("duplicate"), punchedAt: z.string() }),
   z.object({ status: z.literal("inactive") }),
+  z.object({ status: z.literal("day_complete") }),
   z.object({ status: z.literal("not_found") }),
 ]);

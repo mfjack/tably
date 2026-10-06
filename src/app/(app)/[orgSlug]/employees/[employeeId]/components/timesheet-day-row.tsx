@@ -13,7 +13,6 @@ import {
 } from "@/features/employees/work-schedule-labels";
 import { TIME_OFF_KIND_LABELS } from "@/features/time-clock/labels";
 import {
-  formatClockTime,
   formatMinutes,
   formatSignedMinutes,
 } from "@/features/time-clock/time-utils";
@@ -22,6 +21,7 @@ import type {
   TimesheetPunch,
 } from "@/features/time-clock/timesheet";
 import { cn } from "@/lib/utils";
+import { DayPunchList } from "./day-punch-list";
 
 type TimesheetDayRowProps = {
   day: TimesheetDay;
@@ -122,31 +122,7 @@ export function TimesheetDayRow({
               {day.isPending || isOutside ? "" : "Sem marcações"}
             </span>
           ) : (
-            day.punches.map((punch) => (
-              <button
-                key={punch.id}
-                type="button"
-                title={
-                  punch.voiding
-                    ? `Desconsiderada: ${punch.voiding.reason}`
-                    : punch.source === "manual"
-                      ? `Incluída: ${punch.reason ?? ""}`
-                      : `NSR ${punch.nsr}`
-                }
-                className={cn(
-                  "inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-sm tabular-nums transition-colors hover:bg-muted",
-                  punch.voiding && "text-muted-foreground line-through",
-                  punch.source === "manual" && "border-dashed",
-                )}
-                onClick={() => onOpenPunch(punch)}
-              >
-                {formatClockTime(punch.localTime)}
-                {punch.isNextDay && <sup className="text-[0.625rem]">+1</sup>}
-                {punch.source === "manual" && (
-                  <PenLine aria-label="ajuste" className="size-3" />
-                )}
-              </button>
-            ))
+            <DayPunchList punches={day.punches} onOpenPunch={onOpenPunch} />
           )}
         </div>
         {day.schedule && (

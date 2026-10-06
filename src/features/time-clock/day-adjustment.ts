@@ -6,8 +6,6 @@ const EARLY_MORNING_LIMIT = 6 * MINUTES_PER_HOUR;
 const EVENING_START = 18 * MINUTES_PER_HOUR;
 const SHIFT_START_TOLERANCE = 2 * MINUTES_PER_HOUR;
 
-export const EXTRA_SLOT_LABEL = "Outro horário";
-
 export type DayAdjustmentSlot = {
   label: string;
   expectedTime: string | null;

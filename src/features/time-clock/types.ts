@@ -61,4 +61,5 @@ export type RegisterPunchResult =
   | { status: "locked"; lockedUntil: string }
   | { status: "duplicate"; punchedAt: string }
   | { status: "inactive" }
+  | { status: "day_complete" }
   | { status: "not_found" };
