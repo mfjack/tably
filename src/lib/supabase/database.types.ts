@@ -962,6 +962,7 @@ export type Database = {
       }
       kitchen_ticket_items: {
         Row: {
+          addons: Json
           id: string
           note: string | null
           organization_id: string
@@ -972,6 +973,7 @@ export type Database = {
           unit_price: number
         }
         Insert: {
+          addons?: Json
           id?: string
           note?: string | null
           organization_id: string
@@ -982,6 +984,7 @@ export type Database = {
           unit_price?: number
         }
         Update: {
+          addons?: Json
           id?: string
           note?: string | null
           organization_id?: string
@@ -1341,6 +1344,7 @@ export type Database = {
       }
       order_items: {
         Row: {
+          addons: Json
           id: string
           note: string | null
           order_id: string
@@ -1352,6 +1356,7 @@ export type Database = {
           unit_price: number
         }
         Insert: {
+          addons?: Json
           id?: string
           note?: string | null
           order_id: string
@@ -1363,6 +1368,7 @@ export type Database = {
           unit_price: number
         }
         Update: {
+          addons?: Json
           id?: string
           note?: string | null
           order_id?: string
@@ -1652,6 +1658,7 @@ export type Database = {
           is_menu_published: boolean
           is_online_ordering_enabled: boolean
           is_order_tabs_enabled: boolean
+          is_product_addons_enabled: boolean
           is_service_fee_enabled: boolean
           is_split_bill_enabled: boolean
           is_takeaway_enabled: boolean
@@ -1688,6 +1695,7 @@ export type Database = {
           is_menu_published?: boolean
           is_online_ordering_enabled?: boolean
           is_order_tabs_enabled?: boolean
+          is_product_addons_enabled?: boolean
           is_service_fee_enabled?: boolean
           is_split_bill_enabled?: boolean
           is_takeaway_enabled?: boolean
@@ -1724,6 +1732,7 @@ export type Database = {
           is_menu_published?: boolean
           is_online_ordering_enabled?: boolean
           is_order_tabs_enabled?: boolean
+          is_product_addons_enabled?: boolean
           is_service_fee_enabled?: boolean
           is_split_bill_enabled?: boolean
           is_takeaway_enabled?: boolean
@@ -1932,6 +1941,104 @@ export type Database = {
           email?: string
         }
         Relationships: []
+      }
+      product_addon_links: {
+        Row: {
+          addon_id: string
+          organization_id: string
+          product_id: string
+        }
+        Insert: {
+          addon_id: string
+          organization_id: string
+          product_id: string
+        }
+        Update: {
+          addon_id?: string
+          organization_id?: string
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_addon_links_addon_id_organization_id_fkey"
+            columns: ["addon_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "product_addons"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "product_addon_links_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_addon_links_product_id_organization_id_fkey"
+            columns: ["product_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "product_costs"
+            referencedColumns: ["product_id", "organization_id"]
+          },
+          {
+            foreignKeyName: "product_addon_links_product_id_organization_id_fkey"
+            columns: ["product_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      product_addons: {
+        Row: {
+          created_at: string
+          id: string
+          ingredient_id: string | null
+          ingredient_quantity: number | null
+          is_active: boolean
+          name: string
+          organization_id: string
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ingredient_id?: string | null
+          ingredient_quantity?: number | null
+          is_active?: boolean
+          name: string
+          organization_id: string
+          price: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ingredient_id?: string | null
+          ingredient_quantity?: number | null
+          is_active?: boolean
+          name?: string
+          organization_id?: string
+          price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_addons_ingredient_id_organization_id_fkey"
+            columns: ["ingredient_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "product_addons_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       product_ingredients: {
         Row: {
@@ -3100,6 +3207,7 @@ export type Database = {
           is_menu_published: boolean
           is_online_ordering_enabled: boolean
           is_order_tabs_enabled: boolean
+          is_product_addons_enabled: boolean
           is_service_fee_enabled: boolean
           is_split_bill_enabled: boolean
           is_takeaway_enabled: boolean
@@ -3163,6 +3271,7 @@ export type Database = {
         Returns: undefined
       }
       get_account_balance: { Args: { p_account_id: string }; Returns: number }
+      get_addons_total: { Args: { p_addons: Json }; Returns: number }
       get_available_loyalty_settings: {
         Args: { p_organization_id: string }
         Returns: {
@@ -3364,6 +3473,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      normalize_addon_ids: { Args: { p_addon_ids: Json }; Returns: string[] }
       normalize_order_payments: {
         Args: {
           p_amount_received: number
@@ -3487,6 +3597,15 @@ export type Database = {
         Args: { p_employee_id?: string; p_operator_id?: string }
         Returns: undefined
       }
+      resolve_item_addons: {
+        Args: {
+          p_addon_ids: string[]
+          p_allow_inactive: boolean
+          p_organization_id: string
+          p_product_id: string
+        }
+        Returns: Json
+      }
       resolve_offline_customer_name: {
         Args: { p_customer_name: string; p_organization_id: string }
         Returns: string
@@ -3553,6 +3672,10 @@ export type Database = {
           p_online_order_id: string
           p_phone: string
         }
+        Returns: undefined
+      }
+      set_product_addons: {
+        Args: { p_addon_ids: string[]; p_product_id: string }
         Returns: undefined
       }
       set_task_done: {

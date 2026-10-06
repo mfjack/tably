@@ -11,6 +11,7 @@ export const orderItemSchema = z.object({
   productId: z.string().min(1),
   quantity: z.number().int().positive(),
   note: z.string().trim().max(ORDER_ITEM_NOTE_MAX_LENGTH).optional(),
+  addonIds: z.array(z.string()).optional(),
 });
 
 export const orderPaymentSchema = z.object({

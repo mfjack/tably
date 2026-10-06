@@ -8,6 +8,7 @@ import type {
   KitchenTicketId,
   KitchenTicketStatus,
 } from "@/features/kitchen/types";
+import { ItemAddonNames } from "@/features/product-addons/components/item-addon-names";
 import { cn } from "@/lib/utils";
 
 const LATE_TICKET_MINUTES = 15;
@@ -79,6 +80,10 @@ function KitchenTicketCardComponent({
               {item.quantity}x
             </strong>
             {item.productName}
+            <ItemAddonNames
+              addonNames={item.addonNames}
+              className="font-semibold text-sm"
+            />
             {item.note && (
               <span className="mt-0.5 block font-semibold text-primary text-sm">
                 ↳ {item.note}

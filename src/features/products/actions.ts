@@ -8,6 +8,7 @@ import {
   MODULE_ACCESS_DENIED_MESSAGE,
 } from "@/features/operators/module-access";
 import type { OrganizationId } from "@/features/organizations/types";
+import type { ProductAddonId } from "@/features/product-addons/types";
 import {
   type ActionResult,
   actionFailure,
@@ -20,7 +21,7 @@ import { type ProductFormInput, productFormSchema } from "./schemas";
 import type { Product, ProductId } from "./types";
 
 const PRODUCT_COLUMNS =
-  "id, name, price, image_url, is_active, is_on_menu, menu_detail, category_id, categories(name), product_ingredients(ingredient_id, quantity)";
+  "id, name, price, image_url, is_active, is_on_menu, menu_detail, category_id, categories(name), product_ingredients(ingredient_id, quantity), product_addon_links(product_addons(id, name, price, is_active, ingredient_id, ingredient_quantity))";
 
 export async function listProducts(
   organizationId: OrganizationId,
@@ -65,6 +66,19 @@ export async function listProducts(
         ingredientId: recipeItem.ingredient_id as IngredientId,
         quantity: recipeItem.quantity,
       })),
+      addons: product.product_addon_links
+        .flatMap(({ product_addons: addon }) => (addon ? [addon] : []))
+        .map((addon) => ({
+          id: addon.id as ProductAddonId,
+          name: addon.name,
+          price: addon.price,
+          isActive: addon.is_active,
+          ingredientId: addon.ingredient_id as IngredientId | null,
+          ingredientQuantity: addon.ingredient_quantity,
+        }))
+        .sort((first, second) =>
+          first.name.localeCompare(second.name, "pt-BR"),
+        ),
     })),
   );
 }
@@ -91,6 +105,7 @@ export async function saveProduct(
     menuDetail,
     imageUrl,
     recipe,
+    addonIds,
   } = parsedInput.data;
   const supabase = await createClient();
   const { data: savedProductId, error } = await supabase.rpc("save_product", {
@@ -111,6 +126,16 @@ export async function saveProduct(
     return actionFailure("Já existe um produto com esse nome.");
   }
   if (error) return actionFailure("Não foi possível salvar o produto.");
+
+  const { error: addonsError } = await supabase.rpc("set_product_addons", {
+    p_product_id: savedProductId,
+    p_addon_ids: addonIds,
+  });
+  if (addonsError) {
+    return actionFailure(
+      "O produto foi salvo, mas os adicionais não foram atualizados.",
+    );
+  }
 
   const { error: menuError } = await supabase
     .from("products")

@@ -59,6 +59,7 @@ export const checkoutSettingsSchema = z
     isDiscountEnabled: z.boolean(),
     isSplitBillEnabled: z.boolean(),
     isOrderTabsEnabled: z.boolean(),
+    isProductAddonsEnabled: z.boolean(),
     isCustomerAccountPaymentEnabled: z.boolean(),
     acceptedPaymentMethods: z
       .array(z.enum(RECEIVABLE_PAYMENT_METHOD_VALUES))

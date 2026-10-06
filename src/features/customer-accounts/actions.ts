@@ -9,6 +9,10 @@ import { PAYMENT_METHOD_NOT_ACCEPTED_MESSAGE } from "@/features/orders/messages"
 import type { OrderId } from "@/features/orders/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import {
+  formatItemNameWithAddons,
+  parseOrderItemAddons,
+} from "@/features/product-addons/item-addons";
+import {
   type ActionResult,
   actionFailure,
   actionSuccess,
@@ -102,7 +106,7 @@ export async function listAccountEntries(
   const { data, error } = await supabase
     .from("account_entries")
     .select(
-      "id, kind, amount, order_id, payment_method, note, operator_name, created_at, order:orders(order_items(product_name, quantity))",
+      "id, kind, amount, order_id, payment_method, note, operator_name, created_at, order:orders(order_items(product_name, quantity, addons))",
     )
     .eq("account_id", accountId)
     .order("created_at", { ascending: false })
@@ -121,7 +125,10 @@ export async function listAccountEntries(
       operatorName: entry.operator_name,
       createdAt: entry.created_at,
       items: (entry.order?.order_items ?? []).map((item) => ({
-        productName: item.product_name,
+        productName: formatItemNameWithAddons(
+          item.product_name,
+          parseOrderItemAddons(item.addons),
+        ),
         quantity: item.quantity,
       })),
     })),

@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Tag } from "lucide-react";
+import { CirclePlus, Plus, Tag } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useIngredientsMap } from "@/features/ingredients/hooks/use-ingredients-map";
@@ -11,6 +11,7 @@ import { ListEmptyState } from "../../components/list-empty-state";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
 import { DeleteProductDialog } from "./delete-product-dialog";
+import { ProductAddonsDialog } from "./product-addons-dialog";
 import { ProductFormDialog } from "./product-form-dialog";
 import { ProductsTable } from "./products-table";
 
@@ -24,6 +25,7 @@ type ProductsViewProps = {
   title: string;
   description: string;
   canManage: boolean;
+  isAddonsEnabled: boolean;
 };
 
 export function ProductsView({
@@ -31,14 +33,19 @@ export function ProductsView({
   title,
   description,
   canManage,
+  isAddonsEnabled,
 }: ProductsViewProps) {
   const productsQuery = useProductsQuery(organizationId);
-  const { ingredientsById, isPending: isLoadingIngredients } =
-    useIngredientsMap(organizationId);
+  const {
+    ingredients,
+    ingredientsById,
+    isPending: isLoadingIngredients,
+  } = useIngredientsMap(organizationId);
   const [formState, setFormState] = useState<ProductFormState>({
     mode: "closed",
   });
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [isAddonsDialogOpen, setIsAddonsDialogOpen] = useState(false);
 
   const openCreateForm = useCallback(() => {
     setFormState({ mode: "create" });
@@ -55,10 +62,22 @@ export function ProductsView({
         description={description}
         actions={
           canManage && (
-            <Button className="h-10" onClick={openCreateForm}>
-              <Plus aria-hidden />
-              Novo produto
-            </Button>
+            <>
+              {isAddonsEnabled && (
+                <Button
+                  variant="outline"
+                  className="h-10"
+                  onClick={() => setIsAddonsDialogOpen(true)}
+                >
+                  <CirclePlus aria-hidden />
+                  Adicionais
+                </Button>
+              )}
+              <Button className="h-10" onClick={openCreateForm}>
+                <Plus aria-hidden />
+                Novo produto
+              </Button>
+            </>
           )
         }
       />
@@ -87,8 +106,16 @@ export function ProductsView({
       <ProductFormDialog
         organizationId={organizationId}
         isOpen={formState.mode !== "closed"}
+        isAddonsEnabled={isAddonsEnabled}
         product={formState.mode === "edit" ? formState.product : undefined}
         onClose={() => setFormState({ mode: "closed" })}
+      />
+      <ProductAddonsDialog
+        organizationId={organizationId}
+        isOpen={isAddonsDialogOpen}
+        ingredients={ingredients}
+        ingredientsById={ingredientsById}
+        onClose={() => setIsAddonsDialogOpen(false)}
       />
       <DeleteProductDialog
         organizationId={organizationId}

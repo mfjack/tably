@@ -24,6 +24,8 @@ const ORDER_ERROR_MESSAGES: Readonly<Record<string, string>> = {
   TB023: "O item escolhido como prêmio não está no pedido.",
   TB024: "Cliente da fidelidade não encontrado. Confira o celular.",
   TB025: PAYMENT_METHOD_NOT_ACCEPTED_MESSAGE,
+  TB032: "Um adicional do pedido não está mais disponível para esse produto.",
+  TB033: "Os adicionais estão desligados nas configurações.",
   "22023": "Confira o pedido e o valor recebido.",
   "42501": "Você não tem permissão para vender neste estabelecimento.",
 };

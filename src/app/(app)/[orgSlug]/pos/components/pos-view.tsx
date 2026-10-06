@@ -26,7 +26,7 @@ import {
   useHydratedCartStore,
   useTabTarget,
 } from "@/features/pos/cart-store";
-import type { ProductId } from "@/features/products/types";
+import type { Product, ProductId } from "@/features/products/types";
 import { useIsOnline } from "@/hooks/use-is-online";
 import { ModuleLinkButton } from "../../components/module-link-button";
 import { PageHeader } from "../../components/page-header";
@@ -40,6 +40,7 @@ import {
   usePosCatalog,
 } from "../hooks/use-pos-catalog";
 import { usePosCheckout } from "../hooks/use-pos-checkout";
+import { AddonPickerDialog } from "./addon-picker-dialog";
 import { CartPanel } from "./cart-panel";
 import {
   CartTabNameDialog,
@@ -162,6 +163,9 @@ export function PosView({
 
   const [searchTerm, setSearchTerm] = useState("");
   const [noteCartLine, setNoteCartLine] = useState<CartLine | null>(null);
+  const [addonPickerProduct, setAddonPickerProduct] = useState<Product | null>(
+    null,
+  );
   const [selectedCategoryId, setSelectedCategoryId] =
     useState<CategoryId | null>(null);
 
@@ -194,13 +198,33 @@ export function PosView({
   }, [posProducts, searchTerm, selectedCategoryId]);
 
   const handleAddProduct = useCallback(
-    (productId: ProductId) => addProductToCart(organizationId, productId),
-    [addProductToCart, organizationId],
+    (productId: ProductId) => {
+      const product = posProducts.find(({ id }) => id === productId);
+      if (
+        checkoutSettings.isProductAddonsEnabled &&
+        product?.addons.some((addon) => addon.isActive)
+      ) {
+        setAddonPickerProduct(product);
+        return;
+      }
+      addProductToCart(organizationId, productId);
+    },
+    [
+      addProductToCart,
+      checkoutSettings.isProductAddonsEnabled,
+      organizationId,
+      posProducts,
+    ],
   );
 
   const handleDecrementItem = useCallback(
     (cartLine: CartLine) =>
-      decrementCartItem(organizationId, cartLine.product.id, cartLine.note),
+      decrementCartItem(
+        organizationId,
+        cartLine.product.id,
+        cartLine.note,
+        cartLine.cartAddonIds,
+      ),
     [decrementCartItem, organizationId],
   );
 
@@ -215,6 +239,7 @@ export function PosView({
       cartLine.note,
       note,
       quantityToMove,
+      cartLine.cartAddonIds,
     );
   }
 
@@ -444,6 +469,14 @@ export function PosView({
                   onClick: checkout.openKitchenTab,
                 }
         }
+      />
+      <AddonPickerDialog
+        product={addonPickerProduct}
+        onClose={() => setAddonPickerProduct(null)}
+        onConfirm={(product, addonIds) => {
+          addProductToCart(organizationId, product.id, addonIds);
+          setAddonPickerProduct(null);
+        }}
       />
       <ItemNoteDialog
         cartLine={noteCartLine}

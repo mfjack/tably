@@ -4,41 +4,73 @@ export type CartItem = {
   productId: ProductId;
   quantity: number;
   note: string;
+  addonIds?: string[];
 };
+
+type CartItemIdentity = Pick<CartItem, "productId" | "note" | "addonIds">;
 
 export const CART_ITEM_NOTE_MAX_LENGTH = 140;
 
-export function getCartItemKey(item: Pick<CartItem, "productId" | "note">) {
-  return `${item.productId}:${item.note}`;
+function normalizeAddonIds(addonIds: readonly string[] = []): string[] {
+  return [...new Set(addonIds)].sort();
 }
 
-function isSameLine(item: CartItem, productId: ProductId, note: string) {
-  return item.productId === productId && item.note === note;
+function getAddonKey(addonIds?: readonly string[]) {
+  return normalizeAddonIds(addonIds).join(",");
+}
+
+export function getCartItemKey(item: CartItemIdentity) {
+  return `${item.productId}:${item.note}:${getAddonKey(item.addonIds)}`;
+}
+
+function isSameLine(
+  item: CartItem,
+  productId: ProductId,
+  note: string,
+  addonIds?: readonly string[],
+) {
+  return (
+    item.productId === productId &&
+    item.note === note &&
+    getAddonKey(item.addonIds) === getAddonKey(addonIds)
+  );
 }
 
 export function addToItems(
   items: CartItem[],
   productId: ProductId,
+  addonIds: readonly string[] = [],
 ): CartItem[] {
-  const hasLine = items.some((item) => isSameLine(item, productId, ""));
+  const hasLine = items.some((item) =>
+    isSameLine(item, productId, "", addonIds),
+  );
 
   return hasLine
     ? items.map((item) =>
-        isSameLine(item, productId, "")
+        isSameLine(item, productId, "", addonIds)
           ? { ...item, quantity: item.quantity + 1 }
           : item,
       )
-    : [...items, { productId, quantity: 1, note: "" }];
+    : [
+        ...items,
+        {
+          productId,
+          quantity: 1,
+          note: "",
+          addonIds: normalizeAddonIds(addonIds),
+        },
+      ];
 }
 
 export function decrementFromItems(
   items: CartItem[],
   productId: ProductId,
   note: string,
+  addonIds?: readonly string[],
 ): CartItem[] {
   return items
     .map((item) =>
-      isSameLine(item, productId, note)
+      isSameLine(item, productId, note, addonIds)
         ? { ...item, quantity: item.quantity - 1 }
         : item,
     )
@@ -51,10 +83,11 @@ export function updateItemNote(
   currentNote: string,
   nextNote: string,
   quantityToMove: number,
+  addonIds?: readonly string[],
 ): CartItem[] {
   const normalizedNote = nextNote.trim().slice(0, CART_ITEM_NOTE_MAX_LENGTH);
   const editedItem = items.find((item) =>
-    isSameLine(item, productId, currentNote),
+    isSameLine(item, productId, currentNote, addonIds),
   );
   if (!editedItem || normalizedNote === currentNote) return items;
 
@@ -64,7 +97,7 @@ export function updateItemNote(
   );
   const remainingQuantity = editedItem.quantity - movedQuantity;
   const hasTargetLine = items.some((item) =>
-    isSameLine(item, productId, normalizedNote),
+    isSameLine(item, productId, normalizedNote, addonIds),
   );
 
   if (hasTargetLine) {
@@ -74,7 +107,7 @@ export function updateItemNote(
           ? [{ ...item, quantity: remainingQuantity }]
           : [];
       }
-      return isSameLine(item, productId, normalizedNote)
+      return isSameLine(item, productId, normalizedNote, addonIds)
         ? [{ ...item, quantity: item.quantity + movedQuantity }]
         : [item];
     });

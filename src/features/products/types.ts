@@ -1,5 +1,6 @@
 import type { CategoryId } from "@/features/categories/types";
 import type { IngredientId } from "@/features/ingredients/types";
+import type { ProductAddon } from "@/features/product-addons/types";
 import type { Brand } from "@/lib/brand";
 
 export type ProductId = Brand<string, "ProductId">;
@@ -21,4 +22,5 @@ export type Product = {
   recipe: RecipeItem[];
   isOnMenu: boolean;
   menuDetail: string | null;
+  addons: ProductAddon[];
 };

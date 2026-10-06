@@ -25,6 +25,7 @@ export const productFormSchema = z
     menuDetail: z.string().trim().max(40, "Detalhe muito longo.").optional(),
     imageUrl: z.string().optional(),
     recipe: z.array(recipeItemSchema),
+    addonIds: z.array(z.string()),
   })
   .superRefine((values, context) => {
     const seenIngredientIds = new Set<string>();

@@ -32,6 +32,7 @@ export function buildOrderDetailsTicket(
       quantity: item.quantity,
       total: item.total,
       note: item.note ?? undefined,
+      addonNames: item.addonNames,
     })),
     subtotal: order.subtotal,
     takeawayFee: order.takeawayFee,

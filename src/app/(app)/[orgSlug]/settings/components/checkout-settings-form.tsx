@@ -34,6 +34,7 @@ function toFormValues({
     isDiscountEnabled: checkout.isDiscountEnabled,
     isSplitBillEnabled: checkout.isSplitBillEnabled,
     isOrderTabsEnabled: checkout.isOrderTabsEnabled,
+    isProductAddonsEnabled: checkout.isProductAddonsEnabled,
     isCustomerAccountPaymentEnabled: checkout.isCustomerAccountPaymentEnabled,
     acceptedPaymentMethods: checkout.acceptedPaymentMethods.filter(
       isReceivablePaymentMethod,
@@ -124,6 +125,12 @@ export function CheckoutSettingsForm({
             placeholder="Ex.: 10 %"
           />
         )}
+        <SwitchField
+          control={form.control}
+          name="isProductAddonsEnabled"
+          label="Adicionais"
+          description="Extras cobrados à parte, como granola ou leite em pó, escolhidos ao vender o produto no PDV."
+        />
         <SwitchField
           control={form.control}
           name="isDiscountEnabled"

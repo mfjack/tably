@@ -1,5 +1,6 @@
 import { MessageSquareText, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { formatAddonNames } from "@/features/product-addons/item-addons";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { CartLine } from "../hooks/use-pos-catalog";
@@ -15,7 +16,7 @@ export function CartItemCard({
   onDecrement,
   onEditNote,
 }: CartItemCardProps) {
-  const { product, quantity, note, total } = cartLine;
+  const { product, addons, displayName, quantity, note, total } = cartLine;
   const hasNote = note !== "";
 
   return (
@@ -25,6 +26,11 @@ export function CartItemCard({
       </span>
       <div className="flex min-w-0 flex-1 flex-col">
         <span className="truncate font-semibold text-sm">{product.name}</span>
+        {addons.length > 0 && (
+          <span className="truncate text-muted-foreground text-xs">
+            {formatAddonNames(addons)}
+          </span>
+        )}
         {hasNote && (
           <span className="truncate text-primary text-xs">↳ {note}</span>
         )}
@@ -39,8 +45,8 @@ export function CartItemCard({
         className={cn(hasNote && "border-primary text-primary")}
         aria-label={
           hasNote
-            ? `Editar observação de ${product.name}`
-            : `Adicionar observação a ${product.name}`
+            ? `Editar observação de ${displayName}`
+            : `Adicionar observação a ${displayName}`
         }
         onClick={() => onEditNote(cartLine)}
       >
@@ -50,7 +56,7 @@ export function CartItemCard({
         type="button"
         variant="destructive"
         size="icon-lg"
-        aria-label={`Remover 1 ${product.name} do pedido`}
+        aria-label={`Remover 1 ${displayName} do pedido`}
         onClick={() => onDecrement(cartLine)}
       >
         <Trash2 aria-hidden />

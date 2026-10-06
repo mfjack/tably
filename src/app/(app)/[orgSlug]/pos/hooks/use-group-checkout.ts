@@ -5,6 +5,7 @@ import { getChangeMessage } from "@/features/orders/order-payments";
 import type { GroupedOrderTicketEntry } from "@/features/orders/print-order-ticket";
 import type { OrderPaymentConfirmation } from "@/features/orders/schemas";
 import type { CartTabId } from "@/features/pos/cart-store";
+import { getCartLineAddonNames } from "./use-pos-catalog";
 import type { GroupPlacementResult, TabOrderGroup } from "./use-pos-checkout";
 
 const QUEUED_ORDER_MESSAGE =
@@ -38,6 +39,7 @@ function toTicketEntry(group: TabOrderGroup): GroupedOrderTicketEntry {
     customerName: group.customerName,
     items: group.cartLines.map((cartLine) => ({
       name: cartLine.product.name,
+      addonNames: getCartLineAddonNames(cartLine),
       quantity: cartLine.quantity,
       total: cartLine.total,
       note: cartLine.note || undefined,
@@ -79,8 +81,10 @@ export function useGroupCheckout({
         lines: currentGroup.cartLines.map((cartLine) => ({
           productId: cartLine.product.id,
           productName: cartLine.product.name,
+          addonNames: getCartLineAddonNames(cartLine),
           quantity: cartLine.quantity,
-          unitPrice: cartLine.product.price,
+          unitPrice: cartLine.unitPrice,
+          rewardPrice: cartLine.product.price,
           total: cartLine.total,
         })),
         takeawayFee: 0,

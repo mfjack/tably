@@ -61,6 +61,7 @@ export async function placeOrder(
         product_id: item.productId,
         quantity: item.quantity,
         note: item.note,
+        addon_ids: item.addonIds ?? [],
       })),
       p_note: note || undefined,
       p_payments: payments?.length

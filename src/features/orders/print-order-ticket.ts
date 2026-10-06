@@ -9,6 +9,7 @@ export type OrderTicketItem = {
   quantity: number;
   total: number;
   note?: string;
+  addonNames?: readonly string[];
 };
 
 export type OrderTicketBusiness = {
@@ -55,6 +56,7 @@ export const TICKET_STYLES = `
   .customer { font-size: 15px; font-weight: 700; }
   .note { white-space: pre-wrap; }
   .item-note { font-size: 13px; padding-left: 12px; white-space: pre-wrap; }
+  .item-addon { font-size: 13px; padding-left: 12px; }
 `;
 
 export function buildRow(
@@ -84,6 +86,12 @@ function buildItemsHtml(items: readonly OrderTicketItem[]): string {
     .map(
       (item) =>
         buildRow(`${item.quantity}x ${item.name}`, formatCurrency(item.total)) +
+        (item.addonNames ?? [])
+          .map(
+            (addonName) =>
+              `<p class="item-addon">+ ${escapeHtml(addonName)}</p>`,
+          )
+          .join("") +
         (item.note
           ? `<p class="item-note">↳ ${escapeHtml(item.note)}</p>`
           : ""),

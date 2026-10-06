@@ -11,6 +11,10 @@ import {
   MODULE_ACCESS_DENIED_MESSAGE,
 } from "@/features/operators/module-access";
 import type { OrganizationId } from "@/features/organizations/types";
+import {
+  getAddonsTotal,
+  parseOrderItemAddons,
+} from "@/features/product-addons/item-addons";
 import type { ProductId } from "@/features/products/types";
 import {
   type ActionResult,
@@ -49,7 +53,7 @@ const ORDER_DETAILS_COLUMNS = `
   attendant:profiles!orders_created_by_profile_fkey(full_name),
   cashier:profiles!orders_paid_by_profile_fkey(full_name),
   order_items(
-    id, product_id, product_name, quantity, unit_price, note,
+    id, product_id, product_name, quantity, unit_price, note, addons,
     product:products!order_items_product_id_organization_id_fkey(
       category:categories!products_category_id_organization_id_fkey(created_at, position)
     )
@@ -84,6 +88,7 @@ type OrderDetailsRow = {
     quantity: number;
     unit_price: number;
     note: string | null;
+    addons: unknown;
     product: {
       category: { created_at: string; position: number } | null;
     } | null;
@@ -152,15 +157,20 @@ function toOrderDetails(row: OrderDetailsRow): OrderDetails {
     cashierName: row.paid_by_operator_name ?? row.cashier?.full_name ?? null,
     items: [...row.order_items]
       .sort(compareOrderItemsByCategory)
-      .map((item) => ({
-        id: item.id as OrderItemId,
-        productId: item.product_id as ProductId | null,
-        productName: item.product_name,
-        quantity: item.quantity,
-        unitPrice: item.unit_price,
-        note: item.note,
-        total: item.unit_price * item.quantity,
-      })),
+      .map((item) => {
+        const addons = parseOrderItemAddons(item.addons);
+        return {
+          id: item.id as OrderItemId,
+          productId: item.product_id as ProductId | null,
+          productName: item.product_name,
+          quantity: item.quantity,
+          unitPrice: item.unit_price,
+          basePrice: item.unit_price - getAddonsTotal(addons),
+          addonNames: addons.map((addon) => addon.name),
+          note: item.note,
+          total: item.unit_price * item.quantity,
+        };
+      }),
   };
 }
 
@@ -241,6 +251,7 @@ export async function addOrderItems(
       product_id: item.productId,
       quantity: item.quantity,
       note: item.note,
+      addon_ids: item.addonIds ?? [],
     })),
     p_note: note?.trim().slice(0, 500),
     p_request_id: parsedRequest.data?.requestId,

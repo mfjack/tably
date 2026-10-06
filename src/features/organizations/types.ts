@@ -36,6 +36,7 @@ export type OrganizationCheckoutSettings = {
   isDiscountEnabled: boolean;
   isSplitBillEnabled: boolean;
   isOrderTabsEnabled: boolean;
+  isProductAddonsEnabled: boolean;
   isCustomerAccountPaymentEnabled: boolean;
   loyaltyProgram: LoyaltyProgram | null;
   paymentFees: OrganizationPaymentFees;

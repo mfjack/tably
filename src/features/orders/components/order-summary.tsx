@@ -1,3 +1,4 @@
+import { ItemAddonNames } from "@/features/product-addons/components/item-addon-names";
 import { formatCurrency } from "@/lib/format";
 
 export type OrderSummaryLine = {
@@ -5,6 +6,8 @@ export type OrderSummaryLine = {
   productName: string;
   quantity: number;
   unitPrice?: number;
+  rewardPrice?: number;
+  addonNames?: readonly string[];
   total: number;
 };
 
@@ -41,9 +44,9 @@ export function OrderSummary({ summary }: OrderSummaryProps) {
       )}
 
       <ul className="flex flex-col gap-2">
-        {summary.lines.map((line) => (
+        {summary.lines.map((line, index) => (
           <li
-            key={line.productName}
+            key={`${line.productName}-${index.toString()}`}
             className="flex items-baseline justify-between gap-4 text-sm"
           >
             <span className="min-w-0 truncate">
@@ -51,6 +54,7 @@ export function OrderSummary({ summary }: OrderSummaryProps) {
                 {line.quantity}x
               </strong>
               {line.productName}
+              <ItemAddonNames addonNames={line.addonNames} />
             </span>
             <span className="shrink-0 tabular-nums">
               {formatCurrency(line.total)}

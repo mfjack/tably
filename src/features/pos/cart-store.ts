@@ -41,11 +41,16 @@ type OrganizationCarts = {
 type CartState = {
   cartsByOrganization: Partial<Record<OrganizationId, OrganizationCarts>>;
   tabTargetsByOrganization: Partial<Record<OrganizationId, OrderTabTarget>>;
-  addProduct: (organizationId: OrganizationId, productId: ProductId) => void;
+  addProduct: (
+    organizationId: OrganizationId,
+    productId: ProductId,
+    addonIds?: readonly string[],
+  ) => void;
   decrementItem: (
     organizationId: OrganizationId,
     productId: ProductId,
     note: string,
+    addonIds?: readonly string[],
   ) => void;
   setItemNote: (
     organizationId: OrganizationId,
@@ -53,6 +58,7 @@ type CartState = {
     currentNote: string,
     nextNote: string,
     quantityToMove: number,
+    addonIds?: readonly string[],
   ) => void;
   setNote: (organizationId: OrganizationId, note: string) => void;
   addCartTab: (organizationId: OrganizationId, name: string) => void;
@@ -200,15 +206,15 @@ export const useCartStore = create<CartState>()(
       return {
         cartsByOrganization: {},
         tabTargetsByOrganization: {},
-        addProduct: (organizationId, productId) =>
+        addProduct: (organizationId, productId, addonIds) =>
           updateActiveCart(organizationId, (cart) => ({
             ...cart,
-            items: addToItems(cart.items, productId),
+            items: addToItems(cart.items, productId, addonIds),
           })),
-        decrementItem: (organizationId, productId, note) =>
+        decrementItem: (organizationId, productId, note, addonIds) =>
           updateActiveCart(organizationId, (cart) => ({
             ...cart,
-            items: decrementFromItems(cart.items, productId, note),
+            items: decrementFromItems(cart.items, productId, note, addonIds),
           })),
         setItemNote: (
           organizationId,
@@ -216,6 +222,7 @@ export const useCartStore = create<CartState>()(
           currentNote,
           nextNote,
           quantityToMove,
+          addonIds,
         ) =>
           updateActiveCart(organizationId, (cart) => ({
             ...cart,
@@ -225,6 +232,7 @@ export const useCartStore = create<CartState>()(
               currentNote,
               nextNote,
               quantityToMove,
+              addonIds,
             ),
           })),
         setNote: (organizationId, note) =>

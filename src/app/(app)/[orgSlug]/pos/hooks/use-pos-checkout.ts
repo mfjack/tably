@@ -33,7 +33,11 @@ import {
   useOfflineOrderQueue,
 } from "@/features/pos/offline-order-queue";
 import { isNetworkError } from "@/lib/network-error";
-import type { CartLine } from "./use-pos-catalog";
+import {
+  type CartLine,
+  getCartLineAddonNames,
+  toOrderItemInput,
+} from "./use-pos-catalog";
 
 export type TabOrderGroup = {
   cartTabId: CartTabId;
@@ -133,8 +137,10 @@ export function usePosCheckout({
     lines: cartLines.map((cartLine) => ({
       productId: cartLine.product.id,
       productName: cartLine.product.name,
+      addonNames: getCartLineAddonNames(cartLine),
       quantity: cartLine.quantity,
-      unitPrice: cartLine.product.price,
+      unitPrice: cartLine.unitPrice,
+      rewardPrice: cartLine.product.price,
       total: cartLine.total,
     })),
     takeawayFee: appliedTakeawayFee,
@@ -150,11 +156,7 @@ export function usePosCheckout({
     !placeOrderMutation.variables.input.payments;
 
   function buildOrderItems() {
-    return cartLines.map((cartLine) => ({
-      productId: cartLine.product.id,
-      quantity: cartLine.quantity,
-      note: cartLine.note || undefined,
-    }));
+    return cartLines.map(toOrderItemInput);
   }
 
   function finishCheckout(placement: OrderPlacement) {
@@ -169,6 +171,7 @@ export function usePosCheckout({
       categoryOrder,
     ).map((cartLine) => ({
       name: cartLine.product.name,
+      addonNames: getCartLineAddonNames(cartLine),
       quantity: cartLine.quantity,
       total: cartLine.total,
       note: cartLine.note || undefined,
@@ -435,11 +438,7 @@ export function usePosCheckout({
       payment?.total ??
       group.cartLines.reduce((total, cartLine) => total + cartLine.total, 0);
     const input: PlaceOrderInput = {
-      items: group.cartLines.map((cartLine) => ({
-        productId: cartLine.product.id,
-        quantity: cartLine.quantity,
-        note: cartLine.note || undefined,
-      })),
+      items: group.cartLines.map(toOrderItemInput),
       customer: { customerName: group.customerName, isTakeaway: false },
       payments: payment?.payments,
       adjustments: payment?.adjustments,

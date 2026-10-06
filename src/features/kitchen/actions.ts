@@ -7,6 +7,7 @@ import {
 } from "@/features/operators/module-access";
 import type { OrderId } from "@/features/orders/types";
 import type { OrganizationId } from "@/features/organizations/types";
+import { parseOrderItemAddons } from "@/features/product-addons/item-addons";
 import {
   type ActionResult,
   actionFailure,
@@ -23,7 +24,7 @@ import type {
 const KITCHEN_TICKET_COLUMNS = `
   id, order_id, status, note, is_addition, created_at, ready_at,
   order:orders!inner(customer_name, is_takeaway, takeaway_fee, status),
-  kitchen_ticket_items(id, product_name, quantity, unit_price, note, sort_order)
+  kitchen_ticket_items(id, product_name, quantity, unit_price, note, sort_order, addons)
 `;
 
 const ACTIVE_STATUSES = [
@@ -52,6 +53,7 @@ type KitchenTicketRow = {
     unit_price: number;
     note: string | null;
     sort_order: number;
+    addons: unknown;
   }>;
 };
 
@@ -76,6 +78,9 @@ function toKitchenTicket(row: KitchenTicketRow): KitchenTicket {
       .map((item) => ({
         id: item.id,
         productName: item.product_name,
+        addonNames: parseOrderItemAddons(item.addons).map(
+          (addon) => addon.name,
+        ),
         quantity: item.quantity,
         unitPrice: item.unit_price,
         note: item.note,

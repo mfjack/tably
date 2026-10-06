@@ -30,6 +30,7 @@ import {
   NONE_SELECT_VALUE,
   toSelectFieldValue,
 } from "@/lib/optional-select-value";
+import { ProductAddonsField } from "./product-addons-field";
 import { ProductImagePicker } from "./product-image-picker";
 import { ProductPricingSummary } from "./product-pricing-summary";
 import { RecipeEditor } from "./recipe-editor";
@@ -42,6 +43,7 @@ const EMPTY_PRODUCT_FORM: DefaultValues<ProductFormInput> = {
   menuDetail: "",
   imageUrl: "",
   recipe: [],
+  addonIds: [],
 };
 
 function toFormValues(product: Product): DefaultValues<ProductFormInput> {
@@ -54,12 +56,14 @@ function toFormValues(product: Product): DefaultValues<ProductFormInput> {
     menuDetail: product.menuDetail ?? "",
     imageUrl: product.imageUrl ?? "",
     recipe: product.recipe,
+    addonIds: product.addons.map((addon) => addon.id),
   };
 }
 
 type ProductFormDialogProps = {
   organizationId: OrganizationId;
   isOpen: boolean;
+  isAddonsEnabled: boolean;
   product?: Product;
   onClose: () => void;
 };
@@ -67,6 +71,7 @@ type ProductFormDialogProps = {
 export function ProductFormDialog({
   organizationId,
   isOpen,
+  isAddonsEnabled,
   product,
   onClose,
 }: ProductFormDialogProps) {
@@ -196,6 +201,13 @@ export function ProductFormDialog({
             ingredientsById={ingredientsById}
           />
         </FieldSet>
+
+        {isAddonsEnabled && (
+          <ProductAddonsField
+            organizationId={organizationId}
+            control={form.control}
+          />
+        )}
 
         <ProductPricingSummary pricing={pricing} />
       </FieldGroup>

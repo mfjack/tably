@@ -130,13 +130,14 @@ function getRewardOptions(
 ): LoyaltyRewardOption[] {
   const optionsByProductId = new Map<string, LoyaltyRewardOption>();
   for (const line of lines) {
-    if (!line.productId || line.unitPrice === undefined) continue;
+    const rewardPrice = line.rewardPrice ?? line.unitPrice;
+    if (!line.productId || rewardPrice === undefined) continue;
     const currentOption = optionsByProductId.get(line.productId);
-    if (currentOption && currentOption.unitPrice >= line.unitPrice) continue;
+    if (currentOption && currentOption.unitPrice >= rewardPrice) continue;
     optionsByProductId.set(line.productId, {
       productId: line.productId,
       productName: line.productName,
-      unitPrice: line.unitPrice,
+      unitPrice: rewardPrice,
     });
   }
   return [...optionsByProductId.values()];

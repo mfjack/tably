@@ -82,6 +82,9 @@ function writeItems(
         [`${item.quantity}x ${item.name}`, formatCurrency(item.total)],
       ])
       .size(1, 1);
+    for (const addonName of item.addonNames ?? []) {
+      encoder.text(`   + ${addonName}`).newline();
+    }
     if (item.note) encoder.text(`   > ${item.note}`).newline();
   }
 }

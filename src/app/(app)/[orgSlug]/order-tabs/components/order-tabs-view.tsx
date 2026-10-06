@@ -249,6 +249,8 @@ export function OrderTabsView({
               productName: item.productName,
               quantity: item.quantity,
               unitPrice: item.unitPrice,
+              rewardPrice: item.basePrice,
+              addonNames: item.addonNames,
               total: item.total,
             })) ?? [],
           takeawayFee: selectedOrder?.takeawayFee ?? 0,

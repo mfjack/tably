@@ -25,6 +25,7 @@ export function printKitchenTicket(
       quantity: item.quantity,
       total: item.unitPrice * item.quantity,
       note: item.note ?? undefined,
+      addonNames: item.addonNames,
     })),
     subtotal,
     takeawayFee,

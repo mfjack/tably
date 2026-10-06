@@ -53,7 +53,7 @@ export function ItemNoteDialog({
       isOpen={cartLine !== null}
       onOpenChange={(isDialogOpen) => !isDialogOpen && onClose()}
       title={
-        cartLine ? `Observação: ${cartLine.product.name}` : "Observação do item"
+        cartLine ? `Observação: ${cartLine.displayName}` : "Observação do item"
       }
       description="Aparece no ticket e na tela da cozinha."
       submitLabel="Salvar"

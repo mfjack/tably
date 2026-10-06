@@ -6,6 +6,7 @@ import type {
   OrderItem,
   OrderItemId,
 } from "@/features/orders/types";
+import { ItemAddonNames } from "@/features/product-addons/components/item-addon-names";
 import { formatCurrency } from "@/lib/format";
 
 type OrderItemsListProps = {
@@ -37,6 +38,7 @@ export function OrderItemsList({
                   {item.quantity}x
                 </strong>
                 {item.productName}
+                <ItemAddonNames addonNames={item.addonNames} />
                 {item.note && (
                   <span className="block truncate text-primary text-xs">
                     ↳ {item.note}

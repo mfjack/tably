@@ -20,6 +20,8 @@ export type OrderItem = {
   productName: string;
   quantity: number;
   unitPrice: number;
+  basePrice: number;
+  addonNames: string[];
   note: string | null;
   total: number;
 };

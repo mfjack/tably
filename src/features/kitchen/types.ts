@@ -18,6 +18,7 @@ export type KitchenTicketItem = {
   quantity: number;
   unitPrice: number;
   note: string | null;
+  addonNames: string[];
 };
 
 export type KitchenTicket = {

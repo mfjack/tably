@@ -20,6 +20,7 @@ export default async function ProductsPage({
       title={productsModule.label}
       description={productsModule.description}
       canManage={canManageCatalog(organization.role)}
+      isAddonsEnabled={organization.checkout.isProductAddonsEnabled}
     />
   );
 }

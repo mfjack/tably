@@ -1,9 +1,15 @@
 import { useCallback, useMemo } from "react";
 import { useCategoriesQuery } from "@/features/categories/hooks/use-categories-query";
 import { useIngredientsMap } from "@/features/ingredients/hooks/use-ingredients-map";
+import type { OrderItemInput } from "@/features/orders/schemas";
 import type { OrganizationId } from "@/features/organizations/types";
 import { type Cart, getCartItemKey } from "@/features/pos/cart-store";
 import { buildReservedIngredientQuantities } from "@/features/pos/reserved-ingredients";
+import {
+  formatItemNameWithAddons,
+  getAddonsTotal,
+} from "@/features/product-addons/item-addons";
+import type { ProductAddon } from "@/features/product-addons/types";
 import {
   getProductAvailability,
   type ProductAvailability,
@@ -21,10 +27,47 @@ export type PosProduct = Product & {
 export type CartLine = {
   key: string;
   product: Product;
+  addons: ProductAddon[];
+  cartAddonIds: string[];
+  displayName: string;
   quantity: number;
+  unitPrice: number;
   note: string;
   total: number;
 };
+
+export function getCartLineAddonNames(cartLine: CartLine): string[] {
+  return cartLine.addons.map((addon) => addon.name);
+}
+
+export function toOrderItemInput(cartLine: CartLine): OrderItemInput {
+  return {
+    productId: cartLine.product.id,
+    quantity: cartLine.quantity,
+    note: cartLine.note || undefined,
+    addonIds: cartLine.addons.map((addon) => addon.id),
+  };
+}
+
+function buildCartLine(
+  cartItem: Cart["items"][number],
+  product: Product,
+): CartLine {
+  const addonIds = new Set(cartItem.addonIds ?? []);
+  const addons = product.addons.filter((addon) => addonIds.has(addon.id));
+  const unitPrice = product.price + getAddonsTotal(addons);
+  return {
+    key: getCartItemKey(cartItem),
+    product,
+    addons,
+    cartAddonIds: cartItem.addonIds ?? [],
+    displayName: formatItemNameWithAddons(product.name, addons),
+    quantity: cartItem.quantity,
+    unitPrice,
+    note: cartItem.note,
+    total: unitPrice * cartItem.quantity,
+  };
+}
 
 export function usePosCatalog(organizationId: OrganizationId, cart: Cart) {
   const productsQuery = useProductsQuery(organizationId);
@@ -55,17 +98,7 @@ export function usePosCatalog(organizationId: OrganizationId, cart: Cart) {
     (cartItems: Cart["items"]): CartLine[] =>
       cartItems.flatMap((cartItem) => {
         const product = productsById.get(cartItem.productId);
-        return product
-          ? [
-              {
-                key: getCartItemKey(cartItem),
-                product,
-                quantity: cartItem.quantity,
-                note: cartItem.note,
-                total: product.price * cartItem.quantity,
-              },
-            ]
-          : [];
+        return product ? [buildCartLine(cartItem, product)] : [];
       }),
     [productsById],
   );
