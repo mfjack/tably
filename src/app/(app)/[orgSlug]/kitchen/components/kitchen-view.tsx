@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useKitchenRealtime } from "@/features/kitchen/hooks/use-kitchen-realtime";
 import { useKitchenTicketsQuery } from "@/features/kitchen/hooks/use-kitchen-tickets-query";
+import { useNewTicketAlert } from "@/features/kitchen/hooks/use-new-ticket-alert";
 import { useSetKitchenTicketStatusMutation } from "@/features/kitchen/hooks/use-set-kitchen-ticket-status-mutation";
 import { playNewTicketSound } from "@/features/kitchen/play-new-ticket-sound";
 import { printKitchenTicket } from "@/features/kitchen/print-kitchen-ticket";
@@ -55,7 +56,8 @@ export function KitchenView({
   const setStatusMutation = useSetKitchenTicketStatusMutation(organizationId);
   const { mutate: setTicketStatus } = setStatusMutation;
 
-  useKitchenRealtime(organizationId, playNewTicketSound);
+  useKitchenRealtime(organizationId);
+  useNewTicketAlert(kitchenTicketsQuery.data, playNewTicketSound);
 
   const { waitingTickets, preparingTickets, readyTickets } = useMemo(() => {
     const tickets = kitchenTicketsQuery.data ?? [];

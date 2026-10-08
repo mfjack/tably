@@ -38,7 +38,11 @@ export function useOnlineOrdersRealtime(
           void queryClient.invalidateQueries({ queryKey });
         },
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          void queryClient.invalidateQueries({ queryKey });
+        }
+      });
 
     return () => {
       void supabase.removeChannel(channel);

@@ -7,6 +7,8 @@ import {
 import { organizationApiPath } from "@/lib/api/organization-api-path";
 import type { listPendingOnlineOrders } from "../actions";
 
+const PENDING_ONLINE_ORDERS_REFRESH_INTERVAL_IN_MS = 15_000;
+
 export function getPendingOnlineOrdersQueryKey(organizationId: OrganizationId) {
   return ["organizations", organizationId, "online-orders", "pending"] as const;
 }
@@ -18,5 +20,8 @@ export function usePendingOnlineOrdersQuery(organizationId: OrganizationId) {
       fetchActionResult<ActionData<typeof listPendingOnlineOrders>>(
         organizationApiPath(organizationId, "online-orders"),
       ),
+    refetchInterval: PENDING_ONLINE_ORDERS_REFRESH_INTERVAL_IN_MS,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: true,
   });
 }
