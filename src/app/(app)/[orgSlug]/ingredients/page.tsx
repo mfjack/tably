@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { getCurrentUser } from "@/features/auth/queries";
 import { getAppModule } from "@/features/modules/app-modules";
 import { requireVisibleModule } from "@/features/modules/require-visible-module";
+import { getOperatorAccess } from "@/features/operators/queries";
 import { canManageCatalog } from "@/features/organizations/permissions";
 import { IngredientsView } from "./components/ingredients-view";
 
@@ -13,6 +15,14 @@ export default async function IngredientsPage({
 }: PageProps<"/[orgSlug]/ingredients">) {
   const { orgSlug } = await params;
   const organization = await requireVisibleModule(orgSlug, "ingredients");
+  const [access, currentUser] = await Promise.all([
+    getOperatorAccess(organization.id),
+    getCurrentUser(),
+  ]);
+  const currentPersonName =
+    access.mode === "unlocked"
+      ? access.operator.name
+      : (currentUser?.fullName ?? "");
 
   return (
     <IngredientsView
@@ -20,6 +30,7 @@ export default async function IngredientsPage({
       title={ingredientsModule.label}
       description={ingredientsModule.description}
       canManage={canManageCatalog(organization.role)}
+      currentPersonName={currentPersonName}
       business={{
         name: organization.name,
         taxId: organization.taxId,

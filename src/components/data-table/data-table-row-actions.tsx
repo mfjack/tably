@@ -4,8 +4,8 @@ import { DataTableRowActionButton } from "./data-table-row-action-button";
 
 type DataTableRowActionsProps = {
   itemLabel: string;
-  onEdit: () => void;
-  onDelete: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
   children?: ReactNode;
 };
 
@@ -18,19 +18,23 @@ export function DataTableRowActions({
   return (
     <div className="flex justify-end gap-2">
       {children}
-      <DataTableRowActionButton
-        label="Editar"
-        accessibleLabel={`Editar ${itemLabel}`}
-        icon={Pencil}
-        onClick={onEdit}
-      />
-      <DataTableRowActionButton
-        label="Excluir"
-        accessibleLabel={`Excluir ${itemLabel}`}
-        icon={Trash2}
-        variant="destructive"
-        onClick={onDelete}
-      />
+      {onEdit && (
+        <DataTableRowActionButton
+          label="Editar"
+          accessibleLabel={`Editar ${itemLabel}`}
+          icon={Pencil}
+          onClick={onEdit}
+        />
+      )}
+      {onDelete && (
+        <DataTableRowActionButton
+          label="Excluir"
+          accessibleLabel={`Excluir ${itemLabel}`}
+          icon={Trash2}
+          variant="destructive"
+          onClick={onDelete}
+        />
+      )}
     </div>
   );
 }

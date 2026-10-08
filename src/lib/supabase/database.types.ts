@@ -900,6 +900,8 @@ export type Database = {
           current_stock: number
           expires_at: string | null
           id: string
+          label_shelf_life_hours: number | null
+          label_storage: Database["public"]["Enums"]["storage_condition"] | null
           minimum_stock: number
           name: string
           organization_id: string
@@ -914,6 +916,10 @@ export type Database = {
           current_stock?: number
           expires_at?: string | null
           id?: string
+          label_shelf_life_hours?: number | null
+          label_storage?:
+            | Database["public"]["Enums"]["storage_condition"]
+            | null
           minimum_stock?: number
           name: string
           organization_id: string
@@ -928,6 +934,10 @@ export type Database = {
           current_stock?: number
           expires_at?: string | null
           id?: string
+          label_shelf_life_hours?: number | null
+          label_storage?:
+            | Database["public"]["Enums"]["storage_condition"]
+            | null
           minimum_stock?: number
           name?: string
           organization_id?: string
@@ -3814,6 +3824,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      save_ingredient_label_defaults: {
+        Args: {
+          p_ingredient_id: string
+          p_shelf_life_hours: number
+          p_storage: Database["public"]["Enums"]["storage_condition"]
+        }
+        Returns: undefined
+      }
       save_operator: {
         Args: {
           p_allowed_modules: Database["public"]["Enums"]["app_module"][]
@@ -3974,6 +3992,7 @@ export type Database = {
         | "preparation_error"
         | "dropped"
         | "other"
+      storage_condition: "room_temperature" | "refrigerated" | "frozen"
       subscription_plan: "essential" | "management" | "complete"
       task_frequency: "daily" | "weekly" | "monthly"
       time_off_kind:
@@ -4199,6 +4218,7 @@ export const Constants = {
         "dropped",
         "other",
       ],
+      storage_condition: ["room_temperature", "refrigerated", "frozen"],
       subscription_plan: ["essential", "management", "complete"],
       task_frequency: ["daily", "weekly", "monthly"],
       time_off_kind: [

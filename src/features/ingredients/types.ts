@@ -1,3 +1,4 @@
+import type { StorageCondition } from "@/features/food-labels/labels";
 import type { SupplierId } from "@/features/suppliers/types";
 import type { Brand } from "@/lib/brand";
 import type { Database } from "@/lib/supabase/database.types";
@@ -17,4 +18,6 @@ export type Ingredient = {
   supplierId: SupplierId | null;
   expiresAt: string | null;
   recipeCount: number;
+  labelShelfLifeHours: number | null;
+  labelStorage: StorageCondition | null;
 };

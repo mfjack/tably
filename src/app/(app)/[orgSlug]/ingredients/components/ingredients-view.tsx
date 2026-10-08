@@ -20,6 +20,7 @@ import { ListEmptyState } from "../../components/list-empty-state";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
 import { DeleteIngredientDialog } from "./delete-ingredient-dialog";
+import { FoodLabelDialog } from "./food-label-dialog";
 import { IngredientFormDialog } from "./ingredient-form-dialog";
 import { IngredientsTable } from "./ingredients-table";
 import { InvoiceImportDialog } from "./invoice-import-dialog";
@@ -41,6 +42,7 @@ type IngredientsViewProps = {
   title: string;
   description: string;
   canManage: boolean;
+  currentPersonName: string;
   business: OrderTicketBusiness;
 };
 
@@ -49,6 +51,7 @@ export function IngredientsView({
   title,
   description,
   canManage,
+  currentPersonName,
   business,
 }: IngredientsViewProps) {
   const ingredientsQuery = useIngredientsQuery(organizationId);
@@ -60,6 +63,8 @@ export function IngredientsView({
   const [ingredientForLoss, setIngredientForLoss] = useState<Ingredient | null>(
     null,
   );
+  const [ingredientForLabel, setIngredientForLabel] =
+    useState<Ingredient | null>(null);
   const lowStockCount = useMemo(
     () => (ingredientsQuery.data ?? []).filter(isRunningLow).length,
     [ingredientsQuery.data],
@@ -158,6 +163,7 @@ export function IngredientsView({
           }
           onStockEntry={setIngredientForStockEntry}
           onLoss={setIngredientForLoss}
+          onPrintLabel={setIngredientForLabel}
           onEdit={openEditForm}
           onDelete={setIngredientToDelete}
         />
@@ -171,6 +177,15 @@ export function IngredientsView({
         }
         onClose={() => setFormState({ mode: "closed" })}
       />
+      {ingredientForLabel && (
+        <FoodLabelDialog
+          organizationId={organizationId}
+          ingredients={ingredientsQuery.data ?? EMPTY_INGREDIENTS}
+          initialIngredient={ingredientForLabel}
+          defaultResponsibleName={currentPersonName}
+          onClose={() => setIngredientForLabel(null)}
+        />
+      )}
       <StockLossesDialog
         organizationId={organizationId}
         isOpen={isLossesOpen}

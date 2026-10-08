@@ -38,7 +38,7 @@ export async function listIngredients(
   const { data, error } = await supabase
     .from("ingredients")
     .select(
-      "id, name, brand, unit, current_stock, minimum_stock, unit_cost, supplier_id, expires_at, product_ingredients(count)",
+      "id, name, brand, unit, current_stock, minimum_stock, unit_cost, supplier_id, expires_at, label_shelf_life_hours, label_storage, product_ingredients(count)",
     )
     .eq("organization_id", organizationId)
     .order("name");
@@ -57,6 +57,8 @@ export async function listIngredients(
       supplierId: ingredient.supplier_id as SupplierId | null,
       expiresAt: ingredient.expires_at,
       recipeCount: ingredient.product_ingredients[0]?.count ?? 0,
+      labelShelfLifeHours: ingredient.label_shelf_life_hours,
+      labelStorage: ingredient.label_storage,
     })),
   );
 }
