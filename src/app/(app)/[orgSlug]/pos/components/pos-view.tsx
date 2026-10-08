@@ -124,6 +124,7 @@ export function PosView({
     posProducts,
     cartLines,
     buildCartLines,
+    getAddonOptions,
     categories,
     isLoading,
     errorMessage,
@@ -475,7 +476,7 @@ export function PosView({
           key={addonPickerProduct.id}
           title={addonPickerProduct.name}
           basePrice={addonPickerProduct.price}
-          addons={addonPickerProduct.addons.filter((addon) => addon.isActive)}
+          addons={getAddonOptions(addonPickerProduct)}
           onClose={() => setAddonPickerProduct(null)}
           onConfirm={(addonIds) => {
             addProductToCart(organizationId, addonPickerProduct.id, addonIds);

@@ -5,6 +5,8 @@ import type { OrderItemInput } from "@/features/orders/schemas";
 import type { OrganizationId } from "@/features/organizations/types";
 import { type Cart, getCartItemKey } from "@/features/pos/cart-store";
 import { buildReservedIngredientQuantities } from "@/features/pos/reserved-ingredients";
+import { isAddonAvailable } from "@/features/product-addons/availability";
+import type { AddonOption } from "@/features/product-addons/components/addon-picker-dialog";
 import {
   formatItemNameWithAddons,
   getAddonsTotal,
@@ -108,11 +110,29 @@ export function usePosCatalog(organizationId: OrganizationId, cart: Cart) {
     [buildCartLines, cart.items],
   );
 
+  const reservedQuantities = useMemo(
+    () => buildReservedIngredientQuantities(cart.items, productsById),
+    [cart.items, productsById],
+  );
+
+  const getAddonOptions = useCallback(
+    (product: Product): AddonOption[] =>
+      product.addons
+        .filter((addon) => addon.isActive)
+        .map((addon) => ({
+          id: addon.id,
+          name: addon.name,
+          price: addon.price,
+          isAvailable: isAddonAvailable(
+            addon,
+            ingredientsById,
+            reservedQuantities,
+          ),
+        })),
+    [ingredientsById, reservedQuantities],
+  );
+
   const posProducts = useMemo<PosProduct[]>(() => {
-    const reservedQuantities = buildReservedIngredientQuantities(
-      cart.items,
-      productsById,
-    );
     const cartQuantities = new Map<ProductId, number>();
     for (const cartItem of cart.items) {
       cartQuantities.set(
@@ -130,12 +150,13 @@ export function usePosCatalog(organizationId: OrganizationId, cart: Cart) {
       ),
       cartQuantity: cartQuantities.get(product.id) ?? 0,
     }));
-  }, [activeProducts, cart.items, ingredientsById, productsById]);
+  }, [activeProducts, cart.items, ingredientsById, reservedQuantities]);
 
   return {
     posProducts,
     cartLines,
     buildCartLines,
+    getAddonOptions,
     categories: categoriesQuery.data,
     isLoading:
       productsQuery.isPending ||

@@ -6,6 +6,7 @@ export type PublicMenuAddon = {
   id: ProductAddonId;
   name: string;
   price: number;
+  isAvailable: boolean;
 };
 
 export type PublicMenuItem = {

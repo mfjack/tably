@@ -12,6 +12,7 @@ export type AddonOption = {
   id: string;
   name: string;
   price: number;
+  isAvailable: boolean;
 };
 
 type AddonPickerDialogProps = {
@@ -76,8 +77,13 @@ export function AddonPickerDialog({
           {addons.map((addon) => (
             <ToggleChip
               key={addon.id}
-              label={formatAddonLabel(addon)}
+              label={
+                addon.isAvailable
+                  ? formatAddonLabel(addon)
+                  : `${addon.name} · Esgotado`
+              }
               isSelected={selectedIds.includes(addon.id)}
+              isDisabled={!addon.isAvailable}
               onToggle={() => toggleAddon(addon.id)}
               className="w-full justify-center"
             />

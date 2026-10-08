@@ -32,6 +32,7 @@ const publicMenuSchema = z.object({
                 id: z.string().transform((id) => id as ProductAddonId),
                 name: z.string(),
                 price: z.number(),
+                isAvailable: z.boolean().default(true),
               }),
             )
             .default([]),

@@ -5,6 +5,7 @@ type ToggleChipProps = {
   label: string;
   isSelected: boolean;
   onToggle: () => void;
+  isDisabled?: boolean;
   className?: string;
 };
 
@@ -12,13 +13,16 @@ export function ToggleChip({
   label,
   isSelected,
   onToggle,
+  isDisabled = false,
   className,
 }: ToggleChipProps) {
   return (
     <button
       type="button"
       aria-pressed={isSelected}
+      disabled={isDisabled}
       className={cn(
+        "disabled:pointer-events-none disabled:opacity-50",
         "inline-flex h-9 items-center gap-1.5 rounded-full border px-3.5 font-medium text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
         isSelected
           ? "border-primary bg-primary/10 text-primary"
