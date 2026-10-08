@@ -20,6 +20,7 @@ import {
   type ActionResult,
   actionFailure,
   actionSuccess,
+  databaseFailure,
 } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
 import { getOrderErrorMessage } from "./messages";
@@ -191,7 +192,8 @@ export async function listOpenOrderTabs(
     .order("created_at", { ascending: false })
     .overrideTypes<OrderDetailsRow[], { merge: false }>();
 
-  if (error) return actionFailure("Não foi possível carregar as comandas.");
+  if (error)
+    return databaseFailure("Não foi possível carregar as comandas.", error);
 
   return actionSuccess(data.map(toOrderDetails));
 }
@@ -212,7 +214,8 @@ export async function listPaidOrders(
     .limit(PAID_ORDERS_LIMIT)
     .overrideTypes<OrderDetailsRow[], { merge: false }>();
 
-  if (error) return actionFailure("Não foi possível carregar o histórico.");
+  if (error)
+    return databaseFailure("Não foi possível carregar o histórico.", error);
 
   return actionSuccess(data.map(toOrderDetails));
 }

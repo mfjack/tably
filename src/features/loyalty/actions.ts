@@ -10,7 +10,9 @@ import {
   type ActionResult,
   actionFailure,
   actionSuccess,
+  databaseFailure,
 } from "@/lib/action-result";
+import { getDatabaseErrorMessage } from "@/lib/database-errors";
 import { createClient } from "@/lib/supabase/server";
 import {
   LOYALTY_PHONE_PATTERN,
@@ -41,7 +43,11 @@ function getLoyaltyErrorMessage(
   error: { code?: string },
   fallbackMessage: string,
 ) {
-  return (error.code && LOYALTY_ERROR_MESSAGES[error.code]) ?? fallbackMessage;
+  return getDatabaseErrorMessage(
+    LOYALTY_ERROR_MESSAGES,
+    error,
+    fallbackMessage,
+  );
 }
 
 export async function saveLoyaltySettings(
@@ -104,7 +110,8 @@ export async function findLoyaltyCustomer(
     .eq("phone", phone)
     .maybeSingle();
 
-  if (error) return actionFailure("Não foi possível buscar o cliente.");
+  if (error)
+    return databaseFailure("Não foi possível buscar o cliente.", error);
   if (!customer) return actionSuccess(null);
 
   const [balanceResult, stampTodayResult] = await Promise.all([
@@ -160,7 +167,8 @@ export async function listLoyaltyCustomers(
   const { data, error } = await supabase.rpc("list_loyalty_customers", {
     p_organization_id: organizationId,
   });
-  if (error) return actionFailure("Não foi possível carregar os clientes.");
+  if (error)
+    return databaseFailure("Não foi possível carregar os clientes.", error);
 
   return actionSuccess(
     data.map((customer) => ({
@@ -190,7 +198,8 @@ export async function listLoyaltyTransactions(
     .order("created_at", { ascending: false })
     .limit(TRANSACTIONS_LIMIT);
 
-  if (error) return actionFailure("Não foi possível carregar o histórico.");
+  if (error)
+    return databaseFailure("Não foi possível carregar o histórico.", error);
 
   return actionSuccess(
     data.map((transaction) => ({
@@ -235,8 +244,9 @@ export async function createLoyaltyCustomer(
       p_note: "Selos iniciais",
     });
     if (adjustError) {
-      return actionFailure(
+      return databaseFailure(
         "Cliente cadastrado, mas não foi possível lançar os selos iniciais.",
+        adjustError,
       );
     }
   }

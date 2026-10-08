@@ -10,6 +10,7 @@ import {
   type ActionResult,
   actionFailure,
   actionSuccess,
+  databaseFailure,
 } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
 import { type LabelDefaultsInput, labelDefaultsSchema } from "./schemas";
@@ -34,7 +35,8 @@ export async function saveLabelDefaults(
     p_storage: parsedInput.data.storage,
   });
 
-  if (error) return actionFailure("Não foi possível guardar o padrão.");
+  if (error)
+    return databaseFailure("Não foi possível guardar o padrão.", error);
 
   return actionSuccess();
 }

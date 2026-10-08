@@ -11,6 +11,7 @@ import {
   type ActionResult,
   actionFailure,
   actionSuccess,
+  databaseFailure,
 } from "@/lib/action-result";
 import { isUniqueViolation } from "@/lib/database-errors";
 import { fromSelectFieldValue } from "@/lib/optional-select-value";
@@ -31,7 +32,8 @@ export async function listProductAddons(
     .eq("organization_id", organizationId)
     .order("name");
 
-  if (error) return actionFailure("Não foi possível carregar os adicionais.");
+  if (error)
+    return databaseFailure("Não foi possível carregar os adicionais.", error);
 
   return actionSuccess(
     data.map((addon) => ({
@@ -82,7 +84,8 @@ export async function saveProductAddon(
         .insert({ ...values, organization_id: organizationId });
 
   if (isUniqueViolation(error)) return actionFailure(DUPLICATE_NAME_MESSAGE);
-  if (error) return actionFailure("Não foi possível salvar o adicional.");
+  if (error)
+    return databaseFailure("Não foi possível salvar o adicional.", error);
 
   return actionSuccess();
 }
@@ -104,7 +107,8 @@ export async function deleteProductAddon(
     .delete()
     .eq("id", addonId);
 
-  if (error) return actionFailure("Não foi possível excluir o adicional.");
+  if (error)
+    return databaseFailure("Não foi possível excluir o adicional.", error);
 
   return actionSuccess();
 }

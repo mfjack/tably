@@ -11,6 +11,7 @@ import {
   type ActionResult,
   actionFailure,
   actionSuccess,
+  databaseFailure,
 } from "@/lib/action-result";
 import {
   isForeignKeyViolation,
@@ -43,7 +44,8 @@ export async function listIngredients(
     .eq("organization_id", organizationId)
     .order("name");
 
-  if (error) return actionFailure("Não foi possível carregar os insumos.");
+  if (error)
+    return databaseFailure("Não foi possível carregar os insumos.", error);
 
   return actionSuccess(
     data.map((ingredient) => ({
@@ -100,7 +102,7 @@ export async function createIngredient(
   });
 
   if (isUniqueViolation(error)) return actionFailure(DUPLICATE_NAME_MESSAGE);
-  if (error) return actionFailure(GENERIC_ERROR_MESSAGE);
+  if (error) return databaseFailure(GENERIC_ERROR_MESSAGE, error);
 
   return actionSuccess();
 }
@@ -149,7 +151,7 @@ export async function updateIngredient(
     .eq("id", ingredientId);
 
   if (isUniqueViolation(error)) return actionFailure(DUPLICATE_NAME_MESSAGE);
-  if (error) return actionFailure(GENERIC_ERROR_MESSAGE);
+  if (error) return databaseFailure(GENERIC_ERROR_MESSAGE, error);
 
   if (currentStock !== undefined) {
     const { error: adjustError } = await supabase.rpc(
@@ -157,7 +159,10 @@ export async function updateIngredient(
       { p_ingredient_id: ingredientId, p_quantity: currentStock },
     );
     if (adjustError) {
-      return actionFailure("Não foi possível corrigir o estoque.");
+      return databaseFailure(
+        "Não foi possível corrigir o estoque.",
+        adjustError,
+      );
     }
   }
 
@@ -188,7 +193,8 @@ export async function deleteIngredient(
       "Esse insumo está na ficha técnica de algum produto. Remova-o dos produtos antes de excluir.",
     );
   }
-  if (error) return actionFailure("Não foi possível excluir o insumo.");
+  if (error)
+    return databaseFailure("Não foi possível excluir o insumo.", error);
 
   return actionSuccess();
 }
@@ -217,7 +223,8 @@ export async function createStockEntry(
     payment_due_date: totalCost > 0 ? paymentDueDate || null : null,
   });
 
-  if (error) return actionFailure("Não foi possível registrar a entrada.");
+  if (error)
+    return databaseFailure("Não foi possível registrar a entrada.", error);
 
   return actionSuccess();
 }

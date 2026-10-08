@@ -5,7 +5,9 @@ import {
   type ActionResult,
   actionFailure,
   actionSuccess,
+  databaseFailure,
 } from "@/lib/action-result";
+import { getDatabaseErrorMessage } from "@/lib/database-errors";
 import { createClient } from "@/lib/supabase/server";
 import { canAccessSettings } from "./access";
 import { getOperatorAccess, OPERATOR_COLUMNS, toOperator } from "./queries";
@@ -37,7 +39,11 @@ function getOperatorErrorMessage(
   error: { code?: string },
   fallbackMessage: string,
 ) {
-  return (error.code && OPERATOR_ERROR_MESSAGES[error.code]) ?? fallbackMessage;
+  return getDatabaseErrorMessage(
+    OPERATOR_ERROR_MESSAGES,
+    error,
+    fallbackMessage,
+  );
 }
 
 async function canManageOperators(organizationId: OrganizationId) {
@@ -58,7 +64,8 @@ export async function listOperators(
     .eq("organization_id", organizationId)
     .order("name");
 
-  if (error) return actionFailure("Não foi possível carregar os operadores.");
+  if (error)
+    return databaseFailure("Não foi possível carregar os operadores.", error);
 
   return actionSuccess(data.map(toOperator));
 }
@@ -136,7 +143,7 @@ export async function unlockOperator(
     { p_operator_id: operatorId, p_pin: parsedPin.data },
   );
 
-  if (error) return actionFailure("Não foi possível verificar o PIN.");
+  if (error) return databaseFailure("Não foi possível verificar o PIN.", error);
   if (!isValidPin) {
     await new Promise((resolve) => setTimeout(resolve, WRONG_PIN_DELAY_IN_MS));
     return actionFailure("PIN incorreto.");

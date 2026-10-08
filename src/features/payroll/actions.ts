@@ -21,7 +21,9 @@ import {
   type ActionResult,
   actionFailure,
   actionSuccess,
+  databaseFailure,
 } from "@/lib/action-result";
+import { getDatabaseErrorMessage } from "@/lib/database-errors";
 import type { Json } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
 import { calculatePayslip } from "./calculate-payslip";
@@ -86,7 +88,8 @@ export async function savePayrollSettings(
     ...fromPayrollSettingsInput(parsedInput.data),
   });
 
-  if (error) return actionFailure("Não foi possível salvar as tabelas.");
+  if (error)
+    return databaseFailure("Não foi possível salvar as tabelas.", error);
   return actionSuccess();
 }
 
@@ -349,7 +352,9 @@ async function setPayslipStatus(
     .eq("organization_id", organizationId);
 
   if (error) {
-    return actionFailure(PAYSLIP_ERROR_MESSAGES[error.code] ?? fallbackMessage);
+    return actionFailure(
+      getDatabaseErrorMessage(PAYSLIP_ERROR_MESSAGES, error, fallbackMessage),
+    );
   }
   return actionSuccess();
 }

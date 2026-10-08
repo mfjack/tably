@@ -14,6 +14,7 @@ import {
   type ActionResult,
   actionFailure,
   actionSuccess,
+  databaseFailure,
 } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
 import { getOnlineOrderErrorMessage } from "./messages";
@@ -169,7 +170,10 @@ export async function listPendingOnlineOrders(
     .order("created_at");
 
   if (error) {
-    return actionFailure("Não foi possível carregar os pedidos online.");
+    return databaseFailure(
+      "Não foi possível carregar os pedidos online.",
+      error,
+    );
   }
 
   return actionSuccess(

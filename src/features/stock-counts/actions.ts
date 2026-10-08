@@ -9,6 +9,7 @@ import {
   type ActionResult,
   actionFailure,
   actionSuccess,
+  databaseFailure,
 } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -49,7 +50,8 @@ export async function applyStockCount(
   if (error?.code === "42501") {
     return actionFailure("Só o dono ou o gerente pode salvar a contagem.");
   }
-  if (error) return actionFailure("Não foi possível salvar a contagem.");
+  if (error)
+    return databaseFailure("Não foi possível salvar a contagem.", error);
 
   return actionSuccess({
     adjustedCount: data.adjusted_count,

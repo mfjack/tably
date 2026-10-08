@@ -15,6 +15,7 @@ import {
   type ActionResult,
   actionFailure,
   actionSuccess,
+  databaseFailure,
 } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
 import { STOCK_LOSS_REASONS } from "./labels";
@@ -49,7 +50,8 @@ export async function listStockLosses(
     .order("created_at", { ascending: false })
     .limit(MONTH_LOSSES_LIMIT);
 
-  if (error) return actionFailure("Não foi possível carregar as perdas.");
+  if (error)
+    return databaseFailure("Não foi possível carregar as perdas.", error);
 
   const losses: StockLoss[] = data.flatMap((loss) =>
     loss.ingredient
@@ -107,7 +109,8 @@ export async function registerStockLoss(
   if (error?.code === "P0002") {
     return actionFailure("Esse insumo não existe mais. Atualize a tela.");
   }
-  if (error) return actionFailure("Não foi possível registrar a perda.");
+  if (error)
+    return databaseFailure("Não foi possível registrar a perda.", error);
 
   return actionSuccess();
 }

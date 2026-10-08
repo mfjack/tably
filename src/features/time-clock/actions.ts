@@ -11,7 +11,9 @@ import {
   type ActionResult,
   actionFailure,
   actionSuccess,
+  databaseFailure,
 } from "@/lib/action-result";
+import { getDatabaseErrorMessage } from "@/lib/database-errors";
 import { createClient } from "@/lib/supabase/server";
 import {
   getOrganizationClock,
@@ -49,8 +51,10 @@ function getTimeClockErrorMessage(
   error: { code?: string },
   fallbackMessage: string,
 ) {
-  return (
-    (error.code && TIME_CLOCK_ERROR_MESSAGES[error.code]) ?? fallbackMessage
+  return getDatabaseErrorMessage(
+    TIME_CLOCK_ERROR_MESSAGES,
+    error,
+    fallbackMessage,
   );
 }
 
@@ -68,7 +72,8 @@ export async function listTimeClockEmployees(
     p_organization_id: organizationId,
   });
 
-  if (error) return actionFailure("Não foi possível carregar a equipe.");
+  if (error)
+    return databaseFailure("Não foi possível carregar a equipe.", error);
 
   return actionSuccess(
     data.map((employee) => ({
@@ -95,7 +100,8 @@ export async function registerTimePunch(
     p_pin: pin,
   });
 
-  if (error) return actionFailure("Não foi possível registrar o ponto.");
+  if (error)
+    return databaseFailure("Não foi possível registrar o ponto.", error);
 
   const parsedResult = registerPunchResultSchema.safeParse(data);
   if (!parsedResult.success) {
@@ -233,7 +239,8 @@ export async function saveTimeOff(
       "Já existe uma ausência lançada nesse período. Exclua a anterior para lançar outra.",
     );
   }
-  if (error) return actionFailure("Não foi possível lançar a ausência.");
+  if (error)
+    return databaseFailure("Não foi possível lançar a ausência.", error);
   return actionSuccess();
 }
 
@@ -252,7 +259,8 @@ export async function deleteTimeOff(
     .eq("id", timeOffId)
     .eq("organization_id", organizationId);
 
-  if (error) return actionFailure("Não foi possível excluir a ausência.");
+  if (error)
+    return databaseFailure("Não foi possível excluir a ausência.", error);
   return actionSuccess();
 }
 

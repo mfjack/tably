@@ -10,6 +10,7 @@ import {
   type ActionResult,
   actionFailure,
   actionSuccess,
+  databaseFailure,
 } from "@/lib/action-result";
 import { isUniqueViolation } from "@/lib/database-errors";
 import { createClient } from "@/lib/supabase/server";
@@ -31,7 +32,8 @@ export async function listCategories(
     .order("created_at")
     .order("position");
 
-  if (error) return actionFailure("Não foi possível carregar as categorias.");
+  if (error)
+    return databaseFailure("Não foi possível carregar as categorias.", error);
 
   return actionSuccess(
     data.map((category) => ({
@@ -61,7 +63,7 @@ export async function createCategory(
   });
 
   if (isUniqueViolation(error)) return actionFailure(DUPLICATE_NAME_MESSAGE);
-  if (error) return actionFailure(GENERIC_ERROR_MESSAGE);
+  if (error) return databaseFailure(GENERIC_ERROR_MESSAGE, error);
 
   return actionSuccess();
 }
@@ -93,7 +95,7 @@ export async function updateCategory(
     .eq("id", categoryId);
 
   if (isUniqueViolation(error)) return actionFailure(DUPLICATE_NAME_MESSAGE);
-  if (error) return actionFailure(GENERIC_ERROR_MESSAGE);
+  if (error) return databaseFailure(GENERIC_ERROR_MESSAGE, error);
 
   return actionSuccess();
 }
@@ -117,7 +119,8 @@ export async function deleteCategory(
     .delete()
     .eq("id", categoryId);
 
-  if (error) return actionFailure("Não foi possível excluir a categoria.");
+  if (error)
+    return databaseFailure("Não foi possível excluir a categoria.", error);
 
   return actionSuccess();
 }

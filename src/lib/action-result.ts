@@ -1,3 +1,8 @@
+import {
+  type DatabaseErrorDetails,
+  describeDatabaseError,
+} from "./database-errors";
+
 export type ActionSuccess<TData> = { status: "success"; data: TData };
 
 export type ActionFailure = { status: "error"; message: string };
@@ -12,6 +17,13 @@ export function actionSuccess<TData>(data?: TData) {
 
 export function actionFailure(message: string): ActionFailure {
   return { status: "error", message };
+}
+
+export function databaseFailure(
+  message: string,
+  error: DatabaseErrorDetails,
+): ActionFailure {
+  return actionFailure(describeDatabaseError(message, error));
 }
 
 export function unwrapActionResult<TData>(result: ActionResult<TData>): TData {

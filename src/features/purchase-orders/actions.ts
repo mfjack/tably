@@ -12,6 +12,7 @@ import {
   type ActionResult,
   actionFailure,
   actionSuccess,
+  databaseFailure,
 } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -40,7 +41,8 @@ export async function listPendingPurchaseOrders(
     .order("created_at", { ascending: false })
     .limit(PENDING_ORDERS_LIMIT);
 
-  if (error) return actionFailure("Não foi possível carregar os pedidos.");
+  if (error)
+    return databaseFailure("Não foi possível carregar os pedidos.", error);
 
   return actionSuccess(
     data.map((order) => ({
@@ -92,7 +94,7 @@ export async function createPurchaseOrder(
     p_supplier_id: parsedInput.data.supplierId ?? undefined,
   });
 
-  if (error) return actionFailure("Não foi possível salvar o pedido.");
+  if (error) return databaseFailure("Não foi possível salvar o pedido.", error);
 
   return actionSuccess();
 }
@@ -140,7 +142,8 @@ export async function receivePurchaseOrder(
   if (error?.code === "TB034") {
     return actionFailure("Esse pedido já foi recebido ou cancelado.");
   }
-  if (error) return actionFailure("Não foi possível receber o pedido.");
+  if (error)
+    return databaseFailure("Não foi possível receber o pedido.", error);
 
   return actionSuccess();
 }
@@ -161,7 +164,8 @@ export async function cancelPurchaseOrder(
     p_order_id: orderId,
   });
 
-  if (error) return actionFailure("Não foi possível cancelar o pedido.");
+  if (error)
+    return databaseFailure("Não foi possível cancelar o pedido.", error);
 
   return actionSuccess();
 }

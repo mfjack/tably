@@ -15,6 +15,7 @@ import {
   type ActionResult,
   actionFailure,
   actionSuccess,
+  databaseFailure,
 } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
 import { getCashRegisterErrorMessage } from "./messages";
@@ -90,7 +91,8 @@ export async function getOpenCashSession(
     p_organization_id: organizationId,
   });
 
-  if (error) return actionFailure("Não foi possível carregar o caixa.");
+  if (error)
+    return databaseFailure("Não foi possível carregar o caixa.", error);
   if (data === null) return actionSuccess(null);
 
   const summary = toCashSessionSummary(data);

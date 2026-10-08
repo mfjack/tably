@@ -13,6 +13,7 @@ import {
   type ActionResult,
   actionFailure,
   actionSuccess,
+  databaseFailure,
 } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -120,7 +121,8 @@ export async function updateOrganizationSettings(
     .eq("id", organizationId)
     .select("id");
 
-  if (error) return actionFailure("Não foi possível salvar as alterações.");
+  if (error)
+    return databaseFailure("Não foi possível salvar as alterações.", error);
   if (data.length === 0) return actionFailure(FORBIDDEN_MESSAGE);
 
   return actionSuccess();
@@ -196,7 +198,8 @@ export async function updateCheckoutSettings(
     .eq("id", organizationId)
     .select("id");
 
-  if (error) return actionFailure("Não foi possível salvar as alterações.");
+  if (error)
+    return databaseFailure("Não foi possível salvar as alterações.", error);
   if (data.length === 0) return actionFailure(FORBIDDEN_MESSAGE);
 
   return actionSuccess();
@@ -233,7 +236,7 @@ export async function updatePaymentFees(
     .eq("id", organizationId)
     .select("id");
 
-  if (error) return actionFailure("Não foi possível salvar as taxas.");
+  if (error) return databaseFailure("Não foi possível salvar as taxas.", error);
   if (data.length === 0) return actionFailure(FORBIDDEN_MESSAGE);
 
   return actionSuccess();
@@ -259,7 +262,8 @@ export async function updateOrganizationModules(
     .eq("id", organizationId)
     .select("id");
 
-  if (error) return actionFailure("Não foi possível salvar as páginas.");
+  if (error)
+    return databaseFailure("Não foi possível salvar as páginas.", error);
   if (data.length === 0) return actionFailure(FORBIDDEN_MESSAGE);
 
   return actionSuccess();

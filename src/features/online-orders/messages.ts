@@ -1,3 +1,4 @@
+import { getDatabaseErrorMessage } from "@/lib/database-errors";
 export const ONLINE_ORDER_NAME_IN_USE_MESSAGE =
   "Já existe um pedido aberto com esse nome. Use um sobrenome ou um apelido.";
 
@@ -20,7 +21,9 @@ export function getOnlineOrderErrorMessage(
   error: { code?: string },
   fallbackMessage: string,
 ): string {
-  return (
-    (error.code && ONLINE_ORDER_ERROR_MESSAGES[error.code]) ?? fallbackMessage
+  return getDatabaseErrorMessage(
+    ONLINE_ORDER_ERROR_MESSAGES,
+    error,
+    fallbackMessage,
   );
 }

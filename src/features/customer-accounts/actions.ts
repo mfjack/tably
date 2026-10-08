@@ -16,7 +16,9 @@ import {
   type ActionResult,
   actionFailure,
   actionSuccess,
+  databaseFailure,
 } from "@/lib/action-result";
+import { getDatabaseErrorMessage } from "@/lib/database-errors";
 import { createClient } from "@/lib/supabase/server";
 import {
   type AccountPaymentInput,
@@ -41,7 +43,11 @@ function getAccountErrorMessage(
   error: { code?: string },
   fallbackMessage: string,
 ) {
-  return (error.code && ACCOUNT_ERROR_MESSAGES[error.code]) ?? fallbackMessage;
+  return getDatabaseErrorMessage(
+    ACCOUNT_ERROR_MESSAGES,
+    error,
+    fallbackMessage,
+  );
 }
 
 export async function listCustomerAccounts(
@@ -112,7 +118,8 @@ export async function listAccountEntries(
     .order("created_at", { ascending: false })
     .limit(ACCOUNT_ENTRIES_LIMIT);
 
-  if (error) return actionFailure("Não foi possível carregar o extrato.");
+  if (error)
+    return databaseFailure("Não foi possível carregar o extrato.", error);
 
   return actionSuccess(
     data.map((entry) => ({

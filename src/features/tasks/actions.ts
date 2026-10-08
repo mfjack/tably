@@ -10,6 +10,7 @@ import {
   type ActionResult,
   actionFailure,
   actionSuccess,
+  databaseFailure,
 } from "@/lib/action-result";
 import { fromSelectFieldValue } from "@/lib/optional-select-value";
 import { createClient } from "@/lib/supabase/server";
@@ -41,7 +42,8 @@ export async function listTaskLists(
     "organization_today",
     { p_organization_id: organizationId },
   );
-  if (todayError) return actionFailure("Não foi possível carregar as tarefas.");
+  if (todayError)
+    return databaseFailure("Não foi possível carregar as tarefas.", todayError);
 
   const [listsResult, completionsResult] = await Promise.all([
     supabase
@@ -136,7 +138,7 @@ export async function saveTaskList(
         })
         .select("id");
 
-  if (error) return actionFailure("Não foi possível salvar a lista.");
+  if (error) return databaseFailure("Não foi possível salvar a lista.", error);
   if (data.length === 0) return actionFailure(FORBIDDEN_MESSAGE);
   return actionSuccess();
 }
@@ -156,7 +158,7 @@ export async function deleteTaskList(
     .eq("organization_id", organizationId)
     .select("id");
 
-  if (error) return actionFailure("Não foi possível excluir a lista.");
+  if (error) return databaseFailure("Não foi possível excluir a lista.", error);
   if (data.length === 0) return actionFailure(FORBIDDEN_MESSAGE);
   return actionSuccess();
 }
@@ -182,7 +184,8 @@ export async function addTask(
     })
     .select("id");
 
-  if (error) return actionFailure("Não foi possível adicionar a tarefa.");
+  if (error)
+    return databaseFailure("Não foi possível adicionar a tarefa.", error);
   if (data.length === 0) return actionFailure(FORBIDDEN_MESSAGE);
   return actionSuccess();
 }
@@ -218,7 +221,7 @@ export async function updateTask(
     .eq("organization_id", organizationId)
     .select("id");
 
-  if (error) return actionFailure("Não foi possível salvar a tarefa.");
+  if (error) return databaseFailure("Não foi possível salvar a tarefa.", error);
   if (data.length === 0) return actionFailure(FORBIDDEN_MESSAGE);
   return actionSuccess();
 }
@@ -238,7 +241,8 @@ export async function deleteTask(
     .eq("organization_id", organizationId)
     .select("id");
 
-  if (error) return actionFailure("Não foi possível excluir a tarefa.");
+  if (error)
+    return databaseFailure("Não foi possível excluir a tarefa.", error);
   if (data.length === 0) return actionFailure(FORBIDDEN_MESSAGE);
   return actionSuccess();
 }
@@ -253,6 +257,7 @@ export async function setTaskDone(
     p_is_done: isDone,
   });
 
-  if (error) return actionFailure("Não foi possível atualizar a tarefa.");
+  if (error)
+    return databaseFailure("Não foi possível atualizar a tarefa.", error);
   return actionSuccess();
 }

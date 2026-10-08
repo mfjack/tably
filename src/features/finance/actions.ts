@@ -14,6 +14,7 @@ import {
   type ActionResult,
   actionFailure,
   actionSuccess,
+  databaseFailure,
 } from "@/lib/action-result";
 import { fromSelectFieldValue } from "@/lib/optional-select-value";
 import { createClient } from "@/lib/supabase/server";
@@ -237,7 +238,8 @@ export async function listFinancialEntries(
   }
 
   const { data, error } = await query;
-  if (error) return actionFailure("Não foi possível carregar os lançamentos.");
+  if (error)
+    return databaseFailure("Não foi possível carregar os lançamentos.", error);
 
   return actionSuccess({
     today: clock.today,
@@ -293,7 +295,8 @@ export async function createFinancialEntry(
       .select("id")
       .single();
 
-    if (error) return actionFailure("Não foi possível salvar a recorrência.");
+    if (error)
+      return databaseFailure("Não foi possível salvar a recorrência.", error);
 
     const clock = await getOrganizationClock(organizationId);
     const syncUntil =
@@ -326,7 +329,8 @@ export async function createFinancialEntry(
       })),
     );
 
-    if (error) return actionFailure("Não foi possível salvar as parcelas.");
+    if (error)
+      return databaseFailure("Não foi possível salvar as parcelas.", error);
     return actionSuccess();
   }
 
@@ -338,7 +342,8 @@ export async function createFinancialEntry(
     barcode: entry.digitableLine || null,
   });
 
-  if (error) return actionFailure("Não foi possível salvar o lançamento.");
+  if (error)
+    return databaseFailure("Não foi possível salvar o lançamento.", error);
   return actionSuccess();
 }
 
@@ -367,7 +372,8 @@ export async function updateFinancialEntry(
     .eq("organization_id", organizationId)
     .single();
 
-  if (currentError) return actionFailure("Lançamento não encontrado.");
+  if (currentError)
+    return databaseFailure("Lançamento não encontrado.", currentError);
 
   if (current.installment_group_id && current.installment_number) {
     const installmentResult = await updateInstallments(
@@ -392,7 +398,8 @@ export async function updateFinancialEntry(
     .eq("id", entryId)
     .eq("organization_id", organizationId);
 
-  if (error) return actionFailure("Não foi possível salvar o lançamento.");
+  if (error)
+    return databaseFailure("Não foi possível salvar o lançamento.", error);
   if (scope !== "following") return actionSuccess();
 
   const sharedValues = {
@@ -415,8 +422,9 @@ export async function updateFinancialEntry(
       .gte("due_date", firstChangedDate);
 
     if (deleteError) {
-      return actionFailure(
+      return databaseFailure(
         "Este lançamento foi salvo, mas os próximos não. Tente de novo.",
+        deleteError,
       );
     }
 
@@ -432,8 +440,9 @@ export async function updateFinancialEntry(
       .eq("id", current.recurrence_id);
 
     if (recurrenceError) {
-      return actionFailure(
+      return databaseFailure(
         "Este lançamento foi salvo, mas a repetição não. Confira a data de fim.",
+        recurrenceError,
       );
     }
 
@@ -452,8 +461,9 @@ export async function updateFinancialEntry(
         .gt("installment_number", current.installment_number);
 
     if (followingError) {
-      return actionFailure(
+      return databaseFailure(
         "Esta parcela foi salva, mas as próximas não. Tente de novo.",
+        followingError,
       );
     }
 
@@ -534,7 +544,8 @@ async function updateInstallments(
       .eq("installment_group_id", position.groupId)
       .gt("installment_number", nextCount);
 
-    if (deleteError) return actionFailure("Não foi possível remover parcelas.");
+    if (deleteError)
+      return databaseFailure("Não foi possível remover parcelas.", deleteError);
   }
 
   const { error: countError } = await supabase
@@ -542,7 +553,8 @@ async function updateInstallments(
     .update({ installment_count: nextCount })
     .eq("installment_group_id", position.groupId);
 
-  if (countError) return actionFailure("Não foi possível alterar as parcelas.");
+  if (countError)
+    return databaseFailure("Não foi possível alterar as parcelas.", countError);
 
   if (nextCount > position.count) {
     const lastInstallment = installments[installments.length - 1];
@@ -601,7 +613,8 @@ export async function payFinancialEntry(
     .eq("id", entryId)
     .eq("organization_id", organizationId);
 
-  if (error) return actionFailure("Não foi possível registrar o pagamento.");
+  if (error)
+    return databaseFailure("Não foi possível registrar o pagamento.", error);
   return actionSuccess();
 }
 
@@ -618,7 +631,8 @@ export async function undoFinancialEntryPayment(
     .eq("id", entryId)
     .eq("organization_id", organizationId);
 
-  if (error) return actionFailure("Não foi possível desfazer o pagamento.");
+  if (error)
+    return databaseFailure("Não foi possível desfazer o pagamento.", error);
   return actionSuccess();
 }
 
@@ -646,7 +660,8 @@ export async function deleteFinancialEntry(
     .eq("organization_id", organizationId)
     .single();
 
-  if (currentError) return actionFailure("Lançamento não encontrado.");
+  if (currentError)
+    return databaseFailure("Lançamento não encontrado.", currentError);
 
   if (scope === "all" && current.recurrence_id) {
     const { data: removed, error } = await supabase
@@ -656,7 +671,8 @@ export async function deleteFinancialEntry(
       .or(`paid_at.is.null,id.eq.${entryId}`)
       .select("document_path, receipt_path");
 
-    if (error) return actionFailure("Não foi possível excluir a conta.");
+    if (error)
+      return databaseFailure("Não foi possível excluir a conta.", error);
 
     const { error: recurrenceError } = await supabase
       .from("financial_recurrences")
@@ -664,7 +680,10 @@ export async function deleteFinancialEntry(
       .eq("id", current.recurrence_id);
 
     if (recurrenceError) {
-      return actionFailure("Não foi possível excluir a repetição.");
+      return databaseFailure(
+        "Não foi possível excluir a repetição.",
+        recurrenceError,
+      );
     }
 
     await removeDocuments(
@@ -688,7 +707,8 @@ export async function deleteFinancialEntry(
       .or(`paid_at.is.null,id.eq.${entryId}`)
       .select("document_path, receipt_path");
 
-    if (error) return actionFailure("Não foi possível excluir os lançamentos.");
+    if (error)
+      return databaseFailure("Não foi possível excluir os lançamentos.", error);
 
     const endDate = toDateKey(addDays(parseISO(current.due_date), -1));
     const recurrenceUpdate =
@@ -703,7 +723,10 @@ export async function deleteFinancialEntry(
             .eq("id", current.recurrence_id);
     const { error: recurrenceError } = await recurrenceUpdate;
     if (recurrenceError) {
-      return actionFailure("Não foi possível encerrar a recorrência.");
+      return databaseFailure(
+        "Não foi possível encerrar a recorrência.",
+        recurrenceError,
+      );
     }
 
     await removeDocuments(
@@ -720,7 +743,8 @@ export async function deleteFinancialEntry(
       .or(`paid_at.is.null,id.eq.${entryId}`)
       .select("document_path, receipt_path");
 
-    if (error) return actionFailure("Não foi possível excluir as parcelas.");
+    if (error)
+      return databaseFailure("Não foi possível excluir as parcelas.", error);
     await removeDocuments(
       removed.flatMap((row) => [row.document_path, row.receipt_path]),
     );
@@ -733,7 +757,8 @@ export async function deleteFinancialEntry(
     .eq("id", entryId)
     .eq("organization_id", organizationId);
 
-  if (error) return actionFailure("Não foi possível excluir o lançamento.");
+  if (error)
+    return databaseFailure("Não foi possível excluir o lançamento.", error);
   await removeDocuments([current.document_path, current.receipt_path]);
   return actionSuccess();
 }
@@ -758,7 +783,8 @@ export async function setFinancialEntryDocument(
     .eq("organization_id", organizationId)
     .single();
 
-  if (currentError) return actionFailure("Lançamento não encontrado.");
+  if (currentError)
+    return databaseFailure("Lançamento não encontrado.", currentError);
 
   const { error } = await supabase
     .from("financial_entries")
@@ -768,7 +794,7 @@ export async function setFinancialEntryDocument(
     .eq("id", entryId)
     .eq("organization_id", organizationId);
 
-  if (error) return actionFailure("Não foi possível salvar o anexo.");
+  if (error) return databaseFailure("Não foi possível salvar o anexo.", error);
 
   const previousPath = current[column];
   if (previousPath && previousPath !== path) {

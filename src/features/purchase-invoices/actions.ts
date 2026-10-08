@@ -11,6 +11,7 @@ import {
   type ActionResult,
   actionFailure,
   actionSuccess,
+  databaseFailure,
 } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -154,6 +155,6 @@ export async function importPurchaseInvoice(
   if (error?.code === ALREADY_IMPORTED_CODE) {
     return actionFailure("Essa nota já foi importada.");
   }
-  if (error) return actionFailure("Não foi possível importar a nota.");
+  if (error) return databaseFailure("Não foi possível importar a nota.", error);
   return actionSuccess();
 }

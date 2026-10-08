@@ -12,6 +12,7 @@ import {
   type ActionResult,
   actionFailure,
   actionSuccess,
+  databaseFailure,
 } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
 import type {
@@ -104,7 +105,8 @@ export async function listActiveKitchenTickets(
     .order("created_at")
     .overrideTypes<KitchenTicketRow[], { merge: false }>();
 
-  if (error) return actionFailure("Não foi possível carregar os pedidos.");
+  if (error)
+    return databaseFailure("Não foi possível carregar os pedidos.", error);
 
   return actionSuccess(data.map(toKitchenTicket));
 }

@@ -4,6 +4,7 @@ import {
   type ActionResult,
   actionFailure,
   actionSuccess,
+  databaseFailure,
 } from "@/lib/action-result";
 import { isUniqueViolation } from "@/lib/database-errors";
 import { createClient } from "@/lib/supabase/server";
@@ -28,7 +29,8 @@ export async function listFinancialCategories(
     .eq("organization_id", organizationId)
     .order("name");
 
-  if (error) return actionFailure("Não foi possível carregar as categorias.");
+  if (error)
+    return databaseFailure("Não foi possível carregar as categorias.", error);
 
   return actionSuccess(
     data.map((category) => ({
@@ -88,6 +90,7 @@ export async function deleteFinancialCategory(
     .eq("id", categoryId)
     .eq("organization_id", organizationId);
 
-  if (error) return actionFailure("Não foi possível excluir a categoria.");
+  if (error)
+    return databaseFailure("Não foi possível excluir a categoria.", error);
   return actionSuccess();
 }

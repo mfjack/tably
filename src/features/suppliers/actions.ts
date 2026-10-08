@@ -10,6 +10,7 @@ import {
   type ActionResult,
   actionFailure,
   actionSuccess,
+  databaseFailure,
 } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
 import { type SupplierInput, supplierSchema } from "./schemas";
@@ -33,7 +34,8 @@ export async function listSupplierSummaries(
     .eq("organization_id", organizationId)
     .order("name");
 
-  if (error) return actionFailure("Não foi possível carregar os fornecedores.");
+  if (error)
+    return databaseFailure("Não foi possível carregar os fornecedores.", error);
 
   return actionSuccess(
     data.map((supplier) => ({
@@ -111,7 +113,8 @@ export async function listSupplierPurchases(
     .order("entered_at", { ascending: false })
     .limit(SUPPLIER_PURCHASES_LIMIT);
 
-  if (error) return actionFailure("Não foi possível carregar as compras.");
+  if (error)
+    return databaseFailure("Não foi possível carregar as compras.", error);
 
   return actionSuccess(
     data.flatMap((entry) =>
@@ -189,6 +192,7 @@ export async function deleteSupplier(
     .eq("id", supplierId)
     .eq("organization_id", organizationId);
 
-  if (error) return actionFailure("Não foi possível excluir o fornecedor.");
+  if (error)
+    return databaseFailure("Não foi possível excluir o fornecedor.", error);
   return actionSuccess();
 }

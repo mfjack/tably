@@ -6,6 +6,7 @@ import {
   type ActionResult,
   actionFailure,
   actionSuccess,
+  databaseFailure,
 } from "@/lib/action-result";
 import { env } from "@/lib/env";
 import { ROUTES } from "@/lib/routes";
@@ -152,7 +153,8 @@ export async function updateProfile(
     .update({ full_name: parsedInput.data.fullName })
     .eq("id", userId);
 
-  if (error) return actionFailure("Não foi possível salvar seu perfil.");
+  if (error)
+    return databaseFailure("Não foi possível salvar seu perfil.", error);
 
   return actionSuccess();
 }
@@ -164,7 +166,8 @@ export async function listOwnedOrganizations(): Promise<
 > {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("list_my_owned_organizations");
-  if (error) return actionFailure("Não foi possível carregar seus dados.");
+  if (error)
+    return databaseFailure("Não foi possível carregar seus dados.", error);
   return actionSuccess(data);
 }
 
@@ -213,7 +216,10 @@ export async function deleteMyAccount(
     "list_my_owned_organizations",
   );
   if (organizationsError) {
-    return actionFailure("Não foi possível excluir sua conta.");
+    return databaseFailure(
+      "Não foi possível excluir sua conta.",
+      organizationsError,
+    );
   }
 
   await removeOrganizationFiles(
@@ -221,7 +227,8 @@ export async function deleteMyAccount(
   );
 
   const { error } = await supabase.rpc("delete_my_account");
-  if (error) return actionFailure("Não foi possível excluir sua conta.");
+  if (error)
+    return databaseFailure("Não foi possível excluir sua conta.", error);
 
   await supabase.auth.signOut();
   return actionSuccess();

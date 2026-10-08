@@ -11,6 +11,7 @@ import {
   type ActionResult,
   actionFailure,
   actionSuccess,
+  databaseFailure,
 } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
 import { getOrderErrorMessage } from "./messages";
@@ -112,7 +113,8 @@ export async function isCustomerNameAvailable(
     p_customer_name: parsedName.data,
   });
 
-  if (error) return actionFailure("Não foi possível verificar o nome.");
+  if (error)
+    return databaseFailure("Não foi possível verificar o nome.", error);
 
   return actionSuccess(!data);
 }

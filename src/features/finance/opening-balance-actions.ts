@@ -5,6 +5,7 @@ import {
   type ActionResult,
   actionFailure,
   actionSuccess,
+  databaseFailure,
 } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -32,7 +33,7 @@ export async function getOpeningBalance(
     .eq("id", accountId)
     .single();
 
-  if (error) return actionFailure(LOAD_FAILED_MESSAGE);
+  if (error) return databaseFailure(LOAD_FAILED_MESSAGE, error);
   return actionSuccess(data.opening_balance);
 }
 
@@ -57,6 +58,6 @@ export async function saveOpeningBalance(
     .eq("id", accountId)
     .eq("organization_id", organizationId);
 
-  if (error) return actionFailure(SAVE_FAILED_MESSAGE);
+  if (error) return databaseFailure(SAVE_FAILED_MESSAGE, error);
   return actionSuccess();
 }

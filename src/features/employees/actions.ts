@@ -10,6 +10,7 @@ import {
   type ActionResult,
   actionFailure,
   actionSuccess,
+  databaseFailure,
 } from "@/lib/action-result";
 import {
   isForeignKeyViolation,
@@ -73,7 +74,8 @@ export async function listEmployees(
     .eq("organization_id", organizationId)
     .order("name");
 
-  if (error) return actionFailure("Não foi possível carregar os funcionários.");
+  if (error)
+    return databaseFailure("Não foi possível carregar os funcionários.", error);
 
   return actionSuccess(
     data.map((row) => {
@@ -183,7 +185,7 @@ export async function resetEmployeePin(
     p_employee_id: employeeId,
   });
 
-  if (error) return actionFailure("Não foi possível redefinir o PIN.");
+  if (error) return databaseFailure("Não foi possível redefinir o PIN.", error);
   return actionSuccess();
 }
 
@@ -222,7 +224,8 @@ export async function listWorkSchedules(
     .eq("organization_id", organizationId)
     .order("name");
 
-  if (error) return actionFailure("Não foi possível carregar as jornadas.");
+  if (error)
+    return databaseFailure("Não foi possível carregar as jornadas.", error);
 
   return actionSuccess(data.map(toWorkSchedule));
 }
@@ -276,7 +279,8 @@ export async function saveWorkSchedule(
     .delete()
     .eq("schedule_id", data.id);
 
-  if (deleteError) return actionFailure("Não foi possível salvar os horários.");
+  if (deleteError)
+    return databaseFailure("Não foi possível salvar os horários.", deleteError);
 
   const { error: insertError } = await supabase
     .from("work_schedule_days")
@@ -294,7 +298,8 @@ export async function saveWorkSchedule(
         })),
     );
 
-  if (insertError) return actionFailure("Não foi possível salvar os horários.");
+  if (insertError)
+    return databaseFailure("Não foi possível salvar os horários.", insertError);
   return actionSuccess();
 }
 
@@ -311,7 +316,8 @@ export async function deleteWorkSchedule(
     .eq("id", workScheduleId)
     .eq("organization_id", organizationId);
 
-  if (error) return actionFailure("Não foi possível excluir a jornada.");
+  if (error)
+    return databaseFailure("Não foi possível excluir a jornada.", error);
   return actionSuccess();
 }
 
@@ -330,7 +336,8 @@ export async function listHolidays(
     .lte("holiday_date", `${year}-12-31`)
     .order("holiday_date");
 
-  if (error) return actionFailure("Não foi possível carregar os feriados.");
+  if (error)
+    return databaseFailure("Não foi possível carregar os feriados.", error);
 
   return actionSuccess(
     data.map((holiday) => ({
@@ -385,7 +392,8 @@ export async function addNationalHolidays(
     { onConflict: "organization_id,holiday_date", ignoreDuplicates: true },
   );
 
-  if (error) return actionFailure("Não foi possível adicionar os feriados.");
+  if (error)
+    return databaseFailure("Não foi possível adicionar os feriados.", error);
   return actionSuccess();
 }
 
@@ -402,6 +410,7 @@ export async function deleteHoliday(
     .eq("id", holidayId)
     .eq("organization_id", organizationId);
 
-  if (error) return actionFailure("Não foi possível excluir o feriado.");
+  if (error)
+    return databaseFailure("Não foi possível excluir o feriado.", error);
   return actionSuccess();
 }

@@ -1,3 +1,4 @@
+import { getDatabaseErrorMessage } from "@/lib/database-errors";
 export const CASH_REGISTER_CLOSED_MESSAGE =
   "O caixa está fechado. Abra o caixa para receber pagamentos.";
 
@@ -11,7 +12,9 @@ export function getCashRegisterErrorMessage(
   error: { code?: string },
   fallbackMessage: string,
 ): string {
-  return (
-    (error.code && CASH_REGISTER_ERROR_MESSAGES[error.code]) ?? fallbackMessage
+  return getDatabaseErrorMessage(
+    CASH_REGISTER_ERROR_MESSAGES,
+    error,
+    fallbackMessage,
   );
 }

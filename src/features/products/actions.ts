@@ -13,6 +13,7 @@ import {
   type ActionResult,
   actionFailure,
   actionSuccess,
+  databaseFailure,
 } from "@/lib/action-result";
 import { isUniqueViolation } from "@/lib/database-errors";
 import { fromSelectFieldValue } from "@/lib/optional-select-value";
@@ -125,15 +126,17 @@ export async function saveProduct(
   if (isUniqueViolation(error)) {
     return actionFailure("Já existe um produto com esse nome.");
   }
-  if (error) return actionFailure("Não foi possível salvar o produto.");
+  if (error)
+    return databaseFailure("Não foi possível salvar o produto.", error);
 
   const { error: addonsError } = await supabase.rpc("set_product_addons", {
     p_product_id: savedProductId,
     p_addon_ids: addonIds,
   });
   if (addonsError) {
-    return actionFailure(
+    return databaseFailure(
       "O produto foi salvo, mas os adicionais não foram atualizados.",
+      addonsError,
     );
   }
 
@@ -143,8 +146,9 @@ export async function saveProduct(
     .eq("id", savedProductId)
     .eq("organization_id", organizationId);
   if (menuError) {
-    return actionFailure(
+    return databaseFailure(
       "O produto foi salvo, mas o cardápio não foi atualizado.",
+      menuError,
     );
   }
 
@@ -168,7 +172,8 @@ export async function deleteProduct(
     .delete()
     .eq("id", productId);
 
-  if (error) return actionFailure("Não foi possível excluir o produto.");
+  if (error)
+    return databaseFailure("Não foi possível excluir o produto.", error);
 
   return actionSuccess();
 }

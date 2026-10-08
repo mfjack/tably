@@ -14,6 +14,7 @@ import {
   type ActionResult,
   actionFailure,
   actionSuccess,
+  databaseFailure,
 } from "@/lib/action-result";
 import { isUniqueViolation } from "@/lib/database-errors";
 import type { Json } from "@/lib/supabase/database.types";
@@ -216,7 +217,8 @@ export async function createVacation(
     .eq("organization_id", organizationId)
     .single();
 
-  if (employeeError) return actionFailure("Funcionário não encontrado.");
+  if (employeeError)
+    return databaseFailure("Funcionário não encontrado.", employeeError);
   const employee = toEmployee(employeeRow);
 
   const vacations = (
@@ -350,7 +352,7 @@ export async function deleteExtraPayslip(
     .eq("id", payslipId)
     .eq("organization_id", organizationId);
 
-  if (error) return actionFailure("Não foi possível excluir.");
+  if (error) return databaseFailure("Não foi possível excluir.", error);
 
   if (payslip.time_off_id) {
     await supabase
@@ -454,7 +456,8 @@ export async function generateThirteenth(
       "id",
       pendingRows.map((row) => row.employeeId),
     );
-  if (employeesError) return actionFailure("Não foi possível calcular o 13º.");
+  if (employeesError)
+    return databaseFailure("Não foi possível calcular o 13º.", employeesError);
 
   const results = await Promise.all(
     employeeRows.map(async (row) => {

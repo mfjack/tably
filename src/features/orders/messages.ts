@@ -1,4 +1,5 @@
 import { CASH_REGISTER_CLOSED_MESSAGE } from "@/features/cash-register/messages";
+import { getDatabaseErrorMessage } from "@/lib/database-errors";
 
 export const PAYMENT_METHOD_NOT_ACCEPTED_MESSAGE =
   "Essa forma de pagamento não é aceita. Confira em Configurações → Vendas.";
@@ -34,5 +35,5 @@ export function getOrderErrorMessage(
   error: { code?: string },
   fallbackMessage: string,
 ): string {
-  return (error.code && ORDER_ERROR_MESSAGES[error.code]) ?? fallbackMessage;
+  return getDatabaseErrorMessage(ORDER_ERROR_MESSAGES, error, fallbackMessage);
 }
