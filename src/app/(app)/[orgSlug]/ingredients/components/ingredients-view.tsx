@@ -212,7 +212,9 @@ export function IngredientsView({
         onClose={() => setIngredientForStockEntry(null)}
       />
       <ShoppingListDialog
+        organizationId={organizationId}
         isOpen={isShoppingListOpen}
+        canManage={canManage}
         ingredients={ingredientsQuery.data ?? []}
         suppliers={suppliersQuery.data ?? []}
         business={business}

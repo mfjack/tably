@@ -49,20 +49,56 @@ export function isRunningLow(ingredient: Ingredient): boolean {
   return getStockStatus(ingredient) !== "ok";
 }
 
+export type ShoppingLine = {
+  ingredientId: IngredientId;
+  supplierId: SupplierId | null;
+};
+
+export const NO_SUPPLIER_GROUP_KEY = "none";
+
+export function getShoppingGroupKey(supplierId: SupplierId | null): string {
+  return supplierId ?? NO_SUPPLIER_GROUP_KEY;
+}
+
+export function getInitialShoppingLines(
+  ingredients: readonly Ingredient[],
+): ShoppingLine[] {
+  return ingredients.filter(isRunningLow).map((ingredient) => ({
+    ingredientId: ingredient.id,
+    supplierId: ingredient.supplierId,
+  }));
+}
+
+export function getSuggestedQuantities(
+  ingredients: readonly Ingredient[],
+): Record<string, number | undefined> {
+  return Object.fromEntries(
+    ingredients
+      .filter(isRunningLow)
+      .map((ingredient) => [ingredient.id, getSuggestedQuantity(ingredient)]),
+  );
+}
+
 export function buildShoppingList(
+  lines: readonly ShoppingLine[],
   ingredients: readonly Ingredient[],
   suppliers: readonly ShoppingListSupplier[],
 ): ShoppingListGroup[] {
+  const ingredientsById = new Map(
+    ingredients.map((ingredient) => [ingredient.id, ingredient]),
+  );
   const suppliersById = new Map(
     suppliers.map((supplier) => [supplier.id, supplier]),
   );
   const groups = new Map<string, ShoppingListGroup>();
 
-  for (const ingredient of ingredients.filter(isRunningLow)) {
-    const supplier = ingredient.supplierId
-      ? (suppliersById.get(ingredient.supplierId) ?? null)
+  for (const line of lines) {
+    const ingredient = ingredientsById.get(line.ingredientId);
+    if (!ingredient) continue;
+    const supplier = line.supplierId
+      ? (suppliersById.get(line.supplierId) ?? null)
       : null;
-    const groupKey = supplier?.id ?? "none";
+    const groupKey = getShoppingGroupKey(supplier?.id ?? null);
     const group = groups.get(groupKey) ?? { supplier, items: [] };
     group.items.push({
       ingredientId: ingredient.id,

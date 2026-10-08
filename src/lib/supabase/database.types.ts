@@ -2242,6 +2242,113 @@ export type Database = {
           },
         ]
       }
+      purchase_order_items: {
+        Row: {
+          ingredient_id: string
+          order_id: string
+          organization_id: string
+          quantity: number
+          received_cost: number | null
+          received_quantity: number | null
+        }
+        Insert: {
+          ingredient_id: string
+          order_id: string
+          organization_id: string
+          quantity: number
+          received_cost?: number | null
+          received_quantity?: number | null
+        }
+        Update: {
+          ingredient_id?: string
+          order_id?: string
+          organization_id?: string
+          quantity?: number
+          received_cost?: number | null
+          received_quantity?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_order_items_ingredient_id_organization_id_fkey"
+            columns: ["ingredient_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "purchase_order_items_order_id_organization_id_fkey"
+            columns: ["order_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "purchase_order_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      purchase_orders: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          created_by_name: string | null
+          id: string
+          organization_id: string
+          received_at: string | null
+          received_by_name: string | null
+          status: Database["public"]["Enums"]["purchase_order_status"]
+          supplier_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          id?: string
+          organization_id: string
+          received_at?: string | null
+          received_by_name?: string | null
+          status?: Database["public"]["Enums"]["purchase_order_status"]
+          supplier_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          id?: string
+          organization_id?: string
+          received_at?: string | null
+          received_by_name?: string | null
+          status?: Database["public"]["Enums"]["purchase_order_status"]
+          supplier_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_orders_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_orders_supplier_id_organization_id_fkey"
+            columns: ["supplier_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_purchase_summaries"
+            referencedColumns: ["supplier_id", "organization_id"]
+          },
+          {
+            foreignKeyName: "purchase_orders_supplier_id_organization_id_fkey"
+            columns: ["supplier_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
       stock_count_items: {
         Row: {
           count_id: string
@@ -3299,6 +3406,10 @@ export type Database = {
         Returns: boolean
       }
       cancel_order: { Args: { p_order_id: string }; Returns: undefined }
+      cancel_purchase_order: {
+        Args: { p_order_id: string }
+        Returns: undefined
+      }
       charge_customer_account: {
         Args: {
           p_account_id: string
@@ -3419,11 +3530,23 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      create_purchase_order: {
+        Args: {
+          p_items: Json
+          p_organization_id: string
+          p_supplier_id?: string
+        }
+        Returns: string
+      }
       current_actor_name: {
         Args: { p_organization_id: string }
         Returns: string
       }
       current_operator_name: {
+        Args: { p_organization_id: string }
+        Returns: string
+      }
+      current_person_name: {
         Args: { p_organization_id: string }
         Returns: string
       }
@@ -3726,6 +3849,10 @@ export type Database = {
           order_total: number
         }[]
       }
+      receive_purchase_order: {
+        Args: { p_items: Json; p_order_id: string; p_payment_due_date?: string }
+        Returns: number
+      }
       record_loyalty_purchase: {
         Args: { p_name?: string; p_order_id: string; p_phone: string }
         Returns: number
@@ -3970,6 +4097,7 @@ export type Database = {
         | "thirteenth_first"
         | "thirteenth_second"
       payslip_status: "draft" | "issued"
+      purchase_order_status: "pending" | "received" | "canceled"
       recurrence_frequency:
         | "weekly"
         | "biweekly"
@@ -4193,6 +4321,7 @@ export const Constants = {
         "thirteenth_second",
       ],
       payslip_status: ["draft", "issued"],
+      purchase_order_status: ["pending", "received", "canceled"],
       recurrence_frequency: [
         "weekly",
         "biweekly",
