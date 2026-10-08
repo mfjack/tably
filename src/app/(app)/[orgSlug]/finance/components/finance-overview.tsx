@@ -2,6 +2,7 @@
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { sortPaidEntriesLast } from "@/features/finance/entry-order";
 import { useFinancialOverviewQuery } from "@/features/finance/hooks/use-financial-overview-query";
 import type { EntryTotals, FinancialEntry } from "@/features/finance/types";
 import type { OrganizationId } from "@/features/organizations/types";
@@ -147,7 +148,7 @@ export function FinanceOverview({
           </p>
         ) : (
           <ul className="flex flex-col divide-y rounded-2xl border bg-card">
-            {overview.monthEntries.map((entry) => (
+            {sortPaidEntriesLast(overview.monthEntries).map((entry) => (
               <EntryRow
                 key={entry.id}
                 organizationId={organizationId}

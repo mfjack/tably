@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { sortPaidEntriesLast } from "@/features/finance/entry-order";
 import { useFinancialEntriesQuery } from "@/features/finance/hooks/use-financial-entries-query";
 import type {
   FinancialEntry,
@@ -138,7 +139,7 @@ export function EntriesPanel({
         />
       ) : (
         <ul className="flex flex-col divide-y rounded-2xl border bg-card">
-          {page.entries.map((entry) => (
+          {sortPaidEntriesLast(page.entries).map((entry) => (
             <EntryRow
               key={entry.id}
               organizationId={organizationId}
