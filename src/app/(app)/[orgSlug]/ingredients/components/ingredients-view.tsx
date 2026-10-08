@@ -1,6 +1,12 @@
 "use client";
 
-import { FileUp, Package, Plus, ShoppingCart } from "lucide-react";
+import {
+  ClipboardCheck,
+  FileUp,
+  Package,
+  Plus,
+  ShoppingCart,
+} from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useIngredientsQuery } from "@/features/ingredients/hooks/use-ingredients-query";
@@ -17,6 +23,7 @@ import { IngredientFormDialog } from "./ingredient-form-dialog";
 import { IngredientsTable } from "./ingredients-table";
 import { InvoiceImportDialog } from "./invoice-import-dialog";
 import { ShoppingListDialog } from "./shopping-list-dialog";
+import { StockCountDialog } from "./stock-count-dialog";
 import { StockEntryDialog } from "./stock-entry-dialog";
 
 const EMPTY_INGREDIENTS: Ingredient[] = [];
@@ -45,6 +52,7 @@ export function IngredientsView({
   const suppliersQuery = useSuppliersQuery(organizationId);
   const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
   const [isInvoiceImportOpen, setIsInvoiceImportOpen] = useState(false);
+  const [isStockCountOpen, setIsStockCountOpen] = useState(false);
   const lowStockCount = useMemo(
     () => (ingredientsQuery.data ?? []).filter(isRunningLow).length,
     [ingredientsQuery.data],
@@ -86,6 +94,17 @@ export function IngredientsView({
                 </span>
               )}
             </Button>
+            {canManage && (
+              <Button
+                variant="outline"
+                className="h-10"
+                disabled={!ingredientsQuery.data?.length}
+                onClick={() => setIsStockCountOpen(true)}
+              >
+                <ClipboardCheck aria-hidden />
+                <span className="max-sm:sr-only">Contar estoque</span>
+              </Button>
+            )}
             {canManage && (
               <Button
                 variant="outline"
@@ -134,6 +153,12 @@ export function IngredientsView({
           formState.mode === "edit" ? formState.ingredient : undefined
         }
         onClose={() => setFormState({ mode: "closed" })}
+      />
+      <StockCountDialog
+        organizationId={organizationId}
+        isOpen={isStockCountOpen}
+        ingredients={ingredientsQuery.data ?? EMPTY_INGREDIENTS}
+        onClose={() => setIsStockCountOpen(false)}
       />
       <StockEntryDialog
         organizationId={organizationId}
