@@ -27,6 +27,7 @@ export type OrderTicketPayment = {
 export type OrderTicket = {
   business: OrderTicketBusiness;
   customerName: string;
+  isTakeaway?: boolean;
   items: readonly OrderTicketItem[];
   subtotal: number;
   takeawayFee: number;
@@ -57,6 +58,7 @@ export const TICKET_STYLES = `
   .note { white-space: pre-wrap; }
   .item-note { font-size: 13px; padding-left: 12px; white-space: pre-wrap; }
   .item-addon { font-size: 13px; padding-left: 12px; }
+  .takeaway { margin-top: 4px; border: 2px solid #000; padding: 2px; text-align: center; font-size: 14px; font-weight: 700; letter-spacing: 1px; }
 `;
 
 export function buildRow(
@@ -144,6 +146,7 @@ function buildTicketHtml(ticket: OrderTicket): string {
     <section>
       <p>Data: ${format(ticket.createdAt, "dd/MM/yyyy, HH:mm")}</p>
       <p>Cliente: <span class="customer">${escapeHtml(ticket.customerName)}</span></p>
+      ${ticket.isTakeaway ? `<p class="takeaway">PARA LEVAR</p>` : ""}
       ${note}
     </section>
     <section class="items">${items}</section>

@@ -350,6 +350,7 @@ export function usePosCheckout({
     printOrderTicket({
       business: ticketBusiness,
       customerName: customer.customerName,
+      isTakeaway: customer.isTakeaway,
       items: buildTicketItems(),
       subtotal,
       takeawayFee: ticketTakeawayFee,

@@ -20,6 +20,7 @@ export function printKitchenTicket(
   printOrderTicket({
     business,
     customerName: ticket.customerName ?? UNNAMED_CUSTOMER_LABEL,
+    isTakeaway: ticket.isTakeaway,
     items: ticket.items.map((item) => ({
       name: item.productName,
       quantity: item.quantity,

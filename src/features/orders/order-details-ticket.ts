@@ -27,6 +27,7 @@ export function buildOrderDetailsTicket(
   return {
     business,
     customerName: getOrderCustomerLabel(order),
+    isTakeaway: order.isTakeaway,
     items: order.items.map((item) => ({
       name: item.productName,
       quantity: item.quantity,

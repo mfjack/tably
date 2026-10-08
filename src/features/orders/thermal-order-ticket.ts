@@ -110,6 +110,17 @@ export function encodeOrderTicket(
     .text(ticket.customerName.toUpperCase())
     .bold(false)
     .newline();
+  if (ticket.isTakeaway) {
+    encoder
+      .align("center")
+      .invert(true)
+      .bold(true)
+      .text(" PARA LEVAR ")
+      .bold(false)
+      .invert(false)
+      .newline()
+      .align("left");
+  }
   if (ticket.note) {
     encoder.text("Obs: ").bold(true).text(ticket.note).bold(false).newline();
   }
