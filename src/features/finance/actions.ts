@@ -151,10 +151,10 @@ export async function getFinancialOverview(
   if (!clock) return actionFailure("Não foi possível carregar o financeiro.");
 
   await ensureFinanceDefaults(organizationId);
-  await syncRecurrences(organizationId, clock.today);
-
   const monthStart = getMonthStart(monthKey);
   const monthEnd = getMonthEnd(monthKey);
+  await syncRecurrences(organizationId, clock.today, monthEnd);
+
   const supabase = await createClient();
   const [overviewResult, monthEntriesResult] = await Promise.all([
     supabase.rpc("get_financial_overview", {
@@ -206,10 +206,10 @@ export async function listFinancialEntries(
   if (!clock) return actionFailure("Não foi possível carregar os lançamentos.");
 
   await ensureFinanceDefaults(organizationId);
-  await syncRecurrences(organizationId, clock.today);
-
   const monthStart = getMonthStart(monthKey);
   const monthEnd = getMonthEnd(monthKey);
+  await syncRecurrences(organizationId, clock.today, monthEnd);
+
   const supabase = await createClient();
   let query = supabase
     .from("financial_entries")

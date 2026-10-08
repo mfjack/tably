@@ -25,11 +25,13 @@ export function toDateKey(date: Date): string {
 export async function syncRecurrences(
   organizationId: OrganizationId,
   today: string,
+  coverUntil?: string,
 ) {
+  const horizon = toDateKey(addDays(parseISO(today), SYNC_HORIZON_IN_DAYS));
   const supabase = await createClient();
   await supabase.rpc("sync_financial_recurrences", {
     p_organization_id: organizationId,
-    p_until: toDateKey(addDays(parseISO(today), SYNC_HORIZON_IN_DAYS)),
+    p_until: coverUntil && coverUntil > horizon ? coverUntil : horizon,
   });
 }
 
