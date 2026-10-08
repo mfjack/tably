@@ -10,7 +10,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
 import {
   DIALOG_ACTION_BUTTON_CLASS_NAME,
   DIALOG_CLOSE_BUTTON_CLASS_NAME,
@@ -61,11 +60,9 @@ export function ConfirmDialog({
           <Button
             variant="destructive"
             className={DIALOG_ACTION_BUTTON_CLASS_NAME}
-            disabled={isConfirming}
-            aria-busy={isConfirming}
+            isLoading={isConfirming}
             onClick={onConfirm}
           >
-            {isConfirming && <Spinner aria-hidden />}
             {confirmLabel}
           </Button>
         </AlertDialogFooter>

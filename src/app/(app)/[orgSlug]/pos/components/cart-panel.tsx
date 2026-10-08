@@ -8,7 +8,6 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { Spinner } from "@/components/ui/spinner";
 import type { OrderTabTarget } from "@/features/orders/types";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -116,15 +115,11 @@ export function CartPanel({
               <Button
                 type="button"
                 className="h-12 rounded-xl font-semibold text-base"
-                disabled={isEmpty || isAddingToTab}
-                aria-busy={isAddingToTab}
+                disabled={isEmpty}
+                isLoading={isAddingToTab}
                 onClick={() => onAddToTab(true)}
               >
-                {isAddingToTab ? (
-                  <Spinner aria-hidden />
-                ) : (
-                  <Printer aria-hidden />
-                )}
+                <Printer aria-hidden />
                 Adicionar e imprimir
               </Button>
               <Button
@@ -143,15 +138,11 @@ export function CartPanel({
               <Button
                 type="button"
                 className="h-12 rounded-xl font-semibold text-base"
-                disabled={isEmpty || isSendingToKitchen}
-                aria-busy={isSendingToKitchen}
+                disabled={isEmpty}
+                isLoading={isSendingToKitchen}
                 onClick={onSendToKitchen}
               >
-                {isSendingToKitchen ? (
-                  <Spinner aria-hidden />
-                ) : (
-                  <Printer aria-hidden />
-                )}
+                <Printer aria-hidden />
                 {sendToKitchenLabel}
               </Button>
               <Button

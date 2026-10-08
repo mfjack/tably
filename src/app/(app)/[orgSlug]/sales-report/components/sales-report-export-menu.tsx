@@ -14,7 +14,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Spinner } from "@/components/ui/spinner";
 import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
 import type { SalesReport } from "@/features/sales-report/types";
 
@@ -79,12 +78,12 @@ export function SalesReportExportMenu({
           <Button
             variant="outline"
             className="h-11 px-4"
-            disabled={!report || exportingFormat !== null}
-            aria-busy={exportingFormat !== null}
+            disabled={!report}
+            isLoading={exportingFormat !== null}
           />
         }
       >
-        {exportingFormat ? <Spinner aria-hidden /> : <Download aria-hidden />}
+        <Download aria-hidden />
         Exportar
         <ChevronDown aria-hidden />
       </DropdownMenuTrigger>

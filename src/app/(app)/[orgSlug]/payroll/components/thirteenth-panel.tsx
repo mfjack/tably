@@ -7,7 +7,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Spinner } from "@/components/ui/spinner";
 import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
 import type { OrganizationId } from "@/features/organizations/types";
 import { useGenerateThirteenthMutation } from "@/features/payroll/hooks/use-generate-thirteenth-mutation";
@@ -148,14 +147,10 @@ export function ThirteenthPanel({
                 variant={installment === "first" ? "outline" : "default"}
                 className="h-10"
                 disabled={generateMutation.isPending || !rows?.length}
-                aria-busy={isPending}
+                isLoading={isPending}
                 onClick={() => generate(installment)}
               >
-                {isPending ? (
-                  <Spinner aria-hidden />
-                ) : (
-                  <Calculator aria-hidden />
-                )}
+                <Calculator aria-hidden />
                 Calcular {installment === "first" ? "1ª" : "2ª"} parcela
               </Button>
             );

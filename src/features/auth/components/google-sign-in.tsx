@@ -3,7 +3,6 @@
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { FieldSeparator } from "@/components/ui/field";
-import { Spinner } from "@/components/ui/spinner";
 import { useGoogleSignInMutation } from "../hooks/use-google-sign-in-mutation";
 import { GoogleIcon } from "./google-icon";
 
@@ -29,12 +28,11 @@ export function GoogleSignIn({ label, nextPath }: GoogleSignInProps) {
       <Button
         type="button"
         variant="outline"
-        disabled={isRedirecting}
-        aria-busy={isRedirecting}
+        isLoading={isRedirecting}
         onClick={handleGoogleSignIn}
         className="h-12 gap-2.5 rounded-lg text-[0.9375rem]"
       >
-        {isRedirecting ? <Spinner aria-hidden /> : <GoogleIcon />}
+        <GoogleIcon />
         {label}
       </Button>
     </>

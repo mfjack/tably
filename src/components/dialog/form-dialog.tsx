@@ -10,7 +10,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 import {
   DIALOG_ACTION_BUTTON_CLASS_NAME,
@@ -96,10 +95,9 @@ export function FormDialog({
                 variant="outline"
                 className={DIALOG_ACTION_BUTTON_CLASS_NAME}
                 disabled={isBusy}
-                aria-busy={secondaryAction.isPending}
+                isLoading={secondaryAction.isPending}
                 onClick={secondaryAction.onClick}
               >
-                {secondaryAction.isPending && <Spinner aria-hidden />}
                 {secondaryAction.label}
               </Button>
             ) : (
@@ -119,9 +117,8 @@ export function FormDialog({
               type="submit"
               className={DIALOG_ACTION_BUTTON_CLASS_NAME}
               disabled={isBusy}
-              aria-busy={isSubmitting}
+              isLoading={isSubmitting}
             >
-              {isSubmitting && <Spinner aria-hidden />}
               {submitLabel}
             </Button>
           </DialogFooter>

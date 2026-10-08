@@ -14,7 +14,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Spinner } from "@/components/ui/spinner";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import type { EmployeeId } from "@/features/employees/types";
 import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
@@ -164,15 +163,11 @@ export function PayrollView({
             {tab === "monthly" && (
               <Button
                 className="h-10"
-                disabled={generateAllMutation.isPending || !rows?.length}
-                aria-busy={generateAllMutation.isPending}
+                disabled={!rows?.length}
+                isLoading={generateAllMutation.isPending}
                 onClick={generateAll}
               >
-                {generateAllMutation.isPending ? (
-                  <Spinner aria-hidden />
-                ) : (
-                  <Calculator aria-hidden />
-                )}
+                <Calculator aria-hidden />
                 <span className="max-sm:sr-only">Calcular folha</span>
               </Button>
             )}
@@ -327,13 +322,10 @@ export function PayrollView({
                         <Button
                           variant="outline"
                           className="col-span-2 h-10 md:col-span-1"
-                          disabled={isOpening}
-                          aria-busy={isOpening}
+                          isLoading={isOpening}
                           onClick={() => openRow(row)}
                         >
-                          {isOpening ? (
-                            <Spinner aria-hidden />
-                          ) : row.payslip ? (
+                          {row.payslip ? (
                             <FileText aria-hidden />
                           ) : (
                             <Calculator aria-hidden />

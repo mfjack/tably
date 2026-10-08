@@ -85,15 +85,10 @@ export function HolidaysDialog({
           </DialogClose>
           <Button
             className={DIALOG_ACTION_BUTTON_CLASS_NAME}
-            disabled={addNationalMutation.isPending}
-            aria-busy={addNationalMutation.isPending}
+            isLoading={addNationalMutation.isPending}
             onClick={addNationalHolidays}
           >
-            {addNationalMutation.isPending ? (
-              <Spinner aria-hidden />
-            ) : (
-              <Flag aria-hidden />
-            )}
+            <Flag aria-hidden />
             Nacionais de {year}
           </Button>
         </>

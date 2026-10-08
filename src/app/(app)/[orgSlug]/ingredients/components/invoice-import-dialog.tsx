@@ -15,7 +15,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
-import { Spinner } from "@/components/ui/spinner";
 import {
   getUnitSymbol,
   MEASURE_UNIT_OPTIONS,
@@ -367,15 +366,11 @@ export function InvoiceImportDialog({
           type="button"
           variant="outline"
           className="h-24 flex-col gap-2 border-dashed"
-          disabled={previewMutation.isPending}
+          isLoading={previewMutation.isPending}
           onClick={() => fileInputRef.current?.click()}
         >
-          {previewMutation.isPending ? (
-            <Spinner aria-hidden />
-          ) : (
-            <FileUp aria-hidden className="size-5" />
-          )}
-          {previewMutation.isPending ? "Lendo a nota…" : "Escolher arquivo XML"}
+          <FileUp aria-hidden className="size-5" />
+          Escolher arquivo XML
         </Button>
       </div>
     </DetailsDialog>

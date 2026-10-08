@@ -21,7 +21,6 @@ import { SwitchField } from "@/components/form/switch-field";
 import { TextField } from "@/components/form/text-field";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
 import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
 import type { OrganizationId } from "@/features/organizations/types";
 import { useAddManualPayslipItemMutation } from "@/features/payroll/hooks/use-add-manual-payslip-item-mutation";
@@ -171,27 +170,19 @@ export function PayslipDialog({
           <Button
             variant="outline"
             className={DIALOG_ACTION_BUTTON_CLASS_NAME}
-            disabled={isExporting}
-            aria-busy={isExporting}
+            isLoading={isExporting}
             onClick={downloadPdf}
           >
-            {isExporting ? <Spinner aria-hidden /> : <FileDown aria-hidden />}
+            <FileDown aria-hidden />
             PDF
           </Button>
           <Button
             variant={isIssued ? "outline" : "default"}
             className={DIALOG_ACTION_BUTTON_CLASS_NAME}
-            disabled={isToggling}
-            aria-busy={isToggling}
+            isLoading={isToggling}
             onClick={toggleIssued}
           >
-            {isToggling ? (
-              <Spinner aria-hidden />
-            ) : isIssued ? (
-              <LockOpen aria-hidden />
-            ) : (
-              <Lock aria-hidden />
-            )}
+            {isIssued ? <LockOpen aria-hidden /> : <Lock aria-hidden />}
             {isIssued ? "Reabrir" : "Emitir"}
           </Button>
         </>
@@ -432,14 +423,9 @@ export function PayslipDialog({
                 type="submit"
                 variant="outline"
                 className="self-end"
-                disabled={addItemMutation.isPending}
-                aria-busy={addItemMutation.isPending}
+                isLoading={addItemMutation.isPending}
               >
-                {addItemMutation.isPending ? (
-                  <Spinner aria-hidden />
-                ) : (
-                  <Plus aria-hidden />
-                )}
+                <Plus aria-hidden />
                 Adicionar
               </Button>
             </form>

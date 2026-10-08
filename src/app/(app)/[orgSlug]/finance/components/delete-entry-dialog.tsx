@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { DialogClose } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Spinner } from "@/components/ui/spinner";
 import { useDeleteFinancialEntryMutation } from "@/features/finance/hooks/use-delete-financial-entry-mutation";
 import {
   ENTRY_DELETE_SCOPES,
@@ -95,11 +94,9 @@ export function DeleteEntryDialog({
           <Button
             variant="destructive"
             className={DIALOG_ACTION_BUTTON_CLASS_NAME}
-            disabled={deleteMutation.isPending}
-            aria-busy={deleteMutation.isPending}
+            isLoading={deleteMutation.isPending}
             onClick={confirmDelete}
           >
-            {deleteMutation.isPending && <Spinner aria-hidden />}
             Excluir
           </Button>
         </>

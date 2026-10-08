@@ -1,6 +1,5 @@
 import type { FormEventHandler, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
 
 type SettingsFormSectionProps = {
   title: string;
@@ -36,10 +35,9 @@ export function SettingsFormSection({
         <Button
           type="submit"
           className="h-11 px-5"
-          disabled={!isDirty || isSubmitting}
-          aria-busy={isSubmitting}
+          disabled={!isDirty}
+          isLoading={isSubmitting}
         >
-          {isSubmitting && <Spinner aria-hidden />}
           Salvar alterações
         </Button>
       </footer>
