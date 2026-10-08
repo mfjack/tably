@@ -1,6 +1,6 @@
 "use client";
 
-import { PackagePlus } from "lucide-react";
+import { PackageMinus, PackagePlus } from "lucide-react";
 import { type ReactNode, useMemo } from "react";
 import { DataTable } from "@/components/data-table/data-table";
 import { createDataTableColumnHelper } from "@/components/data-table/data-table-features";
@@ -27,6 +27,7 @@ type IngredientsTableProps = {
   canManage: boolean;
   emptyState: ReactNode;
   onStockEntry: (ingredient: Ingredient) => void;
+  onLoss: (ingredient: Ingredient) => void;
   onEdit: (ingredient: Ingredient) => void;
   onDelete: (ingredient: Ingredient) => void;
 };
@@ -42,6 +43,7 @@ export function IngredientsTable({
   canManage,
   emptyState,
   onStockEntry,
+  onLoss,
   onEdit,
   onDelete,
 }: IngredientsTableProps) {
@@ -126,13 +128,19 @@ export function IngredientsTable({
                       icon={PackagePlus}
                       onClick={() => onStockEntry(row.original)}
                     />
+                    <DataTableRowActionButton
+                      label="Registrar perda"
+                      accessibleLabel={`Registrar perda de ${row.original.name}`}
+                      icon={PackageMinus}
+                      onClick={() => onLoss(row.original)}
+                    />
                   </DataTableRowActions>
                 ),
               }),
             ]
           : []),
       ]),
-    [canManage, onStockEntry, onEdit, onDelete],
+    [canManage, onStockEntry, onLoss, onEdit, onDelete],
   );
 
   const table = useDataTable({

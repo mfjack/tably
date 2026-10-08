@@ -2387,6 +2387,63 @@ export type Database = {
           },
         ]
       }
+      stock_losses: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          created_by_name: string | null
+          id: string
+          ingredient_id: string
+          loss_date: string
+          note: string | null
+          organization_id: string
+          quantity: number
+          reason: Database["public"]["Enums"]["stock_loss_reason"]
+          unit_cost: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          id?: string
+          ingredient_id: string
+          loss_date: string
+          note?: string | null
+          organization_id: string
+          quantity: number
+          reason: Database["public"]["Enums"]["stock_loss_reason"]
+          unit_cost: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          id?: string
+          ingredient_id?: string
+          loss_date?: string
+          note?: string | null
+          organization_id?: string
+          quantity?: number
+          reason?: Database["public"]["Enums"]["stock_loss_reason"]
+          unit_cost?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_losses_ingredient_id_organization_id_fkey"
+            columns: ["ingredient_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "stock_losses_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stock_movements: {
         Row: {
           created_at: string
@@ -2396,6 +2453,7 @@ export type Database = {
           organization_id: string
           quantity: number
           stock_count_id: string | null
+          stock_loss_id: string | null
         }
         Insert: {
           created_at?: string
@@ -2405,6 +2463,7 @@ export type Database = {
           organization_id: string
           quantity: number
           stock_count_id?: string | null
+          stock_loss_id?: string | null
         }
         Update: {
           created_at?: string
@@ -2414,6 +2473,7 @@ export type Database = {
           organization_id?: string
           quantity?: number
           stock_count_id?: string | null
+          stock_loss_id?: string | null
         }
         Relationships: [
           {
@@ -2442,6 +2502,13 @@ export type Database = {
             columns: ["stock_count_id"]
             isOneToOne: false
             referencedRelation: "stock_counts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_stock_loss_id_fkey"
+            columns: ["stock_loss_id"]
+            isOneToOne: false
+            referencedRelation: "stock_losses"
             referencedColumns: ["id"]
           },
         ]
@@ -3683,6 +3750,16 @@ export type Database = {
         }
         Returns: number
       }
+      register_stock_loss: {
+        Args: {
+          p_ingredient_id: string
+          p_note?: string
+          p_organization_id: string
+          p_quantity: number
+          p_reason: Database["public"]["Enums"]["stock_loss_reason"]
+        }
+        Returns: string
+      }
       register_time_punch: {
         Args: { p_employee_id: string; p_pin: string }
         Returns: Json
@@ -3891,6 +3968,12 @@ export type Database = {
         | "last_30_days"
         | "this_month"
         | "last_month"
+      stock_loss_reason:
+        | "expired"
+        | "spoiled"
+        | "preparation_error"
+        | "dropped"
+        | "other"
       subscription_plan: "essential" | "management" | "complete"
       task_frequency: "daily" | "weekly" | "monthly"
       time_off_kind:
@@ -4108,6 +4191,13 @@ export const Constants = {
         "last_30_days",
         "this_month",
         "last_month",
+      ],
+      stock_loss_reason: [
+        "expired",
+        "spoiled",
+        "preparation_error",
+        "dropped",
+        "other",
       ],
       subscription_plan: ["essential", "management", "complete"],
       task_frequency: ["daily", "weekly", "monthly"],

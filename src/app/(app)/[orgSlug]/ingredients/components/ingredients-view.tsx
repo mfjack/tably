@@ -4,6 +4,7 @@ import {
   ClipboardCheck,
   FileUp,
   Package,
+  PackageMinus,
   Plus,
   ShoppingCart,
 } from "lucide-react";
@@ -25,6 +26,8 @@ import { InvoiceImportDialog } from "./invoice-import-dialog";
 import { ShoppingListDialog } from "./shopping-list-dialog";
 import { StockCountDialog } from "./stock-count-dialog";
 import { StockEntryDialog } from "./stock-entry-dialog";
+import { StockLossFormDialog } from "./stock-loss-form-dialog";
+import { StockLossesDialog } from "./stock-losses-dialog";
 
 const EMPTY_INGREDIENTS: Ingredient[] = [];
 
@@ -53,6 +56,10 @@ export function IngredientsView({
   const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
   const [isInvoiceImportOpen, setIsInvoiceImportOpen] = useState(false);
   const [isStockCountOpen, setIsStockCountOpen] = useState(false);
+  const [isLossesOpen, setIsLossesOpen] = useState(false);
+  const [ingredientForLoss, setIngredientForLoss] = useState<Ingredient | null>(
+    null,
+  );
   const lowStockCount = useMemo(
     () => (ingredientsQuery.data ?? []).filter(isRunningLow).length,
     [ingredientsQuery.data],
@@ -93,6 +100,15 @@ export function IngredientsView({
                   {lowStockCount}
                 </span>
               )}
+            </Button>
+            <Button
+              variant="outline"
+              className="h-10"
+              disabled={!ingredientsQuery.data?.length}
+              onClick={() => setIsLossesOpen(true)}
+            >
+              <PackageMinus aria-hidden />
+              <span className="max-sm:sr-only">Perdas</span>
             </Button>
             {canManage && (
               <Button
@@ -141,6 +157,7 @@ export function IngredientsView({
             />
           }
           onStockEntry={setIngredientForStockEntry}
+          onLoss={setIngredientForLoss}
           onEdit={openEditForm}
           onDelete={setIngredientToDelete}
         />
@@ -154,6 +171,20 @@ export function IngredientsView({
         }
         onClose={() => setFormState({ mode: "closed" })}
       />
+      <StockLossesDialog
+        organizationId={organizationId}
+        isOpen={isLossesOpen}
+        ingredients={ingredientsQuery.data ?? EMPTY_INGREDIENTS}
+        onClose={() => setIsLossesOpen(false)}
+      />
+      {ingredientForLoss && (
+        <StockLossFormDialog
+          organizationId={organizationId}
+          ingredients={ingredientsQuery.data ?? EMPTY_INGREDIENTS}
+          initialIngredient={ingredientForLoss}
+          onClose={() => setIngredientForLoss(null)}
+        />
+      )}
       <StockCountDialog
         organizationId={organizationId}
         isOpen={isStockCountOpen}
