@@ -11,7 +11,6 @@ import { LOYALTY_PHONE_PATTERN } from "./schemas";
 import type { PublicLoyaltyStatus } from "./types";
 
 const publicLoyaltyStatusSchema = z.object({
-  first_name: z.string().nullable(),
   balance: z.number(),
   has_stamp_today: z.boolean(),
 });
@@ -36,7 +35,6 @@ export async function getPublicLoyaltyStatus(
   }
 
   return actionSuccess({
-    firstName: parsedStatus.data.first_name,
     balance: parsedStatus.data.balance,
     hasStampToday: parsedStatus.data.has_stamp_today,
   });

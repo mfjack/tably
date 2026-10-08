@@ -28,14 +28,13 @@ type StampCardProps = {
 };
 
 function StampCard({ status, program }: StampCardProps) {
-  const { balance, firstName, hasStampToday } = status;
+  const { balance, hasStampToday } = status;
   const filledStamps = Math.min(balance, program.stampsRequired);
   const missingStamps = program.stampsRequired - filledStamps;
 
   return (
     <div className="flex flex-col gap-4 rounded-2xl bg-muted p-4">
       <div className="flex flex-col gap-0.5">
-        {firstName && <p className="text-sm">Olá, {firstName}!</p>}
         <p className="font-semibold">
           {balance} de {program.stampsRequired} selos
         </p>

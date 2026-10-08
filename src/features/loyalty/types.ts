@@ -42,7 +42,6 @@ export type LoyaltyTransaction = {
 };
 
 export type PublicLoyaltyStatus = {
-  firstName: string | null;
   balance: number;
   hasStampToday: boolean;
 };
