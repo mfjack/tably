@@ -1,8 +1,11 @@
-import { differenceInMinutes } from "date-fns";
 import { Check, ChefHat, PackageCheck, Printer, Undo2 } from "lucide-react";
 import { memo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  getElapsedMinutes,
+  getTicketDelayLevel,
+} from "@/features/kitchen/ticket-delay";
 import type {
   KitchenTicket,
   KitchenTicketId,
@@ -11,11 +14,10 @@ import type {
 import { ItemAddonNames } from "@/features/product-addons/components/item-addon-names";
 import { cn } from "@/lib/utils";
 
-const LATE_TICKET_MINUTES = 15;
-
 type KitchenTicketCardProps = {
   ticket: KitchenTicket;
   now: Date;
+  lateMinutes: number;
   onChangeStatus: (
     ticketId: KitchenTicketId,
     status: KitchenTicketStatus,
@@ -33,24 +35,24 @@ function formatElapsedMinutes(minutes: number) {
 function KitchenTicketCardComponent({
   ticket,
   now,
+  lateMinutes,
   onChangeStatus,
   onPrint,
 }: KitchenTicketCardProps) {
   const isWaiting = ticket.status === "waiting";
   const isPreparing = ticket.status === "preparing";
-  const elapsedMinutes = Math.max(
-    differenceInMinutes(now, new Date(ticket.createdAt)),
-    0,
-  );
-  const isLate =
-    (isWaiting || isPreparing) && elapsedMinutes >= LATE_TICKET_MINUTES;
+  const elapsedMinutes = getElapsedMinutes(ticket, now);
+  const delayLevel = getTicketDelayLevel(ticket, now, lateMinutes);
+  const isLate = delayLevel === "late";
+  const needsAttention = delayLevel === "attention";
 
   return (
     <article
       aria-label={`Pedido de ${ticket.customerName ?? "cliente"}`}
       className={cn(
         "flex flex-col gap-4 rounded-2xl border bg-card p-4 shadow-xs",
-        isLate && "border-destructive/60",
+        needsAttention && "border-2 border-warning bg-warning/10",
+        isLate && "border-2 border-destructive bg-destructive/10",
       )}
     >
       <header className="flex items-start justify-between gap-3">
@@ -61,13 +63,15 @@ function KitchenTicketCardComponent({
           <p
             className={cn(
               "text-muted-foreground text-xs tabular-nums",
-              isLate && "font-medium text-destructive",
+              needsAttention && "font-semibold text-warning",
+              isLate && "font-semibold text-destructive",
             )}
           >
             {formatElapsedMinutes(elapsedMinutes)}
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
+          {isLate && <Badge variant="destructive">Atrasado</Badge>}
           {ticket.isAddition && <Badge>Adicional</Badge>}
           {ticket.isTakeaway && <Badge variant="secondary">Para levar</Badge>}
         </div>

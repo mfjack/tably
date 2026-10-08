@@ -17,6 +17,7 @@ type KitchenColumnProps = {
   tickets: readonly KitchenTicket[];
   isLoading: boolean;
   now: Date;
+  lateMinutes: number;
   className?: string;
   onChangeStatus: (
     ticketId: KitchenTicketId,
@@ -32,6 +33,7 @@ export function KitchenColumn({
   tickets,
   isLoading,
   now,
+  lateMinutes,
   className,
   onChangeStatus,
   onPrint,
@@ -73,6 +75,7 @@ export function KitchenColumn({
                 key={ticket.id}
                 ticket={ticket}
                 now={now}
+                lateMinutes={lateMinutes}
                 onChangeStatus={onChangeStatus}
                 onPrint={onPrint}
               />

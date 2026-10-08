@@ -20,6 +20,7 @@ export type UserOrganization = {
   selectableModules: AppModuleId[];
   takeawayFee: number;
   isTakeawayEnabled: boolean;
+  kitchenLateMinutes: number;
   taxId: string | null;
   phone: string | null;
   address: string | null;

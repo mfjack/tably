@@ -1,15 +1,17 @@
 "use client";
 
-import { BellRing, CookingPot, Hourglass } from "lucide-react";
+import { AlarmClock, BellRing, CookingPot, Hourglass } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useKitchenRealtime } from "@/features/kitchen/hooks/use-kitchen-realtime";
 import { useKitchenTicketsQuery } from "@/features/kitchen/hooks/use-kitchen-tickets-query";
 import { useSetKitchenTicketStatusMutation } from "@/features/kitchen/hooks/use-set-kitchen-ticket-status-mutation";
 import { playNewTicketSound } from "@/features/kitchen/play-new-ticket-sound";
 import { printKitchenTicket } from "@/features/kitchen/print-kitchen-ticket";
+import { getTicketDelayLevel } from "@/features/kitchen/ticket-delay";
 import type {
   KitchenTicket,
   KitchenTicketId,
@@ -35,6 +37,7 @@ function isKitchenColumnId(value: string): value is KitchenColumnId {
 type KitchenViewProps = {
   organizationId: OrganizationId;
   ticketBusiness: OrderTicketBusiness;
+  lateMinutes: number;
   title: string;
   description: string;
 };
@@ -42,6 +45,7 @@ type KitchenViewProps = {
 export function KitchenView({
   organizationId,
   ticketBusiness,
+  lateMinutes,
   title,
   description,
 }: KitchenViewProps) {
@@ -82,10 +86,30 @@ export function KitchenView({
   );
 
   const isLoading = kitchenTicketsQuery.isPending;
+  const lateTicketCount = (kitchenTicketsQuery.data ?? []).filter(
+    (ticket) => getTicketDelayLevel(ticket, now, lateMinutes) === "late",
+  ).length;
 
   return (
     <div className="flex h-svh min-h-0 flex-col">
-      <PageHeader title={title} description={description} />
+      <PageHeader
+        title={title}
+        description={description}
+        actions={
+          lateTicketCount > 0 && (
+            <Badge
+              variant="destructive"
+              className="h-9 gap-1.5 px-3 text-sm"
+              role="status"
+            >
+              <AlarmClock aria-hidden />
+              {lateTicketCount === 1
+                ? "1 pedido atrasado"
+                : `${lateTicketCount} pedidos atrasados`}
+            </Badge>
+          )
+        }
+      />
       <main className="flex min-h-0 flex-1 flex-col px-4 py-6 md:px-8">
         {kitchenTicketsQuery.error ? (
           <Alert variant="destructive">
@@ -132,6 +156,7 @@ export function KitchenView({
                 tickets={waitingTickets}
                 isLoading={isLoading}
                 now={now}
+                lateMinutes={lateMinutes}
                 onChangeStatus={changeStatus}
                 onPrint={printTicket}
               />
@@ -143,6 +168,7 @@ export function KitchenView({
                 tickets={preparingTickets}
                 isLoading={isLoading}
                 now={now}
+                lateMinutes={lateMinutes}
                 onChangeStatus={changeStatus}
                 onPrint={printTicket}
               />
@@ -154,6 +180,7 @@ export function KitchenView({
                 tickets={readyTickets}
                 isLoading={isLoading}
                 now={now}
+                lateMinutes={lateMinutes}
                 onChangeStatus={changeStatus}
                 onPrint={printTicket}
               />

@@ -25,6 +25,7 @@ function toFormValues({
   checkout,
   isTakeawayEnabled,
   takeawayFee,
+  kitchenLateMinutes,
 }: UserOrganization): CheckoutSettingsInput {
   return {
     isTakeawayEnabled,
@@ -35,6 +36,7 @@ function toFormValues({
     isSplitBillEnabled: checkout.isSplitBillEnabled,
     isOrderTabsEnabled: checkout.isOrderTabsEnabled,
     isProductAddonsEnabled: checkout.isProductAddonsEnabled,
+    kitchenLateMinutes,
     isCustomerAccountPaymentEnabled: checkout.isCustomerAccountPaymentEnabled,
     acceptedPaymentMethods: checkout.acceptedPaymentMethods.filter(
       isReceivablePaymentMethod,
@@ -45,6 +47,7 @@ function toFormValues({
 export function CheckoutSettingsForm({
   organization,
 }: CheckoutSettingsFormProps) {
+  const isKitchenEnabled = !organization.hiddenModules.includes("kitchen");
   const router = useRouter();
   const updateSettingsMutation = useUpdateCheckoutSettingsMutation(
     organization.id,
@@ -131,6 +134,17 @@ export function CheckoutSettingsForm({
           label="Adicionais"
           description="Extras cobrados à parte, como granola ou leite em pó, escolhidos ao vender o produto no PDV."
         />
+        {isKitchenEnabled && (
+          <NumberField
+            control={form.control}
+            name="kitchenLateMinutes"
+            label="Alerta de atraso na cozinha"
+            description="Depois desse tempo esperando ou em preparo, o pedido fica vermelho na cozinha. Antes disso, ele já fica amarelo como aviso."
+            format="integer"
+            suffix="min"
+            placeholder="Ex.: 15"
+          />
+        )}
         <SwitchField
           control={form.control}
           name="isDiscountEnabled"

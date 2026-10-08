@@ -60,6 +60,11 @@ export const checkoutSettingsSchema = z
     isSplitBillEnabled: z.boolean(),
     isOrderTabsEnabled: z.boolean(),
     isProductAddonsEnabled: z.boolean(),
+    kitchenLateMinutes: z
+      .number({ error: "Informe os minutos." })
+      .int("Use minutos inteiros.")
+      .min(1, "No mínimo 1 minuto.")
+      .max(240, "No máximo 240 minutos."),
     isCustomerAccountPaymentEnabled: z.boolean(),
     acceptedPaymentMethods: z
       .array(z.enum(RECEIVABLE_PAYMENT_METHOD_VALUES))

@@ -188,6 +188,7 @@ export async function updateCheckoutSettings(
       is_split_bill_enabled: settings.isSplitBillEnabled,
       is_order_tabs_enabled: settings.isOrderTabsEnabled,
       is_product_addons_enabled: settings.isProductAddonsEnabled,
+      kitchen_late_minutes: settings.kitchenLateMinutes,
       is_customer_account_payment_enabled:
         settings.isCustomerAccountPaymentEnabled,
       accepted_payment_methods: settings.acceptedPaymentMethods,

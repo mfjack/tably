@@ -1662,6 +1662,7 @@ export type Database = {
           is_service_fee_enabled: boolean
           is_split_bill_enabled: boolean
           is_takeaway_enabled: boolean
+          kitchen_late_minutes: number
           last_order_number: number
           menu_instagram: string | null
           menu_note: string | null
@@ -1699,6 +1700,7 @@ export type Database = {
           is_service_fee_enabled?: boolean
           is_split_bill_enabled?: boolean
           is_takeaway_enabled?: boolean
+          kitchen_late_minutes?: number
           last_order_number?: number
           menu_instagram?: string | null
           menu_note?: string | null
@@ -1736,6 +1738,7 @@ export type Database = {
           is_service_fee_enabled?: boolean
           is_split_bill_enabled?: boolean
           is_takeaway_enabled?: boolean
+          kitchen_late_minutes?: number
           last_order_number?: number
           menu_instagram?: string | null
           menu_note?: string | null
@@ -2229,6 +2232,90 @@ export type Database = {
           },
         ]
       }
+      stock_count_items: {
+        Row: {
+          count_id: string
+          counted_quantity: number
+          ingredient_id: string
+          organization_id: string
+          system_quantity: number
+          unit_cost: number
+        }
+        Insert: {
+          count_id: string
+          counted_quantity: number
+          ingredient_id: string
+          organization_id: string
+          system_quantity: number
+          unit_cost: number
+        }
+        Update: {
+          count_id?: string
+          counted_quantity?: number
+          ingredient_id?: string
+          organization_id?: string
+          system_quantity?: number
+          unit_cost?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_count_items_count_id_organization_id_fkey"
+            columns: ["count_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "stock_counts"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "stock_count_items_ingredient_id_organization_id_fkey"
+            columns: ["ingredient_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "stock_count_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_counts: {
+        Row: {
+          counted_at: string
+          counted_by: string | null
+          counted_by_name: string | null
+          difference_value: number
+          id: string
+          organization_id: string
+        }
+        Insert: {
+          counted_at?: string
+          counted_by?: string | null
+          counted_by_name?: string | null
+          difference_value?: number
+          id?: string
+          organization_id: string
+        }
+        Update: {
+          counted_at?: string
+          counted_by?: string | null
+          counted_by_name?: string | null
+          difference_value?: number
+          id?: string
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_counts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stock_entries: {
         Row: {
           created_at: string
@@ -2308,6 +2395,7 @@ export type Database = {
           order_id: string | null
           organization_id: string
           quantity: number
+          stock_count_id: string | null
         }
         Insert: {
           created_at?: string
@@ -2316,6 +2404,7 @@ export type Database = {
           order_id?: string | null
           organization_id: string
           quantity: number
+          stock_count_id?: string | null
         }
         Update: {
           created_at?: string
@@ -2324,6 +2413,7 @@ export type Database = {
           order_id?: string | null
           organization_id?: string
           quantity?: number
+          stock_count_id?: string | null
         }
         Relationships: [
           {
@@ -2345,6 +2435,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_stock_count_id_fkey"
+            columns: ["stock_count_id"]
+            isOneToOne: false
+            referencedRelation: "stock_counts"
             referencedColumns: ["id"]
           },
         ]
@@ -3101,6 +3198,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      apply_stock_count: {
+        Args: { p_counts: Json; p_organization_id: string }
+        Returns: {
+          adjusted_count: number
+          count_id: string
+          difference_value: number
+        }[]
+      }
       assert_payment_method_accepted: {
         Args: {
           p_method: Database["public"]["Enums"]["payment_method"]
@@ -3211,6 +3316,7 @@ export type Database = {
           is_service_fee_enabled: boolean
           is_split_bill_enabled: boolean
           is_takeaway_enabled: boolean
+          kitchen_late_minutes: number
           last_order_number: number
           menu_instagram: string | null
           menu_note: string | null

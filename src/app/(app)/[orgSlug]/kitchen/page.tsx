@@ -18,6 +18,7 @@ export default async function KitchenPage({
     <KitchenView
       organizationId={organization.id}
       ticketBusiness={toOrderTicketBusiness(organization)}
+      lateMinutes={organization.kitchenLateMinutes}
       title={kitchenModule.label}
       description="Pedidos enviados pelo PDV, em tempo real."
     />
