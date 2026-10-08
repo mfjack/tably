@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  FileSpreadsheet,
   MoreHorizontal,
   Tags,
   TrendingDown,
@@ -8,6 +9,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { useCallback, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -16,14 +18,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { sortPaidEntriesLast } from "@/features/finance/entry-order";
 import { useFinancialCategoriesQuery } from "@/features/finance/hooks/use-financial-categories-query";
+import { useFinancialOverviewQuery } from "@/features/finance/hooks/use-financial-overview-query";
 import type {
   FinancialCategory,
   FinancialEntry,
   FinancialEntryKind,
 } from "@/features/finance/types";
 import type { OrganizationId } from "@/features/organizations/types";
-import { parseMonthKey } from "@/features/time-clock/time-utils";
+import {
+  formatMonthLabel,
+  parseMonthKey,
+} from "@/features/time-clock/time-utils";
 import { useSearchParamState } from "@/hooks/use-search-param-state";
 import { MonthNavigator } from "../../components/month-navigator";
 import { PageContent } from "../../components/page-content";
@@ -46,6 +53,7 @@ const EMPTY_CATEGORIES: FinancialCategory[] = [];
 
 type FinanceViewProps = {
   organizationId: OrganizationId;
+  organizationName: string;
   title: string;
   description: string;
   today: string;
@@ -54,6 +62,7 @@ type FinanceViewProps = {
 
 export function FinanceView({
   organizationId,
+  organizationName,
   title,
   description,
   today,
@@ -79,6 +88,30 @@ export function FinanceView({
   const [openDialog, setOpenDialog] = useState<OpenDialog>("none");
   const categoriesQuery = useFinancialCategoriesQuery(organizationId);
   const categories = categoriesQuery.data ?? EMPTY_CATEGORIES;
+  const overviewQuery = useFinancialOverviewQuery(organizationId, monthKey);
+  const [isExporting, setIsExporting] = useState(false);
+
+  async function exportMonth() {
+    const overview = overviewQuery.data;
+    if (!overview) return;
+    setIsExporting(true);
+    try {
+      const { exportFinanceExcel } = await import(
+        "@/features/finance/export-finance-excel"
+      );
+      await exportFinanceExcel({
+        businessName: organizationName,
+        monthLabel: formatMonthLabel(monthKey),
+        monthKey,
+        today: overview.today,
+        entries: sortPaidEntriesLast(overview.monthEntries),
+      });
+    } catch {
+      toast.error("Não foi possível gerar a planilha.");
+    } finally {
+      setIsExporting(false);
+    }
+  }
 
   const openCreateForm = useCallback((kind: FinancialEntryKind) => {
     setEntryFormState({ mode: "create", kind });
@@ -141,6 +174,13 @@ export function FinanceView({
                 <DropdownMenuItem onClick={() => setOpenDialog("categories")}>
                   <Tags aria-hidden />
                   Categorias
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={!overviewQuery.data || isExporting}
+                  onClick={() => void exportMonth()}
+                >
+                  <FileSpreadsheet aria-hidden />
+                  Baixar Excel do mês
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

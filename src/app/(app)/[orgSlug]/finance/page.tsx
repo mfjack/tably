@@ -85,6 +85,7 @@ export default async function FinancePage({
     <HydrationBoundary state={dehydratedState}>
       <FinanceView
         organizationId={organization.id}
+        organizationName={organization.name}
         title={financeModule.label}
         description={financeModule.description}
         today={clock.today}
