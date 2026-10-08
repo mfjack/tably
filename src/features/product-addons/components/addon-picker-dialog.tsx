@@ -5,39 +5,37 @@ import { DetailsDialog } from "@/components/dialog/details-dialog";
 import { DIALOG_ACTION_BUTTON_CLASS_NAME } from "@/components/dialog/dialog-styles";
 import { ToggleChip } from "@/components/toggle-chip";
 import { Button } from "@/components/ui/button";
-import {
-  formatAddonLabel,
-  getAddonsTotal,
-} from "@/features/product-addons/item-addons";
-import type { ProductAddonId } from "@/features/product-addons/types";
-import type { Product } from "@/features/products/types";
 import { formatCurrency } from "@/lib/format";
+import { formatAddonLabel, getAddonsTotal } from "../item-addons";
+
+export type AddonOption = {
+  id: string;
+  name: string;
+  price: number;
+};
 
 type AddonPickerDialogProps = {
-  product: Product | null;
+  title: string;
+  basePrice: number;
+  addons: readonly AddonOption[];
   onClose: () => void;
-  onConfirm: (product: Product, addonIds: ProductAddonId[]) => void;
+  onConfirm: (addonIds: string[]) => void;
 };
 
-type AddonPickerContentProps = {
-  product: Product;
-  onClose: () => void;
-  onConfirm: (product: Product, addonIds: ProductAddonId[]) => void;
-};
-
-function AddonPickerContent({
-  product,
+export function AddonPickerDialog({
+  title,
+  basePrice,
+  addons,
   onClose,
   onConfirm,
-}: AddonPickerContentProps) {
-  const [selectedIds, setSelectedIds] = useState<ProductAddonId[]>([]);
-  const availableAddons = product.addons.filter((addon) => addon.isActive);
-  const selectedAddons = availableAddons.filter((addon) =>
+}: AddonPickerDialogProps) {
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const selectedAddons = addons.filter((addon) =>
     selectedIds.includes(addon.id),
   );
-  const total = product.price + getAddonsTotal(selectedAddons);
+  const total = basePrice + getAddonsTotal(selectedAddons);
 
-  function toggleAddon(addonId: ProductAddonId) {
+  function toggleAddon(addonId: string) {
     setSelectedIds((currentIds) =>
       currentIds.includes(addonId)
         ? currentIds.filter((currentId) => currentId !== addonId)
@@ -49,7 +47,7 @@ function AddonPickerContent({
     <DetailsDialog
       isOpen
       onOpenChange={(isDialogOpen) => !isDialogOpen && onClose()}
-      title={product.name}
+      title={title}
       footer={
         <>
           <Button
@@ -63,7 +61,7 @@ function AddonPickerContent({
           <Button
             type="button"
             className={DIALOG_ACTION_BUTTON_CLASS_NAME}
-            onClick={() => onConfirm(product, selectedIds)}
+            onClick={() => onConfirm(selectedIds)}
           >
             Adicionar · {formatCurrency(total)}
           </Button>
@@ -75,7 +73,7 @@ function AddonPickerContent({
           Escolha os adicionais ou toque em Adicionar para levar sem nenhum.
         </p>
         <div className="grid grid-cols-2 gap-2">
-          {availableAddons.map((addon) => (
+          {addons.map((addon) => (
             <ToggleChip
               key={addon.id}
               label={formatAddonLabel(addon)}
@@ -87,21 +85,5 @@ function AddonPickerContent({
         </div>
       </div>
     </DetailsDialog>
-  );
-}
-
-export function AddonPickerDialog({
-  product,
-  onClose,
-  onConfirm,
-}: AddonPickerDialogProps) {
-  if (!product) return null;
-  return (
-    <AddonPickerContent
-      key={product.id}
-      product={product}
-      onClose={onClose}
-      onConfirm={onConfirm}
-    />
   );
 }

@@ -57,6 +57,8 @@ export function MenuSection({
                 menuSlug={menuSlug}
                 productId={item.id}
                 productName={item.name}
+                price={item.price}
+                addons={item.addons}
                 remaining={item.remaining}
               />
             )}

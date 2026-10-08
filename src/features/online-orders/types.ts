@@ -28,6 +28,7 @@ export type OnlineOrderItem = {
   quantity: number;
   unitPrice: number;
   note: string | null;
+  addonNames: string[];
 };
 
 export type PendingOnlineOrder = {

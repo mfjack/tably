@@ -8,6 +8,7 @@ import type {
   OnlineOrderStage,
   PublicOnlineOrder,
 } from "@/features/online-orders/types";
+import { ItemAddonNames } from "@/features/product-addons/components/item-addon-names";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -120,15 +121,16 @@ export function OnlineOrderTracker({
         <section className="flex flex-col gap-3 rounded-xl border bg-card p-5 shadow-xs">
           <h2 className="font-semibold text-lg">Seu pedido</h2>
           <ul className="flex flex-col gap-2">
-            {order.items.map((item) => (
+            {order.items.map((item, index) => (
               <li
-                key={`${item.productId}-${item.note ?? ""}`}
+                key={`${item.productId}-${index.toString()}`}
                 className="flex items-start justify-between gap-4"
               >
                 <div className="flex min-w-0 flex-col">
                   <span>
                     {item.quantity}x {item.name}
                   </span>
+                  <ItemAddonNames addonNames={item.addonNames} />
                   {item.note && (
                     <span className="text-primary text-xs">↳ {item.note}</span>
                   )}

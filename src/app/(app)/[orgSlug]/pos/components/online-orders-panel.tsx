@@ -19,6 +19,7 @@ import {
   printOrderTicket,
 } from "@/features/orders/print-order-ticket";
 import type { OrganizationId } from "@/features/organizations/types";
+import { ItemAddonNames } from "@/features/product-addons/components/item-addon-names";
 import { useNow } from "@/hooks/use-now";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -72,6 +73,7 @@ export function OnlineOrdersPanel({
             quantity: item.quantity,
             total: item.unitPrice * item.quantity,
             note: item.note ?? undefined,
+            addonNames: item.addonNames,
           })),
           subtotal: order.total,
           takeawayFee: 0,
@@ -176,13 +178,14 @@ export function OnlineOrdersPanel({
                     </span>
                   </div>
                   <ul className="flex flex-col gap-1 text-sm">
-                    {order.items.map((item) => (
+                    {order.items.map((item, index) => (
                       <li
-                        key={`${item.productId}-${item.note ?? ""}`}
+                        key={`${item.productId}-${index.toString()}`}
                         className="flex justify-between gap-3"
                       >
                         <span>
                           {item.quantity}x {item.name}
+                          <ItemAddonNames addonNames={item.addonNames} />
                         </span>
                         <span className="shrink-0 tabular-nums">
                           {formatCurrency(item.unitPrice * item.quantity)}

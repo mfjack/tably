@@ -13,6 +13,7 @@ import {
   useLatestRecentOrder,
   useMenuCartItems,
 } from "@/features/online-orders/menu-cart-store";
+import { getAddonsTotal } from "@/features/product-addons/item-addons";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { MenuCartLine } from "./menu-cart-item-card";
@@ -52,6 +53,8 @@ export function MenuOrderBar({
     (cartItem) => {
       const menuItem = itemsById.get(cartItem.productId);
       if (!menuItem) return [];
+      const addonIds = new Set(cartItem.addonIds ?? []);
+      const addons = menuItem.addons.filter((addon) => addonIds.has(addon.id));
       return [
         {
           productId: menuItem.id,
@@ -60,7 +63,9 @@ export function MenuOrderBar({
             : menuItem.name,
           quantity: cartItem.quantity,
           note: cartItem.note,
-          total: menuItem.price * cartItem.quantity,
+          addonIds: cartItem.addonIds ?? [],
+          addonNames: addons.map((addon) => addon.name),
+          total: (menuItem.price + getAddonsTotal(addons)) * cartItem.quantity,
         },
       ];
     },

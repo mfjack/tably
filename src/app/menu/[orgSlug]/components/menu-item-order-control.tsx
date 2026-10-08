@@ -1,18 +1,23 @@
 "use client";
 
 import { Minus, Plus } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import type { PublicMenuAddon } from "@/features/menu/types";
 import {
   useHydratedMenuCartStore,
   useMenuCartItemQuantity,
   useMenuCartStore,
 } from "@/features/online-orders/menu-cart-store";
+import { AddonPickerDialog } from "@/features/product-addons/components/addon-picker-dialog";
 import type { ProductId } from "@/features/products/types";
 
 type MenuItemOrderControlProps = {
   menuSlug: string;
   productId: ProductId;
   productName: string;
+  price: number;
+  addons: readonly PublicMenuAddon[];
   remaining: number | null;
 };
 
@@ -20,8 +25,12 @@ export function MenuItemOrderControl({
   menuSlug,
   productId,
   productName,
+  price,
+  addons,
   remaining,
 }: MenuItemOrderControlProps) {
+  const [isPickingAddons, setIsPickingAddons] = useState(false);
+  const hasAddons = addons.length > 0;
   const isHydrated = useHydratedMenuCartStore();
   const storedQuantity = useMenuCartItemQuantity(menuSlug, productId);
   const quantity = isHydrated ? storedQuantity : 0;
@@ -31,8 +40,25 @@ export function MenuItemOrderControl({
 
   function addItem() {
     if (hasReachedRemaining) return;
+    if (hasAddons) {
+      setIsPickingAddons(true);
+      return;
+    }
     incrementItem(menuSlug, productId);
   }
+
+  const addonPicker = isPickingAddons && (
+    <AddonPickerDialog
+      title={productName}
+      basePrice={price}
+      addons={addons}
+      onClose={() => setIsPickingAddons(false)}
+      onConfirm={(addonIds) => {
+        incrementItem(menuSlug, productId, addonIds);
+        setIsPickingAddons(false);
+      }}
+    />
+  );
 
   function removeItem() {
     decrementItem(menuSlug, productId);
@@ -40,31 +66,37 @@ export function MenuItemOrderControl({
 
   if (quantity === 0) {
     return (
-      <Button
-        type="button"
-        variant="outline"
-        size="icon-lg"
-        className="shrink-0 rounded-full"
-        aria-label={`Adicionar ${productName}`}
-        onClick={addItem}
-      >
-        <Plus aria-hidden />
-      </Button>
+      <>
+        {addonPicker}
+        <Button
+          type="button"
+          variant="outline"
+          size="icon-lg"
+          className="shrink-0 rounded-full"
+          aria-label={`Adicionar ${productName}`}
+          onClick={addItem}
+        >
+          <Plus aria-hidden />
+        </Button>
+      </>
     );
   }
 
   return (
     <div className="flex shrink-0 items-center gap-1.5">
-      <Button
-        type="button"
-        variant="outline"
-        size="icon-lg"
-        className="rounded-full"
-        aria-label={`Remover um ${productName}`}
-        onClick={removeItem}
-      >
-        <Minus aria-hidden />
-      </Button>
+      {addonPicker}
+      {!hasAddons && (
+        <Button
+          type="button"
+          variant="outline"
+          size="icon-lg"
+          className="rounded-full"
+          aria-label={`Remover um ${productName}`}
+          onClick={removeItem}
+        >
+          <Minus aria-hidden />
+        </Button>
+      )}
       <span className="w-5 text-center font-semibold tabular-nums">
         {quantity}
       </span>

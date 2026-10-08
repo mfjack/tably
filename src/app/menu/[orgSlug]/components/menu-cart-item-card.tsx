@@ -1,5 +1,6 @@
 import { MessageSquareText, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ItemAddonNames } from "@/features/product-addons/components/item-addon-names";
 import type { ProductId } from "@/features/products/types";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -9,6 +10,8 @@ export type MenuCartLine = {
   name: string;
   quantity: number;
   note: string;
+  addonIds: string[];
+  addonNames: string[];
   total: number;
 };
 
@@ -23,7 +26,7 @@ export function MenuCartItemCard({
   onDecrement,
   onEditNote,
 }: MenuCartItemCardProps) {
-  const { name, quantity, note, total } = cartLine;
+  const { name, quantity, note, addonNames, total } = cartLine;
   const hasNote = note !== "";
 
   return (
@@ -33,6 +36,7 @@ export function MenuCartItemCard({
       </span>
       <div className="flex min-w-0 flex-1 flex-col">
         <span className="truncate font-semibold text-sm">{name}</span>
+        <ItemAddonNames addonNames={addonNames} />
         {hasNote && (
           <span className="truncate text-primary text-xs">↳ {note}</span>
         )}

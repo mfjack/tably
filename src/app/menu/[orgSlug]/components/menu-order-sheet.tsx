@@ -72,7 +72,12 @@ export function MenuOrderSheet({
   });
 
   function decrementCartLine(cartLine: MenuCartLine) {
-    decrementItem(menuSlug, cartLine.productId, cartLine.note);
+    decrementItem(
+      menuSlug,
+      cartLine.productId,
+      cartLine.note,
+      cartLine.addonIds,
+    );
   }
 
   function closeNoteDialog() {
@@ -90,6 +95,7 @@ export function MenuOrderSheet({
       cartLine.note,
       note,
       quantityToMove,
+      cartLine.addonIds,
     );
   }
 
@@ -106,6 +112,7 @@ export function MenuOrderSheet({
           productId: line.productId,
           quantity: line.quantity,
           note: line.note,
+          addonIds: line.addonIds,
         })),
       },
       {

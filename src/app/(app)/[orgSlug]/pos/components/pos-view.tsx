@@ -26,6 +26,7 @@ import {
   useHydratedCartStore,
   useTabTarget,
 } from "@/features/pos/cart-store";
+import { AddonPickerDialog } from "@/features/product-addons/components/addon-picker-dialog";
 import type { Product, ProductId } from "@/features/products/types";
 import { useIsOnline } from "@/hooks/use-is-online";
 import { ModuleLinkButton } from "../../components/module-link-button";
@@ -40,7 +41,6 @@ import {
   usePosCatalog,
 } from "../hooks/use-pos-catalog";
 import { usePosCheckout } from "../hooks/use-pos-checkout";
-import { AddonPickerDialog } from "./addon-picker-dialog";
 import { CartPanel } from "./cart-panel";
 import {
   CartTabNameDialog,
@@ -470,14 +470,19 @@ export function PosView({
                 }
         }
       />
-      <AddonPickerDialog
-        product={addonPickerProduct}
-        onClose={() => setAddonPickerProduct(null)}
-        onConfirm={(product, addonIds) => {
-          addProductToCart(organizationId, product.id, addonIds);
-          setAddonPickerProduct(null);
-        }}
-      />
+      {addonPickerProduct && (
+        <AddonPickerDialog
+          key={addonPickerProduct.id}
+          title={addonPickerProduct.name}
+          basePrice={addonPickerProduct.price}
+          addons={addonPickerProduct.addons.filter((addon) => addon.isActive)}
+          onClose={() => setAddonPickerProduct(null)}
+          onConfirm={(addonIds) => {
+            addProductToCart(organizationId, addonPickerProduct.id, addonIds);
+            setAddonPickerProduct(null);
+          }}
+        />
+      )}
       <ItemNoteDialog
         cartLine={noteCartLine}
         onClose={() => setNoteCartLine(null)}

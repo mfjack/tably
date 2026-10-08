@@ -9,6 +9,7 @@ import {
 } from "@/features/operators/module-access";
 import type { OrderId } from "@/features/orders/types";
 import type { OrganizationId } from "@/features/organizations/types";
+import { parseOrderItemAddons } from "@/features/product-addons/item-addons";
 import type { ProductId } from "@/features/products/types";
 import {
   type ActionResult,
@@ -34,6 +35,7 @@ const onlineOrderItemRowSchema = z.object({
   quantity: z.number(),
   unit_price: z.number(),
   note: z.string().nullable(),
+  addons: z.unknown().optional(),
 });
 
 const publicOnlineOrderSchema = z.object({
@@ -59,6 +61,7 @@ function toOnlineOrderItems(items: unknown): OnlineOrderItem[] {
     quantity: item.quantity,
     unitPrice: item.unit_price,
     note: item.note,
+    addonNames: parseOrderItemAddons(item.addons).map((addon) => addon.name),
   }));
 }
 
@@ -112,6 +115,7 @@ export async function placeOnlineOrder(
       product_id: item.productId,
       quantity: item.quantity,
       note: item.note,
+      addon_ids: item.addonIds ?? [],
     })),
   });
 

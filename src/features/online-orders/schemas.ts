@@ -10,6 +10,7 @@ export const onlineOrderItemsSchema = z
       productId: z.uuid(),
       quantity: z.number().int().positive().max(ONLINE_ORDER_MAX_ITEM_QUANTITY),
       note: z.string().trim().max(CART_ITEM_NOTE_MAX_LENGTH),
+      addonIds: z.array(z.uuid()).max(30).optional(),
     }),
   )
   .min(1, "Adicione pelo menos um item.")

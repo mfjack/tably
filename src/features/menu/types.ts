@@ -1,5 +1,12 @@
 import type { CategoryId } from "@/features/categories/types";
+import type { ProductAddonId } from "@/features/product-addons/types";
 import type { ProductId } from "@/features/products/types";
+
+export type PublicMenuAddon = {
+  id: ProductAddonId;
+  name: string;
+  price: number;
+};
 
 export type PublicMenuItem = {
   id: ProductId;
@@ -8,6 +15,7 @@ export type PublicMenuItem = {
   price: number;
   isAvailable: boolean;
   remaining: number | null;
+  addons: PublicMenuAddon[];
 };
 
 export type PublicMenuSection = {

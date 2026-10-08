@@ -3,6 +3,7 @@ import "server-only";
 import { cache } from "react";
 import * as z from "zod";
 import type { CategoryId } from "@/features/categories/types";
+import type { ProductAddonId } from "@/features/product-addons/types";
 import type { ProductId } from "@/features/products/types";
 import { createClient } from "@/lib/supabase/server";
 import type { PublicLoyaltyProgram, PublicMenu } from "./types";
@@ -25,6 +26,15 @@ const publicMenuSchema = z.object({
           price: z.number(),
           isAvailable: z.boolean(),
           remaining: z.number().nullable(),
+          addons: z
+            .array(
+              z.object({
+                id: z.string().transform((id) => id as ProductAddonId),
+                name: z.string(),
+                price: z.number(),
+              }),
+            )
+            .default([]),
         }),
       ),
     }),

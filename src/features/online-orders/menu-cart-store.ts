@@ -27,11 +27,16 @@ type MenuCartState = {
   itemsByMenu: Record<string, MenuCartItem[] | undefined>;
   recentOrdersByMenu: Record<string, RecentOnlineOrder[] | undefined>;
   getDeviceId: () => OnlineOrderDeviceId;
-  incrementItem: (menuSlug: string, productId: ProductId) => void;
+  incrementItem: (
+    menuSlug: string,
+    productId: ProductId,
+    addonIds?: readonly string[],
+  ) => void;
   decrementItem: (
     menuSlug: string,
     productId: ProductId,
     note?: string,
+    addonIds?: readonly string[],
   ) => void;
   setItemNote: (
     menuSlug: string,
@@ -39,6 +44,7 @@ type MenuCartState = {
     currentNote: string,
     nextNote: string,
     quantityToMove: number,
+    addonIds?: readonly string[],
   ) => void;
   clearCart: (menuSlug: string) => void;
   setCustomerName: (customerName: string) => void;
@@ -104,14 +110,17 @@ export const useMenuCartStore = create<MenuCartState>()(
           set({ deviceId });
           return deviceId;
         },
-        incrementItem: (menuSlug, productId) =>
-          updateItems(menuSlug, (items) => addToItems(items, productId)),
-        decrementItem: (menuSlug, productId, note) =>
+        incrementItem: (menuSlug, productId, addonIds) =>
+          updateItems(menuSlug, (items) =>
+            addToItems(items, productId, addonIds),
+          ),
+        decrementItem: (menuSlug, productId, note, addonIds) =>
           updateItems(menuSlug, (items) =>
             decrementFromItems(
               items,
               productId,
               note ?? findLastNote(items, productId),
+              addonIds,
             ),
           ),
         setItemNote: (
@@ -120,6 +129,7 @@ export const useMenuCartStore = create<MenuCartState>()(
           currentNote,
           nextNote,
           quantityToMove,
+          addonIds,
         ) =>
           updateItems(menuSlug, (items) =>
             updateItemNote(
@@ -128,6 +138,7 @@ export const useMenuCartStore = create<MenuCartState>()(
               currentNote,
               nextNote,
               quantityToMove,
+              addonIds,
             ),
           ),
         clearCart: (menuSlug) =>
