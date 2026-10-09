@@ -7,6 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { OrganizationId } from "@/features/organizations/types";
+import { TASK_PERIOD_LABELS } from "@/features/tasks/task-periods";
 import type { Task, TaskList } from "@/features/tasks/types";
 import { cn } from "@/lib/utils";
 import { AddTaskForm } from "./add-task-form";
@@ -53,6 +54,7 @@ export function TaskListCard({
               isComplete && "font-medium text-foreground",
             )}
           >
+            {taskList.period && `${TASK_PERIOD_LABELS[taskList.period]} · `}
             {isComplete
               ? "Tudo concluído"
               : `${doneCount} de ${taskCount} concluídas`}
@@ -65,7 +67,7 @@ export function TaskListCard({
                 <Button
                   variant="ghost"
                   size="icon-sm"
-                  aria-label={`Opções da lista ${taskList.name}`}
+                  aria-label={`Opções do processo ${taskList.name}`}
                 />
               }
             >
@@ -74,14 +76,14 @@ export function TaskListCard({
             <DropdownMenuContent align="end" className="min-w-40">
               <DropdownMenuItem onClick={() => onRename(taskList)}>
                 <Pencil aria-hidden />
-                Renomear
+                Editar
               </DropdownMenuItem>
               <DropdownMenuItem
                 variant="destructive"
                 onClick={() => onDelete(taskList)}
               >
                 <Trash2 aria-hidden />
-                Excluir lista
+                Excluir processo
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -113,7 +115,7 @@ export function TaskListCard({
         </ul>
       ) : (
         <p className="text-muted-foreground text-sm">
-          Nenhuma tarefa nesta lista.
+          Nenhum item neste processo.
         </p>
       )}
 

@@ -43,8 +43,8 @@ export function AddTaskForm({
     <form onSubmit={handleSubmit} noValidate className="flex gap-2">
       <Input
         {...form.register("title")}
-        aria-label={`Nova tarefa em ${listName}`}
-        placeholder="Adicionar tarefa"
+        aria-label={`Novo item em ${listName}`}
+        placeholder="Adicionar item"
         autoComplete="off"
         className="h-9 rounded-lg bg-muted text-sm"
       />
@@ -53,7 +53,7 @@ export function AddTaskForm({
         variant="outline"
         size="icon"
         className="size-9 shrink-0"
-        aria-label="Adicionar tarefa"
+        aria-label="Adicionar item"
         disabled={addTaskMutation.isPending}
       >
         {addTaskMutation.isPending ? (

@@ -1,6 +1,6 @@
 "use client";
 
-import { ListChecks, Plus } from "lucide-react";
+import { LayoutTemplate, ListChecks, Plus, Thermometer } from "lucide-react";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -13,11 +13,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { OperatorId, OperatorSummary } from "@/features/operators/types";
 import type { OrganizationId } from "@/features/organizations/types";
+import { TemperatureReadingDialog } from "@/features/tasks/components/temperature-reading-dialog";
 import { useDeleteTaskListMutation } from "@/features/tasks/hooks/use-delete-task-list-mutation";
 import { useDeleteTaskMutation } from "@/features/tasks/hooks/use-delete-task-mutation";
 import { useSetTaskDoneMutation } from "@/features/tasks/hooks/use-set-task-done-mutation";
 import { useTaskListsQuery } from "@/features/tasks/hooks/use-task-lists-query";
-import type { Task, TaskBoard, TaskList } from "@/features/tasks/types";
+import type {
+  Task,
+  TaskBoard,
+  TaskList,
+  TemperatureTask,
+} from "@/features/tasks/types";
 import { useSearchParamState } from "@/hooks/use-search-param-state";
 import { createOptionParser } from "@/lib/search-params";
 import { cn } from "@/lib/utils";
@@ -25,9 +31,11 @@ import { ListEmptyState } from "../../components/list-empty-state";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
 import { PosHeaderDescription } from "../../pos/components/pos-header-description";
+import { ProcessTemplatesDialog } from "./process-templates-dialog";
 import { TaskFormDialog } from "./task-form-dialog";
 import { TaskListCard } from "./task-list-card";
 import { TaskListFormDialog } from "./task-list-form-dialog";
+import { TemperatureLogDialog } from "./temperature-log-dialog";
 
 const LOADING_CARD_COUNT = 3;
 const GRID_CLASS_NAME = "grid items-start gap-4 md:grid-cols-2 xl:grid-cols-3";
@@ -61,6 +69,7 @@ function filterTaskLists(
 
 type TasksViewProps = {
   organizationId: OrganizationId;
+  businessName: string;
   title: string;
   canManage: boolean;
   operators: OperatorSummary[];
@@ -69,6 +78,7 @@ type TasksViewProps = {
 
 export function TasksView({
   organizationId,
+  businessName,
   title,
   canManage,
   operators,
@@ -87,6 +97,9 @@ export function TasksView({
     null,
   );
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
+  const [taskToMeasure, setTaskToMeasure] = useState<Task | null>(null);
+  const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
+  const [isTemperatureLogOpen, setIsTemperatureLogOpen] = useState(false);
   const [filter, setFilter] = useSearchParamState({
     key: "filter",
     defaultValue: "all",
@@ -98,13 +111,28 @@ export function TasksView({
   }, []);
 
   const toggleTask = useCallback(
-    (task: Task) =>
+    (task: Task) => {
+      if (task.kind === "temperature" && task.completion === null) {
+        setTaskToMeasure(task);
+        return;
+      }
       setTaskDone(
         { taskId: task.id, isDone: task.completion === null },
         { onError: (error) => toast.error(error.message) },
-      ),
+      );
+    },
     [setTaskDone],
   );
+
+  function recordTemperature(task: TemperatureTask, temperature: number) {
+    setTaskDone(
+      { taskId: task.id, isDone: true, temperature },
+      {
+        onSuccess: () => setTaskToMeasure(null),
+        onError: (error) => toast.error(error.message),
+      },
+    );
+  }
 
   const deleteTask = useCallback(
     (task: Task) =>
@@ -123,7 +151,7 @@ export function TasksView({
     if (!taskListToDelete) return;
     deleteTaskListMutation.mutate(taskListToDelete.id, {
       onSuccess: () => {
-        toast.success(`Lista ${taskListToDelete.name} excluída.`);
+        toast.success(`Processo ${taskListToDelete.name} excluído.`);
         setTaskListToDelete(null);
       },
       onError: (error) => toast.error(error.message),
@@ -141,12 +169,34 @@ export function TasksView({
         title={title}
         description={<PosHeaderDescription />}
         actions={
-          canManage && (
-            <Button className="h-10" onClick={openCreateForm}>
-              <Plus aria-hidden />
-              Nova lista
+          <>
+            <Button
+              variant="outline"
+              className="h-10"
+              aria-label="Temperaturas"
+              onClick={() => setIsTemperatureLogOpen(true)}
+            >
+              <Thermometer aria-hidden />
+              <span className="max-sm:hidden">Temperaturas</span>
             </Button>
-          )
+            {canManage && (
+              <>
+                <Button
+                  variant="outline"
+                  className="h-10"
+                  aria-label="Modelos prontos"
+                  onClick={() => setIsTemplatesOpen(true)}
+                >
+                  <LayoutTemplate aria-hidden />
+                  <span className="max-sm:hidden">Modelos prontos</span>
+                </Button>
+                <Button className="h-10" onClick={openCreateForm}>
+                  <Plus aria-hidden />
+                  <span className="max-sm:hidden">Novo processo</span>
+                </Button>
+              </>
+            )}
+          </>
         }
       />
       <PageContent>
@@ -166,11 +216,11 @@ export function TasksView({
         ) : taskBoard.taskLists.length === 0 ? (
           <ListEmptyState
             icon={ListChecks}
-            title="Nenhuma lista de tarefas"
-            description="Crie checklists como abertura, fechamento e limpeza. As tarefas podem ser diárias, semanais ou mensais e mostram quem marcou cada uma."
-            createLabel="Criar primeira lista"
+            title="Nenhum processo ainda"
+            description="Comece pelos modelos prontos de abertura, fechamento, higiene e controle de temperatura para cafeterias, restaurantes e açaiterias. Depois é só ajustar à sua rotina."
+            createLabel="Escolher modelos prontos"
             canCreate={canManage}
-            onCreate={openCreateForm}
+            onCreate={() => setIsTemplatesOpen(true)}
           />
         ) : (
           <div className="flex min-h-0 flex-col gap-4">
@@ -224,6 +274,26 @@ export function TasksView({
         taskList={formState.mode === "edit" ? formState.taskList : undefined}
         onClose={() => setFormState({ mode: "closed" })}
       />
+      <ProcessTemplatesDialog
+        organizationId={organizationId}
+        isOpen={isTemplatesOpen}
+        existingListNames={
+          taskBoard?.taskLists.map((taskList) => taskList.name) ?? []
+        }
+        onClose={() => setIsTemplatesOpen(false)}
+      />
+      <TemperatureReadingDialog
+        task={taskToMeasure}
+        isSubmitting={setTaskDoneMutation.isPending}
+        onSubmit={recordTemperature}
+        onClose={() => setTaskToMeasure(null)}
+      />
+      <TemperatureLogDialog
+        organizationId={organizationId}
+        businessName={businessName}
+        isOpen={isTemperatureLogOpen}
+        onClose={() => setIsTemperatureLogOpen(false)}
+      />
       <TaskFormDialog
         organizationId={organizationId}
         task={taskToEdit}
@@ -233,8 +303,8 @@ export function TasksView({
       <ConfirmDialog
         isOpen={taskListToDelete !== null}
         onOpenChange={(isOpen) => !isOpen && setTaskListToDelete(null)}
-        title="Excluir lista?"
-        description={`A lista ${taskListToDelete?.name ?? ""} e as tarefas dela serão apagadas. ${IRREVERSIBLE_ACTION_MESSAGE}`}
+        title="Excluir processo?"
+        description={`O processo ${taskListToDelete?.name ?? ""} e os itens dele serão apagados. ${IRREVERSIBLE_ACTION_MESSAGE}`}
         confirmLabel="Excluir"
         isConfirming={deleteTaskListMutation.isPending}
         onConfirm={confirmDeleteTaskList}

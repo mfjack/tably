@@ -5,8 +5,10 @@ import { useEffect } from "react";
 import { type DefaultValues, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { FormDialog } from "@/components/dialog/form-dialog";
+import { NumberField } from "@/components/form/number-field";
 import { SelectField } from "@/components/form/select-field";
 import { TextField } from "@/components/form/text-field";
+import { TextareaField } from "@/components/form/textarea-field";
 import { FieldGroup } from "@/components/ui/field";
 import type { OperatorSummary } from "@/features/operators/types";
 import type { OrganizationId } from "@/features/organizations/types";
@@ -21,6 +23,11 @@ import {
   NONE_SELECT_VALUE,
   toSelectFieldValue,
 } from "@/lib/optional-select-value";
+
+const KIND_OPTIONS = [
+  { value: "check", label: "Marcar como feito" },
+  { value: "temperature", label: "Registrar temperatura" },
+];
 
 const FREQUENCY_OPTIONS = Object.entries(TASK_FREQUENCY_LABELS).map(
   ([value, label]) => ({ value, label }),
@@ -51,6 +58,10 @@ type TaskFormDialogProps = {
 function toFormValues(task: Task): DefaultValues<TaskInput> {
   return {
     title: task.title,
+    kind: task.kind,
+    instructions: task.instructions ?? "",
+    minTemperature: task.minTemperature ?? undefined,
+    maxTemperature: task.maxTemperature ?? undefined,
     frequency: task.frequency,
     dueWeekday: toSelectFieldValue(task.dueWeekday?.toString() ?? null),
     dueDay: toSelectFieldValue(task.dueDay?.toString() ?? null),
@@ -67,6 +78,7 @@ export function TaskFormDialog({
   const updateTaskMutation = useUpdateTaskMutation(organizationId);
   const form = useForm<TaskInput>({ resolver: zodResolver(taskSchema) });
   const frequency = useWatch({ control: form.control, name: "frequency" });
+  const kind = useWatch({ control: form.control, name: "kind" });
 
   useEffect(() => {
     if (!task) return;
@@ -80,7 +92,7 @@ export function TaskFormDialog({
       { taskId: task.id, input: values },
       {
         onSuccess: () => {
-          toast.success("Tarefa atualizada.");
+          toast.success("Item atualizado.");
           onClose();
         },
         onError: (error) => toast.error(error.message),
@@ -92,7 +104,7 @@ export function TaskFormDialog({
     <FormDialog
       isOpen={task !== null}
       onOpenChange={(isDialogOpen) => !isDialogOpen && onClose()}
-      title="Editar tarefa"
+      title="Editar item"
       description="Tarefas semanais e mensais podem ser feitas qualquer dia do período. Com um dia definido, ficam atrasadas depois dele."
       submitLabel="Salvar"
       isSubmitting={updateTaskMutation.isPending}
@@ -102,9 +114,43 @@ export function TaskFormDialog({
         <TextField
           control={form.control}
           name="title"
-          label="Tarefa"
+          label="Item"
           placeholder="Ex.: Limpar o moedor"
           autoComplete="off"
+        />
+        <SelectField
+          control={form.control}
+          name="kind"
+          label="Como registrar"
+          options={KIND_OPTIONS}
+        />
+        {kind === "temperature" && (
+          <div className="grid grid-cols-2 gap-4">
+            <NumberField
+              control={form.control}
+              name="minTemperature"
+              label="Mínima"
+              format="temperature"
+              suffix="°C"
+              placeholder="Ex.: 0"
+              allowsNegative
+            />
+            <NumberField
+              control={form.control}
+              name="maxTemperature"
+              label="Máxima"
+              format="temperature"
+              suffix="°C"
+              placeholder="Ex.: 5"
+              allowsNegative
+            />
+          </div>
+        )}
+        <TextareaField
+          control={form.control}
+          name="instructions"
+          label="Como fazer (opcional)"
+          placeholder="Ex.: Use o cesto cego com detergente próprio e faça ciclos de 10 segundos."
         />
         <SelectField
           control={form.control}

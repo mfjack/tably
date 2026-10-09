@@ -24,7 +24,7 @@ import { getSalesReport } from "@/features/sales-report/actions";
 import type { SalesReport } from "@/features/sales-report/types";
 import { listTaskLists } from "@/features/tasks/actions";
 import { isTaskOverdue } from "@/features/tasks/task-schedule";
-import type { TaskId } from "@/features/tasks/types";
+import type { TaskKind, TemperatureTask } from "@/features/tasks/types";
 import { type ExpiryStatus, getExpiryStatus } from "@/lib/expiry";
 import { createClient } from "@/lib/supabase/server";
 
@@ -47,9 +47,8 @@ export type StockOverview = {
   expiringIngredients: ExpiringIngredient[];
 };
 
-export type PendingTask = {
-  id: TaskId;
-  title: string;
+export type PendingTask = TemperatureTask & {
+  kind: TaskKind;
   listName: string;
   isOverdue: boolean;
 };
@@ -201,6 +200,10 @@ async function getPendingTasks(
         .map((task) => ({
           id: task.id,
           title: task.title,
+          kind: task.kind,
+          instructions: task.instructions,
+          minTemperature: task.minTemperature,
+          maxTemperature: task.maxTemperature,
           listName: taskList.name,
           isOverdue: isTaskOverdue(task, today),
         })),

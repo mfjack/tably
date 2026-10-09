@@ -76,8 +76,9 @@ export const APP_MODULE_GROUPS = [
       },
       {
         id: "tasks",
-        label: "Tarefas",
-        description: "Checklists de abertura e fechamento por período.",
+        label: "Processos",
+        description:
+          "Abertura, fechamento, higiene e controle de temperatura com modelos prontos.",
         path: "tasks",
         icon: ListChecks,
       },

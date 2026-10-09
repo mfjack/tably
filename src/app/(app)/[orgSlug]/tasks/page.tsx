@@ -25,6 +25,7 @@ export default async function TasksPage({
   return (
     <TasksView
       organizationId={organization.id}
+      businessName={organization.name}
       title={tasksModule.label}
       canManage={canManageCatalog(organization.role)}
       operators={operators}

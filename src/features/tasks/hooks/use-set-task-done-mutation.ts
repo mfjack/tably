@@ -4,15 +4,17 @@ import { unwrapActionResult } from "@/lib/action-result";
 import { setTaskDone } from "../actions";
 import type { TaskBoard, TaskId } from "../types";
 import { getTaskListsQueryKey } from "./use-task-lists-query";
+import { getTemperatureRecordsQueryKey } from "./use-temperature-records-query";
 
 type SetTaskDoneVariables = {
   taskId: TaskId;
   isDone: boolean;
+  temperature?: number;
 };
 
 function applyTaskDone(
   taskBoard: TaskBoard,
-  { taskId, isDone }: SetTaskDoneVariables,
+  { taskId, isDone, temperature }: SetTaskDoneVariables,
 ): TaskBoard {
   return {
     ...taskBoard,
@@ -27,6 +29,7 @@ function applyTaskDone(
                     operatorName: null,
                     completedAt: new Date().toISOString(),
                     completedOn: taskBoard.today,
+                    temperature: temperature ?? null,
                   }
                 : null,
             }
@@ -46,8 +49,8 @@ export function useSetTaskDoneMutation(organizationId: OrganizationId) {
 
   return useMutation({
     mutationKey: getSetTaskDoneMutationKey(organizationId),
-    mutationFn: async ({ taskId, isDone }: SetTaskDoneVariables) =>
-      unwrapActionResult(await setTaskDone(taskId, isDone)),
+    mutationFn: async ({ taskId, isDone, temperature }: SetTaskDoneVariables) =>
+      unwrapActionResult(await setTaskDone(taskId, isDone, temperature)),
     onMutate: async (variables) => {
       await queryClient.cancelQueries({ queryKey });
       const previousTaskBoard = queryClient.getQueryData<TaskBoard>(queryKey);
@@ -59,6 +62,12 @@ export function useSetTaskDoneMutation(organizationId: OrganizationId) {
     onError: (_error, _variables, context) => {
       queryClient.setQueryData(queryKey, context?.previousTaskBoard);
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey }),
+    onSettled: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey }),
+        queryClient.invalidateQueries({
+          queryKey: getTemperatureRecordsQueryKey(organizationId),
+        }),
+      ]),
   });
 }

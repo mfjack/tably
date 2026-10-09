@@ -3015,6 +3015,7 @@ export type Database = {
           organization_id: string
           period_start: string
           task_id: string
+          temperature: number | null
         }
         Insert: {
           completed_at?: string
@@ -3025,6 +3026,7 @@ export type Database = {
           organization_id: string
           period_start: string
           task_id: string
+          temperature?: number | null
         }
         Update: {
           completed_at?: string
@@ -3035,6 +3037,7 @@ export type Database = {
           organization_id?: string
           period_start?: string
           task_id?: string
+          temperature?: number | null
         }
         Relationships: [
           {
@@ -3059,6 +3062,7 @@ export type Database = {
           id: string
           name: string
           organization_id: string
+          period: Database["public"]["Enums"]["task_period"] | null
           position: number
           updated_at: string
         }
@@ -3067,6 +3071,7 @@ export type Database = {
           id?: string
           name: string
           organization_id: string
+          period?: Database["public"]["Enums"]["task_period"] | null
           position?: number
           updated_at?: string
         }
@@ -3075,6 +3080,7 @@ export type Database = {
           id?: string
           name?: string
           organization_id?: string
+          period?: Database["public"]["Enums"]["task_period"] | null
           position?: number
           updated_at?: string
         }
@@ -3096,7 +3102,11 @@ export type Database = {
           due_weekday: number | null
           frequency: Database["public"]["Enums"]["task_frequency"]
           id: string
+          instructions: string | null
+          kind: Database["public"]["Enums"]["task_kind"]
           list_id: string
+          max_temperature: number | null
+          min_temperature: number | null
           organization_id: string
           position: number
           title: string
@@ -3109,7 +3119,11 @@ export type Database = {
           due_weekday?: number | null
           frequency?: Database["public"]["Enums"]["task_frequency"]
           id?: string
+          instructions?: string | null
+          kind?: Database["public"]["Enums"]["task_kind"]
           list_id: string
+          max_temperature?: number | null
+          min_temperature?: number | null
           organization_id: string
           position?: number
           title: string
@@ -3122,7 +3136,11 @@ export type Database = {
           due_weekday?: number | null
           frequency?: Database["public"]["Enums"]["task_frequency"]
           id?: string
+          instructions?: string | null
+          kind?: Database["public"]["Enums"]["task_kind"]
           list_id?: string
+          max_temperature?: number | null
+          min_temperature?: number | null
           organization_id?: string
           position?: number
           title?: string
@@ -4201,7 +4219,7 @@ export type Database = {
         Returns: undefined
       }
       set_task_done: {
-        Args: { p_is_done: boolean; p_task_id: string }
+        Args: { p_is_done: boolean; p_task_id: string; p_temperature?: number }
         Returns: undefined
       }
       settle_order: {
@@ -4327,6 +4345,13 @@ export type Database = {
       storage_condition: "room_temperature" | "refrigerated" | "frozen"
       subscription_plan: "essential" | "management" | "complete"
       task_frequency: "daily" | "weekly" | "monthly"
+      task_kind: "check" | "temperature"
+      task_period:
+        | "opening"
+        | "service"
+        | "closing"
+        | "cleaning"
+        | "food_safety"
       time_off_kind:
         | "medical_certificate"
         | "vacation"
@@ -4565,6 +4590,8 @@ export const Constants = {
       storage_condition: ["room_temperature", "refrigerated", "frozen"],
       subscription_plan: ["essential", "management", "complete"],
       task_frequency: ["daily", "weekly", "monthly"],
+      task_kind: ["check", "temperature"],
+      task_period: ["opening", "service", "closing", "cleaning", "food_safety"],
       time_off_kind: [
         "medical_certificate",
         "vacation",

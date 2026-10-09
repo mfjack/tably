@@ -11,6 +11,7 @@ import {
   ListChecks,
   PackageCheck,
   ShoppingCart,
+  Thermometer,
   Truck,
   Wallet,
 } from "lucide-react";
@@ -42,6 +43,7 @@ import type { OrganizationId } from "@/features/organizations/types";
 import { ReceivePurchaseOrderDialog } from "@/features/purchase-orders/components/receive-purchase-order-dialog";
 import type { PurchaseOrder } from "@/features/purchase-orders/types";
 import type { SalesReport } from "@/features/sales-report/types";
+import { TemperatureReadingDialog } from "@/features/tasks/components/temperature-reading-dialog";
 import { useSetTaskDoneMutation } from "@/features/tasks/hooks/use-set-task-done-mutation";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -199,18 +201,24 @@ export function HomeView({
   );
   const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
   const [isClosingCashRegister, setIsClosingCashRegister] = useState(false);
+  const [taskToMeasure, setTaskToMeasure] = useState<PendingTask | null>(null);
   const setTaskDoneMutation = useSetTaskDoneMutation(organizationId);
 
   function refreshOverview() {
     router.refresh();
   }
 
-  function completeTask(taskId: PendingTask["id"]) {
+  function completeTask(taskId: PendingTask["id"], temperature?: number) {
     setTaskDoneMutation.mutate(
-      { taskId, isDone: true },
+      { taskId, isDone: true, temperature },
       {
         onSuccess: () => {
-          toast.success("Tarefa concluída.");
+          toast.success(
+            temperature === undefined
+              ? "Item concluído."
+              : "Temperatura registrada.",
+          );
+          setTaskToMeasure(null);
           refreshOverview();
         },
         onError: (error) => toast.error(error.message),
@@ -403,7 +411,7 @@ export function HomeView({
       <HomeCard
         key="tasks"
         icon={ListChecks}
-        title="Tarefas"
+        title="Processos"
         summary={joinParts([
           pluralize(pendingTasks.length, "pendente", "pendentes"),
           overdueTaskCount > 0 &&
@@ -418,7 +426,17 @@ export function HomeView({
             ? `${task.listName} · atrasada`
             : task.listName,
           isHighlighted: task.isOverdue,
-          leading: (
+          action: task.kind === "temperature" && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setTaskToMeasure(task)}
+            >
+              <Thermometer aria-hidden />
+              Registrar
+            </Button>
+          ),
+          leading: task.kind === "check" && (
             <Checkbox
               checked={
                 setTaskDoneMutation.isPending &&
@@ -501,6 +519,12 @@ export function HomeView({
           }}
         />
       )}
+      <TemperatureReadingDialog
+        task={taskToMeasure}
+        isSubmitting={setTaskDoneMutation.isPending}
+        onSubmit={(task, temperature) => completeTask(task.id, temperature)}
+        onClose={() => setTaskToMeasure(null)}
+      />
       {forgottenCashSession && (
         <CloseCashRegisterDialog
           organizationId={organizationId}

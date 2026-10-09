@@ -25,6 +25,7 @@ const NUMBER_FORMAT_PRESETS = {
   quantity: { prefix: undefined, decimalScale: 3, fixedDecimalScale: false },
   integer: { prefix: undefined, decimalScale: 0, fixedDecimalScale: false },
   percent: { prefix: undefined, decimalScale: 1, fixedDecimalScale: false },
+  temperature: { prefix: undefined, decimalScale: 1, fixedDecimalScale: false },
   precisePercent: {
     prefix: undefined,
     decimalScale: 2,
