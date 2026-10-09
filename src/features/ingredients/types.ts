@@ -18,11 +18,14 @@ export type Ingredient = {
   supplierId: SupplierId | null;
   expiresAt: string | null;
   recipeCount: number;
+  isInUse: boolean;
   labelShelfLifeHours: number | null;
   labelStorage: StorageCondition | null;
   isPrepared: boolean;
   yieldQuantity: number | null;
   preparationInstructions: string | null;
+  packageName: string | null;
+  packageSize: number | null;
   components: IngredientComponent[];
 };
 

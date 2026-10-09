@@ -35,6 +35,7 @@ const EMPTY_INGREDIENT_FORM: DefaultValues<IngredientFormInput> = {
   supplierId: NONE_SELECT_VALUE,
   expiresAt: "",
   paymentDueDate: "",
+  packageName: "",
 };
 
 function toFormValues(
@@ -49,6 +50,8 @@ function toFormValues(
       ingredient.currentStock >= 0 ? ingredient.currentStock : undefined,
     supplierId: toSelectFieldValue(ingredient.supplierId),
     expiresAt: ingredient.expiresAt ?? "",
+    packageName: ingredient.packageName ?? "",
+    packageSize: ingredient.packageSize ?? undefined,
   };
 }
 
@@ -100,7 +103,7 @@ export function IngredientFormDialog({
   });
 
   const unitOptions = ingredient
-    ? getEditableMeasureUnitOptions(ingredient.unit)
+    ? getEditableMeasureUnitOptions(ingredient.unit, ingredient.isInUse)
     : MEASURE_UNIT_OPTIONS;
 
   const unitField = (
@@ -177,6 +180,25 @@ export function IngredientFormDialog({
           placeholder="Ex.: 4"
           description="Abaixo disso, o Tably avisa que é hora de comprar."
         />
+        <div className="grid gap-5 sm:grid-cols-2">
+          <TextField
+            control={form.control}
+            name="packageName"
+            label="Embalagem (opcional)"
+            placeholder="Ex.: garrafa"
+            autoComplete="off"
+            description="Como você compra: garrafa, pacote, caixa…"
+          />
+          <NumberField
+            control={form.control}
+            name="packageSize"
+            label="Quanto vem em 1"
+            format="quantity"
+            suffix={unitSymbol}
+            placeholder="Ex.: 700"
+            description="Aí, nas compras, é só digitar quantas embalagens."
+          />
+        </div>
         {!isEditing && (
           <div className="grid gap-5 sm:grid-cols-2">
             <NumberField

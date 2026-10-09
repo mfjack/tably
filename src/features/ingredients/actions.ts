@@ -39,7 +39,7 @@ export async function listIngredients(
   const { data, error } = await supabase
     .from("ingredients")
     .select(
-      "id, name, brand, unit, current_stock, minimum_stock, unit_cost, supplier_id, expires_at, label_shelf_life_hours, label_storage, is_prepared, yield_quantity, preparation_instructions, product_ingredients(count), ingredient_components!ingredient_components_prepared_ingredient_id_organization__fkey(component_ingredient_id, quantity)",
+      "id, name, brand, unit, current_stock, minimum_stock, unit_cost, supplier_id, expires_at, label_shelf_life_hours, label_storage, is_prepared, yield_quantity, preparation_instructions, package_name, package_size, product_ingredients(count), ingredient_components!ingredient_components_prepared_ingredient_id_organization__fkey(component_ingredient_id, quantity), used_as_component:ingredient_components!ingredient_components_component_ingredient_id_organization_fkey(count), product_addons(count)",
     )
     .eq("organization_id", organizationId)
     .order("name");
@@ -59,11 +59,18 @@ export async function listIngredients(
       supplierId: ingredient.supplier_id as SupplierId | null,
       expiresAt: ingredient.expires_at,
       recipeCount: ingredient.product_ingredients[0]?.count ?? 0,
+      isInUse:
+        ingredient.is_prepared ||
+        (ingredient.product_ingredients[0]?.count ?? 0) > 0 ||
+        (ingredient.used_as_component[0]?.count ?? 0) > 0 ||
+        (ingredient.product_addons[0]?.count ?? 0) > 0,
       labelShelfLifeHours: ingredient.label_shelf_life_hours,
       labelStorage: ingredient.label_storage,
       isPrepared: ingredient.is_prepared,
       yieldQuantity: ingredient.yield_quantity,
       preparationInstructions: ingredient.preparation_instructions,
+      packageName: ingredient.package_name,
+      packageSize: ingredient.package_size,
       components: ingredient.ingredient_components.map((component) => ({
         ingredientId: component.component_ingredient_id as IngredientId,
         quantity: component.quantity,
@@ -92,26 +99,73 @@ export async function createIngredient(
     supplierId,
     expiresAt,
     paymentDueDate,
+    packageName,
+    packageSize,
   } = parsedInput.data;
   const supabase = await createClient();
-  const { error } = await supabase.rpc("create_ingredient", {
-    p_organization_id: organizationId,
-    p_name: name,
-    p_unit: unit,
-    p_quantity: quantity ?? 0,
-    p_total_cost: totalCost ?? 0,
-    p_minimum_stock: minimumStock ?? 0,
-    p_brand: brand || undefined,
-    p_supplier_id: fromSelectFieldValue<SupplierId>(supplierId),
-    p_expires_at: expiresAt || undefined,
-    p_payment_due_date:
-      (totalCost ?? 0) > 0 ? paymentDueDate || undefined : undefined,
-  });
+  const { data: createdIngredientId, error } = await supabase.rpc(
+    "create_ingredient",
+    {
+      p_organization_id: organizationId,
+      p_name: name,
+      p_unit: unit,
+      p_quantity: quantity ?? 0,
+      p_total_cost: totalCost ?? 0,
+      p_minimum_stock: minimumStock ?? 0,
+      p_brand: brand || undefined,
+      p_supplier_id: fromSelectFieldValue<SupplierId>(supplierId),
+      p_expires_at: expiresAt || undefined,
+      p_payment_due_date:
+        (totalCost ?? 0) > 0 ? paymentDueDate || undefined : undefined,
+    },
+  );
 
   if (isUniqueViolation(error)) return actionFailure(DUPLICATE_NAME_MESSAGE);
   if (error) return databaseFailure(GENERIC_ERROR_MESSAGE, error);
 
+  if (packageName && packageSize) {
+    const { error: packageError } = await supabase
+      .from("ingredients")
+      .update({ package_name: packageName, package_size: packageSize })
+      .eq("id", createdIngredientId);
+    if (packageError) {
+      return databaseFailure(
+        "O insumo foi salvo, mas a embalagem não.",
+        packageError,
+      );
+    }
+  }
+
   return actionSuccess();
+}
+
+async function isIngredientInUse(ingredientId: IngredientId) {
+  const supabase = await createClient();
+  const [recipes, components, addons, ingredient] = await Promise.all([
+    supabase
+      .from("product_ingredients")
+      .select("product_id", { count: "exact", head: true })
+      .eq("ingredient_id", ingredientId),
+    supabase
+      .from("ingredient_components")
+      .select("prepared_ingredient_id", { count: "exact", head: true })
+      .eq("component_ingredient_id", ingredientId),
+    supabase
+      .from("product_addons")
+      .select("id", { count: "exact", head: true })
+      .eq("ingredient_id", ingredientId),
+    supabase
+      .from("ingredients")
+      .select("is_prepared")
+      .eq("id", ingredientId)
+      .maybeSingle(),
+  ]);
+  return (
+    Boolean(ingredient.data?.is_prepared) ||
+    (recipes.count ?? 0) > 0 ||
+    (components.count ?? 0) > 0 ||
+    (addons.count ?? 0) > 0
+  );
 }
 
 export async function updateIngredient(
@@ -129,6 +183,8 @@ export async function updateIngredient(
     currentStock,
     supplierId,
     expiresAt,
+    packageName,
+    packageSize,
   } = parsedInput.data;
   const supabase = await createClient();
   const { data: ingredient } = await supabase
@@ -142,8 +198,13 @@ export async function updateIngredient(
   ) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }
-  if (!canChangeMeasureUnit(ingredient.unit, unit)) {
-    return actionFailure("Essa unidade de medida não pode ser trocada.");
+  if (
+    !canChangeMeasureUnit(ingredient.unit, unit) &&
+    (await isIngredientInUse(ingredientId))
+  ) {
+    return actionFailure(
+      "Esse insumo é usado em fichas técnicas, receitas ou adicionais. Só dá para trocar entre g e ml.",
+    );
   }
   const { error } = await supabase
     .from("ingredients")
@@ -154,6 +215,8 @@ export async function updateIngredient(
       minimum_stock: minimumStock ?? 0,
       supplier_id: fromSelectFieldValue<SupplierId>(supplierId) ?? null,
       expires_at: expiresAt || null,
+      package_name: packageName && packageSize ? packageName : null,
+      package_size: packageName && packageSize ? packageSize : null,
     })
     .eq("id", ingredientId);
 

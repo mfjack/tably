@@ -57,9 +57,10 @@ export function canChangeMeasureUnit(
 
 export function getEditableMeasureUnitOptions(
   currentUnit: MeasureUnit,
+  isInUse: boolean,
 ): readonly SelectOption[] {
-  return MEASURE_UNIT_VALUES.filter((unit) =>
-    canChangeMeasureUnit(currentUnit, unit),
+  return MEASURE_UNIT_VALUES.filter(
+    (unit) => !isInUse || canChangeMeasureUnit(currentUnit, unit),
   ).map(toMeasureUnitOption);
 }
 

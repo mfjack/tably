@@ -9,6 +9,7 @@ import type { SupplierId } from "@/features/suppliers/types";
 import { formatQuantity } from "@/lib/format";
 import { escapeHtml, printHtml } from "@/lib/print-html";
 import { getStockStatus, getUnitSymbol } from "./measure-units";
+import { formatPackageCount, formatPackageSize, hasPackage } from "./packages";
 import type { Ingredient, IngredientId, MeasureUnit } from "./types";
 
 export type ShoppingListItem = {
@@ -18,6 +19,8 @@ export type ShoppingListItem = {
   unit: MeasureUnit;
   currentStock: number;
   minimumStock: number;
+  packageName: string | null;
+  packageSize: number | null;
 };
 
 export type ShoppingListSupplier = {
@@ -32,7 +35,10 @@ export type ShoppingListGroup = {
   items: ShoppingListItem[];
 };
 
-export type OrderedItem = ShoppingListItem & { quantity: number };
+export type OrderedItem = ShoppingListItem & {
+  quantity: number;
+  packageCount: number | null;
+};
 
 export function isRunningLow(ingredient: Ingredient): boolean {
   return getStockStatus(ingredient) !== "ok";
@@ -90,6 +96,8 @@ export function buildShoppingList(
       unit: ingredient.unit,
       currentStock: ingredient.currentStock,
       minimumStock: ingredient.minimumStock,
+      packageName: ingredient.packageName,
+      packageSize: ingredient.packageSize,
     });
     groups.set(groupKey, group);
   }
@@ -115,9 +123,16 @@ export function formatItemQuantity(
   return `${formatQuantity(quantity)} ${getUnitSymbol(unit)}`;
 }
 
+export function formatOrderedQuantity(item: OrderedItem): string {
+  if (item.packageCount !== null && hasPackage(item)) {
+    return `${formatPackageCount(item.packageCount, item.packageName)} (${formatPackageSize(item)})`;
+  }
+  return formatItemQuantity(item.quantity, item.unit);
+}
+
 function describeItem(item: OrderedItem): string {
   const brand = item.brand ? ` (${item.brand})` : "";
-  return `${formatItemQuantity(item.quantity, item.unit)} de ${item.name}${brand}`;
+  return `${formatOrderedQuantity(item)} de ${item.name}${brand}`;
 }
 
 export function buildSupplierMessage(
@@ -152,7 +167,7 @@ export function printShoppingList(
           .map((item) =>
             buildRow(
               `${item.name}${item.brand ? ` (${item.brand})` : ""}`,
-              formatItemQuantity(item.quantity, item.unit),
+              formatOrderedQuantity(item),
             ),
           )
           .join("")}</section>`,

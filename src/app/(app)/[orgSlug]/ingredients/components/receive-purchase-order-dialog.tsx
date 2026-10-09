@@ -7,7 +7,14 @@ import { FormDialog } from "@/components/dialog/form-dialog";
 import { DateField } from "@/components/form/date-field";
 import { NumberField } from "@/components/form/number-field";
 import { FieldGroup } from "@/components/ui/field";
-import { getUnitSymbol } from "@/features/ingredients/measure-units";
+import {
+  describeStockEquivalent,
+  formatPackageCount,
+  getQuantitySuffix,
+  hasPackage,
+  toPackageQuantity,
+  toStockQuantity,
+} from "@/features/ingredients/packages";
 import { formatItemQuantity } from "@/features/ingredients/shopping-list";
 import type { OrganizationId } from "@/features/organizations/types";
 import { useReceivePurchaseOrderMutation } from "@/features/purchase-orders/hooks/use-receive-purchase-order-mutation";
@@ -29,8 +36,11 @@ type ReceivePurchaseOrderDialogProps = {
   onClose: () => void;
 };
 
-function estimateCost(item: PurchaseOrderItem, quantity: number): number {
-  return Math.round(quantity * item.unitCost * CENTS_PER_UNIT) / CENTS_PER_UNIT;
+function estimateCost(item: PurchaseOrderItem, typedQuantity: number): number {
+  const stockQuantity = toStockQuantity(item, typedQuantity);
+  return (
+    Math.round(stockQuantity * item.unitCost * CENTS_PER_UNIT) / CENTS_PER_UNIT
+  );
 }
 
 function getItemCost(
@@ -49,14 +59,19 @@ type ReceiveItemFieldsProps = {
 
 function ReceiveItemFields({ control, index, item }: ReceiveItemFieldsProps) {
   const quantity = useWatch({ control, name: `items.${index}.quantity` });
-  const unitSymbol = getUnitSymbol(item.unit);
 
   return (
     <li className="flex flex-col gap-3 px-4 py-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <span className="font-medium text-sm">{item.ingredientName}</span>
         <span className="text-muted-foreground text-xs tabular-nums">
-          Pedido: {formatItemQuantity(item.quantity, item.unit)}
+          Pedido:{" "}
+          {hasPackage(item)
+            ? formatPackageCount(
+                toPackageQuantity(item, item.quantity),
+                item.packageName,
+              )
+            : formatItemQuantity(item.quantity, item.unit)}
         </span>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
@@ -65,8 +80,9 @@ function ReceiveItemFields({ control, index, item }: ReceiveItemFieldsProps) {
           name={`items.${index}.quantity`}
           label="Chegou"
           format="quantity"
-          suffix={unitSymbol}
+          suffix={getQuantitySuffix(item, quantity)}
           placeholder="0 se não veio"
+          description={describeStockEquivalent(item, quantity)}
           size="compact"
         />
         <NumberField
@@ -93,7 +109,7 @@ export function ReceivePurchaseOrderDialog({
     defaultValues: {
       items: order.items.map((item) => ({
         ingredientId: item.ingredientId,
-        quantity: item.quantity,
+        quantity: toPackageQuantity(item, item.quantity),
         totalCost: undefined,
       })),
       paymentDueDate: "",
@@ -116,7 +132,7 @@ export function ReceivePurchaseOrderDialog({
             const quantity = values.items[index]?.quantity ?? 0;
             return {
               ingredientId: item.ingredientId,
-              quantity,
+              quantity: toStockQuantity(item, quantity),
               totalCost: getItemCost(
                 item,
                 quantity,

@@ -40,6 +40,7 @@ type NumberFieldProps<TFieldValues extends FieldValues> = Omit<
   suffix?: string;
   isDisabled?: boolean;
   allowsNegative?: boolean;
+  isPositive?: boolean;
   size?: keyof typeof INPUT_SIZE_CLASS_NAMES;
 };
 
@@ -55,6 +56,7 @@ export function NumberField<TFieldValues extends FieldValues>({
   suffix,
   isDisabled = false,
   allowsNegative = false,
+  isPositive = false,
   size = "default",
 }: NumberFieldProps<TFieldValues>) {
   const inputId = useId();
@@ -86,6 +88,11 @@ export function NumberField<TFieldValues extends FieldValues>({
             thousandSeparator="."
             decimalSeparator=","
             allowNegative={allowsNegative}
+            isAllowed={
+              isPositive
+                ? ({ floatValue }) => floatValue === undefined || floatValue > 0
+                : undefined
+            }
             prefix={preset.prefix}
             suffix={suffix ? ` ${suffix}` : undefined}
             decimalScale={preset.decimalScale}
