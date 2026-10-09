@@ -6,13 +6,13 @@ import { DetailsDialog } from "@/components/dialog/details-dialog";
 import { DIALOG_ACTION_BUTTON_CLASS_NAME } from "@/components/dialog/dialog-styles";
 import { Button } from "@/components/ui/button";
 import { CashSessionDetails } from "@/features/cash-register/components/cash-session-details";
+import { CloseCashRegisterDialog } from "@/features/cash-register/components/close-cash-register-dialog";
 import { useOpenCashSessionQuery } from "@/features/cash-register/hooks/use-open-cash-session-query";
 import type { CashMovementKind } from "@/features/cash-register/types";
 import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
 import type { OrganizationId } from "@/features/organizations/types";
 import { cn } from "@/lib/utils";
 import { CashMovementDialog } from "./cash-movement-dialog";
-import { CloseCashRegisterDialog } from "./close-cash-register-dialog";
 
 type CashRegisterPanelProps = {
   organizationId: OrganizationId;

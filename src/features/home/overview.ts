@@ -1,5 +1,8 @@
 import "server-only";
 
+import { addDays, format, parseISO } from "date-fns";
+import { getOpenCashSession } from "@/features/cash-register/actions";
+import type { CashSessionSummary } from "@/features/cash-register/types";
 import {
   type DuePayablesSummary,
   getDuePayablesSummary,
@@ -18,6 +21,8 @@ import type {
 } from "@/features/organizations/types";
 import { listPendingPurchaseOrders } from "@/features/purchase-orders/actions";
 import type { PurchaseOrder } from "@/features/purchase-orders/types";
+import { getSalesReport } from "@/features/sales-report/actions";
+import type { SalesReport } from "@/features/sales-report/types";
 import { listTaskLists } from "@/features/tasks/actions";
 import { isTaskOverdue } from "@/features/tasks/task-schedule";
 import type { TaskId } from "@/features/tasks/types";
@@ -54,10 +59,18 @@ export type OpenTab = {
   customerName: string;
   total: number;
   createdAt: string;
-  openedAt: string;
+  openedLabel: string;
+  isForgotten: boolean;
+};
+
+export type ForgottenCashSession = {
+  summary: CashSessionSummary;
+  openedLabel: string;
 };
 
 export type HomeOverview = {
+  todaySales: SalesReport | null;
+  forgottenCashSession: ForgottenCashSession | null;
   payables: DuePayablesSummary | null;
   stock: StockOverview | null;
   pendingTasks: PendingTask[] | null;
@@ -68,14 +81,16 @@ function getExpiryOrder({ expiry }: ExpiringIngredient): number {
   return expiry.status === "expiring" ? expiry.daysLeft : -1;
 }
 
-type DateFormatters = {
+type OrganizationClock = {
+  today: string;
+  isBeforeToday: (date: string) => boolean;
   formatDay: (date: string) => string;
-  formatTime: (date: string) => string;
+  describeMoment: (date: string) => string;
 };
 
-async function getDateFormatters(
+async function getOrganizationClock(
   organizationId: OrganizationId,
-): Promise<DateFormatters> {
+): Promise<OrganizationClock> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("organizations")
@@ -83,6 +98,7 @@ async function getDateFormatters(
     .eq("id", organizationId)
     .maybeSingle();
   const timeZone = data?.timezone ?? DEFAULT_TIME_ZONE;
+  const dateKeyFormat = new Intl.DateTimeFormat("en-CA", { timeZone });
   const dayFormat = new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
     month: "2-digit",
@@ -93,15 +109,28 @@ async function getDateFormatters(
     minute: "2-digit",
     timeZone,
   });
+  const toDateKey = (date: string) => dateKeyFormat.format(new Date(date));
+  const formatDay = (date: string) => dayFormat.format(new Date(date));
+  const today = toDateKey(new Date().toISOString());
+  const yesterday = format(addDays(parseISO(today), -1), "yyyy-MM-dd");
+
   return {
-    formatDay: (date) => dayFormat.format(new Date(date)),
-    formatTime: (date) => timeFormat.format(new Date(date)),
+    today,
+    isBeforeToday: (date) => toDateKey(date) < today,
+    formatDay,
+    describeMoment: (date) => {
+      const time = timeFormat.format(new Date(date));
+      const dateKey = toDateKey(date);
+      if (dateKey === today) return `hoje às ${time}`;
+      if (dateKey === yesterday) return `ontem às ${time}`;
+      return `em ${formatDay(date)} às ${time}`;
+    },
   };
 }
 
 async function getStockOverview(
   organizationId: OrganizationId,
-  { formatDay }: DateFormatters,
+  { formatDay }: OrganizationClock,
 ): Promise<StockOverview | null> {
   const [ingredientsResult, ordersResult] = await Promise.all([
     listIngredients(organizationId),
@@ -171,9 +200,23 @@ async function getPendingTasks(
     );
 }
 
+async function getForgottenCashSession(
+  organizationId: OrganizationId,
+  { isBeforeToday, describeMoment }: OrganizationClock,
+): Promise<ForgottenCashSession | null> {
+  const result = await getOpenCashSession(organizationId);
+  if (result.status === "error" || !result.data) return null;
+  if (!isBeforeToday(result.data.openedAt)) return null;
+
+  return {
+    summary: result.data,
+    openedLabel: describeMoment(result.data.openedAt),
+  };
+}
+
 async function getOpenTabs(
   organizationId: OrganizationId,
-  { formatTime }: DateFormatters,
+  { isBeforeToday, describeMoment }: OrganizationClock,
 ): Promise<OpenTab[] | null> {
   const result = await listOpenOrderTabs(organizationId);
   if (result.status === "error") return null;
@@ -184,17 +227,22 @@ async function getOpenTabs(
       customerName: order.customerName ?? "",
       total: order.total,
       createdAt: order.createdAt,
-      openedAt: formatTime(order.createdAt),
+      openedLabel: describeMoment(order.createdAt),
+      isForgotten: isBeforeToday(order.createdAt),
     }))
     .sort((first, second) => first.createdAt.localeCompare(second.createdAt));
 }
 
 function whenAccessible<T>(
   accessibleModuleIds: readonly AppModuleId[],
-  moduleId: AppModuleId,
+  moduleIds: AppModuleId | readonly AppModuleId[],
   load: () => Promise<T | null>,
 ): Promise<T | null> {
-  return accessibleModuleIds.includes(moduleId)
+  const requiredModuleIds =
+    typeof moduleIds === "string" ? [moduleIds] : moduleIds;
+  return requiredModuleIds.some((moduleId) =>
+    accessibleModuleIds.includes(moduleId),
+  )
     ? load()
     : Promise.resolve(null);
 }
@@ -203,21 +251,42 @@ export async function getHomeOverview(
   organizationId: OrganizationId,
   accessibleModuleIds: readonly AppModuleId[],
 ): Promise<HomeOverview> {
-  const dateFormatters = await getDateFormatters(organizationId);
-  const [payables, stock, pendingTasks, openTabs] = await Promise.all([
+  const clock = await getOrganizationClock(organizationId);
+  const [
+    todaySales,
+    forgottenCashSession,
+    payables,
+    stock,
+    pendingTasks,
+    openTabs,
+  ] = await Promise.all([
+    whenAccessible(accessibleModuleIds, "sales_report", async () => {
+      const result = await getSalesReport(organizationId, "today");
+      return result.status === "success" ? result.data : null;
+    }),
+    whenAccessible(accessibleModuleIds, ["pos", "order_tabs"], () =>
+      getForgottenCashSession(organizationId, clock),
+    ),
     whenAccessible(accessibleModuleIds, "finance", () =>
       getDuePayablesSummary(organizationId),
     ),
     whenAccessible(accessibleModuleIds, "ingredients", () =>
-      getStockOverview(organizationId, dateFormatters),
+      getStockOverview(organizationId, clock),
     ),
     whenAccessible(accessibleModuleIds, "tasks", () =>
       getPendingTasks(organizationId),
     ),
     whenAccessible(accessibleModuleIds, "order_tabs", () =>
-      getOpenTabs(organizationId, dateFormatters),
+      getOpenTabs(organizationId, clock),
     ),
   ]);
 
-  return { payables, stock, pendingTasks, openTabs };
+  return {
+    todaySales,
+    forgottenCashSession,
+    payables,
+    stock,
+    pendingTasks,
+    openTabs,
+  };
 }
