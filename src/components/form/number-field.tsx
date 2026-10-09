@@ -13,6 +13,7 @@ import type { FormFieldProps } from "./form-field-types";
 const INPUT_SIZE_CLASS_NAMES = {
   default: "",
   compact: "h-9 px-3 text-sm md:text-sm",
+  dense: "h-9 px-3 text-sm placeholder:text-xs md:text-sm",
 } as const;
 
 const NUMBER_FORMAT_PRESETS = {

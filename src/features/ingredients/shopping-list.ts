@@ -11,9 +11,6 @@ import { escapeHtml, printHtml } from "@/lib/print-html";
 import { getStockStatus, getUnitSymbol } from "./measure-units";
 import type { Ingredient, IngredientId, MeasureUnit } from "./types";
 
-const RESTOCK_MULTIPLIER = 2;
-const QUANTITY_PRECISION = 1000;
-
 export type ShoppingListItem = {
   ingredientId: IngredientId;
   name: string;
@@ -21,7 +18,6 @@ export type ShoppingListItem = {
   unit: MeasureUnit;
   currentStock: number;
   minimumStock: number;
-  suggestedQuantity: number | undefined;
 };
 
 export type ShoppingListSupplier = {
@@ -37,13 +33,6 @@ export type ShoppingListGroup = {
 };
 
 export type OrderedItem = ShoppingListItem & { quantity: number };
-
-function getSuggestedQuantity(ingredient: Ingredient): number | undefined {
-  const target = ingredient.minimumStock * RESTOCK_MULTIPLIER;
-  const missing = target - Math.max(ingredient.currentStock, 0);
-  if (missing <= 0) return undefined;
-  return Math.ceil(missing * QUANTITY_PRECISION) / QUANTITY_PRECISION;
-}
 
 export function isRunningLow(ingredient: Ingredient): boolean {
   return getStockStatus(ingredient) !== "ok";
@@ -71,16 +60,6 @@ export function getInitialShoppingLines(
     ingredientId: ingredient.id,
     supplierId: ingredient.supplierId,
   }));
-}
-
-export function getSuggestedQuantities(
-  ingredients: readonly Ingredient[],
-): Record<string, number | undefined> {
-  return Object.fromEntries(
-    ingredients
-      .filter(needsPurchase)
-      .map((ingredient) => [ingredient.id, getSuggestedQuantity(ingredient)]),
-  );
 }
 
 export function buildShoppingList(
@@ -111,7 +90,6 @@ export function buildShoppingList(
       unit: ingredient.unit,
       currentStock: ingredient.currentStock,
       minimumStock: ingredient.minimumStock,
-      suggestedQuantity: getSuggestedQuantity(ingredient),
     });
     groups.set(groupKey, group);
   }

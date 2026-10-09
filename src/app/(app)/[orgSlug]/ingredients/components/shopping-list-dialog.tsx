@@ -2,7 +2,13 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { Copy, MessageCircle, PackageCheck, Printer, X } from "lucide-react";
+import {
+  ClipboardCheck,
+  MessageCircle,
+  PackageCheck,
+  Printer,
+  X,
+} from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -11,7 +17,6 @@ import { DetailsDialog } from "@/components/dialog/details-dialog";
 import { DIALOG_ACTION_BUTTON_CLASS_NAME } from "@/components/dialog/dialog-styles";
 import { NumberField } from "@/components/form/number-field";
 import { OptionSelect } from "@/components/option-select";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DialogClose } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,7 +28,6 @@ import {
   formatItemQuantity,
   getInitialShoppingLines,
   getShoppingGroupKey,
-  getSuggestedQuantities,
   type OrderedItem,
   printShoppingList,
   type ShoppingLine,
@@ -75,6 +79,12 @@ function getOrderedItems(
   });
 }
 
+function describeGroupProgress(itemCount: number, orderedCount: number) {
+  const itemsLabel = itemCount === 1 ? "1 item" : `${itemCount} itens`;
+  if (orderedCount === 0) return `${itemsLabel} · digite as quantidades`;
+  return `${itemsLabel} · ${orderedCount} para pedir`;
+}
+
 function describeOrderItems(order: PurchaseOrder): string {
   return order.items
     .map(
@@ -95,9 +105,6 @@ export function ShoppingListDialog({
 }: ShoppingListDialogProps) {
   const [tab, setTab] = useState<ShoppingTab>("buy");
   const [lines, setLines] = useState<ShoppingLine[]>([]);
-  const [savedGroupKeys, setSavedGroupKeys] = useState<ReadonlySet<string>>(
-    () => new Set(),
-  );
   const [receivingOrder, setReceivingOrder] = useState<PurchaseOrder | null>(
     null,
   );
@@ -118,13 +125,26 @@ export function ShoppingListDialog({
     if (!isOpening) return;
     setTab("buy");
     setLines(getInitialShoppingLines(ingredients));
-    setSavedGroupKeys(new Set());
-    form.reset({ quantities: getSuggestedQuantities(ingredients) });
+    form.reset({ quantities: {} });
   }, [isOpen, ingredients, form]);
 
+  const pendingIngredientIds = useMemo(
+    () =>
+      new Set(
+        (ordersQuery.data ?? []).flatMap((order) =>
+          order.items.map((item) => item.ingredientId),
+        ),
+      ),
+    [ordersQuery.data],
+  );
   const groups = useMemo(
-    () => buildShoppingList(lines, ingredients, suppliers),
-    [lines, ingredients, suppliers],
+    () =>
+      buildShoppingList(
+        lines.filter((line) => !pendingIngredientIds.has(line.ingredientId)),
+        ingredients,
+        suppliers,
+      ),
+    [lines, ingredients, suppliers, pendingIngredientIds],
   );
   const orderedGroups = groups.map((group) => ({
     group,
@@ -138,10 +158,13 @@ export function ShoppingListDialog({
     const listedIds = new Set(lines.map((line) => line.ingredientId));
     return ingredients
       .filter(
-        (ingredient) => !ingredient.isPrepared && !listedIds.has(ingredient.id),
+        (ingredient) =>
+          !ingredient.isPrepared &&
+          !listedIds.has(ingredient.id) &&
+          !pendingIngredientIds.has(ingredient.id),
       )
       .map((ingredient) => ({ value: ingredient.id, label: ingredient.name }));
-  }, [ingredients, lines]);
+  }, [ingredients, lines, pendingIngredientIds]);
 
   const supplierOptions = useMemo(
     () =>
@@ -178,12 +201,11 @@ export function ShoppingListDialog({
     );
   }
 
-  function saveOrder(
-    groupKey: string,
+  function markAsOrdered(
     supplierId: SupplierId | null,
     items: readonly OrderedItem[],
   ) {
-    if (savedGroupKeys.has(groupKey) || items.length === 0) return;
+    if (items.length === 0) return;
     createOrderMutation.mutate(
       {
         supplierId,
@@ -193,30 +215,11 @@ export function ShoppingListDialog({
         })),
       },
       {
-        onSuccess: () => {
-          setSavedGroupKeys((currentKeys) =>
-            new Set(currentKeys).add(groupKey),
-          );
-          toast.success("Pedido salvo em Aguardando entrega.");
-        },
+        onSuccess: () =>
+          toast.success("Pedido feito. Está em Aguardando entrega."),
         onError: (error) => toast.error(error.message),
       },
     );
-  }
-
-  async function copyMessage(
-    groupKey: string,
-    supplierId: SupplierId | null,
-    items: readonly OrderedItem[],
-    message: string,
-  ) {
-    try {
-      await navigator.clipboard.writeText(message);
-      toast.success("Lista copiada.");
-      saveOrder(groupKey, supplierId, items);
-    } catch {
-      toast.error("Não foi possível copiar.");
-    }
   }
 
   function printList() {
@@ -294,10 +297,10 @@ export function ShoppingListDialog({
         {tab === "buy" ? (
           <>
             <p className="text-muted-foreground text-sm">
-              Já vêm os insumos no estoque mínimo ou abaixo dele, com a
-              quantidade para repor até o dobro do mínimo. Ajuste, deixe vazio
-              para não pedir ou adicione outros insumos. Ao enviar pelo WhatsApp
-              ou copiar, o pedido fica salvo em Aguardando entrega.
+              Já vêm os insumos no estoque mínimo ou abaixo dele. Digite quanto
+              pedir de cada um ou adicione outros insumos. Depois de pedir,
+              toque em Pedido feito: os itens saem daqui e vão para Aguardando
+              entrega.
             </p>
             {addableIngredientOptions.length > 0 && (
               <OptionSelect
@@ -321,46 +324,45 @@ export function ShoppingListDialog({
                   group.supplier,
                   items,
                 );
-                const isSaved = savedGroupKeys.has(groupKey);
                 return (
                   <section
                     key={groupKey}
-                    className="flex flex-col gap-3 rounded-xl border p-4"
+                    className="overflow-hidden rounded-xl border bg-card"
                   >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      {group.supplier ? (
-                        <h3 className="flex items-center gap-2 font-semibold">
-                          {group.supplier.name}
-                          {isSaved && (
-                            <Badge variant="secondary">Pedido salvo</Badge>
+                    <header className="flex flex-wrap items-center justify-between gap-3 border-b bg-muted/40 px-4 py-3">
+                      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                        {group.supplier ? (
+                          <h3 className="truncate font-semibold">
+                            {group.supplier.name}
+                          </h3>
+                        ) : (
+                          <>
+                            <h3 className="font-semibold">
+                              {NO_SUPPLIER_LABEL}
+                            </h3>
+                            {supplierOptions.length > 0 && (
+                              <OptionSelect
+                                label="Escolher fornecedor"
+                                placeholder="Escolher fornecedor"
+                                options={supplierOptions}
+                                value={null}
+                                className="sm:max-w-xs"
+                                onValueChange={assignSupplier}
+                              />
+                            )}
+                          </>
+                        )}
+                        <p className="text-muted-foreground text-xs">
+                          {describeGroupProgress(
+                            group.items.length,
+                            items.length,
                           )}
-                        </h3>
-                      ) : (
-                        <div className="flex min-w-0 flex-1 flex-col gap-1.5 sm:max-w-xs">
-                          <h3 className="font-semibold">{NO_SUPPLIER_LABEL}</h3>
-                          {supplierOptions.length > 0 && (
-                            <OptionSelect
-                              label="Escolher fornecedor"
-                              placeholder="Escolher fornecedor"
-                              options={supplierOptions}
-                              value={null}
-                              onValueChange={assignSupplier}
-                            />
-                          )}
-                        </div>
-                      )}
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={items.length === 0}
-                          onClick={() =>
-                            copyMessage(groupKey, supplierId, items, message)
-                          }
-                        >
-                          <Copy aria-hidden />
-                          Copiar
-                        </Button>
+                          {group.supplier &&
+                            !group.supplier.phone &&
+                            " · sem telefone para WhatsApp"}
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 gap-2">
                         {group.supplier?.phone &&
                           (items.length === 0 ? (
                             <Button size="sm" disabled>
@@ -376,9 +378,6 @@ export function ShoppingListDialog({
                                   href={`${getWhatsAppUrl(group.supplier.phone)}?text=${encodeURIComponent(message)}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  onClick={() =>
-                                    saveOrder(groupKey, supplierId, items)
-                                  }
                                 />
                               }
                             >
@@ -386,52 +385,90 @@ export function ShoppingListDialog({
                               WhatsApp
                             </Button>
                           ))}
-                      </div>
-                    </div>
-                    <ul className="flex flex-col divide-y">
-                      {group.items.map((item) => (
-                        <li
-                          key={item.ingredientId}
-                          className="grid grid-cols-[minmax(0,1fr)_9rem_auto] items-center gap-2 py-2"
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="bg-background"
+                          disabled={items.length === 0}
+                          isLoading={
+                            createOrderMutation.isPending &&
+                            createOrderMutation.variables?.supplierId ===
+                              supplierId
+                          }
+                          onClick={() => markAsOrdered(supplierId, items)}
                         >
-                          <div className="flex min-w-0 flex-col">
-                            <span className="truncate font-medium text-sm">
-                              {item.name}
-                              {item.brand && (
+                          <ClipboardCheck aria-hidden />
+                          Pedido feito
+                        </Button>
+                      </div>
+                    </header>
+                    <ul className="flex flex-col divide-y">
+                      {group.items.map((item) => {
+                        const isBelowMinimum =
+                          item.currentStock <= item.minimumStock;
+                        return (
+                          <li
+                            key={item.ingredientId}
+                            className="grid grid-cols-[minmax(0,1fr)_7rem_auto] items-center gap-3 px-4 py-2.5"
+                          >
+                            <div className="flex min-w-0 flex-col gap-0.5">
+                              <span className="truncate font-medium text-sm">
+                                {item.name}
+                                {item.brand && (
+                                  <span className="font-normal text-muted-foreground">
+                                    {" "}
+                                    · {item.brand}
+                                  </span>
+                                )}
+                              </span>
+                              <span className="text-xs tabular-nums">
+                                <span
+                                  className={
+                                    isBelowMinimum
+                                      ? "font-medium text-destructive"
+                                      : "text-muted-foreground"
+                                  }
+                                >
+                                  {formatItemQuantity(
+                                    item.currentStock,
+                                    item.unit,
+                                  )}
+                                </span>
                                 <span className="text-muted-foreground">
                                   {" "}
-                                  · {item.brand}
+                                  / mín.{" "}
+                                  {formatItemQuantity(
+                                    item.minimumStock,
+                                    item.unit,
+                                  )}
                                 </span>
-                              )}
-                            </span>
-                            <span className="text-muted-foreground text-xs">
-                              Tem{" "}
-                              {formatItemQuantity(item.currentStock, item.unit)}{" "}
-                              · mínimo{" "}
-                              {formatItemQuantity(item.minimumStock, item.unit)}
-                            </span>
-                          </div>
-                          <NumberField
-                            control={form.control}
-                            name={`quantities.${item.ingredientId as IngredientId}`}
-                            label={`Quantidade de ${item.name}`}
-                            isLabelHidden
-                            format="quantity"
-                            suffix={getUnitSymbol(item.unit)}
-                            placeholder="Não pedir"
-                            size="compact"
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon-sm"
-                            aria-label={`Tirar ${item.name} da lista`}
-                            onClick={() => removeIngredient(item.ingredientId)}
-                          >
-                            <X aria-hidden />
-                          </Button>
-                        </li>
-                      ))}
+                              </span>
+                            </div>
+                            <NumberField
+                              control={form.control}
+                              name={`quantities.${item.ingredientId as IngredientId}`}
+                              label={`Quantidade de ${item.name}`}
+                              isLabelHidden
+                              format="quantity"
+                              suffix={getUnitSymbol(item.unit)}
+                              placeholder="Qtd."
+                              size="dense"
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon-sm"
+                              className="text-muted-foreground hover:text-destructive"
+                              aria-label={`Tirar ${item.name} da lista`}
+                              onClick={() =>
+                                removeIngredient(item.ingredientId)
+                              }
+                            >
+                              <X aria-hidden />
+                            </Button>
+                          </li>
+                        );
+                      })}
                     </ul>
                   </section>
                 );
