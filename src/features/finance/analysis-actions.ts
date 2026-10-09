@@ -30,18 +30,6 @@ const numberSchema = z.coerce.number();
 
 const analysisSchema = z.object({
   today: z.string(),
-  sales: z.object({
-    revenue: numberSchema,
-    orderCount: numberSchema,
-    cost: numberSchema,
-    itemsWithoutCost: numberSchema,
-  }),
-  salesToday: numberSchema,
-  averageDailySales: numberSchema,
-  expensesByCategory: z.array(
-    z.object({ name: z.string(), amount: numberSchema }),
-  ),
-  otherIncome: numberSchema,
   balanceToday: numberSchema,
   overdue: z.object({ income: numberSchema, expense: numberSchema }),
   scheduled: z.array(
