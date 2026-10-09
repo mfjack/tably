@@ -66,7 +66,7 @@ export function isTaskOverdue(task: Task, today: string): boolean {
   return dueDate !== null && parseISO(today) > dueDate;
 }
 
-export function getScheduleLabel(task: Task): string | null {
+export function getScheduleLabel(task: Task): string {
   if (task.frequency === "weekly") {
     return task.dueWeekday
       ? `Semanal · ${WEEKDAY_SHORT_LABELS[task.dueWeekday - 1]}`
@@ -75,7 +75,7 @@ export function getScheduleLabel(task: Task): string | null {
   if (task.frequency === "monthly") {
     return task.dueDay ? `Mensal · dia ${task.dueDay}` : "Mensal";
   }
-  return null;
+  return TASK_FREQUENCY_LABELS.daily;
 }
 
 export function getCompletionDayLabel(
