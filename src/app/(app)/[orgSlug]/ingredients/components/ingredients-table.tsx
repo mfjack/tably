@@ -1,12 +1,10 @@
 "use client";
 
-import { PackageMinus, PackagePlus, Tag } from "lucide-react";
 import { type ReactNode, useMemo } from "react";
 import { DataTable } from "@/components/data-table/data-table";
 import { createDataTableColumnHelper } from "@/components/data-table/data-table-features";
-import { DataTableRowActionButton } from "@/components/data-table/data-table-row-action-button";
-import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { useDataTable } from "@/components/data-table/use-data-table";
+import { Badge } from "@/components/ui/badge";
 import {
   getDisplayUnitCost,
   getUnitSymbol,
@@ -14,6 +12,7 @@ import {
 import type { Ingredient } from "@/features/ingredients/types";
 import { formatCurrency, formatQuantity } from "@/lib/format";
 import { ExpiryCell } from "./expiry-cell";
+import { IngredientRowActions } from "./ingredient-row-actions";
 import { StockStatusBadge } from "./stock-status-badge";
 
 const EMPTY_INGREDIENTS: Ingredient[] = [];
@@ -29,6 +28,8 @@ type IngredientsTableProps = {
   onStockEntry: (ingredient: Ingredient) => void;
   onLoss: (ingredient: Ingredient) => void;
   onPrintLabel: (ingredient: Ingredient) => void;
+  onProduce: (ingredient: Ingredient) => void;
+  onEditRecipe: (ingredient: Ingredient) => void;
   onEdit: (ingredient: Ingredient) => void;
   onDelete: (ingredient: Ingredient) => void;
 };
@@ -46,6 +47,8 @@ export function IngredientsTable({
   onStockEntry,
   onLoss,
   onPrintLabel,
+  onProduce,
+  onEditRecipe,
   onEdit,
   onDelete,
 }: IngredientsTableProps) {
@@ -56,7 +59,12 @@ export function IngredientsTable({
           header: "Nome",
           cell: ({ row }) => (
             <div className="flex flex-col">
-              <span className="font-medium">{row.original.name}</span>
+              <span className="flex items-center gap-2 font-medium">
+                {row.original.name}
+                {row.original.isPrepared && (
+                  <Badge variant="secondary">Produzido</Badge>
+                )}
+              </span>
               {row.original.brand && (
                 <span className="text-muted-foreground text-xs">
                   {row.original.brand}
@@ -104,49 +112,34 @@ export function IngredientsTable({
           enableGlobalFilter: false,
           cell: ({ getValue }) => <ExpiryCell expiresAt={getValue()} />,
         }),
-        columnHelper.accessor("recipeCount", {
-          header: "Produtos",
-          enableGlobalFilter: false,
-          cell: ({ getValue }) => (
-            <span className="text-muted-foreground tabular-nums">
-              {getValue()}
-            </span>
-          ),
-        }),
         columnHelper.display({
           id: "actions",
           header: () => <span className="sr-only">Ações</span>,
           cell: ({ row }) => (
-            <DataTableRowActions
-              itemLabel={row.original.name}
-              onEdit={canManage ? () => onEdit(row.original) : undefined}
-              onDelete={canManage ? () => onDelete(row.original) : undefined}
-            >
-              {canManage && (
-                <DataTableRowActionButton
-                  label="Registrar entrada"
-                  accessibleLabel={`Registrar entrada de ${row.original.name}`}
-                  icon={PackagePlus}
-                  onClick={() => onStockEntry(row.original)}
-                />
-              )}
-              <DataTableRowActionButton
-                label="Registrar perda"
-                accessibleLabel={`Registrar perda de ${row.original.name}`}
-                icon={PackageMinus}
-                onClick={() => onLoss(row.original)}
-              />
-              <DataTableRowActionButton
-                label="Imprimir etiqueta"
-                accessibleLabel={`Imprimir etiqueta de ${row.original.name}`}
-                icon={Tag}
-                onClick={() => onPrintLabel(row.original)}
-              />
-            </DataTableRowActions>
+            <IngredientRowActions
+              ingredient={row.original}
+              canManage={canManage}
+              onStockEntry={onStockEntry}
+              onLoss={onLoss}
+              onPrintLabel={onPrintLabel}
+              onProduce={onProduce}
+              onEditRecipe={onEditRecipe}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
           ),
         }),
       ]),
-    [canManage, onStockEntry, onLoss, onPrintLabel, onEdit, onDelete],
+    [
+      canManage,
+      onStockEntry,
+      onLoss,
+      onPrintLabel,
+      onProduce,
+      onEditRecipe,
+      onEdit,
+      onDelete,
+    ],
   );
 
   const table = useDataTable({

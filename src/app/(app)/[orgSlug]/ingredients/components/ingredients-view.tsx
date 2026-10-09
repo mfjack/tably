@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ChevronDown,
   ClipboardCheck,
   FileUp,
   Package,
@@ -10,8 +11,14 @@ import {
 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useIngredientsQuery } from "@/features/ingredients/hooks/use-ingredients-query";
-import { isRunningLow } from "@/features/ingredients/shopping-list";
+import { needsPurchase } from "@/features/ingredients/shopping-list";
 import type { Ingredient } from "@/features/ingredients/types";
 import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
 import type { OrganizationId } from "@/features/organizations/types";
@@ -24,6 +31,8 @@ import { FoodLabelDialog } from "./food-label-dialog";
 import { IngredientFormDialog } from "./ingredient-form-dialog";
 import { IngredientsTable } from "./ingredients-table";
 import { InvoiceImportDialog } from "./invoice-import-dialog";
+import { PreparedRecipeDialog } from "./prepared-recipe-dialog";
+import { ProductionDialog } from "./production-dialog";
 import { ShoppingListDialog } from "./shopping-list-dialog";
 import { StockCountDialog } from "./stock-count-dialog";
 import { StockEntryDialog } from "./stock-entry-dialog";
@@ -60,13 +69,27 @@ export function IngredientsView({
   const [isInvoiceImportOpen, setIsInvoiceImportOpen] = useState(false);
   const [isStockCountOpen, setIsStockCountOpen] = useState(false);
   const [isLossesOpen, setIsLossesOpen] = useState(false);
+  const [ingredientForProduction, setIngredientForProduction] =
+    useState<Ingredient | null>(null);
+  const [ingredientForRecipe, setIngredientForRecipe] =
+    useState<Ingredient | null>(null);
+  const ingredientsById = useMemo(
+    () =>
+      new Map(
+        (ingredientsQuery.data ?? []).map((ingredient) => [
+          ingredient.id,
+          ingredient,
+        ]),
+      ),
+    [ingredientsQuery.data],
+  );
   const [ingredientForLoss, setIngredientForLoss] = useState<Ingredient | null>(
     null,
   );
   const [ingredientForLabel, setIngredientForLabel] =
     useState<Ingredient | null>(null);
   const lowStockCount = useMemo(
-    () => (ingredientsQuery.data ?? []).filter(isRunningLow).length,
+    () => (ingredientsQuery.data ?? []).filter(needsPurchase).length,
     [ingredientsQuery.data],
   );
   const [formState, setFormState] = useState<IngredientFormState>({
@@ -92,50 +115,67 @@ export function IngredientsView({
         description={description}
         actions={
           <>
-            <Button
-              variant="outline"
-              className="h-10"
-              disabled={!ingredientsQuery.data}
-              onClick={() => setIsShoppingListOpen(true)}
-            >
-              <ShoppingCart aria-hidden />
-              <span className="max-sm:sr-only">Lista de compras</span>
-              {lowStockCount > 0 && (
-                <span className="rounded-full bg-destructive px-1.5 font-semibold text-white text-xs tabular-nums">
-                  {lowStockCount}
-                </span>
-              )}
-            </Button>
-            <Button
-              variant="outline"
-              className="h-10"
-              disabled={!ingredientsQuery.data?.length}
-              onClick={() => setIsLossesOpen(true)}
-            >
-              <PackageMinus aria-hidden />
-              <span className="max-sm:sr-only">Perdas</span>
-            </Button>
-            {canManage && (
-              <Button
-                variant="outline"
-                className="h-10"
-                disabled={!ingredientsQuery.data?.length}
-                onClick={() => setIsStockCountOpen(true)}
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="outline"
+                    className="h-10"
+                    disabled={!ingredientsQuery.data}
+                  />
+                }
               >
-                <ClipboardCheck aria-hidden />
-                <span className="max-sm:sr-only">Contar estoque</span>
-              </Button>
-            )}
-            {canManage && (
-              <Button
-                variant="outline"
-                className="h-10"
-                onClick={() => setIsInvoiceImportOpen(true)}
+                <ShoppingCart aria-hidden />
+                <span className="max-sm:sr-only">Compras</span>
+                {lowStockCount > 0 && (
+                  <span className="rounded-full bg-destructive px-1.5 font-semibold text-white text-xs tabular-nums">
+                    {lowStockCount}
+                  </span>
+                )}
+                <ChevronDown aria-hidden />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-56">
+                <DropdownMenuItem onClick={() => setIsShoppingListOpen(true)}>
+                  <ShoppingCart aria-hidden />
+                  Lista de compras e pedidos
+                </DropdownMenuItem>
+                {canManage && (
+                  <DropdownMenuItem
+                    onClick={() => setIsInvoiceImportOpen(true)}
+                  >
+                    <FileUp aria-hidden />
+                    Importar nota fiscal (XML)
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="outline"
+                    className="h-10"
+                    disabled={!ingredientsQuery.data?.length}
+                  />
+                }
               >
-                <FileUp aria-hidden />
-                <span className="max-sm:sr-only">Importar nota</span>
-              </Button>
-            )}
+                <Package aria-hidden />
+                <span className="max-sm:sr-only">Estoque</span>
+                <ChevronDown aria-hidden />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-56">
+                {canManage && (
+                  <DropdownMenuItem onClick={() => setIsStockCountOpen(true)}>
+                    <ClipboardCheck aria-hidden />
+                    Contar estoque
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem onClick={() => setIsLossesOpen(true)}>
+                  <PackageMinus aria-hidden />
+                  Perdas do mês
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             {canManage && (
               <Button className="h-10" onClick={openCreateForm}>
                 <Plus aria-hidden />
@@ -164,6 +204,8 @@ export function IngredientsView({
           onStockEntry={setIngredientForStockEntry}
           onLoss={setIngredientForLoss}
           onPrintLabel={setIngredientForLabel}
+          onProduce={setIngredientForProduction}
+          onEditRecipe={setIngredientForRecipe}
           onEdit={openEditForm}
           onDelete={setIngredientToDelete}
         />
@@ -184,6 +226,22 @@ export function IngredientsView({
           initialIngredient={ingredientForLabel}
           defaultResponsibleName={currentPersonName}
           onClose={() => setIngredientForLabel(null)}
+        />
+      )}
+      {ingredientForProduction && (
+        <ProductionDialog
+          organizationId={organizationId}
+          ingredient={ingredientForProduction}
+          ingredientsById={ingredientsById}
+          onClose={() => setIngredientForProduction(null)}
+        />
+      )}
+      {ingredientForRecipe && (
+        <PreparedRecipeDialog
+          organizationId={organizationId}
+          ingredient={ingredientForRecipe}
+          ingredients={ingredientsQuery.data ?? EMPTY_INGREDIENTS}
+          onClose={() => setIngredientForRecipe(null)}
         />
       )}
       <StockLossesDialog

@@ -893,6 +893,49 @@ export type Database = {
           },
         ]
       }
+      ingredient_components: {
+        Row: {
+          component_ingredient_id: string
+          organization_id: string
+          prepared_ingredient_id: string
+          quantity: number
+        }
+        Insert: {
+          component_ingredient_id: string
+          organization_id: string
+          prepared_ingredient_id: string
+          quantity: number
+        }
+        Update: {
+          component_ingredient_id?: string
+          organization_id?: string
+          prepared_ingredient_id?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ingredient_components_component_ingredient_id_organization_fkey"
+            columns: ["component_ingredient_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "ingredient_components_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ingredient_components_prepared_ingredient_id_organization__fkey"
+            columns: ["prepared_ingredient_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
       ingredients: {
         Row: {
           brand: string | null
@@ -900,6 +943,7 @@ export type Database = {
           current_stock: number
           expires_at: string | null
           id: string
+          is_prepared: boolean
           label_shelf_life_hours: number | null
           label_storage: Database["public"]["Enums"]["storage_condition"] | null
           minimum_stock: number
@@ -909,6 +953,7 @@ export type Database = {
           unit: Database["public"]["Enums"]["measure_unit"]
           unit_cost: number
           updated_at: string
+          yield_quantity: number | null
         }
         Insert: {
           brand?: string | null
@@ -916,6 +961,7 @@ export type Database = {
           current_stock?: number
           expires_at?: string | null
           id?: string
+          is_prepared?: boolean
           label_shelf_life_hours?: number | null
           label_storage?:
             | Database["public"]["Enums"]["storage_condition"]
@@ -927,6 +973,7 @@ export type Database = {
           unit: Database["public"]["Enums"]["measure_unit"]
           unit_cost?: number
           updated_at?: string
+          yield_quantity?: number | null
         }
         Update: {
           brand?: string | null
@@ -934,6 +981,7 @@ export type Database = {
           current_stock?: number
           expires_at?: string | null
           id?: string
+          is_prepared?: boolean
           label_shelf_life_hours?: number | null
           label_storage?:
             | Database["public"]["Enums"]["storage_condition"]
@@ -945,6 +993,7 @@ export type Database = {
           unit?: Database["public"]["Enums"]["measure_unit"]
           unit_cost?: number
           updated_at?: string
+          yield_quantity?: number | null
         }
         Relationships: [
           {
@@ -2103,6 +2152,60 @@ export type Database = {
           },
         ]
       }
+      production_batches: {
+        Row: {
+          batches: number
+          created_by: string | null
+          created_by_name: string | null
+          expected_quantity: number
+          id: string
+          ingredient_id: string
+          organization_id: string
+          produced_at: string
+          produced_quantity: number
+          total_cost: number
+        }
+        Insert: {
+          batches: number
+          created_by?: string | null
+          created_by_name?: string | null
+          expected_quantity: number
+          id?: string
+          ingredient_id: string
+          organization_id: string
+          produced_at?: string
+          produced_quantity: number
+          total_cost: number
+        }
+        Update: {
+          batches?: number
+          created_by?: string | null
+          created_by_name?: string | null
+          expected_quantity?: number
+          id?: string
+          ingredient_id?: string
+          organization_id?: string
+          produced_at?: string
+          produced_quantity?: number
+          total_cost?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "production_batches_ingredient_id_organization_id_fkey"
+            columns: ["ingredient_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "production_batches_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           category_id: string | null
@@ -2568,6 +2671,7 @@ export type Database = {
           ingredient_id: string
           order_id: string | null
           organization_id: string
+          production_batch_id: string | null
           quantity: number
           stock_count_id: string | null
           stock_loss_id: string | null
@@ -2578,6 +2682,7 @@ export type Database = {
           ingredient_id: string
           order_id?: string | null
           organization_id: string
+          production_batch_id?: string | null
           quantity: number
           stock_count_id?: string | null
           stock_loss_id?: string | null
@@ -2588,6 +2693,7 @@ export type Database = {
           ingredient_id?: string
           order_id?: string | null
           organization_id?: string
+          production_batch_id?: string | null
           quantity?: number
           stock_count_id?: string | null
           stock_loss_id?: string | null
@@ -2612,6 +2718,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_production_batch_id_fkey"
+            columns: ["production_batch_id"]
+            isOneToOne: false
+            referencedRelation: "production_batches"
             referencedColumns: ["id"]
           },
           {
@@ -3887,6 +4000,18 @@ export type Database = {
         }
         Returns: number
       }
+      register_production: {
+        Args: {
+          p_batches: number
+          p_ingredient_id: string
+          p_produced_quantity?: number
+        }
+        Returns: {
+          batch_id: string
+          produced_quantity: number
+          total_cost: number
+        }[]
+      }
       register_stock_loss: {
         Args: {
           p_ingredient_id: string
@@ -3969,6 +4094,15 @@ export type Database = {
           p_pin?: string
         }
         Returns: string
+      }
+      save_prepared_recipe: {
+        Args: {
+          p_components: Json
+          p_ingredient_id: string
+          p_is_prepared: boolean
+          p_yield_quantity: number
+        }
+        Returns: undefined
       }
       save_product: {
         Args: {

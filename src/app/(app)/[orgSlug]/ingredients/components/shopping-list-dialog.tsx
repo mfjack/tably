@@ -137,7 +137,9 @@ export function ShoppingListDialog({
   const addableIngredientOptions = useMemo(() => {
     const listedIds = new Set(lines.map((line) => line.ingredientId));
     return ingredients
-      .filter((ingredient) => !listedIds.has(ingredient.id))
+      .filter(
+        (ingredient) => !ingredient.isPrepared && !listedIds.has(ingredient.id),
+      )
       .map((ingredient) => ({ value: ingredient.id, label: ingredient.name }));
   }, [ingredients, lines]);
 

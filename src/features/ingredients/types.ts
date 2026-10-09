@@ -20,4 +20,12 @@ export type Ingredient = {
   recipeCount: number;
   labelShelfLifeHours: number | null;
   labelStorage: StorageCondition | null;
+  isPrepared: boolean;
+  yieldQuantity: number | null;
+  components: IngredientComponent[];
+};
+
+export type IngredientComponent = {
+  ingredientId: IngredientId;
+  quantity: number;
 };

@@ -4,7 +4,12 @@ import { Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
-import { type Control, useFieldArray, useWatch } from "react-hook-form";
+import {
+  type Control,
+  type FieldValues,
+  useFieldArray,
+  useWatch,
+} from "react-hook-form";
 import { NumberField } from "@/components/form/number-field";
 import { SelectField, type SelectOption } from "@/components/form/select-field";
 import { Button } from "@/components/ui/button";
@@ -15,23 +20,26 @@ import {
   getAppModule,
 } from "@/features/modules/app-modules";
 import { calculateRecipeLineCost } from "@/features/products/pricing";
-import type { ProductFormInput } from "@/features/products/schemas";
+import type { RecipeItemInput } from "@/features/products/schemas";
 import { formatCurrency } from "@/lib/format";
 
 const RECIPE_GRID_CLASS_NAME =
   "grid grid-cols-[minmax(0,1fr)_7.5rem_5.5rem_2.25rem] items-start gap-2";
 
-type RecipeEditorProps = {
-  control: Control<ProductFormInput>;
+type RecipeFields = { recipe: RecipeItemInput[] };
+
+type RecipeEditorProps<TFieldValues extends FieldValues & RecipeFields> = {
+  control: Control<TFieldValues>;
   ingredients: readonly Ingredient[];
   ingredientsById: ReadonlyMap<string, Ingredient>;
 };
 
-export function RecipeEditor({
-  control,
+export function RecipeEditor<TFieldValues extends FieldValues & RecipeFields>({
+  control: formControl,
   ingredients,
   ingredientsById,
-}: RecipeEditorProps) {
+}: RecipeEditorProps<TFieldValues>) {
+  const control = formControl as unknown as Control<RecipeFields>;
   const { orgSlug } = useParams<{ orgSlug: string }>();
   const { fields, append, remove } = useFieldArray({ control, name: "recipe" });
   const recipe = useWatch({ control, name: "recipe" });

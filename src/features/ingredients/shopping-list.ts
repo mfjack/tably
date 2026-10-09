@@ -49,6 +49,10 @@ export function isRunningLow(ingredient: Ingredient): boolean {
   return getStockStatus(ingredient) !== "ok";
 }
 
+export function needsPurchase(ingredient: Ingredient): boolean {
+  return !ingredient.isPrepared && isRunningLow(ingredient);
+}
+
 export type ShoppingLine = {
   ingredientId: IngredientId;
   supplierId: SupplierId | null;
@@ -63,7 +67,7 @@ export function getShoppingGroupKey(supplierId: SupplierId | null): string {
 export function getInitialShoppingLines(
   ingredients: readonly Ingredient[],
 ): ShoppingLine[] {
-  return ingredients.filter(isRunningLow).map((ingredient) => ({
+  return ingredients.filter(needsPurchase).map((ingredient) => ({
     ingredientId: ingredient.id,
     supplierId: ingredient.supplierId,
   }));
@@ -74,7 +78,7 @@ export function getSuggestedQuantities(
 ): Record<string, number | undefined> {
   return Object.fromEntries(
     ingredients
-      .filter(isRunningLow)
+      .filter(needsPurchase)
       .map((ingredient) => [ingredient.id, getSuggestedQuantity(ingredient)]),
   );
 }
