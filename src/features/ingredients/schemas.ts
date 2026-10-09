@@ -23,6 +23,7 @@ export const ingredientFormSchema = z
     quantity: optionalAmountSchema,
     totalCost: optionalAmountSchema,
     minimumStock: optionalAmountSchema,
+    targetStock: z.number().positive("Precisa ser maior que zero.").optional(),
     currentStock: optionalAmountSchema,
     currentStockCost: optionalAmountSchema,
     supplierId: z.string().optional(),
@@ -37,6 +38,12 @@ export const ingredientFormSchema = z
     (values) =>
       values.currentStockCost === undefined || (values.currentStock ?? 0) > 0,
     { message: "Informe o estoque atual.", path: ["currentStock"] },
+  )
+  .refine(
+    (values) =>
+      values.targetStock === undefined ||
+      values.targetStock > (values.minimumStock ?? 0),
+    { message: "Precisa ser maior que o mínimo.", path: ["targetStock"] },
   );
 
 export const stockEntryFormSchema = z.object({

@@ -45,6 +45,7 @@ function toFormValues(
     brand: ingredient.brand ?? "",
     unit: toSelectableMeasureUnit(ingredient.unit),
     minimumStock: ingredient.minimumStock,
+    targetStock: ingredient.targetStock ?? undefined,
     currentStock:
       ingredient.currentStock >= 0 ? ingredient.currentStock : undefined,
     supplierId: toSelectFieldValue(ingredient.supplierId),
@@ -127,6 +128,7 @@ export function IngredientFormDialog({
       submitLabel={isEditing ? "Salvar" : "Cadastrar"}
       isSubmitting={saveIngredientMutation.isPending}
       onSubmit={handleSubmit}
+      size="large"
     >
       <FieldGroup>
         <TextField
@@ -168,15 +170,26 @@ export function IngredientFormDialog({
             {unitField}
           </div>
         )}
-        <NumberField
-          control={form.control}
-          name="minimumStock"
-          label="Estoque mínimo (alerta)"
-          format="quantity"
-          suffix={unitSymbol}
-          placeholder="Ex.: 4"
-          description="Abaixo disso, o Tably avisa que é hora de comprar."
-        />
+        <div className="grid gap-5 sm:grid-cols-2">
+          <NumberField
+            control={form.control}
+            name="minimumStock"
+            label="Estoque mínimo (alerta)"
+            format="quantity"
+            suffix={unitSymbol}
+            placeholder="Ex.: 4"
+            description="Abaixo disso, o Tably avisa que é hora de comprar."
+          />
+          <NumberField
+            control={form.control}
+            name="targetStock"
+            label="Quantidade ideal (opcional)"
+            format="quantity"
+            suffix={unitSymbol}
+            placeholder="Ex.: 12"
+            description="Quanto ter depois de comprar. A lista sugere a diferença."
+          />
+        </div>
         {isEditing && !ingredient?.isPrepared && (
           <NumberField
             control={form.control}

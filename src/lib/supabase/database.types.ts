@@ -951,6 +951,7 @@ export type Database = {
           organization_id: string
           preparation_instructions: string | null
           supplier_id: string | null
+          target_stock: number | null
           unit: Database["public"]["Enums"]["measure_unit"]
           unit_cost: number
           updated_at: string
@@ -972,6 +973,7 @@ export type Database = {
           organization_id: string
           preparation_instructions?: string | null
           supplier_id?: string | null
+          target_stock?: number | null
           unit: Database["public"]["Enums"]["measure_unit"]
           unit_cost?: number
           updated_at?: string
@@ -993,6 +995,7 @@ export type Database = {
           organization_id?: string
           preparation_instructions?: string | null
           supplier_id?: string | null
+          target_stock?: number | null
           unit?: Database["public"]["Enums"]["measure_unit"]
           unit_cost?: number
           updated_at?: string

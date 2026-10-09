@@ -28,6 +28,7 @@ import {
   formatItemQuantity,
   getInitialShoppingLines,
   getShoppingGroupKey,
+  getSuggestedQuantity,
   type OrderedItem,
   printShoppingList,
   type ShoppingLine,
@@ -406,6 +407,7 @@ export function ShoppingListDialog({
                       {group.items.map((item) => {
                         const isBelowMinimum =
                           item.currentStock <= item.minimumStock;
+                        const suggestedQuantity = getSuggestedQuantity(item);
                         return (
                           <li
                             key={item.ingredientId}
@@ -441,8 +443,28 @@ export function ShoppingListDialog({
                                     item.minimumStock,
                                     item.unit,
                                   )}
+                                  {item.targetStock !== null &&
+                                    ` · ideal ${formatItemQuantity(item.targetStock, item.unit)}`}
                                 </span>
                               </span>
+                              {suggestedQuantity !== null && (
+                                <button
+                                  type="button"
+                                  className="w-fit font-medium text-primary text-xs tabular-nums hover:underline"
+                                  onClick={() =>
+                                    form.setValue(
+                                      `quantities.${item.ingredientId as IngredientId}`,
+                                      suggestedQuantity,
+                                    )
+                                  }
+                                >
+                                  Pedir{" "}
+                                  {formatItemQuantity(
+                                    suggestedQuantity,
+                                    item.unit,
+                                  )}
+                                </button>
+                              )}
                             </div>
                             <NumberField
                               control={form.control}

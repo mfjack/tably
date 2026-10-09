@@ -18,6 +18,7 @@ export type ShoppingListItem = {
   unit: MeasureUnit;
   currentStock: number;
   minimumStock: number;
+  targetStock: number | null;
 };
 
 export type ShoppingListSupplier = {
@@ -90,6 +91,7 @@ export function buildShoppingList(
       unit: ingredient.unit,
       currentStock: ingredient.currentStock,
       minimumStock: ingredient.minimumStock,
+      targetStock: ingredient.targetStock,
     });
     groups.set(groupKey, group);
   }
@@ -106,6 +108,12 @@ export function buildShoppingList(
       if (!second.supplier) return -1;
       return first.supplier.name.localeCompare(second.supplier.name, "pt-BR");
     });
+}
+
+export function getSuggestedQuantity(item: ShoppingListItem): number | null {
+  if (item.targetStock === null) return null;
+  const missing = item.targetStock - Math.max(item.currentStock, 0);
+  return missing > 0 ? missing : null;
 }
 
 export function formatItemQuantity(

@@ -14,6 +14,7 @@ export type Ingredient = {
   unit: MeasureUnit;
   currentStock: number;
   minimumStock: number;
+  targetStock: number | null;
   unitCost: number;
   supplierId: SupplierId | null;
   expiresAt: string | null;
