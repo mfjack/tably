@@ -88,37 +88,41 @@ export function FinanceOverview({
     0,
   );
   const monthResult = overview.periodIncome - overview.periodExpense;
+  const currentMonthKey = overview.today.slice(0, 7);
+  const isFutureMonth = monthKey > currentMonthKey;
+  const isCurrentMonth = monthKey === currentMonthKey;
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div
+        className={cn(
+          "grid gap-3",
+          isFutureMonth ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2",
+        )}
+      >
         <StatCard
           label="Saldo hoje"
           value={formatCurrency(totalBalance)}
           detail="Saldo inicial + entradas − saídas"
           isAlert={totalBalance < 0}
         />
-        <StatCard
-          label="Entradas no mês"
-          value={formatCurrency(overview.periodIncome)}
-          detail="Recebido de fato"
-        />
-        <StatCard
-          label="Saídas no mês"
-          value={formatCurrency(overview.periodExpense)}
-          detail="Pago de fato"
-        />
-        <StatCard
-          label="Resultado do mês"
-          value={formatCurrency(monthResult)}
-          detail="Entradas menos saídas"
-          isAlert={monthResult < 0}
-        />
+        {!isFutureMonth && (
+          <StatCard
+            label="Resultado do mês"
+            value={formatCurrency(monthResult)}
+            detail={`Entrou ${formatCurrency(overview.periodIncome)} · Saiu ${formatCurrency(overview.periodExpense)}`}
+            isAlert={monthResult < 0}
+          />
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <StatCard
-          label="A pagar atrasado"
+          label={
+            isCurrentMonth
+              ? "A pagar atrasado"
+              : "Em aberto de meses anteriores"
+          }
           value={formatCurrency(overview.overduePayables.amount)}
           detail={describeTotals(overview.overduePayables, "Nada atrasado")}
           isAlert={overview.overduePayables.count > 0}

@@ -125,6 +125,7 @@ const overviewSchema = z.object({
       balance: z.number(),
     }),
   ),
+  firstMonthKey: z.string(),
   periodIncome: z.number(),
   periodExpense: z.number(),
   overduePayables: z.object({ count: z.number(), amount: z.number() }),

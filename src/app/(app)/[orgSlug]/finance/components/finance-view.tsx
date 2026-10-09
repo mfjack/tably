@@ -8,7 +8,7 @@ import {
   TrendingUp,
   Wallet,
 } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -89,6 +89,11 @@ export function FinanceView({
   const categoriesQuery = useFinancialCategoriesQuery(organizationId);
   const categories = categoriesQuery.data ?? EMPTY_CATEGORIES;
   const overviewQuery = useFinancialOverviewQuery(organizationId, monthKey);
+  const firstMonthKey = overviewQuery.data?.firstMonthKey;
+
+  useEffect(() => {
+    if (firstMonthKey && monthKey < firstMonthKey) setMonthKey(firstMonthKey);
+  }, [firstMonthKey, monthKey, setMonthKey]);
   const [isExporting, setIsExporting] = useState(false);
 
   async function exportMonth() {
@@ -201,7 +206,11 @@ export function FinanceView({
                 Análises
               </TabsTrigger>
             </TabsList>
-            <MonthNavigator monthKey={monthKey} onChange={setMonthKey} />
+            <MonthNavigator
+              monthKey={monthKey}
+              minMonthKey={firstMonthKey}
+              onChange={setMonthKey}
+            />
           </div>
           <TabsContent value="overview" className="min-h-0 overflow-y-auto">
             <FinanceOverview

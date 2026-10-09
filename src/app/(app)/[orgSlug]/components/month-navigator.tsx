@@ -7,16 +7,22 @@ import {
 
 type MonthNavigatorProps = {
   monthKey: string;
+  minMonthKey?: string;
   onChange: (monthKey: string) => void;
 };
 
-export function MonthNavigator({ monthKey, onChange }: MonthNavigatorProps) {
+export function MonthNavigator({
+  monthKey,
+  minMonthKey,
+  onChange,
+}: MonthNavigatorProps) {
   return (
     <div className="flex items-center gap-1 rounded-lg border px-1 py-1">
       <Button
         variant="ghost"
         size="icon-sm"
         aria-label="Mês anterior"
+        disabled={minMonthKey !== undefined && monthKey <= minMonthKey}
         onClick={() => onChange(shiftMonthKey(monthKey, -1))}
       >
         <ChevronLeft aria-hidden />

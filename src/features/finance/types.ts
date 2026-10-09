@@ -84,6 +84,7 @@ export type EntryTotals = {
 
 export type FinancialOverview = {
   today: string;
+  firstMonthKey: string;
   accounts: FinancialAccountBalance[];
   periodIncome: number;
   periodExpense: number;
