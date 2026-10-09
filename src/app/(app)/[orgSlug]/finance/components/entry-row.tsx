@@ -33,6 +33,7 @@ import {
   ENTRY_SOURCE_LABELS,
   getEntryStatus,
   getEntryStatusLabel,
+  isEditableEntrySource,
   RECURRENCE_FREQUENCY_LABELS,
 } from "@/features/finance/labels";
 import type { EntryStatus, FinancialEntry } from "@/features/finance/types";
@@ -70,6 +71,7 @@ export function EntryRow({
   const status = getEntryStatus(entry, today);
   const isExpense = entry.kind === "expense";
   const isAutomatic = entry.source !== "manual";
+  const isEditable = isEditableEntrySource(entry.source);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pendingFieldRef = useRef<DocumentField>("document");
   const uploadMutation = useUploadFinancialDocumentMutation(organizationId);
@@ -213,7 +215,7 @@ export function EntryRow({
             <MoreHorizontal aria-hidden />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="min-w-52">
-            {!isAutomatic && (
+            {isEditable && (
               <DropdownMenuItem onClick={() => onEdit(entry)}>
                 <Pencil aria-hidden />
                 Editar

@@ -82,3 +82,12 @@ export const ENTRY_SOURCE_LABELS = {
   payroll_fgts: "Folha",
   payroll_taxes: "Folha",
 } as const satisfies Record<FinancialEntrySource, string>;
+
+const EDITABLE_ENTRY_SOURCES: readonly FinancialEntrySource[] = [
+  "manual",
+  "stock_purchase",
+];
+
+export function isEditableEntrySource(source: FinancialEntrySource): boolean {
+  return EDITABLE_ENTRY_SOURCES.includes(source);
+}
