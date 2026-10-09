@@ -19,6 +19,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { Ingredient } from "@/features/ingredients/types";
+import { needsProduction } from "@/features/prepared-ingredients/production-needs";
+import { cn } from "@/lib/utils";
 
 type IngredientRowActionsProps = {
   ingredient: Ingredient;
@@ -44,6 +46,7 @@ export function IngredientRowActions({
   onDelete,
 }: IngredientRowActionsProps) {
   const { isPrepared } = ingredient;
+  const isProductionNeeded = needsProduction(ingredient);
 
   return (
     <div className="flex justify-end gap-2">
@@ -52,7 +55,15 @@ export function IngredientRowActions({
           type="button"
           variant="outline"
           size="sm"
-          aria-label={`Produzir ${ingredient.name}`}
+          aria-label={
+            isProductionNeeded
+              ? `Produzir ${ingredient.name}, está abaixo do mínimo`
+              : `Produzir ${ingredient.name}`
+          }
+          className={cn(
+            isProductionNeeded &&
+              "border-warning bg-warning/15 text-warning hover:bg-warning/25 hover:text-warning",
+          )}
           onClick={() => onProduce(ingredient)}
         >
           <CookingPot aria-hidden />

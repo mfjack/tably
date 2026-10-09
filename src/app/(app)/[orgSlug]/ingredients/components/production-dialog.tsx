@@ -1,20 +1,15 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useWatch } from "react-hook-form";
+import { CookingPot } from "lucide-react";
 import { toast } from "sonner";
-import { FormDialog } from "@/components/dialog/form-dialog";
-import { NumberField } from "@/components/form/number-field";
-import { FieldGroup } from "@/components/ui/field";
-import { getUnitSymbol } from "@/features/ingredients/measure-units";
+import { DetailsDialog } from "@/components/dialog/details-dialog";
+import { DIALOG_ACTION_BUTTON_CLASS_NAME } from "@/components/dialog/dialog-styles";
+import { Button } from "@/components/ui/button";
 import { formatItemQuantity } from "@/features/ingredients/shopping-list";
 import type { Ingredient } from "@/features/ingredients/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import { useRegisterProductionMutation } from "@/features/prepared-ingredients/hooks/use-register-production-mutation";
-import {
-  type ProductionFormInput,
-  productionFormSchema,
-} from "@/features/prepared-ingredients/schemas";
+import { parsePreparationSteps } from "@/features/prepared-ingredients/preparation-steps";
 import { cn } from "@/lib/utils";
 
 type ProductionDialogProps = {
@@ -31,48 +26,59 @@ export function ProductionDialog({
   onClose,
 }: ProductionDialogProps) {
   const productionMutation = useRegisterProductionMutation(organizationId);
-  const form = useForm<ProductionFormInput>({
-    resolver: zodResolver(productionFormSchema),
-    defaultValues: { batches: undefined, producedQuantity: undefined },
-  });
-  const batchesValue = useWatch({ control: form.control, name: "batches" });
-  const batches = batchesValue && batchesValue > 0 ? batchesValue : 1;
-  const expectedQuantity = (ingredient.yieldQuantity ?? 0) * batches;
-  const unitSymbol = getUnitSymbol(ingredient.unit);
-
-  const handleSubmit = form.handleSubmit((values) =>
-    productionMutation.mutate(
-      { ingredientId: ingredient.id, values },
-      {
-        onSuccess: ({ producedQuantity }) => {
-          toast.success("Produção registrada.", {
-            description: `Entrou ${formatItemQuantity(producedQuantity, ingredient.unit)} de ${ingredient.name}; os insumos da receita saíram do estoque.`,
-          });
-          onClose();
-        },
-        onError: (error) => toast.error(error.message),
-      },
-    ),
+  const expectedQuantity = ingredient.yieldQuantity ?? 0;
+  const preparationSteps = parsePreparationSteps(
+    ingredient.preparationInstructions,
   );
 
+  function registerProduction() {
+    productionMutation.mutate(ingredient.id, {
+      onSuccess: ({ producedQuantity }) => {
+        toast.success("Produção registrada.", {
+          description: `Entrou ${formatItemQuantity(producedQuantity, ingredient.unit)} de ${ingredient.name}; os insumos da receita saíram do estoque.`,
+        });
+        onClose();
+      },
+      onError: (error) => toast.error(error.message),
+    });
+  }
+
   return (
-    <FormDialog
+    <DetailsDialog
       isOpen
       onOpenChange={(isDialogOpen) => !isDialogOpen && onClose()}
       title={`Produzir ${ingredient.name}`}
-      description="Os insumos da receita saem do estoque e o que foi produzido entra."
-      submitLabel="Registrar produção"
-      isSubmitting={productionMutation.isPending}
-      onSubmit={handleSubmit}
+      size="large"
+      footer={
+        <>
+          <Button
+            type="button"
+            variant="outline"
+            className={DIALOG_ACTION_BUTTON_CLASS_NAME}
+            onClick={onClose}
+          >
+            Cancelar
+          </Button>
+          <Button
+            type="button"
+            className={DIALOG_ACTION_BUTTON_CLASS_NAME}
+            isLoading={productionMutation.isPending}
+            onClick={registerProduction}
+          >
+            <CookingPot aria-hidden />
+            Registrar produção
+          </Button>
+        </>
+      }
     >
-      <FieldGroup>
-        <NumberField
-          control={form.control}
-          name="batches"
-          label="Quantas receitas fez"
-          format="quantity"
-          placeholder="1"
-        />
+      <div className="flex flex-col gap-5">
+        <p className="text-muted-foreground text-sm">
+          Uma receita rende{" "}
+          <span className="font-medium text-foreground tabular-nums">
+            {formatItemQuantity(expectedQuantity, ingredient.unit)}
+          </span>
+          . Ao registrar, os insumos abaixo saem do estoque e a produção entra.
+        </p>
         <section className="flex flex-col gap-2">
           <h3 className="font-medium text-sm">Vai sair do estoque</h3>
           <ul className="flex flex-col divide-y rounded-xl border">
@@ -81,8 +87,8 @@ export function ProductionDialog({
                 component.ingredientId,
               );
               if (!componentIngredient) return null;
-              const neededQuantity = component.quantity * batches;
-              const isShort = componentIngredient.currentStock < neededQuantity;
+              const isShort =
+                componentIngredient.currentStock < component.quantity;
               return (
                 <li
                   key={component.ingredientId}
@@ -96,7 +102,7 @@ export function ProductionDialog({
                     )}
                   >
                     {formatItemQuantity(
-                      neededQuantity,
+                      component.quantity,
                       componentIngredient.unit,
                     )}
                     <span className="text-muted-foreground">
@@ -113,16 +119,17 @@ export function ProductionDialog({
             })}
           </ul>
         </section>
-        <NumberField
-          control={form.control}
-          name="producedQuantity"
-          label="Quanto rendeu"
-          description="Deixe vazio se rendeu o previsto. Se rendeu menos, a diferença fica como perda na produção."
-          format="quantity"
-          suffix={unitSymbol}
-          placeholder={`Previsto: ${formatItemQuantity(expectedQuantity, ingredient.unit)}`}
-        />
-      </FieldGroup>
-    </FormDialog>
+        {preparationSteps.length > 0 && (
+          <section className="flex flex-col gap-2">
+            <h3 className="font-medium text-sm">Modo de preparo</h3>
+            <ol className="flex list-decimal flex-col gap-1.5 rounded-xl bg-muted/50 py-3 pr-4 pl-9 text-sm marker:font-semibold marker:text-muted-foreground">
+              {preparationSteps.map((step, index) => (
+                <li key={`${index.toString()}-${step}`}>{step}</li>
+              ))}
+            </ol>
+          </section>
+        )}
+      </div>
+    </DetailsDialog>
   );
 }

@@ -949,6 +949,7 @@ export type Database = {
           minimum_stock: number
           name: string
           organization_id: string
+          preparation_instructions: string | null
           supplier_id: string | null
           unit: Database["public"]["Enums"]["measure_unit"]
           unit_cost: number
@@ -969,6 +970,7 @@ export type Database = {
           minimum_stock?: number
           name: string
           organization_id: string
+          preparation_instructions?: string | null
           supplier_id?: string | null
           unit: Database["public"]["Enums"]["measure_unit"]
           unit_cost?: number
@@ -989,6 +991,7 @@ export type Database = {
           minimum_stock?: number
           name?: string
           organization_id?: string
+          preparation_instructions?: string | null
           supplier_id?: string | null
           unit?: Database["public"]["Enums"]["measure_unit"]
           unit_cost?: number
@@ -4099,6 +4102,7 @@ export type Database = {
         Args: {
           p_components: Json
           p_ingredient_id: string
+          p_instructions?: string
           p_is_prepared: boolean
           p_yield_quantity: number
         }

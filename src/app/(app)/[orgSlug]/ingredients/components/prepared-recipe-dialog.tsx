@@ -18,6 +18,7 @@ import { getUnitSymbol } from "@/features/ingredients/measure-units";
 import type { Ingredient } from "@/features/ingredients/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import { useSavePreparedRecipeMutation } from "@/features/prepared-ingredients/hooks/use-save-prepared-recipe-mutation";
+import { parsePreparationSteps } from "@/features/prepared-ingredients/preparation-steps";
 import {
   type PreparedRecipeFormInput,
   preparedRecipeFormSchema,
@@ -25,6 +26,7 @@ import {
 import { calculateRecipeLineCost } from "@/features/products/pricing";
 import { formatCurrency } from "@/lib/format";
 import { RecipeEditor } from "../../products/components/recipe-editor";
+import { PreparationStepsEditor } from "./preparation-steps-editor";
 
 type PreparedRecipeDialogProps = {
   organizationId: OrganizationId;
@@ -49,6 +51,9 @@ export function PreparedRecipeDialog({
         ingredientId: component.ingredientId,
         quantity: component.quantity,
       })),
+      steps: parsePreparationSteps(ingredient.preparationInstructions).map(
+        (text) => ({ text }),
+      ),
     },
   });
   const [isPrepared, yieldQuantity, recipe] = useWatch({
@@ -129,6 +134,7 @@ export function PreparedRecipeDialog({
               />
               {recipeError && <FieldError>{recipeError}</FieldError>}
             </FieldSet>
+            <PreparationStepsEditor control={form.control} />
             <dl className="grid grid-cols-2 gap-3 rounded-xl bg-muted/50 p-4 text-sm">
               <div className="flex flex-col">
                 <dt className="text-muted-foreground text-xs">

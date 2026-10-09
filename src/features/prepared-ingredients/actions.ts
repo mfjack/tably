@@ -12,13 +12,14 @@ import {
   databaseFailure,
 } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
+import { joinPreparationSteps } from "./preparation-steps";
 import {
   type PreparedRecipeFormInput,
-  type ProductionFormInput,
   type ProductionResult,
   preparedRecipeFormSchema,
-  productionFormSchema,
 } from "./schemas";
+
+const SINGLE_BATCH = 1;
 
 async function canUseIngredient(ingredientId: IngredientId) {
   const supabase = await createClient();
@@ -42,7 +43,8 @@ export async function savePreparedRecipe(
     return actionFailure("Confira a receita e tente novamente.");
   }
 
-  const { isPrepared, yieldQuantity, recipe } = parsedInput.data;
+  const { isPrepared, yieldQuantity, recipe, steps } = parsedInput.data;
+  const instructions = joinPreparationSteps(steps.map((step) => step.text));
   const supabase = await createClient();
   const { error } = await supabase.rpc("save_prepared_recipe", {
     p_ingredient_id: ingredientId,
@@ -52,6 +54,7 @@ export async function savePreparedRecipe(
       ingredient_id: recipeItem.ingredientId,
       quantity: recipeItem.quantity,
     })),
+    p_instructions: instructions || undefined,
   });
 
   if (error?.code === "TB035") {
@@ -70,22 +73,16 @@ export async function savePreparedRecipe(
 
 export async function registerProduction(
   ingredientId: IngredientId,
-  input: ProductionFormInput,
 ): Promise<ActionResult<ProductionResult>> {
   if (!(await canUseIngredient(ingredientId))) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
-  }
-  const parsedInput = productionFormSchema.safeParse(input);
-  if (!parsedInput.success) {
-    return actionFailure("Confira a produção e tente novamente.");
   }
 
   const supabase = await createClient();
   const { data, error } = await supabase
     .rpc("register_production", {
       p_ingredient_id: ingredientId,
-      p_batches: parsedInput.data.batches ?? 1,
-      p_produced_quantity: parsedInput.data.producedQuantity,
+      p_batches: SINGLE_BATCH,
     })
     .single();
 

@@ -4,12 +4,6 @@ import type { IngredientId } from "@/features/ingredients/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import { unwrapActionResult } from "@/lib/action-result";
 import { registerProduction } from "../actions";
-import type { ProductionFormInput } from "../schemas";
-
-export type RegisterProductionVariables = {
-  ingredientId: IngredientId;
-  values: ProductionFormInput;
-};
 
 export function getRegisterProductionMutationKey(
   organizationId: OrganizationId,
@@ -22,8 +16,8 @@ export function useRegisterProductionMutation(organizationId: OrganizationId) {
 
   return useMutation({
     mutationKey: getRegisterProductionMutationKey(organizationId),
-    mutationFn: async ({ ingredientId, values }: RegisterProductionVariables) =>
-      unwrapActionResult(await registerProduction(ingredientId, values)),
+    mutationFn: async (ingredientId: IngredientId) =>
+      unwrapActionResult(await registerProduction(ingredientId)),
     onSuccess: invalidateCatalog,
   });
 }

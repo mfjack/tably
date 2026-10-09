@@ -9,6 +9,13 @@ export const preparedRecipeFormSchema = z
       .positive("O rendimento precisa ser maior que zero.")
       .optional(),
     recipe: z.array(recipeItemSchema),
+    steps: z
+      .array(
+        z.object({
+          text: z.string().trim().max(500, "Passo muito longo."),
+        }),
+      )
+      .max(30, "No máximo 30 passos."),
   })
   .superRefine((values, context) => {
     if (!values.isPrepared) return;
@@ -40,13 +47,6 @@ export const preparedRecipeFormSchema = z
   });
 
 export type PreparedRecipeFormInput = z.infer<typeof preparedRecipeFormSchema>;
-
-export const productionFormSchema = z.object({
-  batches: z.number().positive("Informe quantas receitas fez.").optional(),
-  producedQuantity: z.number().min(0, "Não pode ser negativo.").optional(),
-});
-
-export type ProductionFormInput = z.infer<typeof productionFormSchema>;
 
 export type ProductionResult = {
   producedQuantity: number;

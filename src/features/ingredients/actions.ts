@@ -39,7 +39,7 @@ export async function listIngredients(
   const { data, error } = await supabase
     .from("ingredients")
     .select(
-      "id, name, brand, unit, current_stock, minimum_stock, unit_cost, supplier_id, expires_at, label_shelf_life_hours, label_storage, is_prepared, yield_quantity, product_ingredients(count), ingredient_components!ingredient_components_prepared_ingredient_id_organization__fkey(component_ingredient_id, quantity)",
+      "id, name, brand, unit, current_stock, minimum_stock, unit_cost, supplier_id, expires_at, label_shelf_life_hours, label_storage, is_prepared, yield_quantity, preparation_instructions, product_ingredients(count), ingredient_components!ingredient_components_prepared_ingredient_id_organization__fkey(component_ingredient_id, quantity)",
     )
     .eq("organization_id", organizationId)
     .order("name");
@@ -63,6 +63,7 @@ export async function listIngredients(
       labelStorage: ingredient.label_storage,
       isPrepared: ingredient.is_prepared,
       yieldQuantity: ingredient.yield_quantity,
+      preparationInstructions: ingredient.preparation_instructions,
       components: ingredient.ingredient_components.map((component) => ({
         ingredientId: component.component_ingredient_id as IngredientId,
         quantity: component.quantity,

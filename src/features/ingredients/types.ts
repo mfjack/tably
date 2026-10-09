@@ -22,6 +22,7 @@ export type Ingredient = {
   labelStorage: StorageCondition | null;
   isPrepared: boolean;
   yieldQuantity: number | null;
+  preparationInstructions: string | null;
   components: IngredientComponent[];
 };
 
