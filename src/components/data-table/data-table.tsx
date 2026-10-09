@@ -16,11 +16,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { DataTablePagination } from "./data-table-pagination";
+import { DataTableLoadMore } from "./data-table-load-more";
 import { DataTableSortableHeader } from "./data-table-sortable-header";
 import type { DataTableInstance } from "./use-data-table";
 
 const LOADING_ROW_COUNT = 5;
+const LOAD_MORE_STEP = 15;
 const ACTIONS_COLUMN_ID = "actions";
 
 type DataTableProps<TData extends RowData> = {
@@ -41,6 +42,10 @@ export function DataTable<TData extends RowData>({
   toolbarActions,
 }: DataTableProps<TData>) {
   const rows = table.getRowModel().rows;
+  const filteredRowCount = table.getFilteredRowModel().rows.length;
+  const hasMoreRows = !isLoading && rows.length < filteredRowCount;
+  const loadMoreRows = () =>
+    table.setPageSize((pageSize) => pageSize + LOAD_MORE_STEP);
   const columnCount = table.getAllLeafColumns().length;
   const hasData = table.getCoreRowModel().rows.length > 0;
   const headersByColumnId = new Map(
@@ -141,6 +146,7 @@ export function DataTable<TData extends RowData>({
             Nenhum resultado para essa busca.
           </p>
         )}
+        {hasMoreRows && <DataTableLoadMore onLoadMore={loadMoreRows} />}
       </div>
 
       <div className="hidden min-h-0 flex-col overflow-hidden rounded-xl border md:flex">
@@ -188,11 +194,22 @@ export function DataTable<TData extends RowData>({
                 </TableCell>
               </TableRow>
             )}
+            {hasMoreRows && (
+              <TableRow className="hover:bg-transparent">
+                <TableCell colSpan={columnCount} className="p-0">
+                  <DataTableLoadMore onLoadMore={loadMoreRows} />
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>
 
-      <DataTablePagination table={table} />
+      {!isLoading && (
+        <p className="shrink-0 text-muted-foreground text-sm">
+          {filteredRowCount} {filteredRowCount === 1 ? "item" : "itens"}
+        </p>
+      )}
     </div>
   );
 }

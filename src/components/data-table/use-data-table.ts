@@ -10,7 +10,7 @@ import {
   dataTableFeatures,
 } from "./data-table-features";
 
-const DEFAULT_PAGE_SIZE = 20;
+const DEFAULT_PAGE_SIZE = 15;
 
 type UseDataTableOptions<TData extends RowData> = {
   data: TData[];
