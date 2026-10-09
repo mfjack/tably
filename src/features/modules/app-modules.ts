@@ -5,6 +5,7 @@ import {
   ChefHat,
   ClipboardList,
   Clock,
+  FolderOpen,
   Gift,
   House,
   LayoutGrid,
@@ -129,6 +130,14 @@ export const APP_MODULE_GROUPS = [
         description: "Contas a pagar e receber, saldo e extrato.",
         path: "finance",
         icon: Banknote,
+      },
+      {
+        id: "documents",
+        label: "Documentos",
+        description:
+          "Contratos, alvarás e licenças guardados com aviso de validade.",
+        path: "documents",
+        icon: FolderOpen,
       },
       {
         id: "loyalty",

@@ -1,5 +1,6 @@
 "use server";
 
+import { ORGANIZATION_DOCUMENTS_BUCKET } from "@/features/documents/document-files";
 import { FINANCIAL_DOCUMENTS_BUCKET } from "@/features/finance/documents";
 import { PRODUCT_IMAGES_BUCKET } from "@/features/products/product-image";
 import {
@@ -175,6 +176,9 @@ async function removeOrganizationFiles(organizationIds: readonly string[]) {
   const supabase = await createClient();
   const productImages = supabase.storage.from(PRODUCT_IMAGES_BUCKET);
   const documents = supabase.storage.from(FINANCIAL_DOCUMENTS_BUCKET);
+  const organizationDocuments = supabase.storage.from(
+    ORGANIZATION_DOCUMENTS_BUCKET,
+  );
 
   await Promise.all(
     organizationIds.map(async (organizationId) => {
@@ -185,6 +189,17 @@ async function removeOrganizationFiles(organizationIds: readonly string[]) {
         (file) => `${organizationId}/${file.name}`,
       );
       if (imagePaths.length > 0) await productImages.remove(imagePaths);
+
+      const { data: organizationFiles } = await organizationDocuments.list(
+        organizationId,
+        { limit: STORAGE_LIST_LIMIT },
+      );
+      const organizationFilePaths = (organizationFiles ?? []).map(
+        (file) => `${organizationId}/${file.name}`,
+      );
+      if (organizationFilePaths.length > 0) {
+        await organizationDocuments.remove(organizationFilePaths);
+      }
 
       const { data: entryFolders } = await documents.list(organizationId, {
         limit: STORAGE_LIST_LIMIT,

@@ -6,6 +6,7 @@ import {
   ChartColumn,
   CircleCheck,
   ClipboardList,
+  FolderOpen,
   Landmark,
   ListChecks,
   PackageCheck,
@@ -19,6 +20,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CloseCashRegisterDialog } from "@/features/cash-register/components/close-cash-register-dialog";
+import { DOCUMENT_KIND_LABELS } from "@/features/documents/document-kinds";
 import {
   type PayableEntry,
   PayEntryDialog,
@@ -28,6 +30,7 @@ import type {
   DuePayablesSummary,
 } from "@/features/finance/due-payables";
 import type {
+  ExpiringDocument,
   ExpiringIngredient,
   HomeOverview,
   PendingTask,
@@ -91,7 +94,9 @@ function describePayableLabel(entry: DuePayable): string {
     : entry.description;
 }
 
-function describeExpiry({ expiry }: ExpiringIngredient): string {
+function describeExpiry({
+  expiry,
+}: Pick<ExpiringIngredient | ExpiringDocument, "expiry">): string {
   if (expiry.status === "expired") return "Vencido";
   if (expiry.daysLeft === 0) return "Vence hoje";
   if (expiry.daysLeft === 1) return "Vence amanhã";
@@ -185,6 +190,7 @@ export function HomeView({
     stock,
     pendingTasks,
     openTabs,
+    expiringDocuments,
   } = overview;
   const router = useRouter();
   const [entryToPay, setEntryToPay] = useState<PayableEntry | null>(null);
@@ -336,6 +342,30 @@ export function HomeView({
           label: ingredient.name,
           detail: describeExpiry(ingredient),
           isHighlighted: ingredient.expiry.status === "expired",
+        }))}
+      />
+    ),
+    expiringDocuments && expiringDocuments.length > 0 && (
+      <HomeCard
+        key="expiring-documents"
+        icon={FolderOpen}
+        title="Documentos vencendo"
+        summary={pluralize(
+          expiringDocuments.length,
+          "documento precisa de atenção",
+          "documentos precisam de atenção",
+        )}
+        href={buildPath("documents")}
+        tone={
+          expiringDocuments.some(({ expiry }) => expiry.status === "expired")
+            ? "urgent"
+            : "attention"
+        }
+        rows={expiringDocuments.map((document) => ({
+          id: document.id,
+          label: document.name,
+          detail: `${DOCUMENT_KIND_LABELS[document.kind]} · ${describeExpiry(document)}`,
+          isHighlighted: document.expiry.status === "expired",
         }))}
       />
     ),

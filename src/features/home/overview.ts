@@ -3,15 +3,14 @@ import "server-only";
 import { addDays, format, parseISO } from "date-fns";
 import { getOpenCashSession } from "@/features/cash-register/actions";
 import type { CashSessionSummary } from "@/features/cash-register/types";
+import { listDocuments } from "@/features/documents/actions";
+import { DOCUMENT_EXPIRY_WARNING_DAYS } from "@/features/documents/document-files";
+import type { OrganizationDocument } from "@/features/documents/types";
 import {
   type DuePayablesSummary,
   getDuePayablesSummary,
 } from "@/features/finance/due-payables";
 import { listIngredients } from "@/features/ingredients/actions";
-import {
-  type ExpiryStatus,
-  getExpiryStatus,
-} from "@/features/ingredients/expiry";
 import { needsPurchase } from "@/features/ingredients/shopping-list";
 import type { Ingredient } from "@/features/ingredients/types";
 import { listOpenOrderTabs } from "@/features/orders/tab-actions";
@@ -26,6 +25,7 @@ import type { SalesReport } from "@/features/sales-report/types";
 import { listTaskLists } from "@/features/tasks/actions";
 import { isTaskOverdue } from "@/features/tasks/task-schedule";
 import type { TaskId } from "@/features/tasks/types";
+import { type ExpiryStatus, getExpiryStatus } from "@/lib/expiry";
 import { createClient } from "@/lib/supabase/server";
 
 const DEFAULT_TIME_ZONE = "America/Sao_Paulo";
@@ -63,6 +63,13 @@ export type OpenTab = {
   isForgotten: boolean;
 };
 
+export type ExpiringDocument = Pick<
+  OrganizationDocument,
+  "id" | "name" | "kind"
+> & {
+  expiry: Extract<ExpiryStatus, { status: "expired" | "expiring" }>;
+};
+
 export type ForgottenCashSession = {
   summary: CashSessionSummary;
   openedLabel: string;
@@ -75,9 +82,12 @@ export type HomeOverview = {
   stock: StockOverview | null;
   pendingTasks: PendingTask[] | null;
   openTabs: OpenTab[] | null;
+  expiringDocuments: ExpiringDocument[] | null;
 };
 
-function getExpiryOrder({ expiry }: ExpiringIngredient): number {
+function getExpiryOrder({
+  expiry,
+}: Pick<ExpiringIngredient, "expiry">): number {
   return expiry.status === "expiring" ? expiry.daysLeft : -1;
 }
 
@@ -233,6 +243,32 @@ async function getOpenTabs(
     .sort((first, second) => first.createdAt.localeCompare(second.createdAt));
 }
 
+async function getExpiringDocuments(
+  organizationId: OrganizationId,
+): Promise<ExpiringDocument[] | null> {
+  const result = await listDocuments(organizationId);
+  if (result.status === "error") return null;
+
+  return result.data
+    .flatMap((document): ExpiringDocument[] => {
+      const expiry = getExpiryStatus(
+        document.expiresOn,
+        DOCUMENT_EXPIRY_WARNING_DAYS,
+      );
+      return expiry.status === "expired" || expiry.status === "expiring"
+        ? [
+            {
+              id: document.id,
+              name: document.name,
+              kind: document.kind,
+              expiry,
+            },
+          ]
+        : [];
+    })
+    .sort((first, second) => getExpiryOrder(first) - getExpiryOrder(second));
+}
+
 function whenAccessible<T>(
   accessibleModuleIds: readonly AppModuleId[],
   moduleIds: AppModuleId | readonly AppModuleId[],
@@ -259,6 +295,7 @@ export async function getHomeOverview(
     stock,
     pendingTasks,
     openTabs,
+    expiringDocuments,
   ] = await Promise.all([
     whenAccessible(accessibleModuleIds, "sales_report", async () => {
       const result = await getSalesReport(organizationId, "today");
@@ -279,6 +316,9 @@ export async function getHomeOverview(
     whenAccessible(accessibleModuleIds, "order_tabs", () =>
       getOpenTabs(organizationId, clock),
     ),
+    whenAccessible(accessibleModuleIds, "documents", () =>
+      getExpiringDocuments(organizationId),
+    ),
   ]);
 
   return {
@@ -288,5 +328,6 @@ export async function getHomeOverview(
     stock,
     pendingTasks,
     openTabs,
+    expiringDocuments,
   };
 }

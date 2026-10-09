@@ -45,6 +45,7 @@ const MANAGEMENT_MODULES = [
   "ingredients",
   "suppliers",
   "finance",
+  "documents",
   "loyalty",
 ] as const satisfies readonly AppModuleId[];
 

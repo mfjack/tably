@@ -1707,6 +1707,59 @@ export type Database = {
           },
         ]
       }
+      organization_documents: {
+        Row: {
+          created_at: string
+          expires_on: string | null
+          file_name: string
+          file_path: string
+          id: string
+          kind: Database["public"]["Enums"]["document_kind"]
+          mime_type: string
+          name: string
+          notes: string | null
+          organization_id: string
+          size_bytes: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          expires_on?: string | null
+          file_name: string
+          file_path: string
+          id?: string
+          kind?: Database["public"]["Enums"]["document_kind"]
+          mime_type: string
+          name: string
+          notes?: string | null
+          organization_id: string
+          size_bytes: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          expires_on?: string | null
+          file_name?: string
+          file_path?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["document_kind"]
+          mime_type?: string
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          size_bytes?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_documents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           accepted_payment_methods: Database["public"]["Enums"]["payment_method"][]
@@ -4200,8 +4253,18 @@ export type Database = {
         | "finance"
         | "dashboard"
         | "loyalty"
+        | "documents"
       billing_cycle: "monthly" | "yearly"
       cash_movement_kind: "withdrawal" | "supply"
+      document_kind:
+        | "company_registration"
+        | "tax_registration"
+        | "operating_license"
+        | "health_license"
+        | "fire_certificate"
+        | "lease_agreement"
+        | "digital_certificate"
+        | "other"
       employment_type: "clt" | "apprentice" | "intern"
       financial_account_kind:
         | "cash"
@@ -4419,9 +4482,20 @@ export const Constants = {
         "finance",
         "dashboard",
         "loyalty",
+        "documents",
       ],
       billing_cycle: ["monthly", "yearly"],
       cash_movement_kind: ["withdrawal", "supply"],
+      document_kind: [
+        "company_registration",
+        "tax_registration",
+        "operating_license",
+        "health_license",
+        "fire_certificate",
+        "lease_agreement",
+        "digital_certificate",
+        "other",
+      ],
       employment_type: ["clt", "apprentice", "intern"],
       financial_account_kind: [
         "cash",

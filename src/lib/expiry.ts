@@ -8,7 +8,10 @@ export type ExpiryStatus =
   | { status: "expiring"; daysLeft: number }
   | { status: "valid" };
 
-export function getExpiryStatus(expiresAt: string | null): ExpiryStatus {
+export function getExpiryStatus(
+  expiresAt: string | null,
+  warningDays: number = EXPIRY_WARNING_DAYS,
+): ExpiryStatus {
   if (!expiresAt) return { status: "none" };
 
   const daysLeft = differenceInCalendarDays(
@@ -17,6 +20,6 @@ export function getExpiryStatus(expiresAt: string | null): ExpiryStatus {
   );
 
   if (daysLeft < 0) return { status: "expired" };
-  if (daysLeft <= EXPIRY_WARNING_DAYS) return { status: "expiring", daysLeft };
+  if (daysLeft <= warningDays) return { status: "expiring", daysLeft };
   return { status: "valid" };
 }

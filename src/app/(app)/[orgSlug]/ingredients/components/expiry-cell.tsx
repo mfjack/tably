@@ -1,6 +1,6 @@
 import { format, parseISO } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-import { getExpiryStatus } from "@/features/ingredients/expiry";
+import { getExpiryStatus } from "@/lib/expiry";
 
 type ExpiryCellProps = {
   expiresAt: string | null;
