@@ -1,0 +1,103 @@
+import { ChevronRight, type LucideIcon } from "lucide-react";
+import Link from "next/link";
+import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
+
+const HOME_CARD_TONE_CLASS_NAMES = {
+  attention: "bg-warning/10 text-warning",
+  urgent: "bg-destructive/10 text-destructive",
+  neutral: "bg-muted text-muted-foreground",
+} as const;
+
+export type HomeCardTone = keyof typeof HOME_CARD_TONE_CLASS_NAMES;
+
+export type HomeCardRow = {
+  id: string;
+  label: string;
+  detail?: string;
+  value?: string;
+  isHighlighted?: boolean;
+};
+
+type HomeCardProps = {
+  icon: LucideIcon;
+  title: string;
+  summary: string;
+  href: string;
+  tone: HomeCardTone;
+  rows: readonly HomeCardRow[];
+  footer?: ReactNode;
+};
+
+function HomeCardRowItem({ row }: { row: HomeCardRow }) {
+  return (
+    <li className="flex items-center justify-between gap-3 py-2">
+      <div className="flex min-w-0 flex-col">
+        <span className="truncate text-sm">{row.label}</span>
+        {row.detail && (
+          <span
+            className={cn(
+              "truncate text-xs",
+              row.isHighlighted
+                ? "font-medium text-destructive"
+                : "text-muted-foreground",
+            )}
+          >
+            {row.detail}
+          </span>
+        )}
+      </div>
+      {row.value && (
+        <span className="shrink-0 font-medium text-sm tabular-nums">
+          {row.value}
+        </span>
+      )}
+    </li>
+  );
+}
+
+export function HomeCard({
+  icon: Icon,
+  title,
+  summary,
+  href,
+  tone,
+  rows,
+  footer,
+}: HomeCardProps) {
+  return (
+    <Link
+      href={href}
+      className="group flex h-80 flex-col gap-3 rounded-xl border bg-card p-5 transition-colors hover:bg-muted/40"
+    >
+      <div className="flex items-center gap-3">
+        <span
+          className={cn(
+            "flex size-12 shrink-0 items-center justify-center rounded-xl",
+            HOME_CARD_TONE_CLASS_NAMES[tone],
+          )}
+        >
+          <Icon className="size-6" aria-hidden />
+        </span>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <span className="font-semibold text-base">{title}</span>
+          <span className="text-muted-foreground text-sm">{summary}</span>
+        </div>
+        <ChevronRight
+          className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+          aria-hidden
+        />
+      </div>
+      <ul className="flex min-h-0 flex-1 flex-col divide-y overflow-y-auto">
+        {rows.map((row) => (
+          <HomeCardRowItem key={row.id} row={row} />
+        ))}
+      </ul>
+      {footer && (
+        <div className="flex shrink-0 items-center justify-end border-t pt-3 text-muted-foreground text-xs">
+          {footer}
+        </div>
+      )}
+    </Link>
+  );
+}

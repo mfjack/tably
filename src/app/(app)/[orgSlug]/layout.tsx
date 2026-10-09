@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { getCurrentUser } from "@/features/auth/queries";
-import { getDuePayablesSummary } from "@/features/finance/due-payables";
 import { buildOrganizationPath } from "@/features/modules/app-modules";
 import {
   canAccessSettings,
@@ -15,7 +14,6 @@ import {
 } from "@/features/organizations/queries";
 import { getSubscriptionState } from "@/features/subscriptions/subscription-state";
 import { AppSidebar } from "./components/app-sidebar";
-import { DuePayablesNotifier } from "./components/due-payables-notifier";
 import { OfflineOrderSync } from "./components/offline-order-sync";
 import { OnlineOrdersNotifier } from "./components/online-orders-notifier";
 import { OperatorAutoLock } from "./components/operator-auto-lock";
@@ -73,10 +71,6 @@ export default async function OrganizationLayout({
     organization.hiddenModules,
     access,
   );
-  const canSeeFinance = !hiddenModules.includes("finance");
-  const duePayablesSummary = canSeeFinance
-    ? await getDuePayablesSummary(organization.id)
-    : null;
 
   return (
     <SidebarProvider
@@ -113,13 +107,6 @@ export default async function OrganizationLayout({
             posHref={buildOrganizationPath(organization.slug, "pos")}
           />
         )}
-      {duePayablesSummary && (
-        <DuePayablesNotifier
-          organizationId={organization.id}
-          summary={duePayablesSummary}
-          financeHref={buildOrganizationPath(organization.slug, "finance")}
-        />
-      )}
       {access.mode === "unlocked" && (
         <OperatorAutoLock organizationId={organization.id} isUnlocked />
       )}
