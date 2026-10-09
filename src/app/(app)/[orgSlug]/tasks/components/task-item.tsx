@@ -73,7 +73,7 @@ export function TaskItem({
         <button
           type="button"
           aria-pressed={isDone}
-          className="flex min-w-0 flex-1 items-start gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+          className="flex min-w-0 flex-1 items-start gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
           onClick={() => onToggle(task)}
         >
           <span

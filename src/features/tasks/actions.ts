@@ -203,12 +203,20 @@ export async function addTask(
   if (!parsedInput.success) return actionFailure("Descreva a tarefa.");
 
   const supabase = await createClient();
+  const { data: lastTask } = await supabase
+    .from("tasks")
+    .select("position")
+    .eq("list_id", listId)
+    .order("position", { ascending: false })
+    .limit(1)
+    .maybeSingle();
   const { data, error } = await supabase
     .from("tasks")
     .insert({
       organization_id: organizationId,
       list_id: listId,
       title: parsedInput.data.title,
+      position: (lastTask?.position ?? -1) + 1,
     })
     .select("id");
 
