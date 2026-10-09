@@ -34,7 +34,7 @@ export async function listPendingPurchaseOrders(
   const { data, error } = await supabase
     .from("purchase_orders")
     .select(
-      "id, supplier_id, created_at, created_by_name, supplier:suppliers(name), purchase_order_items(ingredient_id, quantity, ingredient:ingredients(name, unit, unit_cost, package_name, package_size))",
+      "id, supplier_id, created_at, created_by_name, supplier:suppliers(name), purchase_order_items(ingredient_id, quantity, ingredient:ingredients(name, unit, unit_cost))",
     )
     .eq("organization_id", organizationId)
     .eq("status", "pending")
@@ -61,8 +61,6 @@ export async function listPendingPurchaseOrders(
                   unit: item.ingredient.unit,
                   quantity: item.quantity,
                   unitCost: item.ingredient.unit_cost,
-                  packageName: item.ingredient.package_name,
-                  packageSize: item.ingredient.package_size,
                 },
               ]
             : [],

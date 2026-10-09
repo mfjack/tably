@@ -9,11 +9,6 @@ import {
   getDisplayUnitCost,
   getUnitSymbol,
 } from "@/features/ingredients/measure-units";
-import {
-  formatPackageCount,
-  hasPackage,
-  toPackageQuantity,
-} from "@/features/ingredients/packages";
 import type { Ingredient } from "@/features/ingredients/types";
 import { formatCurrency, formatQuantity } from "@/lib/format";
 import { ExpiryCell } from "./expiry-cell";
@@ -86,20 +81,6 @@ export function IngredientsTable({
               <span className="tabular-nums">
                 {formatQuantity(row.original.currentStock)}{" "}
                 {getUnitSymbol(row.original.unit)}
-                {hasPackage(row.original) && row.original.currentStock > 0 && (
-                  <span className="text-muted-foreground text-xs">
-                    {" "}
-                    (
-                    {formatPackageCount(
-                      toPackageQuantity(
-                        row.original,
-                        row.original.currentStock,
-                      ),
-                      row.original.packageName,
-                    )}
-                    )
-                  </span>
-                )}
               </span>
               <StockStatusBadge ingredient={row.original} />
             </div>

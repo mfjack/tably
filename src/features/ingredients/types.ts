@@ -24,8 +24,6 @@ export type Ingredient = {
   isPrepared: boolean;
   yieldQuantity: number | null;
   preparationInstructions: string | null;
-  packageName: string | null;
-  packageSize: number | null;
   components: IngredientComponent[];
 };
 

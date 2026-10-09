@@ -24,27 +24,20 @@ export const ingredientFormSchema = z
     totalCost: optionalAmountSchema,
     minimumStock: optionalAmountSchema,
     currentStock: optionalAmountSchema,
+    currentStockCost: optionalAmountSchema,
     supplierId: z.string().optional(),
     expiresAt: optionalDateSchema,
     paymentDueDate: optionalDateSchema,
-    packageName: z.string().trim().max(20, "Nome muito longo.").optional(),
-    packageSize: z
-      .number()
-      .positive("Informe quanto vem na embalagem.")
-      .optional(),
   })
   .refine(
     (values) => (values.quantity ?? 0) > 0 || (values.totalCost ?? 0) === 0,
     { message: "Informe a quantidade comprada.", path: ["quantity"] },
   )
-  .refine((values) => !values.packageName || values.packageSize, {
-    message: "Informe quanto vem na embalagem.",
-    path: ["packageSize"],
-  })
-  .refine((values) => !values.packageSize || values.packageName, {
-    message: "Informe o nome da embalagem.",
-    path: ["packageName"],
-  });
+  .refine(
+    (values) =>
+      values.currentStockCost === undefined || (values.currentStock ?? 0) > 0,
+    { message: "Informe o estoque atual.", path: ["currentStock"] },
+  );
 
 export const stockEntryFormSchema = z.object({
   quantity: z

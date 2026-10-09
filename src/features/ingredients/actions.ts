@@ -39,7 +39,7 @@ export async function listIngredients(
   const { data, error } = await supabase
     .from("ingredients")
     .select(
-      "id, name, brand, unit, current_stock, minimum_stock, unit_cost, supplier_id, expires_at, label_shelf_life_hours, label_storage, is_prepared, yield_quantity, preparation_instructions, package_name, package_size, product_ingredients(count), ingredient_components!ingredient_components_prepared_ingredient_id_organization__fkey(component_ingredient_id, quantity), used_as_component:ingredient_components!ingredient_components_component_ingredient_id_organization_fkey(count), product_addons(count)",
+      "id, name, brand, unit, current_stock, minimum_stock, unit_cost, supplier_id, expires_at, label_shelf_life_hours, label_storage, is_prepared, yield_quantity, preparation_instructions, product_ingredients(count), ingredient_components!ingredient_components_prepared_ingredient_id_organization__fkey(component_ingredient_id, quantity), used_as_component:ingredient_components!ingredient_components_component_ingredient_id_organization_fkey(count), product_addons(count)",
     )
     .eq("organization_id", organizationId)
     .order("name");
@@ -69,8 +69,6 @@ export async function listIngredients(
       isPrepared: ingredient.is_prepared,
       yieldQuantity: ingredient.yield_quantity,
       preparationInstructions: ingredient.preparation_instructions,
-      packageName: ingredient.package_name,
-      packageSize: ingredient.package_size,
       components: ingredient.ingredient_components.map((component) => ({
         ingredientId: component.component_ingredient_id as IngredientId,
         quantity: component.quantity,
@@ -99,42 +97,24 @@ export async function createIngredient(
     supplierId,
     expiresAt,
     paymentDueDate,
-    packageName,
-    packageSize,
   } = parsedInput.data;
   const supabase = await createClient();
-  const { data: createdIngredientId, error } = await supabase.rpc(
-    "create_ingredient",
-    {
-      p_organization_id: organizationId,
-      p_name: name,
-      p_unit: unit,
-      p_quantity: quantity ?? 0,
-      p_total_cost: totalCost ?? 0,
-      p_minimum_stock: minimumStock ?? 0,
-      p_brand: brand || undefined,
-      p_supplier_id: fromSelectFieldValue<SupplierId>(supplierId),
-      p_expires_at: expiresAt || undefined,
-      p_payment_due_date:
-        (totalCost ?? 0) > 0 ? paymentDueDate || undefined : undefined,
-    },
-  );
+  const { error } = await supabase.rpc("create_ingredient", {
+    p_organization_id: organizationId,
+    p_name: name,
+    p_unit: unit,
+    p_quantity: quantity ?? 0,
+    p_total_cost: totalCost ?? 0,
+    p_minimum_stock: minimumStock ?? 0,
+    p_brand: brand || undefined,
+    p_supplier_id: fromSelectFieldValue<SupplierId>(supplierId),
+    p_expires_at: expiresAt || undefined,
+    p_payment_due_date:
+      (totalCost ?? 0) > 0 ? paymentDueDate || undefined : undefined,
+  });
 
   if (isUniqueViolation(error)) return actionFailure(DUPLICATE_NAME_MESSAGE);
   if (error) return databaseFailure(GENERIC_ERROR_MESSAGE, error);
-
-  if (packageName && packageSize) {
-    const { error: packageError } = await supabase
-      .from("ingredients")
-      .update({ package_name: packageName, package_size: packageSize })
-      .eq("id", createdIngredientId);
-    if (packageError) {
-      return databaseFailure(
-        "O insumo foi salvo, mas a embalagem não.",
-        packageError,
-      );
-    }
-  }
 
   return actionSuccess();
 }
@@ -181,15 +161,14 @@ export async function updateIngredient(
     unit,
     minimumStock,
     currentStock,
+    currentStockCost,
     supplierId,
     expiresAt,
-    packageName,
-    packageSize,
   } = parsedInput.data;
   const supabase = await createClient();
   const { data: ingredient } = await supabase
     .from("ingredients")
-    .select("organization_id, unit")
+    .select("organization_id, unit, is_prepared")
     .eq("id", ingredientId)
     .maybeSingle();
   if (
@@ -215,8 +194,11 @@ export async function updateIngredient(
       minimum_stock: minimumStock ?? 0,
       supplier_id: fromSelectFieldValue<SupplierId>(supplierId) ?? null,
       expires_at: expiresAt || null,
-      package_name: packageName && packageSize ? packageName : null,
-      package_size: packageName && packageSize ? packageSize : null,
+      ...(currentStockCost !== undefined &&
+        (currentStock ?? 0) > 0 &&
+        !ingredient.is_prepared && {
+          unit_cost: currentStockCost / (currentStock ?? 1),
+        }),
     })
     .eq("id", ingredientId);
 

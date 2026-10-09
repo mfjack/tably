@@ -35,7 +35,6 @@ const EMPTY_INGREDIENT_FORM: DefaultValues<IngredientFormInput> = {
   supplierId: NONE_SELECT_VALUE,
   expiresAt: "",
   paymentDueDate: "",
-  packageName: "",
 };
 
 function toFormValues(
@@ -50,8 +49,6 @@ function toFormValues(
       ingredient.currentStock >= 0 ? ingredient.currentStock : undefined,
     supplierId: toSelectFieldValue(ingredient.supplierId),
     expiresAt: ingredient.expiresAt ?? "",
-    packageName: ingredient.packageName ?? "",
-    packageSize: ingredient.packageSize ?? undefined,
   };
 }
 
@@ -180,25 +177,16 @@ export function IngredientFormDialog({
           placeholder="Ex.: 4"
           description="Abaixo disso, o Tably avisa que é hora de comprar."
         />
-        <div className="grid gap-5 sm:grid-cols-2">
-          <TextField
-            control={form.control}
-            name="packageName"
-            label="Embalagem (opcional)"
-            placeholder="Ex.: garrafa"
-            autoComplete="off"
-            description="Como você compra: garrafa, pacote, caixa…"
-          />
+        {isEditing && !ingredient?.isPrepared && (
           <NumberField
             control={form.control}
-            name="packageSize"
-            label="Quanto vem em 1"
-            format="quantity"
-            suffix={unitSymbol}
-            placeholder="Ex.: 700"
-            description="Aí, nas compras, é só digitar quantas embalagens."
+            name="currentStockCost"
+            label="Valor pago pelo estoque (opcional)"
+            format="currency"
+            placeholder="Ex.: $ 60,00"
+            description="Quanto custou o estoque atual. Recalcula o custo por unidade."
           />
-        </div>
+        )}
         {!isEditing && (
           <div className="grid gap-5 sm:grid-cols-2">
             <NumberField

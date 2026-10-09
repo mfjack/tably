@@ -10,13 +10,7 @@ import { NumberField } from "@/components/form/number-field";
 import { SelectField } from "@/components/form/select-field";
 import { FieldGroup } from "@/components/ui/field";
 import { useCreateStockEntryMutation } from "@/features/ingredients/hooks/use-create-stock-entry-mutation";
-import {
-  describeStockEquivalent,
-  getQuantitySuffix,
-  hasPackage,
-  pluralizePackageName,
-  toStockQuantity,
-} from "@/features/ingredients/packages";
+import { getUnitSymbol } from "@/features/ingredients/measure-units";
 import {
   type StockEntryFormInput,
   stockEntryFormSchema,
@@ -72,13 +66,7 @@ export function StockEntryDialog({
   const handleSubmit = form.handleSubmit((values) => {
     if (!ingredient) return;
     createStockEntryMutation.mutate(
-      {
-        ingredientId: ingredient.id,
-        values: {
-          ...values,
-          quantity: toStockQuantity(ingredient, values.quantity),
-        },
-      },
+      { ingredientId: ingredient.id, values },
       {
         onSuccess: () => {
           toast.success("Entrada registrada.");
@@ -89,10 +77,7 @@ export function StockEntryDialog({
     );
   });
 
-  const quantitySuffix = ingredient
-    ? getQuantitySuffix(ingredient, quantity)
-    : undefined;
-  const isPackaged = ingredient ? hasPackage(ingredient) : false;
+  const unitSymbol = ingredient ? getUnitSymbol(ingredient.unit) : undefined;
 
   return (
     <FormDialog
@@ -111,19 +96,10 @@ export function StockEntryDialog({
           <NumberField
             control={form.control}
             name="quantity"
-            label={
-              isPackaged && ingredient?.packageName
-                ? `Quantas ${pluralizePackageName(ingredient.packageName, 2)}`
-                : "Quantidade comprada"
-            }
+            label="Quantidade comprada"
             format="quantity"
-            suffix={quantitySuffix}
-            placeholder={isPackaged ? "Ex.: 2" : "Ex.: 12"}
-            description={
-              ingredient
-                ? describeStockEquivalent(ingredient, quantity)
-                : undefined
-            }
+            suffix={unitSymbol}
+            placeholder="Ex.: 12"
           />
           <NumberField
             control={form.control}
@@ -159,9 +135,7 @@ export function StockEntryDialog({
         {ingredient && (
           <StockEntryProjectionSummary
             ingredient={ingredient}
-            quantity={
-              ingredient && quantity ? toStockQuantity(ingredient, quantity) : 0
-            }
+            quantity={quantity ?? 0}
             totalCost={totalCost ?? 0}
           />
         )}

@@ -10,8 +10,6 @@ export type PurchaseOrderItem = {
   unit: MeasureUnit;
   quantity: number;
   unitCost: number;
-  packageName: string | null;
-  packageSize: number | null;
 };
 
 export type PurchaseOrder = {

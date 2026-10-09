@@ -949,8 +949,6 @@ export type Database = {
           minimum_stock: number
           name: string
           organization_id: string
-          package_name: string | null
-          package_size: number | null
           preparation_instructions: string | null
           supplier_id: string | null
           unit: Database["public"]["Enums"]["measure_unit"]
@@ -972,8 +970,6 @@ export type Database = {
           minimum_stock?: number
           name: string
           organization_id: string
-          package_name?: string | null
-          package_size?: number | null
           preparation_instructions?: string | null
           supplier_id?: string | null
           unit: Database["public"]["Enums"]["measure_unit"]
@@ -995,8 +991,6 @@ export type Database = {
           minimum_stock?: number
           name?: string
           organization_id?: string
-          package_name?: string | null
-          package_size?: number | null
           preparation_instructions?: string | null
           supplier_id?: string | null
           unit?: Database["public"]["Enums"]["measure_unit"]

@@ -21,13 +21,7 @@ import { Button } from "@/components/ui/button";
 import { DialogClose } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getWhatsAppUrl } from "@/components/whatsapp-link";
-import {
-  formatPackageCount,
-  getQuantitySuffix,
-  hasPackage,
-  toPackageQuantity,
-  toStockQuantity,
-} from "@/features/ingredients/packages";
+import { getUnitSymbol } from "@/features/ingredients/measure-units";
 import {
   buildShoppingList,
   buildSupplierMessage,
@@ -80,15 +74,8 @@ function getOrderedItems(
   quantities: ShoppingListInput["quantities"],
 ): OrderedItem[] {
   return group.items.flatMap((item) => {
-    const typedQuantity = quantities[item.ingredientId];
-    if (!typedQuantity || typedQuantity <= 0) return [];
-    return [
-      {
-        ...item,
-        quantity: toStockQuantity(item, typedQuantity),
-        packageCount: hasPackage(item) ? typedQuantity : null,
-      },
-    ];
+    const quantity = quantities[item.ingredientId];
+    return quantity && quantity > 0 ? [{ ...item, quantity }] : [];
   });
 }
 
@@ -98,18 +85,12 @@ function describeGroupProgress(itemCount: number, orderedCount: number) {
   return `${itemsLabel} · ${orderedCount} para pedir`;
 }
 
-function formatOrderItemQuantity(item: PurchaseOrder["items"][number]) {
-  return hasPackage(item)
-    ? formatPackageCount(
-        toPackageQuantity(item, item.quantity),
-        item.packageName,
-      )
-    : formatItemQuantity(item.quantity, item.unit);
-}
-
 function describeOrderItems(order: PurchaseOrder): string {
   return order.items
-    .map((item) => `${formatOrderItemQuantity(item)} de ${item.ingredientName}`)
+    .map(
+      (item) =>
+        `${formatItemQuantity(item.quantity, item.unit)} de ${item.ingredientName}`,
+    )
     .join(" · ");
 }
 
@@ -461,21 +442,6 @@ export function ShoppingListDialog({
                                     item.unit,
                                   )}
                                 </span>
-                                {hasPackage(item) &&
-                                  (quantities?.[item.ingredientId] ?? 0) >
-                                    0 && (
-                                    <span className="font-medium text-foreground">
-                                      {" "}
-                                      · pedindo{" "}
-                                      {formatItemQuantity(
-                                        toStockQuantity(
-                                          item,
-                                          quantities?.[item.ingredientId] ?? 0,
-                                        ),
-                                        item.unit,
-                                      )}
-                                    </span>
-                                  )}
                               </span>
                             </div>
                             <NumberField
@@ -484,11 +450,7 @@ export function ShoppingListDialog({
                               label={`Quantidade de ${item.name}`}
                               isLabelHidden
                               format="quantity"
-                              suffix={getQuantitySuffix(
-                                item,
-                                quantities?.[item.ingredientId],
-                              )}
-                              isPositive
+                              suffix={getUnitSymbol(item.unit)}
                               placeholder="Qtd."
                               size="dense"
                             />
