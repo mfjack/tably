@@ -11,12 +11,18 @@ import { FieldGroup } from "@/components/ui/field";
 import { usePayFinancialEntryMutation } from "@/features/finance/hooks/use-pay-financial-entry-mutation";
 import { type PayEntryInput, payEntrySchema } from "@/features/finance/schemas";
 import type { FinancialEntry } from "@/features/finance/types";
+
+export type PayableEntry = Pick<
+  FinancialEntry,
+  "id" | "kind" | "description" | "amount" | "dueDate"
+>;
+
 import type { OrganizationId } from "@/features/organizations/types";
 import { formatCurrency, formatDateKey } from "@/lib/format";
 
 type PayEntryDialogProps = {
   organizationId: OrganizationId;
-  entry: FinancialEntry | null;
+  entry: PayableEntry | null;
   today: string;
   onClose: () => void;
 };

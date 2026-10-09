@@ -1,11 +1,13 @@
 import "server-only";
 
 import { addDays, format, parseISO } from "date-fns";
+import type { FinancialEntryId } from "@/features/finance/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import { createClient } from "@/lib/supabase/server";
 
 export type DuePayable = {
-  id: string;
+  id: FinancialEntryId;
+  kind: "expense";
   description: string;
   dueDate: string;
   amount: number;
@@ -55,7 +57,8 @@ export async function getDuePayablesSummary(
       .length,
     totalAmount: data.reduce((total, entry) => total + entry.amount, 0),
     entries: data.map((entry) => ({
-      id: entry.id,
+      id: entry.id as FinancialEntryId,
+      kind: "expense" as const,
       description: entry.description,
       dueDate: entry.due_date,
       amount: entry.amount,

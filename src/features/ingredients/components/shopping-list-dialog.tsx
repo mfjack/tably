@@ -37,12 +37,12 @@ import {
 import type { Ingredient, IngredientId } from "@/features/ingredients/types";
 import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
 import type { OrganizationId } from "@/features/organizations/types";
+import { ReceivePurchaseOrderDialog } from "@/features/purchase-orders/components/receive-purchase-order-dialog";
 import { useCancelPurchaseOrderMutation } from "@/features/purchase-orders/hooks/use-cancel-purchase-order-mutation";
 import { useCreatePurchaseOrderMutation } from "@/features/purchase-orders/hooks/use-create-purchase-order-mutation";
 import { usePendingPurchaseOrdersQuery } from "@/features/purchase-orders/hooks/use-pending-purchase-orders-query";
 import type { PurchaseOrder } from "@/features/purchase-orders/types";
 import type { Supplier, SupplierId } from "@/features/suppliers/types";
-import { ReceivePurchaseOrderDialog } from "./receive-purchase-order-dialog";
 
 const NO_SUPPLIER_LABEL = "Sem fornecedor definido";
 

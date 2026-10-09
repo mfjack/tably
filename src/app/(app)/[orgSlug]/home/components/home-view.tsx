@@ -1,13 +1,25 @@
+"use client";
+
 import { differenceInCalendarDays, parseISO } from "date-fns";
 import {
   CalendarClock,
   CircleCheck,
   ClipboardList,
   ListChecks,
+  PackageCheck,
   ShoppingCart,
   Truck,
   Wallet,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  type PayableEntry,
+  PayEntryDialog,
+} from "@/features/finance/components/pay-entry-dialog";
 import type {
   DuePayable,
   DuePayablesSummary,
@@ -15,18 +27,27 @@ import type {
 import type {
   ExpiringIngredient,
   HomeOverview,
+  PendingTask,
 } from "@/features/home/overview";
 import { formatItemQuantity } from "@/features/ingredients/shopping-list";
 import { buildOrganizationPath } from "@/features/modules/app-modules";
+import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
+import type { OrganizationId } from "@/features/organizations/types";
+import { ReceivePurchaseOrderDialog } from "@/features/purchase-orders/components/receive-purchase-order-dialog";
 import type { PurchaseOrder } from "@/features/purchase-orders/types";
+import { useSetTaskDoneMutation } from "@/features/tasks/hooks/use-set-task-done-mutation";
 import { formatCurrency } from "@/lib/format";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
 import { HomeCard } from "./home-card";
+import { HomeShoppingList } from "./home-shopping-list";
 
 type HomeViewProps = {
   title: string;
+  organizationId: OrganizationId;
   organizationSlug: string;
+  canManage: boolean;
+  business: OrderTicketBusiness;
   overview: HomeOverview;
 };
 
@@ -81,8 +102,40 @@ function describeOrderItems(order: PurchaseOrder): string {
     .join(", ");
 }
 
-export function HomeView({ title, organizationSlug, overview }: HomeViewProps) {
+export function HomeView({
+  title,
+  organizationId,
+  organizationSlug,
+  canManage,
+  business,
+  overview,
+}: HomeViewProps) {
   const { payables, stock, pendingTasks, openTabs } = overview;
+  const router = useRouter();
+  const [entryToPay, setEntryToPay] = useState<PayableEntry | null>(null);
+  const [orderToReceive, setOrderToReceive] = useState<PurchaseOrder | null>(
+    null,
+  );
+  const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
+  const setTaskDoneMutation = useSetTaskDoneMutation(organizationId);
+
+  function refreshOverview() {
+    router.refresh();
+  }
+
+  function completeTask(taskId: PendingTask["id"]) {
+    setTaskDoneMutation.mutate(
+      { taskId, isDone: true },
+      {
+        onSuccess: () => {
+          toast.success("Tarefa concluída.");
+          refreshOverview();
+        },
+        onError: (error) => toast.error(error.message),
+      },
+    );
+  }
+
   const buildPath = (path: string) =>
     buildOrganizationPath(organizationSlug, path);
   const overdueTaskCount =
@@ -105,6 +158,11 @@ export function HomeView({ title, organizationSlug, overview }: HomeViewProps) {
           detail: describeDueDate(entry, payables),
           value: formatCurrency(entry.amount),
           isHighlighted: entry.dueDate < payables.today,
+          action: (
+            <Button size="sm" onClick={() => setEntryToPay(entry)}>
+              Pagar
+            </Button>
+          ),
         }))}
         footer={
           <span className="font-medium text-foreground">
@@ -126,7 +184,15 @@ export function HomeView({ title, organizationSlug, overview }: HomeViewProps) {
           label: ingredient.name,
           value: `${formatItemQuantity(ingredient.currentStock, ingredient.unit)} / ${formatItemQuantity(ingredient.minimumStock, ingredient.unit)}`,
         }))}
-        footer={<span>tem / mínimo</span>}
+        footer={
+          <>
+            <span>tem / mínimo</span>
+            <Button size="sm" onClick={() => setIsShoppingListOpen(true)}>
+              <ShoppingCart aria-hidden />
+              Fazer pedido
+            </Button>
+          </>
+        }
       />
     ),
     stock && stock.expiringIngredients.length > 0 && (
@@ -172,6 +238,16 @@ export function HomeView({ title, organizationSlug, overview }: HomeViewProps) {
           label: order.supplierName ?? "Sem fornecedor",
           detail: describeOrderItems(order),
           value: order.orderedOn,
+          action: canManage && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setOrderToReceive(order)}
+            >
+              <PackageCheck aria-hidden />
+              Receber
+            </Button>
+          ),
         }))}
       />
     ),
@@ -194,6 +270,17 @@ export function HomeView({ title, organizationSlug, overview }: HomeViewProps) {
             ? `${task.listName} · atrasada`
             : task.listName,
           isHighlighted: task.isOverdue,
+          leading: (
+            <Checkbox
+              checked={
+                setTaskDoneMutation.isPending &&
+                setTaskDoneMutation.variables?.taskId === task.id
+              }
+              disabled={setTaskDoneMutation.isPending}
+              onCheckedChange={() => completeTask(task.id)}
+              aria-label={`Concluir ${task.title}`}
+            />
+          ),
         }))}
       />
     ),
@@ -238,6 +325,38 @@ export function HomeView({ title, organizationSlug, overview }: HomeViewProps) {
           </div>
         )}
       </PageContent>
+      {payables && (
+        <PayEntryDialog
+          organizationId={organizationId}
+          entry={entryToPay}
+          today={payables.today}
+          onClose={() => {
+            setEntryToPay(null);
+            refreshOverview();
+          }}
+        />
+      )}
+      {orderToReceive && (
+        <ReceivePurchaseOrderDialog
+          organizationId={organizationId}
+          order={orderToReceive}
+          onClose={() => {
+            setOrderToReceive(null);
+            refreshOverview();
+          }}
+        />
+      )}
+      {isShoppingListOpen && (
+        <HomeShoppingList
+          organizationId={organizationId}
+          canManage={canManage}
+          business={business}
+          onClose={() => {
+            setIsShoppingListOpen(false);
+            refreshOverview();
+          }}
+        />
+      )}
     </>
   );
 }

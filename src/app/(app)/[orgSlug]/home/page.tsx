@@ -5,6 +5,7 @@ import {
   getAccessibleModuleIds,
   requireVisibleModule,
 } from "@/features/modules/require-visible-module";
+import { canManageCatalog } from "@/features/organizations/permissions";
 import { HomeView } from "./components/home-view";
 
 const homeModule = getAppModule("dashboard");
@@ -22,7 +23,15 @@ export default async function HomePage({
   return (
     <HomeView
       title={homeModule.label}
+      organizationId={organization.id}
       organizationSlug={organization.slug}
+      canManage={canManageCatalog(organization.role)}
+      business={{
+        name: organization.name,
+        taxId: organization.taxId,
+        phone: organization.phone,
+        address: organization.address,
+      }}
       overview={overview}
     />
   );

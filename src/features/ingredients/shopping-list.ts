@@ -40,7 +40,11 @@ export function isRunningLow(ingredient: Ingredient): boolean {
 }
 
 export function needsPurchase(ingredient: Ingredient): boolean {
-  return !ingredient.isPrepared && isRunningLow(ingredient);
+  return (
+    !ingredient.isPrepared &&
+    ingredient.minimumStock > 0 &&
+    isRunningLow(ingredient)
+  );
 }
 
 export type ShoppingLine = {

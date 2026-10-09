@@ -20,6 +20,7 @@ import { listPendingPurchaseOrders } from "@/features/purchase-orders/actions";
 import type { PurchaseOrder } from "@/features/purchase-orders/types";
 import { listTaskLists } from "@/features/tasks/actions";
 import { isTaskOverdue } from "@/features/tasks/task-schedule";
+import type { TaskId } from "@/features/tasks/types";
 import { createClient } from "@/lib/supabase/server";
 
 const DEFAULT_TIME_ZONE = "America/Sao_Paulo";
@@ -42,7 +43,7 @@ export type StockOverview = {
 };
 
 export type PendingTask = {
-  id: string;
+  id: TaskId;
   title: string;
   listName: string;
   isOverdue: boolean;

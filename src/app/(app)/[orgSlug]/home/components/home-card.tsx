@@ -17,6 +17,8 @@ export type HomeCardRow = {
   detail?: string;
   value?: string;
   isHighlighted?: boolean;
+  leading?: ReactNode;
+  action?: ReactNode;
 };
 
 type HomeCardProps = {
@@ -31,8 +33,9 @@ type HomeCardProps = {
 
 function HomeCardRowItem({ row }: { row: HomeCardRow }) {
   return (
-    <li className="flex items-center justify-between gap-3 py-2">
-      <div className="flex min-w-0 flex-col">
+    <li className="flex items-center gap-3 py-2">
+      {row.leading}
+      <div className="flex min-w-0 flex-1 flex-col">
         <span className="truncate text-sm">{row.label}</span>
         {row.detail && (
           <span
@@ -52,6 +55,7 @@ function HomeCardRowItem({ row }: { row: HomeCardRow }) {
           {row.value}
         </span>
       )}
+      {row.action}
     </li>
   );
 }
@@ -66,11 +70,8 @@ export function HomeCard({
   footer,
 }: HomeCardProps) {
   return (
-    <Link
-      href={href}
-      className="group flex h-80 flex-col gap-3 rounded-xl border bg-card p-5 transition-colors hover:bg-muted/40"
-    >
-      <div className="flex items-center gap-3">
+    <section className="flex h-80 flex-col gap-3 rounded-xl border bg-card p-5">
+      <Link href={href} className="group flex items-center gap-3">
         <span
           className={cn(
             "flex size-12 shrink-0 items-center justify-center rounded-xl",
@@ -80,24 +81,26 @@ export function HomeCard({
           <Icon className="size-6" aria-hidden />
         </span>
         <div className="flex min-w-0 flex-1 flex-col">
-          <span className="font-semibold text-base">{title}</span>
+          <h2 className="font-semibold text-base group-hover:underline">
+            {title}
+          </h2>
           <span className="text-muted-foreground text-sm">{summary}</span>
         </div>
         <ChevronRight
           className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
           aria-hidden
         />
-      </div>
+      </Link>
       <ul className="flex min-h-0 flex-1 flex-col divide-y overflow-y-auto">
         {rows.map((row) => (
           <HomeCardRowItem key={row.id} row={row} />
         ))}
       </ul>
       {footer && (
-        <div className="flex shrink-0 items-center justify-end border-t pt-3 text-muted-foreground text-xs">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-t pt-3 text-muted-foreground text-xs">
           {footer}
         </div>
       )}
-    </Link>
+    </section>
   );
 }

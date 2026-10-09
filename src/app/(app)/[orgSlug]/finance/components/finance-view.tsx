@@ -18,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PayEntryDialog } from "@/features/finance/components/pay-entry-dialog";
 import { sortPaidEntriesLast } from "@/features/finance/entry-order";
 import { useFinancialCategoriesQuery } from "@/features/finance/hooks/use-financial-categories-query";
 import { useFinancialOverviewQuery } from "@/features/finance/hooks/use-financial-overview-query";
@@ -43,7 +44,6 @@ import { EntriesPanel } from "./entries-panel";
 import { EntryFormDialog, type EntryFormState } from "./entry-form-dialog";
 import { FinanceOverview } from "./finance-overview";
 import { OpeningBalanceDialog } from "./opening-balance-dialog";
-import { PayEntryDialog } from "./pay-entry-dialog";
 
 type OpenDialog = "none" | "categories" | "opening-balance";
 
