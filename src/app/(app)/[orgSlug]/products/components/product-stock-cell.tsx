@@ -3,8 +3,8 @@ import type {
   IngredientShortages,
   ProductAvailability,
 } from "@/features/products/availability";
+import { IngredientStockLevels } from "@/features/products/components/ingredient-stock-levels";
 import { formatQuantity } from "@/lib/format";
-import { IngredientShortageLine } from "./ingredient-shortage-line";
 
 type ProductStockCellProps = {
   availability: ProductAvailability;
@@ -15,22 +15,7 @@ type IngredientShortageListProps = {
 };
 
 function IngredientShortageList({ shortages }: IngredientShortageListProps) {
-  const { outOfStockIngredientNames, runningLowIngredientNames } = shortages;
-
-  return (
-    <>
-      <IngredientShortageLine
-        label="Sem"
-        ingredientNames={outOfStockIngredientNames}
-        className="text-destructive"
-      />
-      <IngredientShortageLine
-        label="Acabando"
-        ingredientNames={runningLowIngredientNames}
-        className="text-muted-foreground"
-      />
-    </>
-  );
+  return <IngredientStockLevels stockLevels={shortages.stockLevels} />;
 }
 
 export function ProductStockCell({ availability }: ProductStockCellProps) {

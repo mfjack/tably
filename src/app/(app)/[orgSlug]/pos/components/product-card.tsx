@@ -6,6 +6,7 @@ import type { ProductId } from "@/features/products/types";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { PosProduct } from "../hooks/use-pos-catalog";
+import { AvailabilityBadge } from "./availability-badge";
 
 type ProductCardProps = {
   product: PosProduct;
@@ -42,21 +43,24 @@ function ProductCardComponent({ product, onAdd }: ProductCardProps) {
   const availabilityLabel = getAvailabilityLabel(availability);
 
   return (
-    <button
-      type="button"
-      disabled={isOut}
-      aria-label={getAccessibleLabel(product, availabilityLabel)}
-      onClick={() => onAdd(product.id)}
+    <div
       className={cn(
-        "relative flex flex-col gap-2 rounded-xl border bg-card p-2 text-left outline-none transition-colors hover:border-primary/40 focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed",
+        "relative flex flex-col gap-2 rounded-xl border bg-card p-2 text-left transition-colors hover:border-primary/40 has-[button:disabled]:cursor-not-allowed",
         isInCart && !isLow && !isOut && "border-primary bg-primary/5",
         isLow && "border-destructive/25 bg-destructive/5",
         isOut && "border-dashed hover:border-border",
       )}
     >
+      <button
+        type="button"
+        disabled={isOut}
+        aria-label={getAccessibleLabel(product, availabilityLabel)}
+        onClick={() => onAdd(product.id)}
+        className="absolute inset-0 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed"
+      />
       <div
         className={cn(
-          "relative flex aspect-video items-center justify-center overflow-hidden rounded-lg bg-foreground/5 text-muted-foreground/70",
+          "pointer-events-none relative flex aspect-video items-center justify-center overflow-hidden rounded-lg bg-foreground/5 text-muted-foreground/70",
           isLow && "bg-destructive/10",
           isOut && "text-muted-foreground/40",
         )}
@@ -74,7 +78,7 @@ function ProductCardComponent({ product, onAdd }: ProductCardProps) {
         )}
       </div>
 
-      <div className="flex flex-col gap-0.5 px-1 pb-0.5">
+      <div className="pointer-events-none flex flex-col gap-0.5 px-1 pb-0.5">
         <span
           className={cn(
             "truncate font-semibold text-sm",
@@ -93,16 +97,11 @@ function ProductCardComponent({ product, onAdd }: ProductCardProps) {
             {formatCurrency(product.price)}
           </span>
           {availabilityLabel && (
-            <span
-              className={cn(
-                "inline-flex h-4 shrink-0 items-center whitespace-nowrap rounded px-1.5 font-semibold text-[0.625rem] leading-none",
-                isOut
-                  ? "bg-muted-foreground text-background"
-                  : "bg-destructive/15 text-destructive",
-              )}
-            >
-              {availabilityLabel}
-            </span>
+            <AvailabilityBadge
+              productName={product.name}
+              label={availabilityLabel}
+              availability={availability}
+            />
           )}
         </div>
       </div>
@@ -110,12 +109,12 @@ function ProductCardComponent({ product, onAdd }: ProductCardProps) {
       {isInCart && (
         <span
           aria-hidden
-          className="absolute -top-2.5 -right-2.5 flex size-7 items-center justify-center rounded-full border-2 border-background bg-primary font-bold text-primary-foreground text-xs tabular-nums"
+          className="pointer-events-none absolute -top-2.5 -right-2.5 flex size-7 items-center justify-center rounded-full border-2 border-background bg-primary font-bold text-primary-foreground text-xs tabular-nums"
         >
           {cartQuantity}
         </span>
       )}
-    </button>
+    </div>
   );
 }
 

@@ -1,17 +1,29 @@
-import type { Ingredient } from "@/features/ingredients/types";
+import type { Ingredient, MeasureUnit } from "@/features/ingredients/types";
 import type { Product } from "./types";
 
 const NO_RESERVED_QUANTITIES: ReadonlyMap<string, number> = new Map();
 
+export type IngredientStockLevel = {
+  name: string;
+  unit: MeasureUnit;
+  stock: number;
+  minimumStock: number;
+};
+
 export type IngredientShortages = {
   outOfStockIngredientNames: string[];
   runningLowIngredientNames: string[];
+  stockLevels: IngredientStockLevel[];
+};
+
+type LimitedAvailability = IngredientShortages & {
+  remaining: number;
 };
 
 export type ProductAvailability =
   | { status: "unlimited" }
-  | ({ status: "available"; remaining: number } & IngredientShortages)
-  | ({ status: "low"; remaining: number } & IngredientShortages)
+  | ({ status: "available" } & LimitedAvailability)
+  | ({ status: "low" } & LimitedAvailability)
   | ({ status: "out" } & IngredientShortages);
 
 type IngredientCapacity = {
@@ -59,10 +71,44 @@ function getIngredientNames(capacities: readonly IngredientCapacity[]) {
   );
 }
 
+function toStockLevel({
+  ingredient,
+  freeStock,
+}: IngredientCapacity): IngredientStockLevel[] {
+  return ingredient
+    ? [
+        {
+          name: ingredient.name,
+          unit: ingredient.unit,
+          stock: Math.max(freeStock, 0),
+          minimumStock: ingredient.minimumStock,
+        },
+      ]
+    : [];
+}
+
+function getStockLevels(
+  capacities: readonly IngredientCapacity[],
+): IngredientStockLevel[] {
+  const remaining = Math.min(
+    ...capacities.map((capacity) => capacity.producibleQuantity),
+  );
+  const relevantCapacities = capacities.filter(
+    (capacity) =>
+      capacity.producibleQuantity === remaining || isRunningLow(capacity),
+  );
+  return [...relevantCapacities]
+    .sort(
+      (first, second) => first.producibleQuantity - second.producibleQuantity,
+    )
+    .flatMap(toStockLevel);
+}
+
 function getIngredientShortages(
   capacities: readonly IngredientCapacity[],
 ): IngredientShortages {
   return {
+    stockLevels: getStockLevels(capacities),
     outOfStockIngredientNames: getIngredientNames(
       capacities.filter((capacity) => capacity.producibleQuantity === 0),
     ),
@@ -90,10 +136,11 @@ export function getProductAvailability(
   const shortages = getIngredientShortages(capacities);
 
   if (remaining === 0) return { status: "out", ...shortages };
+  const limitedAvailability = { remaining, ...shortages };
   if (shortages.runningLowIngredientNames.length > 0) {
-    return { status: "low", remaining, ...shortages };
+    return { status: "low", ...limitedAvailability };
   }
-  return { status: "available", remaining, ...shortages };
+  return { status: "available", ...limitedAvailability };
 }
 
 export function getAvailableQuantity(
