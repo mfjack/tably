@@ -1,6 +1,7 @@
 import { ChevronRight, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { ScrollableCard } from "@/components/scrollable-card";
 import { cn } from "@/lib/utils";
 
 const HOME_CARD_TONE_CLASS_NAMES = {
@@ -70,37 +71,42 @@ export function HomeCard({
   footer,
 }: HomeCardProps) {
   return (
-    <section className="flex h-80 flex-col gap-3 rounded-xl border bg-card p-5">
-      <Link href={href} className="group flex items-center gap-3">
-        <span
-          className={cn(
-            "flex size-12 shrink-0 items-center justify-center rounded-xl",
-            HOME_CARD_TONE_CLASS_NAMES[tone],
-          )}
-        >
-          <Icon className="size-6" aria-hidden />
-        </span>
-        <div className="flex min-w-0 flex-1 flex-col">
-          <h2 className="font-semibold text-base group-hover:underline">
-            {title}
-          </h2>
-          <span className="text-muted-foreground text-sm">{summary}</span>
-        </div>
-        <ChevronRight
-          className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
-          aria-hidden
-        />
-      </Link>
-      <ul className="flex min-h-0 flex-1 flex-col divide-y overflow-y-auto">
+    <ScrollableCard
+      header={
+        <Link href={href} className="group flex items-center gap-3">
+          <span
+            className={cn(
+              "flex size-12 shrink-0 items-center justify-center rounded-xl",
+              HOME_CARD_TONE_CLASS_NAMES[tone],
+            )}
+          >
+            <Icon className="size-6" aria-hidden />
+          </span>
+          <div className="flex min-w-0 flex-1 flex-col">
+            <h2 className="font-semibold text-base group-hover:underline">
+              {title}
+            </h2>
+            <span className="text-muted-foreground text-sm">{summary}</span>
+          </div>
+          <ChevronRight
+            className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+            aria-hidden
+          />
+        </Link>
+      }
+      footer={
+        footer && (
+          <div className="flex items-center justify-between gap-3 border-t pt-3 text-muted-foreground text-xs">
+            {footer}
+          </div>
+        )
+      }
+    >
+      <ul className="flex flex-col divide-y">
         {rows.map((row) => (
           <HomeCardRowItem key={row.id} row={row} />
         ))}
       </ul>
-      {footer && (
-        <div className="flex shrink-0 items-center justify-between gap-3 border-t pt-3 text-muted-foreground text-xs">
-          {footer}
-        </div>
-      )}
-    </section>
+    </ScrollableCard>
   );
 }

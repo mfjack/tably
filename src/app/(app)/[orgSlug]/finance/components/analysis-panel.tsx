@@ -4,6 +4,7 @@ import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { TriangleAlert } from "lucide-react";
 import { useMemo, useState } from "react";
+import { StatCard } from "@/components/stat-card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -22,32 +23,6 @@ type AnalysisPanelProps = {
   organizationId: OrganizationId;
   monthKey: string;
 };
-
-type StatProps = {
-  label: string;
-  value: string;
-  detail?: string;
-  isAlert?: boolean;
-};
-
-function Stat({ label, value, detail, isAlert }: StatProps) {
-  return (
-    <div className="flex flex-col gap-1 rounded-2xl border bg-card p-4">
-      <span className="text-muted-foreground text-xs">{label}</span>
-      <span
-        className={cn(
-          "font-bold text-xl tabular-nums tracking-tight",
-          isAlert && "text-destructive",
-        )}
-      >
-        {value}
-      </span>
-      {detail && (
-        <span className="text-muted-foreground text-xs">{detail}</span>
-      )}
-    </div>
-  );
-}
 
 function formatDayLabel(date: string) {
   return format(parseISO(date), "EEE dd/MM", { locale: ptBR });
@@ -139,23 +114,23 @@ export function AnalysisPanel({
         )}
 
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <Stat
+          <StatCard
             label="Saldo hoje"
             value={formatCurrency(data.balanceToday)}
             isAlert={data.balanceToday < 0}
           />
-          <Stat
+          <StatCard
             label="Menor saldo previsto"
             value={formatCurrency(projection.lowestPoint.balance)}
             detail={formatDayLabel(projection.lowestPoint.date)}
             isAlert={projection.lowestPoint.balance < 0}
           />
-          <Stat
+          <StatCard
             label={`Saldo em ${horizon} dias`}
             value={formatCurrency(projection.endingBalance)}
             isAlert={projection.endingBalance < 0}
           />
-          <Stat
+          <StatCard
             label="Atrasados contados hoje"
             value={formatCurrency(data.overdue.expense - data.overdue.income)}
             detail={`A pagar ${formatCurrency(data.overdue.expense)} · a receber ${formatCurrency(data.overdue.income)}`}

@@ -1,12 +1,12 @@
 import { useMutation } from "@tanstack/react-query";
 import type { OrganizationId } from "@/features/organizations/types";
 import { unwrapActionResult } from "@/lib/action-result";
+import { buildDocumentPath, getDocumentFileError } from "@/lib/document-files";
 import { loadBrowserClient } from "@/lib/supabase/load-browser-client";
 import { setFinancialEntryDocument } from "../actions";
 import {
-  DOCUMENT_EXTENSIONS_BY_TYPE,
   FINANCIAL_DOCUMENTS_BUCKET,
-  getDocumentValidationError,
+  MAX_FINANCIAL_DOCUMENT_SIZE_IN_MEGABYTES,
 } from "../documents";
 import type { FinancialEntryId } from "../types";
 import { useInvalidateFinance } from "./use-invalidate-finance";
@@ -41,10 +41,13 @@ export function useUploadFinancialDocumentMutation(
       field,
       file,
     }: UploadFinancialDocumentVariables) => {
-      const validationError = getDocumentValidationError(file);
+      const validationError = getDocumentFileError(
+        file,
+        MAX_FINANCIAL_DOCUMENT_SIZE_IN_MEGABYTES,
+      );
       if (validationError) throw new Error(validationError);
 
-      const filePath = `${organizationId}/${entryId}/${crypto.randomUUID()}.${DOCUMENT_EXTENSIONS_BY_TYPE[file.type]}`;
+      const filePath = buildDocumentPath(`${organizationId}/${entryId}`, file);
       const supabase = await loadBrowserClient();
       const { error } = await supabase.storage
         .from(FINANCIAL_DOCUMENTS_BUCKET)

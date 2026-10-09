@@ -3,6 +3,7 @@
 import { format } from "date-fns";
 import { BellRing, Pencil, Wallet } from "lucide-react";
 import { useState } from "react";
+import { StatCard } from "@/components/stat-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -80,15 +81,7 @@ export function AdminSubscriptionsView({
     <div className="flex flex-col gap-6">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {summary.map((item) => (
-          <div
-            key={item.label}
-            className="flex flex-col gap-1 rounded-2xl border bg-card p-4"
-          >
-            <span className="text-muted-foreground text-sm">{item.label}</span>
-            <span className="font-bold text-2xl tabular-nums">
-              {item.value}
-            </span>
-          </div>
+          <StatCard key={item.label} label={item.label} value={item.value} />
         ))}
       </div>
 

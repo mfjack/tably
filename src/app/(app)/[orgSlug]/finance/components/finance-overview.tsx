@@ -1,5 +1,6 @@
 "use client";
 
+import { StatCard } from "@/components/stat-card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { sortPaidEntriesLast } from "@/features/finance/entry-order";
@@ -17,36 +18,6 @@ type FinanceOverviewProps = {
   onEdit: (entry: FinancialEntry) => void;
   onDelete: (entry: FinancialEntry) => void;
 };
-
-type StatCardProps = {
-  label: string;
-  value: string;
-  detail?: string;
-  isAlert?: boolean;
-  className?: string;
-};
-
-function StatCard({ label, value, detail, isAlert, className }: StatCardProps) {
-  return (
-    <article
-      className={cn(
-        "flex flex-col gap-1 rounded-2xl border bg-card p-4",
-        className,
-      )}
-    >
-      <h3 className="text-muted-foreground text-xs">{label}</h3>
-      <p
-        className={cn(
-          "font-bold text-xl tabular-nums tracking-tight",
-          isAlert && "text-destructive",
-        )}
-      >
-        {value}
-      </p>
-      {detail && <p className="text-muted-foreground text-xs">{detail}</p>}
-    </article>
-  );
-}
 
 function describeTotals(totals: EntryTotals, emptyLabel: string) {
   if (totals.count === 0) return emptyLabel;

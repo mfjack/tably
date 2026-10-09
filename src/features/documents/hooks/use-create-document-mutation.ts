@@ -1,11 +1,11 @@
 import { useMutation } from "@tanstack/react-query";
 import type { OrganizationId } from "@/features/organizations/types";
 import { unwrapActionResult } from "@/lib/action-result";
+import { buildDocumentPath, getDocumentFileError } from "@/lib/document-files";
 import { loadBrowserClient } from "@/lib/supabase/load-browser-client";
 import { createDocument } from "../actions";
 import {
-  DOCUMENT_EXTENSIONS_BY_TYPE,
-  getDocumentFileError,
+  MAX_DOCUMENT_SIZE_IN_MEGABYTES,
   ORGANIZATION_DOCUMENTS_BUCKET,
 } from "../document-files";
 import type { DocumentFormInput } from "../schemas";
@@ -26,10 +26,13 @@ export function useCreateDocumentMutation(organizationId: OrganizationId) {
   return useMutation({
     mutationKey: getCreateDocumentMutationKey(organizationId),
     mutationFn: async ({ input, file }: CreateDocumentVariables) => {
-      const fileError = getDocumentFileError(file);
+      const fileError = getDocumentFileError(
+        file,
+        MAX_DOCUMENT_SIZE_IN_MEGABYTES,
+      );
       if (fileError) throw new Error(fileError);
 
-      const filePath = `${organizationId}/${crypto.randomUUID()}.${DOCUMENT_EXTENSIONS_BY_TYPE[file.type]}`;
+      const filePath = buildDocumentPath(organizationId, file);
       const storage = (await loadBrowserClient()).storage.from(
         ORGANIZATION_DOCUMENTS_BUCKET,
       );

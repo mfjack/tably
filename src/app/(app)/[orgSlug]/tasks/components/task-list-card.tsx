@@ -1,4 +1,5 @@
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { ScrollableCard } from "@/components/scrollable-card";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -41,64 +42,78 @@ export function TaskListCard({
   const isComplete = taskCount > 0 && doneCount === taskCount;
 
   return (
-    <section
-      aria-label={taskList.name}
-      className="flex flex-col gap-4 rounded-2xl border bg-card p-4"
-    >
-      <header className="flex items-start justify-between gap-2">
-        <div className="flex min-w-0 flex-col gap-1">
-          <h2 className="truncate font-semibold text-base">{taskList.name}</h2>
-          <p
-            className={cn(
-              "text-muted-foreground text-xs tabular-nums",
-              isComplete && "font-medium text-foreground",
-            )}
-          >
-            {taskList.period && `${TASK_PERIOD_LABELS[taskList.period]} · `}
-            {isComplete
-              ? "Tudo concluído"
-              : `${doneCount} de ${taskCount} concluídas`}
-          </p>
-        </div>
-        {canManage && (
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={`Opções do processo ${taskList.name}`}
-                />
-              }
-            >
-              <MoreHorizontal aria-hidden />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-40">
-              <DropdownMenuItem onClick={() => onRename(taskList)}>
-                <Pencil aria-hidden />
-                Editar
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                variant="destructive"
-                onClick={() => onDelete(taskList)}
+    <ScrollableCard
+      size="tall"
+      ariaLabel={taskList.name}
+      header={
+        <div className="flex flex-col gap-3">
+          <header className="flex items-start justify-between gap-2">
+            <div className="flex min-w-0 flex-col gap-1">
+              <h2 className="truncate font-semibold text-base">
+                {taskList.name}
+              </h2>
+              <p
+                className={cn(
+                  "text-muted-foreground text-xs tabular-nums",
+                  isComplete && "font-medium text-foreground",
+                )}
               >
-                <Trash2 aria-hidden />
-                Excluir processo
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-      </header>
+                {taskList.period && `${TASK_PERIOD_LABELS[taskList.period]} · `}
+                {isComplete
+                  ? "Tudo concluído"
+                  : `${doneCount} de ${taskCount} concluídas`}
+              </p>
+            </div>
+            {canManage && (
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label={`Opções do processo ${taskList.name}`}
+                    />
+                  }
+                >
+                  <MoreHorizontal aria-hidden />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="min-w-40">
+                  <DropdownMenuItem onClick={() => onRename(taskList)}>
+                    <Pencil aria-hidden />
+                    Editar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onClick={() => onDelete(taskList)}
+                  >
+                    <Trash2 aria-hidden />
+                    Excluir processo
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </header>
 
-      {taskCount > 0 && (
-        <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-          <div
-            className="h-full rounded-full bg-primary transition-all"
-            style={{ width: `${(doneCount / taskCount) * 100}%` }}
-          />
+          {taskCount > 0 && (
+            <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full bg-primary transition-all"
+                style={{ width: `${(doneCount / taskCount) * 100}%` }}
+              />
+            </div>
+          )}
         </div>
-      )}
-
+      }
+      footer={
+        canManage && (
+          <AddTaskForm
+            organizationId={organizationId}
+            listId={taskList.id}
+            listName={taskList.name}
+          />
+        )
+      }
+    >
       {taskCount > 0 ? (
         <ul className="-mx-2 flex flex-col">
           {taskList.tasks.map((task) => (
@@ -118,14 +133,6 @@ export function TaskListCard({
           Nenhum item neste processo.
         </p>
       )}
-
-      {canManage && (
-        <AddTaskForm
-          organizationId={organizationId}
-          listId={taskList.id}
-          listName={taskList.name}
-        />
-      )}
-    </section>
+    </ScrollableCard>
   );
 }

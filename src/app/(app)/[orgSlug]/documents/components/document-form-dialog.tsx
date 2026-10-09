@@ -12,9 +12,8 @@ import { TextField } from "@/components/form/text-field";
 import { TextareaField } from "@/components/form/textarea-field";
 import { FieldGroup } from "@/components/ui/field";
 import {
-  ACCEPTED_DOCUMENT_TYPES,
   formatFileSize,
-  getDocumentFileError,
+  MAX_DOCUMENT_SIZE_IN_MEGABYTES,
   removeFileExtension,
 } from "@/features/documents/document-files";
 import { DOCUMENT_KIND_OPTIONS } from "@/features/documents/document-kinds";
@@ -26,6 +25,10 @@ import {
 } from "@/features/documents/schemas";
 import type { OrganizationDocument } from "@/features/documents/types";
 import type { OrganizationId } from "@/features/organizations/types";
+import {
+  ACCEPTED_DOCUMENT_TYPES,
+  getDocumentFileError,
+} from "@/lib/document-files";
 import { cn } from "@/lib/utils";
 
 const EMPTY_DOCUMENT_FORM: DefaultValues<DocumentFormInput> = {
@@ -83,7 +86,10 @@ export function DocumentFormDialog({
     event.target.value = "";
     if (!selectedFile) return;
 
-    const error = getDocumentFileError(selectedFile);
+    const error = getDocumentFileError(
+      selectedFile,
+      MAX_DOCUMENT_SIZE_IN_MEGABYTES,
+    );
     setFileError(error);
     setFile(error ? null : selectedFile);
     if (!error && !form.getValues("name")) {

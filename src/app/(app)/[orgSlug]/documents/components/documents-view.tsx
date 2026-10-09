@@ -10,6 +10,7 @@ import { useDocumentsQuery } from "@/features/documents/hooks/use-documents-quer
 import { useOpenDocumentMutation } from "@/features/documents/hooks/use-open-document-mutation";
 import type { OrganizationDocument } from "@/features/documents/types";
 import type { OrganizationId } from "@/features/organizations/types";
+import { openPendingTab } from "@/lib/open-in-new-tab";
 import { ListEmptyState } from "../../components/list-empty-state";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
@@ -54,14 +55,11 @@ export function DocumentsView({
   const { mutate: openFile } = openMutation;
   const openDocument = useCallback(
     (document: OrganizationDocument) => {
-      const documentWindow = window.open("", "_blank");
+      const pendingTab = openPendingTab();
       openFile(document.filePath, {
-        onSuccess: (url) => {
-          if (documentWindow) documentWindow.location.href = url;
-          else window.location.assign(url);
-        },
+        onSuccess: pendingTab.navigate,
         onError: (error) => {
-          documentWindow?.close();
+          pendingTab.close();
           toast.error(error.message);
         },
       });

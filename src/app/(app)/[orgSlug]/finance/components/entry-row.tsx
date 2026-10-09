@@ -24,7 +24,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getWeekdayShortLabel } from "@/features/employees/work-schedule-labels";
-import { ACCEPTED_DOCUMENT_TYPES } from "@/features/finance/documents";
 import { useOpenFinancialDocumentMutation } from "@/features/finance/hooks/use-open-financial-document-mutation";
 import { useRemoveFinancialEntryDocumentMutation } from "@/features/finance/hooks/use-remove-financial-entry-document-mutation";
 import { useUndoFinancialEntryPaymentMutation } from "@/features/finance/hooks/use-undo-financial-entry-payment-mutation";
@@ -39,7 +38,9 @@ import {
 import type { EntryStatus, FinancialEntry } from "@/features/finance/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import { getIsoWeekday } from "@/features/time-clock/time-utils";
+import { ACCEPTED_DOCUMENT_TYPES } from "@/lib/document-files";
 import { formatCurrency, formatDateKey } from "@/lib/format";
+import { openPendingTab } from "@/lib/open-in-new-tab";
 import { cn } from "@/lib/utils";
 
 type DocumentField = "document" | "receipt";
@@ -99,14 +100,11 @@ export function EntryRow({
   }
 
   function openDocument(path: string) {
-    const documentWindow = window.open("", "_blank");
+    const pendingTab = openPendingTab();
     openMutation.mutate(path, {
-      onSuccess: (url) => {
-        if (documentWindow) documentWindow.location.href = url;
-        else window.location.assign(url);
-      },
+      onSuccess: pendingTab.navigate,
       onError: (error) => {
-        documentWindow?.close();
+        pendingTab.close();
         toast.error(error.message);
       },
     });

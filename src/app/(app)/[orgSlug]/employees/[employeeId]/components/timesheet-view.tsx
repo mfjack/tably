@@ -15,6 +15,7 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
+import { StatCard } from "@/components/stat-card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,7 +42,6 @@ import {
 import type { TimesheetPunch } from "@/features/time-clock/timesheet";
 import { useSearchParamState } from "@/hooks/use-search-param-state";
 import { formatDateKey } from "@/lib/format";
-import { cn } from "@/lib/utils";
 import { PageContent } from "../../../components/page-content";
 import { PageHeader } from "../../../components/page-header";
 import { DayAdjustmentDialog } from "./day-adjustment-dialog";
@@ -57,54 +57,28 @@ type TimesheetViewProps = {
   initialMonthKey: string;
 };
 
-type SummaryStatProps = {
-  label: string;
-  value: string;
-  detail?: string;
-  isAlert?: boolean;
-};
-
-function SummaryStat({ label, value, detail, isAlert }: SummaryStatProps) {
-  return (
-    <div className="flex flex-col gap-1 rounded-2xl border bg-card p-4">
-      <span className="text-muted-foreground text-xs">{label}</span>
-      <span
-        className={cn(
-          "font-bold text-xl tabular-nums tracking-tight",
-          isAlert && "text-destructive",
-        )}
-      >
-        {value}
-      </span>
-      {detail && (
-        <span className="text-muted-foreground text-xs">{detail}</span>
-      )}
-    </div>
-  );
-}
-
 function TimesheetSummaryGrid({ data }: { data: TimesheetData }) {
   const { summary } = data.timesheet;
   const isHourBank = data.employee.overtimePolicy === "hour_bank";
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
-      <SummaryStat
+      <StatCard
         label="Trabalhado"
         value={formatMinutes(summary.workedMinutes)}
         detail={`de ${formatMinutes(summary.expectedMinutes)} previstas`}
       />
-      <SummaryStat
+      <StatCard
         label="Horas extras"
         value={formatMinutes(summary.overtimeMinutes)}
         detail={`${formatMinutes(summary.restDayWorkedMinutes)} em descanso/feriado`}
       />
-      <SummaryStat
+      <StatCard
         label="Atrasos e saídas"
         value={formatMinutes(summary.shortfallMinutes)}
         detail={`${summary.lateDays} ${summary.lateDays === 1 ? "dia" : "dias"} com atraso`}
         isAlert={summary.shortfallMinutes > 0}
       />
-      <SummaryStat
+      <StatCard
         label="Faltas"
         value={`${summary.absenceDays}`}
         detail={
@@ -114,12 +88,12 @@ function TimesheetSummaryGrid({ data }: { data: TimesheetData }) {
         }
         isAlert={summary.absenceDays > 0}
       />
-      <SummaryStat
+      <StatCard
         label="Adicional noturno"
         value={formatMinutes(summary.nightMinutes)}
         detail="22h às 5h"
       />
-      <SummaryStat
+      <StatCard
         label={isHourBank ? "Banco de horas" : "Saldo do mês"}
         value={formatSignedMinutes(
           isHourBank
