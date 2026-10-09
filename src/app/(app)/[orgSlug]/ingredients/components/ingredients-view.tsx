@@ -233,6 +233,10 @@ export function IngredientsView({
           organizationId={organizationId}
           ingredient={ingredientForProduction}
           ingredientsById={ingredientsById}
+          onPrintLabel={(ingredient) => {
+            setIngredientForProduction(null);
+            setIngredientForLabel(ingredient);
+          }}
           onClose={() => setIngredientForProduction(null)}
         />
       )}

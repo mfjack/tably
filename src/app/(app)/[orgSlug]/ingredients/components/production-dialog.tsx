@@ -1,6 +1,7 @@
 "use client";
 
-import { CookingPot } from "lucide-react";
+import { CircleCheck, CookingPot, Tag } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { DetailsDialog } from "@/components/dialog/details-dialog";
 import { DIALOG_ACTION_BUTTON_CLASS_NAME } from "@/components/dialog/dialog-styles";
@@ -16,6 +17,7 @@ type ProductionDialogProps = {
   organizationId: OrganizationId;
   ingredient: Ingredient;
   ingredientsById: ReadonlyMap<string, Ingredient>;
+  onPrintLabel: (ingredient: Ingredient) => void;
   onClose: () => void;
 };
 
@@ -23,9 +25,11 @@ export function ProductionDialog({
   organizationId,
   ingredient,
   ingredientsById,
+  onPrintLabel,
   onClose,
 }: ProductionDialogProps) {
   const productionMutation = useRegisterProductionMutation(organizationId);
+  const [producedQuantity, setProducedQuantity] = useState<number | null>(null);
   const expectedQuantity = ingredient.yieldQuantity ?? 0;
   const preparationSteps = parsePreparationSteps(
     ingredient.preparationInstructions,
@@ -33,14 +37,54 @@ export function ProductionDialog({
 
   function registerProduction() {
     productionMutation.mutate(ingredient.id, {
-      onSuccess: ({ producedQuantity }) => {
-        toast.success("Produção registrada.", {
-          description: `Entrou ${formatItemQuantity(producedQuantity, ingredient.unit)} de ${ingredient.name}; os insumos da receita saíram do estoque.`,
-        });
-        onClose();
-      },
+      onSuccess: (result) => setProducedQuantity(result.producedQuantity),
       onError: (error) => toast.error(error.message),
     });
+  }
+
+  if (producedQuantity !== null) {
+    return (
+      <DetailsDialog
+        isOpen
+        onOpenChange={(isDialogOpen) => !isDialogOpen && onClose()}
+        title="Produção registrada"
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              className={DIALOG_ACTION_BUTTON_CLASS_NAME}
+              onClick={onClose}
+            >
+              Fechar
+            </Button>
+            <Button
+              type="button"
+              className={DIALOG_ACTION_BUTTON_CLASS_NAME}
+              onClick={() => onPrintLabel(ingredient)}
+            >
+              <Tag aria-hidden />
+              Imprimir etiqueta
+            </Button>
+          </>
+        }
+      >
+        <div className="flex items-start gap-3">
+          <CircleCheck
+            aria-hidden
+            className="mt-0.5 size-5 shrink-0 text-primary"
+          />
+          <p className="text-sm">
+            Entrou{" "}
+            <span className="font-semibold tabular-nums">
+              {formatItemQuantity(producedQuantity, ingredient.unit)}
+            </span>{" "}
+            de {ingredient.name}, e os insumos da receita saíram do estoque.
+            Imprima a etiqueta para identificar o pote.
+          </p>
+        </div>
+      </DetailsDialog>
+    );
   }
 
   return (
