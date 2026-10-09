@@ -10,6 +10,9 @@ import {
   sortByCategoryOrder,
 } from "@/features/categories/category-order";
 import type { CategoryId } from "@/features/categories/types";
+import { StockEntryDialog } from "@/features/ingredients/components/stock-entry-dialog";
+import { useIngredientsMap } from "@/features/ingredients/hooks/use-ingredients-map";
+import type { IngredientId } from "@/features/ingredients/types";
 import { PaymentDialog } from "@/features/orders/components/payment-dialog";
 import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
 import type {
@@ -76,6 +79,7 @@ type PosViewProps = {
   kitchenHref: string | null;
   printerSettingsHref: string;
   isKitchenEnabled: boolean;
+  canAddStock: boolean;
 };
 
 const OFFLINE_CATALOG_MESSAGE =
@@ -98,6 +102,7 @@ export function PosView({
   kitchenHref,
   printerSettingsHref,
   isKitchenEnabled,
+  canAddStock,
 }: PosViewProps) {
   const router = useRouter();
   const isCartHydrated = useHydratedCartStore();
@@ -197,6 +202,13 @@ export function PosView({
         (normalizedSearch === "" || matchesSearch(product, normalizedSearch)),
     );
   }, [posProducts, searchTerm, selectedCategoryId]);
+
+  const { ingredientsById } = useIngredientsMap(organizationId);
+  const [stockEntryIngredientId, setStockEntryIngredientId] =
+    useState<IngredientId | null>(null);
+  const stockEntryIngredient = stockEntryIngredientId
+    ? (ingredientsById.get(stockEntryIngredientId) ?? null)
+    : null;
 
   const handleAddProduct = useCallback(
     (productId: ProductId) => {
@@ -380,6 +392,9 @@ export function PosView({
                   products={visibleProducts}
                   isLoading={isLoading || !isCartHydrated}
                   onAdd={handleAddProduct}
+                  onAddStock={
+                    canAddStock ? setStockEntryIngredientId : undefined
+                  }
                 />
               )}
             </div>
@@ -553,6 +568,13 @@ export function PosView({
         onClose={checkout.startQuickPayment}
         onConfirm={checkout.createTab}
       />
+      {canAddStock && (
+        <StockEntryDialog
+          organizationId={organizationId}
+          ingredient={stockEntryIngredient}
+          onClose={() => setStockEntryIngredientId(null)}
+        />
+      )}
     </div>
   );
 }

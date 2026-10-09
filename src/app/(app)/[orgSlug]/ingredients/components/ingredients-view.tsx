@@ -18,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ShoppingListDialog } from "@/features/ingredients/components/shopping-list-dialog";
+import { StockEntryDialog } from "@/features/ingredients/components/stock-entry-dialog";
 import { useIngredientsQuery } from "@/features/ingredients/hooks/use-ingredients-query";
 import { needsPurchase } from "@/features/ingredients/shopping-list";
 import type { Ingredient } from "@/features/ingredients/types";
@@ -35,7 +36,6 @@ import { InvoiceImportDialog } from "./invoice-import-dialog";
 import { PreparedRecipeDialog } from "./prepared-recipe-dialog";
 import { ProductionDialog } from "./production-dialog";
 import { StockCountDialog } from "./stock-count-dialog";
-import { StockEntryDialog } from "./stock-entry-dialog";
 import { StockLossFormDialog } from "./stock-loss-form-dialog";
 import { StockLossesDialog } from "./stock-losses-dialog";
 

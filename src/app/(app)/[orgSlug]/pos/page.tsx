@@ -8,6 +8,7 @@ import {
   requireVisibleModule,
 } from "@/features/modules/require-visible-module";
 import { toOrderTicketBusiness } from "@/features/orders/print-order-ticket";
+import { canManageCatalog } from "@/features/organizations/permissions";
 import { PosView } from "./components/pos-view";
 
 const posModule = getAppModule("pos");
@@ -30,6 +31,10 @@ export default async function PosPage({ params }: PageProps<"/[orgSlug]/pos">) {
       isOnlineOrderingEnabled={organization.menu.isOnlineOrderingEnabled}
       canOpenOrderTabs={accessibleModuleIds.includes("order_tabs")}
       isKitchenEnabled={!organization.hiddenModules.includes("kitchen")}
+      canAddStock={
+        accessibleModuleIds.includes("ingredients") &&
+        canManageCatalog(organization.role)
+      }
       kitchenHref={
         accessibleModuleIds.includes("kitchen")
           ? buildOrganizationPath(

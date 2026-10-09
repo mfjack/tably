@@ -7,6 +7,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { IngredientId } from "@/features/ingredients/types";
 import type { ProductId } from "@/features/products/types";
 import type { PosProduct } from "../hooks/use-pos-catalog";
 import { ProductCard } from "./product-card";
@@ -20,9 +21,15 @@ type ProductGridProps = {
   products: readonly PosProduct[];
   isLoading: boolean;
   onAdd: (productId: ProductId) => void;
+  onAddStock?: (ingredientId: IngredientId) => void;
 };
 
-export function ProductGrid({ products, isLoading, onAdd }: ProductGridProps) {
+export function ProductGrid({
+  products,
+  isLoading,
+  onAdd,
+  onAddStock,
+}: ProductGridProps) {
   if (isLoading) {
     return (
       <div className={GRID_CLASS_NAME}>
@@ -56,7 +63,12 @@ export function ProductGrid({ products, isLoading, onAdd }: ProductGridProps) {
   return (
     <div className={GRID_CLASS_NAME}>
       {products.map((product) => (
-        <ProductCard key={product.id} product={product} onAdd={onAdd} />
+        <ProductCard
+          key={product.id}
+          product={product}
+          onAdd={onAdd}
+          onAddStock={onAddStock}
+        />
       ))}
     </div>
   );

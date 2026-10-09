@@ -1,9 +1,14 @@
-import type { Ingredient, MeasureUnit } from "@/features/ingredients/types";
+import type {
+  Ingredient,
+  IngredientId,
+  MeasureUnit,
+} from "@/features/ingredients/types";
 import type { Product } from "./types";
 
 const NO_RESERVED_QUANTITIES: ReadonlyMap<string, number> = new Map();
 
 export type IngredientStockLevel = {
+  ingredientId: IngredientId;
   name: string;
   unit: MeasureUnit;
   stock: number;
@@ -78,6 +83,7 @@ function toStockLevel({
   return ingredient
     ? [
         {
+          ingredientId: ingredient.id,
           name: ingredient.name,
           unit: ingredient.unit,
           stock: Math.max(freeStock, 0),

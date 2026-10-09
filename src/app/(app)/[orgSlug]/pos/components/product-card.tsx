@@ -1,6 +1,7 @@
 import { ShoppingBag } from "lucide-react";
 import Image from "next/image";
 import { memo } from "react";
+import type { IngredientId } from "@/features/ingredients/types";
 import type { ProductAvailability } from "@/features/products/availability";
 import type { ProductId } from "@/features/products/types";
 import { formatCurrency } from "@/lib/format";
@@ -11,6 +12,7 @@ import { AvailabilityBadge } from "./availability-badge";
 type ProductCardProps = {
   product: PosProduct;
   onAdd: (productId: ProductId) => void;
+  onAddStock?: (ingredientId: IngredientId) => void;
 };
 
 function getAvailabilityLabel(
@@ -35,7 +37,11 @@ function getAccessibleLabel(
     .join(", ");
 }
 
-function ProductCardComponent({ product, onAdd }: ProductCardProps) {
+function ProductCardComponent({
+  product,
+  onAdd,
+  onAddStock,
+}: ProductCardProps) {
   const { availability, cartQuantity } = product;
   const isOut = availability.status === "out";
   const isLow = availability.status === "low";
@@ -101,6 +107,7 @@ function ProductCardComponent({ product, onAdd }: ProductCardProps) {
               productName={product.name}
               label={availabilityLabel}
               availability={availability}
+              onAddStock={onAddStock}
             />
           )}
         </div>

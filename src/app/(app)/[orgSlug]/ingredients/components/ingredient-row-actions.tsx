@@ -18,6 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { StockEntryButton } from "@/features/ingredients/components/stock-entry-button";
 import type { Ingredient } from "@/features/ingredients/types";
 import { needsProduction } from "@/features/prepared-ingredients/production-needs";
 import { cn } from "@/lib/utils";
@@ -71,16 +72,10 @@ export function IngredientRowActions({
         </Button>
       )}
       {!isPrepared && canManage && (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          aria-label={`Registrar entrada de ${ingredient.name}`}
+        <StockEntryButton
+          ingredientName={ingredient.name}
           onClick={() => onStockEntry(ingredient)}
-        >
-          <PackagePlus aria-hidden />
-          Entrada
-        </Button>
+        />
       )}
       <DropdownMenu>
         <DropdownMenuTrigger
