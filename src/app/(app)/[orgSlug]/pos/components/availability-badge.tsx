@@ -8,6 +8,7 @@ import type { IngredientId } from "@/features/ingredients/types";
 import type { ProductAvailability } from "@/features/products/availability";
 import { IngredientStockLevels } from "@/features/products/components/ingredient-stock-levels";
 import { cn } from "@/lib/utils";
+import { Info } from "lucide-react";
 
 type AvailabilityBadgeProps = {
   productName: string;
@@ -45,6 +46,7 @@ export function AvailabilityBadge({
           />
         }
       >
+        {availability.status === "low" && <Info className="mr-1 size-3" aria-hidden />}
         {label}
       </PopoverTrigger>
       <PopoverContent

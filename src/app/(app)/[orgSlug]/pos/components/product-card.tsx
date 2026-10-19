@@ -15,18 +15,13 @@ type ProductCardProps = {
   onAddStock?: (ingredientId: IngredientId) => void;
 };
 
-function getAvailabilityLabel(
-  availability: ProductAvailability,
-): string | null {
-  if (availability.status === "low") return `Restam ${availability.remaining}`;
+function getAvailabilityLabel(availability: ProductAvailability): string | null {
+  if (availability.status === "low") return `${availability.remaining}`;
   if (availability.status === "out") return "Esgotado";
   return null;
 }
 
-function getAccessibleLabel(
-  product: PosProduct,
-  availabilityLabel: string | null,
-) {
+function getAccessibleLabel(product: PosProduct, availabilityLabel: string | null) {
   return [
     product.name,
     formatCurrency(product.price),
@@ -37,11 +32,7 @@ function getAccessibleLabel(
     .join(", ");
 }
 
-function ProductCardComponent({
-  product,
-  onAdd,
-  onAddStock,
-}: ProductCardProps) {
+function ProductCardComponent({ product, onAdd, onAddStock }: ProductCardProps) {
   const { availability, cartQuantity } = product;
   const isOut = availability.status === "out";
   const isLow = availability.status === "low";
@@ -72,33 +63,17 @@ function ProductCardComponent({
         )}
       >
         {product.imageUrl ? (
-          <Image
-            src={product.imageUrl}
-            alt=""
-            fill
-            sizes="200px"
-            className="object-cover"
-          />
+          <Image src={product.imageUrl} alt="" fill sizes="200px" className="object-cover" />
         ) : (
           <ShoppingBag className="size-6" strokeWidth={1.5} aria-hidden />
         )}
       </div>
 
       <div className="pointer-events-none flex flex-col gap-0.5 px-1 pb-0.5">
-        <span
-          className={cn(
-            "truncate font-semibold text-sm",
-            isOut && "text-muted-foreground/80",
-          )}
-        >
-          {product.name}
-        </span>
+        <span className={cn("truncate font-semibold text-sm", isOut && "text-muted-foreground/80")}>{product.name}</span>
         <div className="flex items-center justify-between gap-2">
           <span
-            className={cn(
-              "whitespace-nowrap text-muted-foreground text-sm tabular-nums",
-              isOut && "text-muted-foreground/60",
-            )}
+            className={cn("whitespace-nowrap text-muted-foreground text-sm tabular-nums", isOut && "text-muted-foreground/60")}
           >
             {formatCurrency(product.price)}
           </span>
