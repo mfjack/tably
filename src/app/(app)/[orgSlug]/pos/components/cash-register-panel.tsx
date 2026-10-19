@@ -26,11 +26,7 @@ type CashDialogState =
   | { step: "movement"; kind: CashMovementKind }
   | { step: "close-register" };
 
-export function CashRegisterPanel({
-  organizationId,
-  ticketBusiness,
-  onOpenRegister,
-}: CashRegisterPanelProps) {
+export function CashRegisterPanel({ organizationId, ticketBusiness, onOpenRegister }: CashRegisterPanelProps) {
   const cashSessionQuery = useOpenCashSessionQuery(organizationId);
   const [dialogState, setDialogState] = useState<CashDialogState>({
     step: "closed",
@@ -51,21 +47,13 @@ export function CashRegisterPanel({
     <>
       <Button
         variant={isLoaded && !isRegisterOpen ? "default" : "outline"}
-        className="h-11 px-3 sm:px-4"
+        className="h-9 px-3 sm:px-4"
         aria-label={isRegisterOpen ? "Caixa aberto" : "Abrir caixa"}
-        onClick={() =>
-          isRegisterOpen
-            ? setDialogState({ step: "summary" })
-            : onOpenRegister()
-        }
+        onClick={() => (isRegisterOpen ? setDialogState({ step: "summary" }) : onOpenRegister())}
       >
         <Wallet aria-hidden />
-        <span className="hidden sm:inline">
-          {isLoaded && !isRegisterOpen ? "Abrir caixa" : "Caixa"}
-        </span>
-        {isRegisterOpen && (
-          <span aria-hidden className="size-2 rounded-full bg-emerald-500" />
-        )}
+        <span className="hidden sm:inline">{isLoaded && !isRegisterOpen ? "Abrir caixa" : "Caixa"}</span>
+        {isRegisterOpen && <span aria-hidden className="size-2 rounded-full bg-emerald-500" />}
       </Button>
 
       <DetailsDialog
@@ -77,9 +65,7 @@ export function CashRegisterPanel({
             <Button
               variant="outline"
               className={DIALOG_ACTION_BUTTON_CLASS_NAME}
-              onClick={() =>
-                setDialogState({ step: "movement", kind: "withdrawal" })
-              }
+              onClick={() => setDialogState({ step: "movement", kind: "withdrawal" })}
             >
               <ArrowUpFromLine aria-hidden />
               Sangria
@@ -87,9 +73,7 @@ export function CashRegisterPanel({
             <Button
               variant="outline"
               className={DIALOG_ACTION_BUTTON_CLASS_NAME}
-              onClick={() =>
-                setDialogState({ step: "movement", kind: "supply" })
-              }
+              onClick={() => setDialogState({ step: "movement", kind: "supply" })}
             >
               <ArrowDownToLine aria-hidden />
               Reforço

@@ -9,10 +9,7 @@ import { TextField } from "@/components/form/text-field";
 import { FieldGroup } from "@/components/ui/field";
 import { useCheckCustomerNameMutation } from "@/features/orders/hooks/use-check-customer-name-mutation";
 import { CUSTOMER_NAME_IN_USE_MESSAGE } from "@/features/orders/messages";
-import {
-  type OrderCustomerInput,
-  orderCustomerSchema,
-} from "@/features/orders/schemas";
+import { type OrderCustomerInput, orderCustomerSchema } from "@/features/orders/schemas";
 import type { OrganizationId } from "@/features/organizations/types";
 import { formatCurrency } from "@/lib/format";
 
@@ -45,8 +42,7 @@ export function CustomerDialog({
     defaultValues: EMPTY_CUSTOMER_FORM,
   });
 
-  const checkCustomerNameMutation =
-    useCheckCustomerNameMutation(organizationId);
+  const checkCustomerNameMutation = useCheckCustomerNameMutation(organizationId);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -68,8 +64,7 @@ export function CustomerDialog({
           message: CUSTOMER_NAME_IN_USE_MESSAGE,
         });
       },
-      onError: (error) =>
-        form.setError("customerName", { message: error.message }),
+      onError: (error) => form.setError("customerName", { message: error.message }),
     }),
   );
 
@@ -79,7 +74,7 @@ export function CustomerDialog({
       onOpenChange={(isDialogOpen) => !isDialogOpen && onClose()}
       title="Nome do cliente"
       isTitleHidden
-      submitLabel="Pagamento"
+      submitLabel="Enviar pedido"
       isSubmitting={checkCustomerNameMutation.isPending}
       onSubmit={handleSubmit}
     >
@@ -96,11 +91,7 @@ export function CustomerDialog({
             control={form.control}
             name="isTakeaway"
             label="Para levar"
-            description={
-              takeawayFee > 0
-                ? `Acrescenta ${formatCurrency(takeawayFee)} ao total.`
-                : undefined
-            }
+            description={takeawayFee > 0 ? `Acrescenta ${formatCurrency(takeawayFee)} ao total.` : undefined}
           />
         )}
       </FieldGroup>

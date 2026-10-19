@@ -3,12 +3,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Info } from "lucide-react";
 import { StockEntryButton } from "@/features/ingredients/components/stock-entry-button";
 import type { IngredientId } from "@/features/ingredients/types";
 import type { ProductAvailability } from "@/features/products/availability";
 import { IngredientStockLevels } from "@/features/products/components/ingredient-stock-levels";
 import { cn } from "@/lib/utils";
-import { Info } from "lucide-react";
 
 type AvailabilityBadgeProps = {
   productName: string;
@@ -38,7 +38,7 @@ export function AvailabilityBadge({
             type="button"
             aria-label={`${label} · ver o que falta para ${productName}`}
             className={cn(
-              "pointer-events-auto relative z-10 inline-flex h-5 shrink-0 items-center whitespace-nowrap rounded px-1.5 font-semibold text-[0.625rem] leading-none underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
+              "pointer-events-auto relative z-10 inline-flex h-5 max-w-full shrink-0 items-center overflow-hidden rounded px-1.5 font-semibold text-[0.625rem] leading-none underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
               isOut
                 ? "bg-muted-foreground text-background"
                 : "bg-destructive/15 text-destructive",

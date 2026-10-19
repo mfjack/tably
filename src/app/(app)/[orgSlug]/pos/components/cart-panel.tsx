@@ -1,13 +1,7 @@
 import { ClipboardPlus, CreditCard, Printer, ShoppingCart } from "lucide-react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import type { OrderTabTarget } from "@/features/orders/types";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -53,29 +47,14 @@ export function CartPanel({
   onAddToTab,
   onExitTabMode,
 }: CartPanelProps) {
-  const orderTotal = cartLines.reduce(
-    (total, cartLine) => total + cartLine.total,
-    0,
-  );
+  const orderTotal = cartLines.reduce((total, cartLine) => total + cartLine.total, 0);
   const isEmpty = cartLines.length === 0;
 
   return (
-    <aside
-      aria-label="Pedido atual"
-      className={cn(
-        "flex-col bg-muted/40",
-        CART_PANEL_VARIANT_CLASS_NAMES[variant],
-      )}
-    >
+    <aside aria-label="Pedido atual" className={cn("flex-col bg-muted/40", CART_PANEL_VARIANT_CLASS_NAMES[variant])}>
       {header}
-      {tabTarget && (
-        <TabModeBanner
-          customerName={tabTarget.customerName}
-          isDisabled={isAddingToTab}
-          onExit={onExitTabMode}
-        />
-      )}
-      <div className="min-h-0 flex-1 overflow-y-auto p-4 lg:p-6">
+      {tabTarget && <TabModeBanner customerName={tabTarget.customerName} isDisabled={isAddingToTab} onExit={onExitTabMode} />}
+      <div className="min-h-0 flex-1 overflow-y-auto p-4">
         {isEmpty ? (
           <Empty className="h-full">
             <EmptyHeader>
@@ -83,20 +62,13 @@ export function CartPanel({
                 <ShoppingCart aria-hidden />
               </EmptyMedia>
               <EmptyTitle>Nenhum item ainda</EmptyTitle>
-              <EmptyDescription>
-                Toque em um produto para adicionar ao pedido.
-              </EmptyDescription>
+              <EmptyDescription>Toque em um produto para adicionar ao pedido.</EmptyDescription>
             </EmptyHeader>
           </Empty>
         ) : (
           <ul className="flex flex-col gap-2.5">
             {cartLines.map((cartLine) => (
-              <CartItemCard
-                key={cartLine.key}
-                cartLine={cartLine}
-                onDecrement={onDecrement}
-                onEditNote={onEditItemNote}
-              />
+              <CartItemCard key={cartLine.key} cartLine={cartLine} onDecrement={onDecrement} onEditNote={onEditItemNote} />
             ))}
           </ul>
         )}
@@ -105,9 +77,7 @@ export function CartPanel({
       <footer className="flex flex-col gap-4 border-t bg-background p-4 lg:px-6 lg:py-5">
         <div className="flex items-baseline justify-between">
           <span className="font-semibold text-base">Total</span>
-          <span className="font-bold text-lg tabular-nums tracking-[-0.01em]">
-            {formatCurrency(orderTotal)}
-          </span>
+          <span className="font-bold text-lg tabular-nums tracking-[-0.01em]">{formatCurrency(orderTotal)}</span>
         </div>
         <div className="flex flex-col gap-2.5">
           {tabTarget ? (
@@ -137,7 +107,7 @@ export function CartPanel({
             <>
               <Button
                 type="button"
-                className="h-12 rounded-xl font-semibold text-base"
+                className="h-12 rounded-xl font-semibold text-sm"
                 disabled={isEmpty}
                 isLoading={isSendingToKitchen}
                 onClick={onSendToKitchen}
@@ -148,7 +118,7 @@ export function CartPanel({
               <Button
                 type="button"
                 variant="outline"
-                className="h-12 rounded-xl border-primary font-semibold text-base text-primary hover:text-primary"
+                className="h-12 rounded-xl border-primary font-semibold text-sm text-primary hover:text-primary"
                 disabled={isEmpty || isSendingToKitchen}
                 onClick={onQuickPayment}
               >

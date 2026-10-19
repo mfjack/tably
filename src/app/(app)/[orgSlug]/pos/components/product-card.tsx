@@ -42,7 +42,7 @@ function ProductCardComponent({ product, onAdd, onAddStock }: ProductCardProps) 
   return (
     <div
       className={cn(
-        "relative flex flex-col gap-2 rounded-xl border bg-card p-2 text-left transition-colors hover:border-primary/40 has-[button:disabled]:cursor-not-allowed",
+        "relative flex min-w-0 flex-col gap-2 rounded-xl border bg-card p-2 text-left transition-colors hover:border-primary/40 has-[button:disabled]:cursor-not-allowed",
         isInCart && !isLow && !isOut && "border-primary bg-primary/5",
         isLow && "border-destructive/25 bg-destructive/5",
         isOut && "border-dashed hover:border-border",
@@ -65,15 +65,15 @@ function ProductCardComponent({ product, onAdd, onAddStock }: ProductCardProps) 
         {product.imageUrl ? (
           <Image src={product.imageUrl} alt="" fill sizes="200px" className="object-cover" />
         ) : (
-          <ShoppingBag className="size-6" strokeWidth={1.5} aria-hidden />
+          <ShoppingBag className="size-4" strokeWidth={1.5} aria-hidden />
         )}
       </div>
 
-      <div className="pointer-events-none flex flex-col gap-0.5 px-1 pb-0.5">
+      <div className="pointer-events-none flex min-w-0 flex-col gap-0.5 px-1 pb-0.5">
         <span className={cn("truncate font-semibold text-sm", isOut && "text-muted-foreground/80")}>{product.name}</span>
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-2 gap-y-1">
           <span
-            className={cn("whitespace-nowrap text-muted-foreground text-sm tabular-nums", isOut && "text-muted-foreground/60")}
+            className={cn("whitespace-nowrap text-muted-foreground text-xs tabular-nums", isOut && "text-muted-foreground/60")}
           >
             {formatCurrency(product.price)}
           </span>

@@ -9,16 +9,14 @@ type ThermalPrinterWarningProps = {
   settingsHref: string;
 };
 
-export function ThermalPrinterWarning({
-  settingsHref,
-}: ThermalPrinterWarningProps) {
+export function ThermalPrinterWarning({ settingsHref }: ThermalPrinterWarningProps) {
   const status = useThermalPrinterStatus();
   if (status !== "disconnected") return null;
 
   return (
     <Button
       variant="outline"
-      className="h-11 border-destructive/40 px-3 text-destructive hover:text-destructive sm:px-4"
+      className="h-9 border-destructive/40 px-3 text-destructive hover:text-destructive sm:px-4"
       nativeButton={false}
       render={<Link href={settingsHref} />}
     >

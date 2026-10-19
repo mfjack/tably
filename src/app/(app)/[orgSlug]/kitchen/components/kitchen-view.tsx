@@ -13,11 +13,7 @@ import { useSetKitchenTicketStatusMutation } from "@/features/kitchen/hooks/use-
 import { playNewTicketSound } from "@/features/kitchen/play-new-ticket-sound";
 import { printKitchenTicket } from "@/features/kitchen/print-kitchen-ticket";
 import { getTicketDelayLevel } from "@/features/kitchen/ticket-delay";
-import type {
-  KitchenTicket,
-  KitchenTicketId,
-  KitchenTicketStatus,
-} from "@/features/kitchen/types";
+import type { KitchenTicket, KitchenTicketId, KitchenTicketStatus } from "@/features/kitchen/types";
 import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
 import type { OrganizationId } from "@/features/organizations/types";
 import { useNow } from "@/hooks/use-now";
@@ -43,13 +39,7 @@ type KitchenViewProps = {
   description: string;
 };
 
-export function KitchenView({
-  organizationId,
-  ticketBusiness,
-  lateMinutes,
-  title,
-  description,
-}: KitchenViewProps) {
+export function KitchenView({ organizationId, ticketBusiness, lateMinutes, title, description }: KitchenViewProps) {
   const now = useNow(ELAPSED_TIME_REFRESH_IN_MS);
   const [mobileColumn, setMobileColumn] = useState<KitchenColumnId>("waiting");
   const kitchenTicketsQuery = useKitchenTicketsQuery(organizationId);
@@ -63,19 +53,14 @@ export function KitchenView({
     const tickets = kitchenTicketsQuery.data ?? [];
     return {
       waitingTickets: tickets.filter((ticket) => ticket.status === "waiting"),
-      preparingTickets: tickets.filter(
-        (ticket) => ticket.status === "preparing",
-      ),
+      preparingTickets: tickets.filter((ticket) => ticket.status === "preparing"),
       readyTickets: tickets.filter((ticket) => ticket.status === "ready"),
     };
   }, [kitchenTicketsQuery.data]);
 
   const changeStatus = useCallback(
     (ticketId: KitchenTicketId, status: KitchenTicketStatus) =>
-      setTicketStatus(
-        { ticketId, status },
-        { onError: (error) => toast.error(error.message) },
-      ),
+      setTicketStatus({ ticketId, status }, { onError: (error) => toast.error(error.message) }),
     [setTicketStatus],
   );
 
@@ -99,25 +84,17 @@ export function KitchenView({
         description={description}
         actions={
           lateTicketCount > 0 && (
-            <Badge
-              variant="destructive"
-              className="h-9 gap-1.5 px-3 text-sm"
-              role="status"
-            >
+            <Badge variant="destructive" className="h-9 gap-1.5 px-3 text-sm" role="status">
               <AlarmClock aria-hidden />
-              {lateTicketCount === 1
-                ? "1 pedido atrasado"
-                : `${lateTicketCount} pedidos atrasados`}
+              {lateTicketCount === 1 ? "1 pedido atrasado" : `${lateTicketCount} pedidos atrasados`}
             </Badge>
           )
         }
       />
-      <main className="flex min-h-0 flex-1 flex-col px-4 py-6 md:px-8">
+      <main className="flex min-h-0 flex-1 flex-col px-4 py-6 md:px-6">
         {kitchenTicketsQuery.error ? (
           <Alert variant="destructive">
-            <AlertDescription>
-              {kitchenTicketsQuery.error.message}
-            </AlertDescription>
+            <AlertDescription>{kitchenTicketsQuery.error.message}</AlertDescription>
           </Alert>
         ) : (
           <div className="flex min-h-0 flex-1 flex-col gap-4">
@@ -131,21 +108,15 @@ export function KitchenView({
               <TabsList className="w-full group-data-horizontal/tabs:h-10">
                 <TabsTrigger value="waiting">
                   No aguardo
-                  <span className="text-muted-foreground tabular-nums">
-                    {waitingTickets.length}
-                  </span>
+                  <span className="text-muted-foreground tabular-nums">{waitingTickets.length}</span>
                 </TabsTrigger>
                 <TabsTrigger value="preparing">
                   Em preparo
-                  <span className="text-muted-foreground tabular-nums">
-                    {preparingTickets.length}
-                  </span>
+                  <span className="text-muted-foreground tabular-nums">{preparingTickets.length}</span>
                 </TabsTrigger>
                 <TabsTrigger value="ready">
                   Pronto
-                  <span className="text-muted-foreground tabular-nums">
-                    {readyTickets.length}
-                  </span>
+                  <span className="text-muted-foreground tabular-nums">{readyTickets.length}</span>
                 </TabsTrigger>
               </TabsList>
             </Tabs>
