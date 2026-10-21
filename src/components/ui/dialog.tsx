@@ -7,7 +7,13 @@ import type * as React from "react";
 import { Button } from "@/components/ui/button";
 
 function Dialog({ ...props }: DialogPrimitive.Root.Props) {
-  return <DialogPrimitive.Root data-slot="dialog" {...props} />;
+  return (
+    <DialogPrimitive.Root
+      data-slot="dialog"
+      {...props}
+      disablePointerDismissal
+    />
+  );
 }
 
 function DialogTrigger({ ...props }: DialogPrimitive.Trigger.Props) {
