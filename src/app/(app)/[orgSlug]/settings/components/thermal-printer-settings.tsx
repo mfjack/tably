@@ -15,6 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import {
   connectThermalPrinter,
   getThermalPaperColumns,
+  isRawBtSupported,
   isThermalPrintingSupported,
   printThermalReceipt,
   reconnectThermalPrinter,
@@ -124,9 +125,9 @@ export function ThermalPrinterSettings() {
       <header className="flex flex-col gap-1">
         <h2 className="font-semibold text-lg">Impressora térmica</h2>
         <p className="text-muted-foreground text-sm">
-          Imprime os tickets direto na impressora USB, sem abrir a janela de
-          impressão. A configuração vale só para este computador, então faça em
-          cada aparelho que imprime.
+          {isRawBtSupported()
+            ? "Envia os tickets diretamente para o RawBT, que deve estar configurado para a impressora Ethernet."
+            : "Imprime os tickets direto na impressora USB, sem abrir a janela de impressão. A configuração vale só para este computador, então faça em cada aparelho que imprime."}
         </p>
       </header>
 
@@ -193,7 +194,13 @@ export function ThermalPrinterSettings() {
               onClick={pairPrinter}
             >
               <Printer aria-hidden />
-              {printerName ? "Parear outra impressora" : "Parear impressora"}
+              {isRawBtSupported()
+                ? printerName
+                  ? "Reconfigurar RawBT"
+                  : "Usar RawBT"
+                : printerName
+                  ? "Parear outra impressora"
+                  : "Parear impressora"}
             </Button>
             <Button
               type="button"
