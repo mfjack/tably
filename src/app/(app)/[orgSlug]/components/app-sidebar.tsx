@@ -33,7 +33,7 @@ export function AppSidebar({
 }: AppSidebarProps) {
   return (
     <Sidebar
-      collapsible="icon"
+      collapsible="offcanvas"
       className="group-data-[state=expanded]:z-40 group-data-[state=expanded]:shadow-2xl"
     >
       <SidebarHeader>

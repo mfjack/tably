@@ -73,10 +73,7 @@ export default async function OrganizationLayout({
   );
 
   return (
-    <SidebarProvider
-      defaultOpen={false}
-      className="[&_[data-slot=sidebar-gap]]:w-(--sidebar-width-icon)!"
-    >
+    <SidebarProvider defaultOpen={false}>
       <AppSidebar
         organization={organization}
         organizations={organizations}
