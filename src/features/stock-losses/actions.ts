@@ -29,6 +29,24 @@ import type {
 
 const MONTH_LOSSES_LIMIT = 500;
 
+export async function hasStockLosses(
+  organizationId: OrganizationId,
+): Promise<ActionResult<boolean>> {
+  if (!(await hasModuleAccess(organizationId, "ingredients"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
+
+  const supabase = await createClient();
+  const { count, error } = await supabase
+    .from("stock_losses")
+    .select("id", { count: "exact", head: true })
+    .eq("organization_id", organizationId);
+
+  if (error)
+    return databaseFailure("Não foi possível carregar as perdas.", error);
+  return actionSuccess((count ?? 0) > 0);
+}
+
 export async function listStockLosses(
   organizationId: OrganizationId,
   monthKey: string,

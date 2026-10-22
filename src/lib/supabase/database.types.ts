@@ -2513,90 +2513,6 @@ export type Database = {
           },
         ]
       }
-      stock_count_items: {
-        Row: {
-          count_id: string
-          counted_quantity: number
-          ingredient_id: string
-          organization_id: string
-          system_quantity: number
-          unit_cost: number
-        }
-        Insert: {
-          count_id: string
-          counted_quantity: number
-          ingredient_id: string
-          organization_id: string
-          system_quantity: number
-          unit_cost: number
-        }
-        Update: {
-          count_id?: string
-          counted_quantity?: number
-          ingredient_id?: string
-          organization_id?: string
-          system_quantity?: number
-          unit_cost?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "stock_count_items_count_id_organization_id_fkey"
-            columns: ["count_id", "organization_id"]
-            isOneToOne: false
-            referencedRelation: "stock_counts"
-            referencedColumns: ["id", "organization_id"]
-          },
-          {
-            foreignKeyName: "stock_count_items_ingredient_id_organization_id_fkey"
-            columns: ["ingredient_id", "organization_id"]
-            isOneToOne: false
-            referencedRelation: "ingredients"
-            referencedColumns: ["id", "organization_id"]
-          },
-          {
-            foreignKeyName: "stock_count_items_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      stock_counts: {
-        Row: {
-          counted_at: string
-          counted_by: string | null
-          counted_by_name: string | null
-          difference_value: number
-          id: string
-          organization_id: string
-        }
-        Insert: {
-          counted_at?: string
-          counted_by?: string | null
-          counted_by_name?: string | null
-          difference_value?: number
-          id?: string
-          organization_id: string
-        }
-        Update: {
-          counted_at?: string
-          counted_by?: string | null
-          counted_by_name?: string | null
-          difference_value?: number
-          id?: string
-          organization_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "stock_counts_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       stock_entries: {
         Row: {
           created_at: string
@@ -2734,7 +2650,6 @@ export type Database = {
           organization_id: string
           production_batch_id: string | null
           quantity: number
-          stock_count_id: string | null
           stock_loss_id: string | null
         }
         Insert: {
@@ -2745,7 +2660,6 @@ export type Database = {
           organization_id: string
           production_batch_id?: string | null
           quantity: number
-          stock_count_id?: string | null
           stock_loss_id?: string | null
         }
         Update: {
@@ -2756,7 +2670,6 @@ export type Database = {
           organization_id?: string
           production_batch_id?: string | null
           quantity?: number
-          stock_count_id?: string | null
           stock_loss_id?: string | null
         }
         Relationships: [
@@ -2786,13 +2699,6 @@ export type Database = {
             columns: ["production_batch_id"]
             isOneToOne: false
             referencedRelation: "production_batches"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "stock_movements_stock_count_id_fkey"
-            columns: ["stock_count_id"]
-            isOneToOne: false
-            referencedRelation: "stock_counts"
             referencedColumns: ["id"]
           },
           {
@@ -3567,14 +3473,6 @@ export type Database = {
           p_pin_hash: string
         }
         Returns: undefined
-      }
-      apply_stock_count: {
-        Args: { p_counts: Json; p_organization_id: string }
-        Returns: {
-          adjusted_count: number
-          count_id: string
-          difference_value: number
-        }[]
       }
       assert_payment_method_accepted: {
         Args: {

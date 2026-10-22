@@ -2,7 +2,6 @@
 
 import {
   ChevronDown,
-  ClipboardCheck,
   FileUp,
   Package,
   PackageMinus,
@@ -24,6 +23,7 @@ import { needsPurchase } from "@/features/ingredients/shopping-list";
 import type { Ingredient } from "@/features/ingredients/types";
 import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
 import type { OrganizationId } from "@/features/organizations/types";
+import { useHasStockLossesQuery } from "@/features/stock-losses/hooks/use-has-stock-losses-query";
 import { useSuppliersQuery } from "@/features/suppliers/hooks/use-suppliers-query";
 import { ListEmptyState } from "../../components/list-empty-state";
 import { PageContent } from "../../components/page-content";
@@ -35,7 +35,6 @@ import { IngredientsTable } from "./ingredients-table";
 import { InvoiceImportDialog } from "./invoice-import-dialog";
 import { PreparedRecipeDialog } from "./prepared-recipe-dialog";
 import { ProductionDialog } from "./production-dialog";
-import { StockCountDialog } from "./stock-count-dialog";
 import { StockLossFormDialog } from "./stock-loss-form-dialog";
 import { StockLossesDialog } from "./stock-losses-dialog";
 
@@ -67,8 +66,8 @@ export function IngredientsView({
   const suppliersQuery = useSuppliersQuery(organizationId);
   const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
   const [isInvoiceImportOpen, setIsInvoiceImportOpen] = useState(false);
-  const [isStockCountOpen, setIsStockCountOpen] = useState(false);
   const [isLossesOpen, setIsLossesOpen] = useState(false);
+  const hasStockLossesQuery = useHasStockLossesQuery(organizationId);
   const [ingredientForProduction, setIngredientForProduction] =
     useState<Ingredient | null>(null);
   const [ingredientForRecipe, setIngredientForRecipe] =
@@ -149,33 +148,16 @@ export function IngredientsView({
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={
-                  <Button
-                    variant="outline"
-                    className="h-10"
-                    disabled={!ingredientsQuery.data?.length}
-                  />
-                }
+            {hasStockLossesQuery.data && (
+              <Button
+                variant="outline"
+                className="h-10"
+                onClick={() => setIsLossesOpen(true)}
               >
-                <Package aria-hidden />
-                <span className="max-sm:sr-only">Estoque</span>
-                <ChevronDown aria-hidden />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="min-w-56">
-                {canManage && (
-                  <DropdownMenuItem onClick={() => setIsStockCountOpen(true)}>
-                    <ClipboardCheck aria-hidden />
-                    Contar estoque
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem onClick={() => setIsLossesOpen(true)}>
-                  <PackageMinus aria-hidden />
-                  Perdas do mês
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                <PackageMinus aria-hidden />
+                <span className="max-sm:sr-only">Perdas do mês</span>
+              </Button>
+            )}
             {canManage && (
               <Button className="h-10" onClick={openCreateForm}>
                 <Plus aria-hidden />
@@ -262,12 +244,6 @@ export function IngredientsView({
           onClose={() => setIngredientForLoss(null)}
         />
       )}
-      <StockCountDialog
-        organizationId={organizationId}
-        isOpen={isStockCountOpen}
-        ingredients={ingredientsQuery.data ?? EMPTY_INGREDIENTS}
-        onClose={() => setIsStockCountOpen(false)}
-      />
       <StockEntryDialog
         organizationId={organizationId}
         ingredient={ingredientForStockEntry}
