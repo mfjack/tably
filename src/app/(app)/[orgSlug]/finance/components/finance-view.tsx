@@ -2,6 +2,7 @@
 
 import {
   FileSpreadsheet,
+  FileUp,
   MoreHorizontal,
   Tags,
   TrendingDown,
@@ -42,10 +43,11 @@ import { CategoriesDialog } from "./categories-dialog";
 import { DeleteEntryDialog } from "./delete-entry-dialog";
 import { EntriesPanel } from "./entries-panel";
 import { EntryFormDialog, type EntryFormState } from "./entry-form-dialog";
+import { FinanceImportDialog } from "./finance-import-dialog";
 import { FinanceOverview } from "./finance-overview";
 import { OpeningBalanceDialog } from "./opening-balance-dialog";
 
-type OpenDialog = "none" | "categories" | "opening-balance";
+type OpenDialog = "none" | "categories" | "opening-balance" | "import";
 
 type PaymentState = { entry: FinancialEntry; today: string } | null;
 
@@ -187,6 +189,10 @@ export function FinanceView({
                   <FileSpreadsheet aria-hidden />
                   Baixar Excel do mês
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setOpenDialog("import")}>
+                  <FileUp aria-hidden />
+                  Importar do Excel
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </>
@@ -258,6 +264,11 @@ export function FinanceView({
         organizationId={organizationId}
         entry={entryToDelete}
         onClose={() => setEntryToDelete(null)}
+      />
+      <FinanceImportDialog
+        organizationId={organizationId}
+        isOpen={openDialog === "import"}
+        onClose={() => setOpenDialog("none")}
       />
       <CategoriesDialog
         organizationId={organizationId}
