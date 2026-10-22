@@ -25,6 +25,9 @@ const PAPER_COLUMNS = {
 const DEFAULT_PAPER_WIDTH: ThermalPaperWidth = "80mm";
 const DEFAULT_PRINTER_NAME = "Impressora térmica";
 const RAWBT_PRINTER_NAME = "RawBT";
+const RAWBT_WEBSOCKET_URL = "ws://127.0.0.1:40213/";
+const RAWBT_WEBSOCKET_TIMEOUT_IN_MS = 1500;
+const WEBSOCKET_NORMAL_CLOSURE = 1000;
 
 type ConnectedThermalPrinter = {
   device: USBDevice;
@@ -271,7 +274,42 @@ function buildRawBtIntentUrl(bytes: Uint8Array): string {
   return `intent:base64,${window.btoa(binary)}${RAWBT_INTENT_SUFFIX}`;
 }
 
-function printRawBtReceipt(bytes: Uint8Array): Promise<void> {
+let isRawBtWebSocketUnavailable = false;
+
+function sendRawBtWebSocket(bytes: Uint8Array): Promise<boolean> {
+  return new Promise((resolve) => {
+    let isSettled = false;
+    let socket: WebSocket;
+
+    function settle(isSent: boolean) {
+      if (isSettled) return;
+      isSettled = true;
+      window.clearTimeout(timeoutId);
+      resolve(isSent);
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      socket?.close();
+      settle(false);
+    }, RAWBT_WEBSOCKET_TIMEOUT_IN_MS);
+
+    try {
+      socket = new WebSocket(RAWBT_WEBSOCKET_URL);
+    } catch {
+      settle(false);
+      return;
+    }
+    socket.binaryType = "arraybuffer";
+    socket.onopen = () => {
+      socket.send(bytes);
+      socket.close(WEBSOCKET_NORMAL_CLOSURE);
+      settle(true);
+    };
+    socket.onerror = () => settle(false);
+  });
+}
+
+function openRawBtIntent(bytes: Uint8Array) {
   const link = document.createElement("a");
   link.href = buildRawBtIntentUrl(bytes);
   link.setAttribute("aria-hidden", "true");
@@ -279,7 +317,14 @@ function printRawBtReceipt(bytes: Uint8Array): Promise<void> {
   document.body.appendChild(link);
   link.click();
   link.remove();
-  return Promise.resolve();
+}
+
+async function printRawBtReceipt(bytes: Uint8Array): Promise<void> {
+  if (!isRawBtWebSocketUnavailable) {
+    if (await sendRawBtWebSocket(bytes)) return;
+    isRawBtWebSocketUnavailable = true;
+  }
+  openRawBtIntent(bytes);
 }
 
 export function forgetThermalPrinter(device: USBDevice) {
