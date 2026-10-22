@@ -1,7 +1,7 @@
 import * as z from "zod";
 import { SHELF_LIFE_UNITS, STORAGE_CONDITIONS } from "./labels";
 
-export const MAX_LABEL_COPIES = 20;
+const MAX_LABEL_COPIES = 20;
 
 export const foodLabelFormSchema = z.object({
   ingredientId: z.string().optional(),

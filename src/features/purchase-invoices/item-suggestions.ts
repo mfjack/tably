@@ -16,7 +16,7 @@ type IngredientCandidate = {
   name: string;
 };
 
-export function normalizeText(value: string): string {
+function normalizeText(value: string): string {
   return value.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 }
 

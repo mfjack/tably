@@ -1,7 +1,7 @@
 import type { EntryListFilter } from "@/features/finance/schemas";
 import { createOptionParser } from "@/lib/search-params";
 
-export const FINANCE_TABS = [
+const FINANCE_TABS = [
   "overview",
   "payables",
   "income-statement",

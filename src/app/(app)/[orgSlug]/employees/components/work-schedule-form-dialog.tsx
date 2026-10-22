@@ -20,8 +20,8 @@ import {
   workScheduleSchema,
 } from "@/features/employees/schemas";
 import type { WorkSchedule } from "@/features/employees/types";
-import { getWeekdayLabel } from "@/features/employees/work-schedule-labels";
 import type { OrganizationId } from "@/features/organizations/types";
+import { getWeekdayLabel } from "@/lib/weekdays";
 
 const WEEKDAYS = [1, 2, 3, 4, 5, 6, 7] as const;
 

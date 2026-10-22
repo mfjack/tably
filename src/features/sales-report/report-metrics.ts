@@ -9,19 +9,9 @@ import type {
   SalesReport,
 } from "./types";
 
-export const RANKING_SIZE = 5;
-export const NO_OPERATOR_LABEL = "Sem operador";
-export const MIN_DAYS_FOR_WEEKDAY_CHART = 7;
-
-export const WEEKDAY_LABELS = [
-  "Segunda",
-  "Terça",
-  "Quarta",
-  "Quinta",
-  "Sexta",
-  "Sábado",
-  "Domingo",
-] as const;
+const RANKING_SIZE = 5;
+const NO_OPERATOR_LABEL = "Sem operador";
+const MIN_DAYS_FOR_WEEKDAY_CHART = 7;
 
 export type PaymentTotals = Record<
   PaymentMethod,
@@ -137,7 +127,7 @@ export function sumPaymentTotals(totals: PaymentTotals) {
   );
 }
 
-export function getOperatorName(operatorName: string | null): string {
+function getOperatorName(operatorName: string | null): string {
   return operatorName ?? NO_OPERATOR_LABEL;
 }
 
@@ -184,7 +174,7 @@ export function getOperatorClosings(report: SalesReport): OperatorClosing[] {
   });
 }
 
-export function getSoldProducts(report: SalesReport): ProductSales[] {
+function getSoldProducts(report: SalesReport): ProductSales[] {
   return report.products.filter((product) => product.quantity > 0);
 }
 
@@ -251,10 +241,6 @@ export function formatHour(hour: number): string {
 
 export function formatHourRange(hour: number): string {
   return `${formatHour(hour)} às ${formatHour((hour + 1) % 24)}`;
-}
-
-export function formatWeekday(weekday: number): string {
-  return WEEKDAY_LABELS[weekday - 1] ?? "";
 }
 
 export function hasWeekdayChart(report: SalesReport): boolean {

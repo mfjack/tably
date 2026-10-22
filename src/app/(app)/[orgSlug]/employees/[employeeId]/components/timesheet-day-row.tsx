@@ -7,10 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  describeScheduleDay,
-  getWeekdayShortLabel,
-} from "@/features/employees/work-schedule-labels";
+import { describeScheduleDay } from "@/features/employees/work-schedule-labels";
 import { TIME_OFF_KIND_LABELS } from "@/features/time-clock/labels";
 import {
   formatMinutes,
@@ -21,6 +18,7 @@ import type {
   TimesheetPunch,
 } from "@/features/time-clock/timesheet";
 import { cn } from "@/lib/utils";
+import { getWeekdayShortLabel } from "@/lib/weekdays";
 import { DayPunchList } from "./day-punch-list";
 
 type TimesheetDayRowProps = {

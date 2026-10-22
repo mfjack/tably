@@ -35,7 +35,7 @@ export type AppModuleGroup = {
   modules: readonly AppModule[];
 };
 
-export const APP_MODULE_GROUPS = [
+const APP_MODULE_GROUPS = [
   {
     label: "Operação",
     modules: [

@@ -1,3 +1,4 @@
+import { ORDER_ITEM_NOTE_MAX_LENGTH } from "@/features/orders/schemas";
 import type { ProductId } from "@/features/products/types";
 
 export type CartItem = {
@@ -8,8 +9,6 @@ export type CartItem = {
 };
 
 type CartItemIdentity = Pick<CartItem, "productId" | "note" | "addonIds">;
-
-export const CART_ITEM_NOTE_MAX_LENGTH = 140;
 
 function normalizeAddonIds(addonIds: readonly string[] = []): string[] {
   return [...new Set(addonIds)].sort();
@@ -85,7 +84,7 @@ export function updateItemNote(
   quantityToMove: number,
   addonIds?: readonly string[],
 ): CartItem[] {
-  const normalizedNote = nextNote.trim().slice(0, CART_ITEM_NOTE_MAX_LENGTH);
+  const normalizedNote = nextNote.trim().slice(0, ORDER_ITEM_NOTE_MAX_LENGTH);
   const editedItem = items.find((item) =>
     isSameLine(item, productId, currentNote, addonIds),
   );

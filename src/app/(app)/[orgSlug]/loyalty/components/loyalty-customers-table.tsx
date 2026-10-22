@@ -1,7 +1,4 @@
 "use client";
-
-import { formatDistanceToNowStrict } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { Gift, ReceiptText, SlidersHorizontal } from "lucide-react";
 import { type ReactNode, useMemo } from "react";
 import { DataTable } from "@/components/data-table/data-table";
@@ -11,6 +8,7 @@ import { useDataTable } from "@/components/data-table/use-data-table";
 import { Badge } from "@/components/ui/badge";
 import { WhatsAppLink } from "@/components/whatsapp-link";
 import type { LoyaltyCustomer, LoyaltyProgram } from "@/features/loyalty/types";
+import { formatTimeAgo } from "@/lib/format-date";
 
 const EMPTY_CUSTOMERS: LoyaltyCustomer[] = [];
 
@@ -96,9 +94,7 @@ export function LoyaltyCustomersTable({
             const lastVisitAt = getValue();
             return (
               <span className="text-muted-foreground">
-                {lastVisitAt
-                  ? `há ${formatDistanceToNowStrict(new Date(lastVisitAt), { locale: ptBR })}`
-                  : "—"}
+                {lastVisitAt ? formatTimeAgo(lastVisitAt) : "—"}
               </span>
             );
           },

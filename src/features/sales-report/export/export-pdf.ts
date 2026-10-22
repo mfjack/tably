@@ -1,6 +1,7 @@
 import { format } from "date-fns";
 import { downloadFile } from "@/lib/download-file";
 import { formatCnpj, formatPhone } from "@/lib/masks";
+import { createA4PdfDocument, PDF_MUTED_TEXT_COLOR } from "@/lib/pdf-document";
 import {
   formatReportPeriod,
   formatReportPeriodForFile,
@@ -20,7 +21,6 @@ const TABLE_GAP_IN_MM = 8;
 const MIN_SPACE_FOR_TABLE_IN_MM = 40;
 const PAGE_TOP_IN_MM = 20;
 const PRIMARY_COLOR: [number, number, number] = [10, 10, 10];
-const MUTED_TEXT_COLOR: [number, number, number] = [94, 107, 102];
 
 type DocumentWithLastTable = {
   lastAutoTable?: { finalY?: number };
@@ -35,14 +35,8 @@ export async function exportSalesReportPdf({
   business,
   generatedAt,
 }: SalesReportExportInput): Promise<void> {
-  const [{ jsPDF }, { autoTable }] = await Promise.all([
-    import("jspdf"),
-    import("jspdf-autotable"),
-  ]);
-
-  const document = new jsPDF({ unit: "mm", format: "a4" });
-  const pageWidth = document.internal.pageSize.getWidth();
-  const pageHeight = document.internal.pageSize.getHeight();
+  const { document, autoTable, pageWidth, pageHeight } =
+    await createA4PdfDocument();
   const businessDetails = [
     business.taxId ? `CNPJ ${formatCnpj(business.taxId)}` : null,
     business.phone ? `Tel. ${formatPhone(business.phone)}` : null,
@@ -55,7 +49,7 @@ export async function exportSalesReportPdf({
 
   document.setFont("helvetica", "normal");
   document.setFontSize(9);
-  document.setTextColor(...MUTED_TEXT_COLOR);
+  document.setTextColor(...PDF_MUTED_TEXT_COLOR);
   if (businessDetails.length > 0) {
     document.text(businessDetails.join("  ·  "), PAGE_MARGIN_IN_MM, 26);
   }
@@ -70,7 +64,7 @@ export async function exportSalesReportPdf({
   );
   document.setFont("helvetica", "normal");
   document.setFontSize(9);
-  document.setTextColor(...MUTED_TEXT_COLOR);
+  document.setTextColor(...PDF_MUTED_TEXT_COLOR);
   document.text(
     `Emitido em ${format(generatedAt, "dd/MM/yyyy, HH:mm")}`,
     pageWidth - PAGE_MARGIN_IN_MM,

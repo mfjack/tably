@@ -1,17 +1,12 @@
 "use client";
 
-import {
-  CalendarClock,
-  KeyRound,
-  Pencil,
-  RotateCcwKey,
-  Trash2,
-} from "lucide-react";
+import { CalendarClock, KeyRound, RotateCcwKey } from "lucide-react";
 import Link from "next/link";
 import { type ReactNode, useMemo } from "react";
 import { DataTable } from "@/components/data-table/data-table";
 import { createDataTableColumnHelper } from "@/components/data-table/data-table-features";
 import { DataTableRowActionButton } from "@/components/data-table/data-table-row-action-button";
+import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { useDataTable } from "@/components/data-table/use-data-table";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -154,7 +149,13 @@ export function EmployeesTable({
         id: "actions",
         header: () => <span className="sr-only">Ações</span>,
         cell: ({ row }) => (
-          <div className="flex justify-end gap-2">
+          <DataTableRowActions
+            itemLabel={row.original.name}
+            onEdit={() => onEdit(row.original)}
+            onDelete={
+              row.original.canDelete ? () => onDelete(row.original) : undefined
+            }
+          >
             <DataTableRowActionButton
               label="Espelho de ponto"
               accessibleLabel={`Espelho de ponto de ${row.original.name}`}
@@ -169,22 +170,7 @@ export function EmployeesTable({
                 onClick={() => onResetPin(row.original)}
               />
             )}
-            <DataTableRowActionButton
-              label="Editar"
-              accessibleLabel={`Editar ${row.original.name}`}
-              icon={Pencil}
-              onClick={() => onEdit(row.original)}
-            />
-            {row.original.canDelete && (
-              <DataTableRowActionButton
-                label="Excluir"
-                accessibleLabel={`Excluir ${row.original.name}`}
-                icon={Trash2}
-                variant="destructive"
-                onClick={() => onDelete(row.original)}
-              />
-            )}
-          </div>
+          </DataTableRowActions>
         ),
       }),
     ]);

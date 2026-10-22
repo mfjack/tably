@@ -6,7 +6,7 @@ import {
   parseISO,
 } from "date-fns";
 
-export const FULL_VACATION_DAYS = 30;
+const FULL_VACATION_DAYS = 30;
 const MONTHS_PER_PERIOD = 12;
 
 export type AcquisitionPeriod = {

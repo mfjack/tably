@@ -1,15 +1,15 @@
 import * as z from "zod";
 import { LOYALTY_PHONE_PATTERN } from "@/features/loyalty/schemas";
-import { CART_ITEM_NOTE_MAX_LENGTH } from "@/features/pos/cart-items";
+import { ORDER_ITEM_NOTE_MAX_LENGTH } from "@/features/orders/schemas";
 
-export const ONLINE_ORDER_MAX_ITEM_QUANTITY = 50;
+const ONLINE_ORDER_MAX_ITEM_QUANTITY = 50;
 
-export const onlineOrderItemsSchema = z
+const onlineOrderItemsSchema = z
   .array(
     z.object({
       productId: z.uuid(),
       quantity: z.number().int().positive().max(ONLINE_ORDER_MAX_ITEM_QUANTITY),
-      note: z.string().trim().max(CART_ITEM_NOTE_MAX_LENGTH),
+      note: z.string().trim().max(ORDER_ITEM_NOTE_MAX_LENGTH),
       addonIds: z.array(z.uuid()).max(30).optional(),
     }),
   )

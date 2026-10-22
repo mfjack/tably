@@ -23,9 +23,7 @@ import type { Ingredient } from "@/features/ingredients/types";
 import { needsProduction } from "@/features/prepared-ingredients/production-needs";
 import { cn } from "@/lib/utils";
 
-type IngredientRowActionsProps = {
-  ingredient: Ingredient;
-  canManage: boolean;
+export type IngredientRowActionHandlers = {
   onStockEntry: (ingredient: Ingredient) => void;
   onLoss: (ingredient: Ingredient) => void;
   onPrintLabel: (ingredient: Ingredient) => void;
@@ -33,6 +31,11 @@ type IngredientRowActionsProps = {
   onEditRecipe: (ingredient: Ingredient) => void;
   onEdit: (ingredient: Ingredient) => void;
   onDelete: (ingredient: Ingredient) => void;
+};
+
+type IngredientRowActionsProps = IngredientRowActionHandlers & {
+  ingredient: Ingredient;
+  canManage: boolean;
 };
 
 export function IngredientRowActions({

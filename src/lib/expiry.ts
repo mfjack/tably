@@ -1,6 +1,6 @@
 import { differenceInCalendarDays, parseISO, startOfToday } from "date-fns";
 
-export const EXPIRY_WARNING_DAYS = 7;
+const EXPIRY_WARNING_DAYS = 7;
 
 export type ExpiryStatus =
   | { status: "none" }

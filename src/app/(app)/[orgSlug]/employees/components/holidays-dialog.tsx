@@ -18,10 +18,10 @@ import { useDeleteHolidayMutation } from "@/features/employees/hooks/use-delete-
 import { useHolidaysQuery } from "@/features/employees/hooks/use-holidays-query";
 import { useSaveHolidayMutation } from "@/features/employees/hooks/use-save-holiday-mutation";
 import { type HolidayInput, holidaySchema } from "@/features/employees/schemas";
-import { getWeekdayShortLabel } from "@/features/employees/work-schedule-labels";
 import type { OrganizationId } from "@/features/organizations/types";
 import { getIsoWeekday } from "@/features/time-clock/time-utils";
 import { formatDateKey } from "@/lib/format";
+import { getWeekdayShortLabel } from "@/lib/weekdays";
 
 const EMPTY_HOLIDAY_FORM: HolidayInput = { date: "", name: "" };
 

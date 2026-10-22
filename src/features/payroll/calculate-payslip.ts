@@ -46,7 +46,7 @@ function getDayOfMonth(date: string): number {
   return Number(date.slice(8, 10));
 }
 
-export function getPaidDays(
+function getPaidDays(
   employee: CalculatePayslipInput["employee"],
   monthKey: string,
 ): number {

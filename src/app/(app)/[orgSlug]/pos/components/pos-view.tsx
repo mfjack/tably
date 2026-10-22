@@ -3,6 +3,7 @@
 import { ClipboardList } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
+import { ItemNoteDialog } from "@/components/item-note-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useOpenCashSessionQuery } from "@/features/cash-register/hooks/use-open-cash-session-query";
 import {
@@ -55,7 +56,6 @@ import { CashRegisterPanel } from "./cash-register-panel";
 import { CategoryFilter, type CategoryFilterOption } from "./category-filter";
 import { CustomerDialog } from "./customer-dialog";
 import { type GroupOrderEntry, GroupOrdersDialog } from "./group-orders-dialog";
-import { ItemNoteDialog } from "./item-note-dialog";
 import { MobileCartSheet } from "./mobile-cart-sheet";
 import { OfflineStatus } from "./offline-status";
 import { OnlineOrdersPanel } from "./online-orders-panel";
@@ -330,6 +330,26 @@ export function PosView({
     />
   ) : null;
 
+  const cartPanelProps = {
+    header: cartTabsBar,
+    cartLines: isCartHydrated ? cartLines : [],
+    isSendingToKitchen: checkout.isPlacingOrder || groupCheckout.isPlacing,
+    sendToKitchenLabel: hasManyOrders
+      ? `Imprimir todos (${tabsWithItems.length})`
+      : undefined,
+    onDecrement: handleDecrementItem,
+    onEditItemNote: setNoteCartLine,
+    onSendToKitchen: startSendToKitchen,
+    onQuickPayment: startQuickPayment,
+    quickPaymentLabel: hasManyOrders
+      ? `Pagamento (${tabsWithItems.length})`
+      : undefined,
+    tabTarget,
+    isAddingToTab: checkout.isAddingToTab,
+    onAddToTab: checkout.addToTab,
+    onExitTabMode: () => setTabTarget(organizationId, null),
+  };
+
   return (
     <div className="flex h-svh min-h-0 flex-col md:flex-row">
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
@@ -402,46 +422,8 @@ export function PosView({
         )}
       </div>
 
-      <CartPanel
-        header={cartTabsBar}
-        variant="sidebar"
-        cartLines={isCartHydrated ? cartLines : []}
-        isSendingToKitchen={checkout.isPlacingOrder || groupCheckout.isPlacing}
-        sendToKitchenLabel={
-          hasManyOrders ? `Imprimir todos (${tabsWithItems.length})` : undefined
-        }
-        onDecrement={handleDecrementItem}
-        onEditItemNote={setNoteCartLine}
-        onSendToKitchen={startSendToKitchen}
-        onQuickPayment={startQuickPayment}
-        quickPaymentLabel={
-          hasManyOrders ? `Pagamento (${tabsWithItems.length})` : undefined
-        }
-        tabTarget={tabTarget}
-        isAddingToTab={checkout.isAddingToTab}
-        onAddToTab={checkout.addToTab}
-        onExitTabMode={() => setTabTarget(organizationId, null)}
-      />
-      <MobileCartSheet
-        header={cartTabsBar}
-        hasOpenOrders={hasItemsInAnyTab}
-        cartLines={isCartHydrated ? cartLines : []}
-        isSendingToKitchen={checkout.isPlacingOrder || groupCheckout.isPlacing}
-        sendToKitchenLabel={
-          hasManyOrders ? `Imprimir todos (${tabsWithItems.length})` : undefined
-        }
-        onDecrement={handleDecrementItem}
-        onEditItemNote={setNoteCartLine}
-        onSendToKitchen={startSendToKitchen}
-        onQuickPayment={startQuickPayment}
-        quickPaymentLabel={
-          hasManyOrders ? `Pagamento (${tabsWithItems.length})` : undefined
-        }
-        tabTarget={tabTarget}
-        isAddingToTab={checkout.isAddingToTab}
-        onAddToTab={checkout.addToTab}
-        onExitTabMode={() => setTabTarget(organizationId, null)}
-      />
+      <CartPanel variant="sidebar" {...cartPanelProps} />
+      <MobileCartSheet hasOpenOrders={hasItemsInAnyTab} {...cartPanelProps} />
 
       <OpenCashRegisterDialog
         organizationId={organizationId}
@@ -500,7 +482,10 @@ export function PosView({
         />
       )}
       <ItemNoteDialog
-        cartLine={noteCartLine}
+        line={noteCartLine}
+        itemName={noteCartLine?.displayName ?? ""}
+        description="Aparece no ticket e na tela da cozinha."
+        placeholder="Ex.: sem açúcar, leite de aveia"
         onClose={() => setNoteCartLine(null)}
         onSave={saveItemNote}
       />

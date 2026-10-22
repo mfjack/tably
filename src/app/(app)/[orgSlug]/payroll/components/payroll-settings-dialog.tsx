@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Trash2 } from "lucide-react";
-import { useEffect } from "react";
+import { type ReactNode, useEffect } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { FormDialog } from "@/components/dialog/form-dialog";
@@ -21,6 +21,7 @@ import {
   toPayrollSettingsInput,
 } from "@/features/payroll/schemas";
 import type { SalaryPaymentRule } from "@/features/payroll/types";
+import { cn } from "@/lib/utils";
 
 type PayrollSettingsDialogProps = {
   organizationId: OrganizationId;
@@ -136,12 +137,12 @@ export function PayrollSettingsDialog({
           )}
 
           <SectionTitle>INSS (progressivo)</SectionTitle>
-          <div className="flex flex-col gap-3">
-            {inssBrackets.fields.map((field, index) => (
-              <div
-                key={field.id}
-                className="grid grid-cols-[1fr_1fr_auto] items-end gap-3"
-              >
+          <BracketList
+            taxName="INSS"
+            fields={inssBrackets.fields}
+            columnsClassName="grid-cols-[1fr_1fr_auto]"
+            renderFields={(index) => (
+              <>
                 <NumberField
                   control={form.control}
                   name={`inssBrackets.${index}.upTo`}
@@ -157,43 +158,21 @@ export function PayrollSettingsDialog({
                   suffix="%"
                   size="compact"
                 />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  aria-label={`Remover faixa ${index + 1} do INSS`}
-                  className="text-destructive"
-                  disabled={inssBrackets.fields.length === 1}
-                  onClick={() => inssBrackets.remove(index)}
-                >
-                  <Trash2 aria-hidden />
-                </Button>
-              </div>
-            ))}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="self-start"
-              onClick={() =>
-                inssBrackets.append({
-                  upTo: Number.NaN,
-                  ratePercent: Number.NaN,
-                })
-              }
-            >
-              <Plus aria-hidden />
-              Faixa do INSS
-            </Button>
-          </div>
+              </>
+            )}
+            onRemove={inssBrackets.remove}
+            onAppend={() =>
+              inssBrackets.append({ upTo: Number.NaN, ratePercent: Number.NaN })
+            }
+          />
 
           <SectionTitle>IRRF (mensal)</SectionTitle>
-          <div className="flex flex-col gap-3">
-            {irrfBrackets.fields.map((field, index) => (
-              <div
-                key={field.id}
-                className="grid grid-cols-[1fr_1fr_1fr_auto] items-end gap-3"
-              >
+          <BracketList
+            taxName="IRRF"
+            fields={irrfBrackets.fields}
+            columnsClassName="grid-cols-[1fr_1fr_1fr_auto]"
+            renderFields={(index) => (
+              <>
                 <NumberField
                   control={form.control}
                   name={`irrfBrackets.${index}.upTo`}
@@ -217,36 +196,17 @@ export function PayrollSettingsDialog({
                   format="currency"
                   size="compact"
                 />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  aria-label={`Remover faixa ${index + 1} do IRRF`}
-                  className="text-destructive"
-                  disabled={irrfBrackets.fields.length === 1}
-                  onClick={() => irrfBrackets.remove(index)}
-                >
-                  <Trash2 aria-hidden />
-                </Button>
-              </div>
-            ))}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="self-start"
-              onClick={() =>
-                irrfBrackets.append({
-                  upTo: undefined,
-                  ratePercent: Number.NaN,
-                  deduction: Number.NaN,
-                })
-              }
-            >
-              <Plus aria-hidden />
-              Faixa do IRRF
-            </Button>
-          </div>
+              </>
+            )}
+            onRemove={irrfBrackets.remove}
+            onAppend={() =>
+              irrfBrackets.append({
+                upTo: undefined,
+                ratePercent: Number.NaN,
+                deduction: Number.NaN,
+              })
+            }
+          />
           <div className="grid gap-4 sm:grid-cols-2">
             <NumberField
               control={form.control}
@@ -326,5 +286,57 @@ export function PayrollSettingsDialog({
         </FieldGroup>
       )}
     </FormDialog>
+  );
+}
+
+type BracketListProps = {
+  taxName: string;
+  fields: readonly { id: string }[];
+  columnsClassName: string;
+  renderFields: (index: number) => ReactNode;
+  onRemove: (index: number) => void;
+  onAppend: () => void;
+};
+
+function BracketList({
+  taxName,
+  fields,
+  columnsClassName,
+  renderFields,
+  onRemove,
+  onAppend,
+}: BracketListProps) {
+  return (
+    <div className="flex flex-col gap-3">
+      {fields.map((field, index) => (
+        <div
+          key={field.id}
+          className={cn("grid items-end gap-3", columnsClassName)}
+        >
+          {renderFields(index)}
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={`Remover faixa ${index + 1} do ${taxName}`}
+            className="text-destructive"
+            disabled={fields.length === 1}
+            onClick={() => onRemove(index)}
+          >
+            <Trash2 aria-hidden />
+          </Button>
+        </div>
+      ))}
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="self-start"
+        onClick={onAppend}
+      >
+        <Plus aria-hidden />
+        Faixa do {taxName}
+      </Button>
+    </div>
   );
 }

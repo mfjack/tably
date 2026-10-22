@@ -7,7 +7,7 @@ export type DiscountType = (typeof DISCOUNT_TYPES)[number];
 
 export const MAX_SERVICE_FEE_PERCENT = 30;
 
-export const orderDiscountSchema = z.object({
+const orderDiscountSchema = z.object({
   type: z.enum(DISCOUNT_TYPES),
   value: z.number().positive(),
 });
@@ -20,10 +20,6 @@ export const orderAdjustmentsSchema = z.object({
 
 export type OrderDiscountInput = z.infer<typeof orderDiscountSchema>;
 export type OrderAdjustmentsInput = z.infer<typeof orderAdjustmentsSchema>;
-
-export const NO_ORDER_ADJUSTMENTS: OrderAdjustmentsInput = {
-  hasServiceFee: false,
-};
 
 type OrderTotalsInput = {
   subtotal: number;

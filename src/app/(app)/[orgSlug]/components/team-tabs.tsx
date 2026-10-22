@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export const TEAM_TABS = [
+const TEAM_TABS = [
   { value: "team", label: "Funcionários" },
   { value: "monthly", label: "Folha" },
   { value: "vacations", label: "Férias" },

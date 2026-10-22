@@ -87,10 +87,6 @@ export function getBoletoPattern(digits: string): string {
     : BANK_SLIP_PATTERN;
 }
 
-export function formatBoleto(digits: string): string {
-  return applyDigitPattern(digits, getBoletoPattern(digits));
-}
-
 export function formatCbo(digits: string): string {
   return applyDigitPattern(digits, CBO_PATTERN);
 }

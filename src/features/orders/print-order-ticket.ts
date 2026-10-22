@@ -199,9 +199,7 @@ const GROUPED_TICKET_STYLES = `
   .grand-total { border-top: 3px double #000; }
 `;
 
-export function buildGroupedOrderTicketHtml(
-  ticket: GroupedOrderTicket,
-): string {
+function buildGroupedOrderTicketHtml(ticket: GroupedOrderTicket): string {
   const grandTotal = ticket.entries.reduce(
     (total, entry) => total + entry.total,
     0,

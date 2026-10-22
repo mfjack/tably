@@ -23,7 +23,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getWeekdayShortLabel } from "@/features/employees/work-schedule-labels";
 import { useOpenFinancialDocumentMutation } from "@/features/finance/hooks/use-open-financial-document-mutation";
 import { useRemoveFinancialEntryDocumentMutation } from "@/features/finance/hooks/use-remove-financial-entry-document-mutation";
 import { useUndoFinancialEntryPaymentMutation } from "@/features/finance/hooks/use-undo-financial-entry-payment-mutation";
@@ -43,6 +42,7 @@ import { ACCEPTED_DOCUMENT_TYPES } from "@/lib/document-files";
 import { formatCurrency, formatDateKey } from "@/lib/format";
 import { openPendingTab } from "@/lib/open-in-new-tab";
 import { cn } from "@/lib/utils";
+import { getWeekdayShortLabel } from "@/lib/weekdays";
 
 type DocumentField = "document" | "receipt";
 

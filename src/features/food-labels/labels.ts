@@ -25,7 +25,7 @@ export const SHELF_LIFE_UNIT_LABELS = {
   days: "Dias",
 } as const satisfies Record<ShelfLifeUnit, string>;
 
-export const HOURS_PER_DAY = 24;
+const HOURS_PER_DAY = 24;
 
 export function toShelfLifeHours(amount: number, unit: ShelfLifeUnit): number {
   return unit === "days" ? amount * HOURS_PER_DAY : amount;

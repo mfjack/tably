@@ -10,11 +10,11 @@ import {
 } from "@/features/orders/print-order-ticket";
 import { formatCurrency, formatPercent } from "@/lib/format";
 import { escapeHtml, printHtml } from "@/lib/print-html";
+import { getWeekdayLabel } from "@/lib/weekdays";
 import {
   buildPaymentTotals,
   formatHourRange,
   formatReportPeriod,
-  formatWeekday,
   getAverageTicket,
   getBestSellers,
   getCostShare,
@@ -107,7 +107,7 @@ function buildReportHtml({
     costShare !== null ? buildRow("CMV", formatPercent(costShare)) : "",
     peakHour ? buildRow("Horário de pico", formatHourRange(peakHour.hour)) : "",
     peakWeekday
-      ? buildRow("Dia mais forte", formatWeekday(peakWeekday.weekday))
+      ? buildRow("Dia mais forte", getWeekdayLabel(peakWeekday.weekday))
       : "",
     canceled.orderCount > 0
       ? buildRow(

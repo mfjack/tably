@@ -16,11 +16,7 @@ const moneySchema = z
   .number({ error: "Informe o valor." })
   .positive("Informe o valor.");
 
-export const ENTRY_REPEAT_OPTIONS = [
-  "none",
-  "installments",
-  "recurring",
-] as const;
+const ENTRY_REPEAT_OPTIONS = ["none", "installments", "recurring"] as const;
 
 export type EntryRepeat = (typeof ENTRY_REPEAT_OPTIONS)[number];
 

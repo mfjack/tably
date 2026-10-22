@@ -1,9 +1,8 @@
-import { formatDistanceToNowStrict } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { QrCode } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { OrderDetails, OrderId } from "@/features/orders/types";
 import { formatCurrency } from "@/lib/format";
+import { formatTimeAgo } from "@/lib/format-date";
 
 type OpenOrderTabCardProps = {
   order: OrderDetails;
@@ -29,10 +28,7 @@ export function OpenOrderTabCard({ order, onSelect }: OpenOrderTabCardProps) {
             {order.customerName}
           </p>
           <p className="text-muted-foreground text-xs">
-            Aberta há{" "}
-            {formatDistanceToNowStrict(new Date(order.createdAt), {
-              locale: ptBR,
-            })}
+            Aberta {formatTimeAgo(order.createdAt)}
           </p>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1">

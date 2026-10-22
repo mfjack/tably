@@ -1,16 +1,15 @@
 "use client";
-
-import { formatDistanceToNowStrict } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { ExternalLink, Pencil, ReceiptText, Trash2 } from "lucide-react";
+import { ExternalLink, ReceiptText } from "lucide-react";
 import { type ReactNode, useMemo } from "react";
 import { DataTable } from "@/components/data-table/data-table";
 import { createDataTableColumnHelper } from "@/components/data-table/data-table-features";
 import { DataTableRowActionButton } from "@/components/data-table/data-table-row-action-button";
+import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { useDataTable } from "@/components/data-table/use-data-table";
 import { WhatsAppLink } from "@/components/whatsapp-link";
 import type { Supplier } from "@/features/suppliers/types";
 import { formatCurrency } from "@/lib/format";
+import { formatTimeAgo } from "@/lib/format-date";
 
 const EMPTY_SUPPLIERS: Supplier[] = [];
 
@@ -92,9 +91,7 @@ export function SuppliersTable({
             const lastEntryAt = getValue();
             return (
               <span className="text-muted-foreground">
-                {lastEntryAt
-                  ? `há ${formatDistanceToNowStrict(new Date(lastEntryAt), { locale: ptBR })}`
-                  : "—"}
+                {lastEntryAt ? formatTimeAgo(lastEntryAt) : "—"}
               </span>
             );
           },
@@ -103,7 +100,11 @@ export function SuppliersTable({
           id: "actions",
           header: () => <span className="sr-only">Ações</span>,
           cell: ({ row }) => (
-            <div className="flex justify-end gap-2">
+            <DataTableRowActions
+              itemLabel={row.original.name}
+              onEdit={canManage ? () => onEdit(row.original) : undefined}
+              onDelete={canManage ? () => onDelete(row.original) : undefined}
+            >
               {row.original.purchaseUrl && (
                 <DataTableRowActionButton
                   label="Abrir link de compra"
@@ -124,24 +125,7 @@ export function SuppliersTable({
                 icon={ReceiptText}
                 onClick={() => onOpenPurchases(row.original)}
               />
-              {canManage && (
-                <>
-                  <DataTableRowActionButton
-                    label="Editar"
-                    accessibleLabel={`Editar ${row.original.name}`}
-                    icon={Pencil}
-                    onClick={() => onEdit(row.original)}
-                  />
-                  <DataTableRowActionButton
-                    label="Excluir"
-                    accessibleLabel={`Excluir ${row.original.name}`}
-                    icon={Trash2}
-                    variant="destructive"
-                    onClick={() => onDelete(row.original)}
-                  />
-                </>
-              )}
-            </div>
+            </DataTableRowActions>
           ),
         }),
       ]),

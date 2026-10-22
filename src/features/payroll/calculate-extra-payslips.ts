@@ -11,7 +11,7 @@ const VACATION_BONUS_FRACTION = 1 / 3;
 const THIRTEENTH_ADVANCE_FRACTION = 0.5;
 const FGTS_RATES = { clt: 0.08, apprentice: 0.02, intern: 0 } as const;
 
-export const VARIABLE_ITEM_CODES = [
+const VARIABLE_ITEM_CODES = [
   "overtime",
   "rest_day_overtime",
   "night_shift",

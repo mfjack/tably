@@ -13,16 +13,14 @@ import { FieldGroup } from "@/components/ui/field";
 import type { OrganizationId } from "@/features/organizations/types";
 import { useUpdateTaskMutation } from "@/features/tasks/hooks/use-update-task-mutation";
 import { type TaskInput, taskSchema } from "@/features/tasks/schemas";
-import {
-  TASK_FREQUENCY_LABELS,
-  WEEKDAY_OPTIONS,
-} from "@/features/tasks/task-schedule";
+import { TASK_FREQUENCY_LABELS } from "@/features/tasks/task-schedule";
 import type { Task } from "@/features/tasks/types";
 import type { TeamMemberSummary } from "@/features/team/types";
 import {
   NONE_SELECT_VALUE,
   toSelectFieldValue,
 } from "@/lib/optional-select-value";
+import { WEEKDAY_OPTIONS } from "@/lib/weekdays";
 
 const KIND_OPTIONS = [
   { value: "check", label: "Marcar como feito" },

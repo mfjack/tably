@@ -1,7 +1,7 @@
 const BYTES_PER_KILOBYTE = 1024;
 const BYTES_PER_MEGABYTE = BYTES_PER_KILOBYTE * BYTES_PER_KILOBYTE;
 
-export const DOCUMENT_EXTENSIONS_BY_TYPE: Readonly<Record<string, string>> = {
+const DOCUMENT_EXTENSIONS_BY_TYPE: Readonly<Record<string, string>> = {
   "application/pdf": "pdf",
   "image/jpeg": "jpg",
   "image/png": "png",

@@ -1,19 +1,11 @@
 import type {
   DreGroup,
   EntryStatus,
-  FinancialAccountKind,
   FinancialEntry,
   FinancialEntryKind,
   FinancialEntrySource,
   RecurrenceFrequency,
 } from "./types";
-
-export const ACCOUNT_KIND_LABELS = {
-  cash: "Caixa (dinheiro)",
-  bank: "Conta bancária",
-  card_acquirer: "Maquininha de cartão",
-  digital_wallet: "Carteira digital",
-} as const satisfies Record<FinancialAccountKind, string>;
 
 export const ENTRY_KIND_LABELS = {
   income: "Receita",

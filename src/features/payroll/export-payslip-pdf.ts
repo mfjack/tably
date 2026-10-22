@@ -4,12 +4,12 @@ import { formatMonthLabel } from "@/features/time-clock/time-utils";
 import { downloadFile } from "@/lib/download-file";
 import { formatCurrency, formatDateKey } from "@/lib/format";
 import { formatCbo, formatCnpj, formatCpf, formatPis } from "@/lib/masks";
+import { createA4PdfDocument, PDF_MUTED_TEXT_COLOR } from "@/lib/pdf-document";
 import { describePayslipPeriod, PAYSLIP_KIND_TITLES } from "./payslip-labels";
 import type { Payslip } from "./types";
 
 const PAGE_MARGIN_IN_MM = 14;
 const PRIMARY_COLOR: [number, number, number] = [10, 10, 10];
-const MUTED_TEXT_COLOR: [number, number, number] = [94, 107, 102];
 const SIGNATURE_LINE_WIDTH_IN_MM = 90;
 
 type DocumentWithLastTable = {
@@ -24,13 +24,7 @@ export async function exportPayslipPdf(
   payslip: Payslip,
   business: OrderTicketBusiness,
 ): Promise<void> {
-  const [{ jsPDF }, { autoTable }] = await Promise.all([
-    import("jspdf"),
-    import("jspdf-autotable"),
-  ]);
-
-  const document = new jsPDF({ unit: "mm", format: "a4" });
-  const pageWidth = document.internal.pageSize.getWidth();
+  const { document, autoTable, pageWidth } = await createA4PdfDocument();
   const { employee } = payslip;
 
   document.setFont("helvetica", "bold");
@@ -38,7 +32,7 @@ export async function exportPayslipPdf(
   document.text(business.name, PAGE_MARGIN_IN_MM, 18);
   document.setFont("helvetica", "normal");
   document.setFontSize(8);
-  document.setTextColor(...MUTED_TEXT_COLOR);
+  document.setTextColor(...PDF_MUTED_TEXT_COLOR);
   const businessDetails = [
     business.taxId ? `CNPJ ${formatCnpj(business.taxId)}` : null,
     business.address,

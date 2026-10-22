@@ -50,7 +50,7 @@ export type ShoppingLine = {
   supplierId: SupplierId | null;
 };
 
-export const NO_SUPPLIER_GROUP_KEY = "none";
+const NO_SUPPLIER_GROUP_KEY = "none";
 
 export function getShoppingGroupKey(supplierId: SupplierId | null): string {
   return supplierId ?? NO_SUPPLIER_GROUP_KEY;

@@ -20,8 +20,6 @@ export const BILLING_CYCLE_MONTHS = {
   yearly: 12,
 } as const satisfies Record<BillingCycle, number>;
 
-export const YEARLY_PRICE_MONTHS = 10;
-
 export const SUBSCRIPTION_PLANS = [
   "essential",
   "management",

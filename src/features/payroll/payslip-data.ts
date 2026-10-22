@@ -3,7 +3,11 @@ import "server-only";
 import * as z from "zod";
 import type { Employee, EmployeeId } from "@/features/employees/types";
 import type { OrganizationId } from "@/features/organizations/types";
-import { Constants, type Tables } from "@/lib/supabase/database.types";
+import {
+  Constants,
+  type Json,
+  type Tables,
+} from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
 import {
   storedInssBracketsSchema,
@@ -16,6 +20,7 @@ import type {
   Payslip,
   PayslipEmployeeSnapshot,
   PayslipId,
+  PayslipTotals,
 } from "./types";
 
 export const PAYSLIP_COLUMNS =
@@ -202,5 +207,18 @@ export function toEmployeeSnapshot(
     employmentType: employee.employmentType,
     overtimePolicy: employee.overtimePolicy,
     dependents: employee.dependents,
+  };
+}
+
+export function toPayslipTotalsColumns(totals: PayslipTotals) {
+  return {
+    items: totals.items satisfies Json,
+    gross_amount: totals.grossAmount,
+    deduction_amount: totals.deductionAmount,
+    net_amount: totals.netAmount,
+    inss_base: totals.inssBase,
+    irrf_base: totals.irrfBase,
+    fgts_base: totals.fgtsBase,
+    fgts_amount: totals.fgtsAmount,
   };
 }

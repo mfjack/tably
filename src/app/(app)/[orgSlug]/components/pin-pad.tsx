@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 
-export const MIN_PIN_LENGTH = 4;
+const MIN_PIN_LENGTH = 4;
 export const MAX_PIN_LENGTH = 4;
 
 const DIGIT_KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9"] as const;

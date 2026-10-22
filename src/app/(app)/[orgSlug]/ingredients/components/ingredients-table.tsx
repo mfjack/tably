@@ -12,26 +12,22 @@ import {
 import type { Ingredient } from "@/features/ingredients/types";
 import { formatCurrency, formatQuantity } from "@/lib/format";
 import { ExpiryCell } from "./expiry-cell";
-import { IngredientRowActions } from "./ingredient-row-actions";
+import {
+  type IngredientRowActionHandlers,
+  IngredientRowActions,
+} from "./ingredient-row-actions";
 import { StockStatusBadge } from "./stock-status-badge";
 
 const EMPTY_INGREDIENTS: Ingredient[] = [];
 
 const columnHelper = createDataTableColumnHelper<Ingredient>();
 
-type IngredientsTableProps = {
+type IngredientsTableProps = IngredientRowActionHandlers & {
   ingredients: Ingredient[] | undefined;
   isLoading: boolean;
   errorMessage?: string;
   canManage: boolean;
   emptyState: ReactNode;
-  onStockEntry: (ingredient: Ingredient) => void;
-  onLoss: (ingredient: Ingredient) => void;
-  onPrintLabel: (ingredient: Ingredient) => void;
-  onProduce: (ingredient: Ingredient) => void;
-  onEditRecipe: (ingredient: Ingredient) => void;
-  onEdit: (ingredient: Ingredient) => void;
-  onDelete: (ingredient: Ingredient) => void;
 };
 
 function getIngredientRowId(ingredient: Ingredient) {

@@ -1,6 +1,6 @@
 export const PRODUCT_IMAGES_BUCKET = "product-images";
 
-export const PRODUCT_IMAGE_MAX_SIZE_IN_BYTES = 2 * 1024 * 1024;
+const PRODUCT_IMAGE_MAX_SIZE_IN_BYTES = 2 * 1024 * 1024;
 
 export const PRODUCT_IMAGE_ACCEPTED_TYPES = [
   "image/jpeg",
@@ -10,7 +10,7 @@ export const PRODUCT_IMAGE_ACCEPTED_TYPES = [
 
 type AcceptedImageType = (typeof PRODUCT_IMAGE_ACCEPTED_TYPES)[number];
 
-export function isAcceptedImageType(type: string): type is AcceptedImageType {
+function isAcceptedImageType(type: string): type is AcceptedImageType {
   return PRODUCT_IMAGE_ACCEPTED_TYPES.includes(type as AcceptedImageType);
 }
 

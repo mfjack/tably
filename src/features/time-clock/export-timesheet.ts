@@ -1,13 +1,12 @@
 import { EMPLOYMENT_TYPE_LABELS } from "@/features/employees/labels";
 import type { Employee, WorkSchedule } from "@/features/employees/types";
-import {
-  describeScheduleDay,
-  getWeekdayShortLabel,
-} from "@/features/employees/work-schedule-labels";
+import { describeScheduleDay } from "@/features/employees/work-schedule-labels";
 import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
 import { downloadFile } from "@/lib/download-file";
 import { formatDateKey } from "@/lib/format";
 import { formatCbo, formatCnpj, formatCpf, formatPis } from "@/lib/masks";
+import { createA4PdfDocument, PDF_MUTED_TEXT_COLOR } from "@/lib/pdf-document";
+import { getWeekdayShortLabel } from "@/lib/weekdays";
 import { TIME_OFF_KIND_LABELS } from "./labels";
 import {
   formatClockTime,
@@ -20,7 +19,6 @@ import type { Timesheet, TimesheetDay } from "./timesheet";
 
 const PAGE_MARGIN_IN_MM = 12;
 const PRIMARY_COLOR: [number, number, number] = [10, 10, 10];
-const MUTED_TEXT_COLOR: [number, number, number] = [94, 107, 102];
 const SIGNATURE_LINE_WIDTH_IN_MM = 80;
 const SIGNATURE_BLOCK_HEIGHT_IN_MM = 40;
 
@@ -37,7 +35,7 @@ export type TimesheetExportInput = {
   timeZone: string;
 };
 
-export function describeDayStatus(day: TimesheetDay): string {
+function describeDayStatus(day: TimesheetDay): string {
   if (day.kind === "not_employed") return "Fora do contrato";
   if (day.kind === "time_off" && day.timeOffKind) {
     return TIME_OFF_KIND_LABELS[day.timeOffKind];
@@ -81,14 +79,8 @@ export async function exportTimesheetPdf({
   monthKey,
   timeZone,
 }: TimesheetExportInput): Promise<void> {
-  const [{ jsPDF }, { autoTable }] = await Promise.all([
-    import("jspdf"),
-    import("jspdf-autotable"),
-  ]);
-
-  const document = new jsPDF({ unit: "mm", format: "a4" });
-  const pageWidth = document.internal.pageSize.getWidth();
-  const pageHeight = document.internal.pageSize.getHeight();
+  const { document, autoTable, pageWidth, pageHeight } =
+    await createA4PdfDocument();
   const { summary } = timesheet;
 
   document.setFont("helvetica", "bold");
@@ -96,7 +88,7 @@ export async function exportTimesheetPdf({
   document.text(business.name, PAGE_MARGIN_IN_MM, 16);
   document.setFont("helvetica", "normal");
   document.setFontSize(8);
-  document.setTextColor(...MUTED_TEXT_COLOR);
+  document.setTextColor(...PDF_MUTED_TEXT_COLOR);
   if (business.taxId) {
     document.text(`CNPJ ${formatCnpj(business.taxId)}`, PAGE_MARGIN_IN_MM, 21);
   }
@@ -246,7 +238,7 @@ export async function exportTimesheetPdf({
   }
 
   document.setFontSize(8);
-  document.setTextColor(...MUTED_TEXT_COLOR);
+  document.setTextColor(...PDF_MUTED_TEXT_COLOR);
   document.text(
     "* marcação incluída por ajuste, com motivo registrado. +1 = horário do dia seguinte.",
     PAGE_MARGIN_IN_MM,

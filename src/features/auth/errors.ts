@@ -15,8 +15,7 @@ const AUTH_ERROR_MESSAGES: Readonly<Record<string, string>> = {
   signup_disabled: "Novos cadastros estão desativados no momento.",
 };
 
-export const GENERIC_ERROR_MESSAGE =
-  "Algo deu errado. Tente novamente em instantes.";
+const GENERIC_ERROR_MESSAGE = "Algo deu errado. Tente novamente em instantes.";
 
 export const INVALID_FORM_MESSAGE = "Confira os campos e tente novamente.";
 

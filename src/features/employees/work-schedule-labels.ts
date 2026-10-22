@@ -4,35 +4,8 @@ import {
 } from "@/features/time-clock/time-utils";
 import { getWeeklyMinutes } from "@/features/time-clock/timesheet";
 import { formatQuantity } from "@/lib/format";
+import { getWeekdayShortLabel } from "@/lib/weekdays";
 import type { WorkSchedule, WorkScheduleDay } from "./types";
-
-export const WEEKDAY_LABELS = [
-  "Segunda",
-  "Terça",
-  "Quarta",
-  "Quinta",
-  "Sexta",
-  "Sábado",
-  "Domingo",
-] as const;
-
-export const WEEKDAY_SHORT_LABELS = [
-  "seg",
-  "ter",
-  "qua",
-  "qui",
-  "sex",
-  "sáb",
-  "dom",
-] as const;
-
-export function getWeekdayLabel(weekday: number): string {
-  return WEEKDAY_LABELS[weekday - 1] ?? "";
-}
-
-export function getWeekdayShortLabel(weekday: number): string {
-  return WEEKDAY_SHORT_LABELS[weekday - 1] ?? "";
-}
 
 export function describeScheduleDay(day: WorkScheduleDay): string {
   const start = formatClockTime(day.startTime);

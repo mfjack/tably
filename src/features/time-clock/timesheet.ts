@@ -143,7 +143,7 @@ export function getWeeklyMinutes(schedule: WorkSchedule | null): number {
   );
 }
 
-export function getMonthlyHours(schedule: WorkSchedule | null): number {
+function getMonthlyHours(schedule: WorkSchedule | null): number {
   const weeklyMinutes = getWeeklyMinutes(schedule);
   if (weeklyMinutes === 0) return DEFAULT_MONTHLY_HOURS;
   return (weeklyMinutes / MINUTES_PER_HOUR) * WEEKS_PER_MONTH_FACTOR;

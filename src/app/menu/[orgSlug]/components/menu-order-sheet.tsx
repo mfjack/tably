@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { MaskedField } from "@/components/form/masked-field";
 import { TextField } from "@/components/form/text-field";
+import { ItemNoteDialog } from "@/components/item-note-dialog";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
 import {
@@ -27,7 +28,6 @@ import {
 } from "@/features/online-orders/schemas";
 import { formatCurrency } from "@/lib/format";
 import { MenuCartItemCard, type MenuCartLine } from "./menu-cart-item-card";
-import { MenuItemNoteDialog } from "./menu-item-note-dialog";
 import { MenuOrderLoyaltyHint } from "./menu-order-loyalty-hint";
 import { buildOrderPath } from "./menu-order-path";
 
@@ -212,8 +212,11 @@ export function MenuOrderSheet({
           </form>
         </SheetContent>
       </Sheet>
-      <MenuItemNoteDialog
-        cartLine={noteCartLine}
+      <ItemNoteDialog
+        line={noteCartLine}
+        itemName={noteCartLine?.name ?? ""}
+        description="Vai junto com o pedido para a cozinha."
+        placeholder="Ex.: sem açúcar, leite vegetal"
         onClose={closeNoteDialog}
         onSave={saveItemNote}
       />

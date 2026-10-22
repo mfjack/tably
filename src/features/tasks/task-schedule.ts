@@ -3,13 +3,13 @@ import {
   format,
   getDate,
   getDaysInMonth,
-  getISODay,
   parseISO,
   setDate,
   startOfISOWeek,
   startOfMonth,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { getWeekdayShortLabel } from "@/lib/weekdays";
 import type { Task, TaskFrequency } from "./types";
 
 const DATE_KEY_FORMAT = "yyyy-MM-dd";
@@ -19,26 +19,6 @@ export const TASK_FREQUENCY_LABELS = {
   weekly: "Semanal",
   monthly: "Mensal",
 } as const satisfies Record<TaskFrequency, string>;
-
-export const WEEKDAY_OPTIONS = [
-  { value: "1", label: "Segunda" },
-  { value: "2", label: "Terça" },
-  { value: "3", label: "Quarta" },
-  { value: "4", label: "Quinta" },
-  { value: "5", label: "Sexta" },
-  { value: "6", label: "Sábado" },
-  { value: "7", label: "Domingo" },
-] as const;
-
-const WEEKDAY_SHORT_LABELS = [
-  "seg",
-  "ter",
-  "qua",
-  "qui",
-  "sex",
-  "sáb",
-  "dom",
-] as const;
 
 export function getPeriodStart(frequency: TaskFrequency, today: string) {
   const day = parseISO(today);
@@ -69,7 +49,7 @@ export function isTaskOverdue(task: Task, today: string): boolean {
 export function getScheduleLabel(task: Task): string {
   if (task.frequency === "weekly") {
     return task.dueWeekday
-      ? `Semanal · ${WEEKDAY_SHORT_LABELS[task.dueWeekday - 1]}`
+      ? `Semanal · ${getWeekdayShortLabel(task.dueWeekday)}`
       : "Semanal";
   }
   if (task.frequency === "monthly") {
@@ -87,8 +67,4 @@ export function getCompletionDayLabel(
   return task.frequency === "monthly"
     ? `dia ${getDate(completedOn)}`
     : format(completedOn, "EEE", { locale: ptBR });
-}
-
-export function getWeekdayOfToday(today: string) {
-  return getISODay(parseISO(today));
 }

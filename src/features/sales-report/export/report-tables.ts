@@ -5,10 +5,10 @@ import {
   RECEIVABLE_PAYMENT_METHOD_VALUES,
 } from "@/features/orders/payment-methods";
 import { formatCurrency, formatPercent } from "@/lib/format";
+import { getWeekdayLabel } from "@/lib/weekdays";
 import {
   buildPaymentTotals,
   formatHourRange,
-  formatWeekday,
   getAverageTicket,
   getBestSellers,
   getCostShare,
@@ -215,7 +215,7 @@ function buildWeekdaysTable(report: SalesReport): ReportTable {
     title: "Vendas por dia da semana",
     headers: ["Dia da semana", "Pedidos", "Faturamento"],
     rows: report.byWeekday.map((entry) => [
-      text(formatWeekday(entry.weekday)),
+      text(getWeekdayLabel(entry.weekday)),
       count(entry.orderCount),
       money(entry.revenue),
     ]),

@@ -4,7 +4,6 @@ import { CalendarDays, Clock } from "lucide-react";
 import {
   formatHour,
   formatHourRange,
-  formatWeekday,
   getHourlySeries,
   getPeak,
   hasWeekdayChart,
@@ -12,6 +11,7 @@ import {
 import type { SalesReport } from "@/features/sales-report/types";
 import { formatCurrency } from "@/lib/format";
 import { capitalize } from "@/lib/format-date";
+import { getWeekdayLabel } from "@/lib/weekdays";
 import { type ReportBar, ReportBarChart } from "./report-bar-chart";
 import { ReportSection } from "./report-section";
 
@@ -50,7 +50,7 @@ function DailySalesSection({ report }: SalesChartsProps) {
     key: day.date,
     axisLabel:
       report.byDay.length <= 7
-        ? formatWeekday(getISODay(parseISO(day.date))).slice(0, 3)
+        ? getWeekdayLabel(getISODay(parseISO(day.date))).slice(0, 3)
         : formatDayLabel(day.date, "dd/MM"),
     tooltipLabel: formatDayLabel(day.date, "EEEE, dd/MM"),
     revenue: day.revenue,
@@ -105,8 +105,8 @@ function WeekdaySalesSection({ report }: SalesChartsProps) {
   const peakWeekday = getPeak(report.byWeekday);
   const bars: ReportBar[] = report.byWeekday.map((entry) => ({
     key: entry.weekday.toString(),
-    axisLabel: formatWeekday(entry.weekday).slice(0, 3),
-    tooltipLabel: formatWeekday(entry.weekday),
+    axisLabel: getWeekdayLabel(entry.weekday).slice(0, 3),
+    tooltipLabel: getWeekdayLabel(entry.weekday),
     revenue: entry.revenue,
     orderCount: entry.orderCount,
   }));
@@ -116,7 +116,7 @@ function WeekdaySalesSection({ report }: SalesChartsProps) {
       {peakWeekday && (
         <PeakSummary
           label="Dia mais forte:"
-          value={formatWeekday(peakWeekday.weekday)}
+          value={getWeekdayLabel(peakWeekday.weekday)}
           revenue={peakWeekday.revenue}
           orderCount={peakWeekday.orderCount}
         />

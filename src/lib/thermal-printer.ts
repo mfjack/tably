@@ -69,7 +69,7 @@ function isThermalPrinterMode(
   return THERMAL_PRINTER_MODES.some((mode) => mode === value);
 }
 
-export function getThermalPrinterMode(): ThermalPrinterMode {
+function getThermalPrinterMode(): ThermalPrinterMode {
   if (typeof window === "undefined") return "usb";
   const mode = readStorage(MODE_STORAGE_KEY);
   if (isThermalPrinterMode(mode)) return mode;
@@ -117,7 +117,7 @@ export function setThermalPrintingEnabled(isEnabled: boolean) {
   writeStorage(ENABLED_STORAGE_KEY, String(isEnabled));
 }
 
-export function getThermalPaperWidth(): ThermalPaperWidth {
+function getThermalPaperWidth(): ThermalPaperWidth {
   if (typeof window === "undefined") return DEFAULT_PAPER_WIDTH;
   const storedWidth = readStorage(PAPER_WIDTH_STORAGE_KEY);
   return isThermalPaperWidth(storedWidth) ? storedWidth : DEFAULT_PAPER_WIDTH;
@@ -131,7 +131,7 @@ export function getThermalPaperColumns(): number {
   return PAPER_COLUMNS[getThermalPaperWidth()];
 }
 
-export function getSavedThermalPrinterName(): string | null {
+function getSavedThermalPrinterName(): string | null {
   if (typeof window === "undefined") return null;
   if (getThermalPrinterMode() === "rawbt") return RAWBT_PRINTER_NAME;
   return getSavedDevice()?.productName ?? null;

@@ -13,7 +13,6 @@ import {
 } from "./cart-items";
 
 export {
-  CART_ITEM_NOTE_MAX_LENGTH,
   type CartItem,
   getCartItemKey,
 } from "./cart-items";
@@ -75,7 +74,7 @@ type CartState = {
   ) => void;
 };
 
-export const EMPTY_CART: Cart = { items: [], note: "" };
+const EMPTY_CART: Cart = { items: [], note: "" };
 
 type PersistedCartState = Pick<
   CartState,

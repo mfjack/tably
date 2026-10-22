@@ -31,6 +31,7 @@ import {
   readPayrollSettings,
   toEmployeeSnapshot,
   toPayslip,
+  toPayslipTotalsColumns,
 } from "./payslip-data";
 import {
   SOLD_VACATION_DAYS,
@@ -302,16 +303,9 @@ export async function createVacation(
     payment_due_date: toDateKey(addDays(start, -VACATION_PAYMENT_DAYS_BEFORE)),
     time_off_id: timeOff.id,
     employee_snapshot: toEmployeeSnapshot(employee) satisfies Json,
-    items: totals.items satisfies Json,
+    ...toPayslipTotalsColumns(totals),
     manual_items: [],
     timesheet_summary: EMPTY_SUMMARY satisfies Json,
-    gross_amount: totals.grossAmount,
-    deduction_amount: totals.deductionAmount,
-    net_amount: totals.netAmount,
-    inss_base: totals.inssBase,
-    irrf_base: totals.irrfBase,
-    fgts_base: totals.fgtsBase,
-    fgts_amount: totals.fgtsAmount,
   });
 
   if (error) {
@@ -497,16 +491,9 @@ export async function generateThirteenth(
           details: details satisfies Json,
           payment_due_date: paymentDueDate,
           employee_snapshot: toEmployeeSnapshot(employee) satisfies Json,
-          items: totals.items satisfies Json,
+          ...toPayslipTotalsColumns(totals),
           manual_items: [],
           timesheet_summary: EMPTY_SUMMARY satisfies Json,
-          gross_amount: totals.grossAmount,
-          deduction_amount: totals.deductionAmount,
-          net_amount: totals.netAmount,
-          inss_base: totals.inssBase,
-          irrf_base: totals.irrfBase,
-          fgts_base: totals.fgtsBase,
-          fgts_amount: totals.fgtsAmount,
         },
         { onConflict: "employee_id,reference_month,kind" },
       );

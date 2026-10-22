@@ -3,7 +3,7 @@ import { NONE_SELECT_VALUE } from "@/lib/optional-select-value";
 import { Constants } from "@/lib/supabase/database.types";
 import type { TaskPeriod } from "./types";
 
-export const TASK_PERIOD_VALUES = Constants.public.Enums.task_period;
+const TASK_PERIOD_VALUES = Constants.public.Enums.task_period;
 
 export const TASK_PERIOD_LABELS = {
   opening: "Abertura",

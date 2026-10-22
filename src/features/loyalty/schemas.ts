@@ -1,10 +1,10 @@
 import * as z from "zod";
 
 export const LOYALTY_PHONE_PATTERN = /^\d{10,11}$/;
-export const MIN_STAMPS_REQUIRED = 2;
+const MIN_STAMPS_REQUIRED = 2;
 export const DEFAULT_STAMPS_REQUIRED = 10;
-export const MAX_STAMPS_REQUIRED = 50;
-export const MAX_STAMPS_ADJUSTMENT = 50;
+const MAX_STAMPS_REQUIRED = 50;
+const MAX_STAMPS_ADJUSTMENT = 50;
 
 const phoneSchema = z
   .string()
