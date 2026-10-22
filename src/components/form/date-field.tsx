@@ -3,9 +3,9 @@
 import { format, parseISO } from "date-fns";
 import { ptBR as dateFnsPtBR } from "date-fns/locale";
 import { CalendarDays } from "lucide-react";
-import { type Ref, useId, useState } from "react";
+import { type Ref, useState } from "react";
 import { ptBR } from "react-day-picker/locale";
-import { Controller, type FieldValues } from "react-hook-form";
+import type { FieldValues } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -15,7 +15,8 @@ import {
 } from "@/components/ui/popover";
 import { capitalize } from "@/lib/format-date";
 import { cn } from "@/lib/utils";
-import { FormFieldShell, getFieldDescriptionId } from "./form-field-shell";
+import { ControlledFormField } from "./controlled-form-field";
+import { getFieldDescriptionId } from "./form-field-shell";
 import { FORM_INPUT_CLASS_NAME } from "./form-field-styles";
 import type { FormFieldProps } from "./form-field-types";
 
@@ -139,41 +140,22 @@ function DatePicker({
 }
 
 export function DateField<TFieldValues extends FieldValues>({
-  control,
-  name,
-  label,
-  description,
-  isDescriptionCompact,
-  labelAction,
-  isLabelHidden,
   placeholder = "Selecione a data",
+  ...fieldProps
 }: DateFieldProps<TFieldValues>) {
-  const inputId = useId();
-
   return (
-    <Controller
-      control={control}
-      name={name}
-      render={({ field, fieldState }) => (
-        <FormFieldShell
-          inputId={inputId}
-          label={label}
-          description={description}
-          isDescriptionCompact={isDescriptionCompact}
-          labelAction={labelAction}
-          isLabelHidden={isLabelHidden}
-          error={fieldState.error}
-        >
-          <DatePicker
-            id={inputId}
-            value={field.value ?? ""}
-            placeholder={placeholder}
-            isInvalid={fieldState.invalid}
-            triggerRef={field.ref}
-            onChange={field.onChange}
-            onBlur={field.onBlur}
-          />
-        </FormFieldShell>
+    <ControlledFormField
+      {...fieldProps}
+      render={({ field, fieldState, inputId }) => (
+        <DatePicker
+          id={inputId}
+          value={field.value ?? ""}
+          placeholder={placeholder}
+          isInvalid={fieldState.invalid}
+          triggerRef={field.ref}
+          onChange={field.onChange}
+          onBlur={field.onBlur}
+        />
       )}
     />
   );

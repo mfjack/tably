@@ -1,10 +1,11 @@
 "use client";
 
 import { Minus, Plus } from "lucide-react";
-import { type Ref, useId, useRef } from "react";
-import { Controller, type FieldValues } from "react-hook-form";
+import { type Ref, useRef } from "react";
+import type { FieldValues } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { FormFieldShell, getFieldDescriptionId } from "./form-field-shell";
+import { ControlledFormField } from "./controlled-form-field";
+import { getFieldDescriptionId } from "./form-field-shell";
 import type { FormFieldProps } from "./form-field-types";
 
 type StepperFieldProps<TFieldValues extends FieldValues> = Omit<
@@ -95,47 +96,28 @@ function StepperControl({
 }
 
 export function StepperField<TFieldValues extends FieldValues>({
-  control,
-  name,
-  label,
-  description,
-  isDescriptionCompact,
-  labelAction,
-  isLabelHidden,
   min,
   max,
   formatValue = formatPlainValue,
   decreaseLabel,
   increaseLabel,
+  ...fieldProps
 }: StepperFieldProps<TFieldValues>) {
-  const inputId = useId();
-
   return (
-    <Controller
-      control={control}
-      name={name}
-      render={({ field, fieldState }) => (
-        <FormFieldShell
-          inputId={inputId}
-          label={label}
-          description={description}
-          isDescriptionCompact={isDescriptionCompact}
-          labelAction={labelAction}
-          isLabelHidden={isLabelHidden}
-          error={fieldState.error}
-        >
-          <StepperControl
-            id={inputId}
-            value={Number.isFinite(field.value) ? field.value : 0}
-            min={min}
-            max={max}
-            formatValue={formatValue}
-            decreaseLabel={decreaseLabel}
-            increaseLabel={increaseLabel}
-            outputRef={field.ref}
-            onChange={field.onChange}
-          />
-        </FormFieldShell>
+    <ControlledFormField
+      {...fieldProps}
+      render={({ field, inputId }) => (
+        <StepperControl
+          id={inputId}
+          value={Number.isFinite(field.value) ? field.value : 0}
+          min={min}
+          max={max}
+          formatValue={formatValue}
+          decreaseLabel={decreaseLabel}
+          increaseLabel={increaseLabel}
+          outputRef={field.ref}
+          onChange={field.onChange}
+        />
       )}
     />
   );
