@@ -70,7 +70,7 @@ function ProductCardComponent({ product, onAdd, onAddStock }: ProductCardProps) 
       </div>
 
       <div className="pointer-events-none flex min-w-0 flex-col gap-0.5 px-1 pb-0.5">
-        <span className={cn("truncate font-semibold text-sm", isOut && "text-muted-foreground/80")}>{product.name}</span>
+        <span className={cn("truncate font-semibold text-xs", isOut && "text-muted-foreground/80")}>{product.name}</span>
         <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-2 gap-y-1">
           <span
             className={cn("whitespace-nowrap text-muted-foreground text-xs tabular-nums", isOut && "text-muted-foreground/60")}

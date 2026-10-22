@@ -3,10 +3,9 @@
 import { useEffect, useState } from "react";
 import {
   forgetThermalPrinter,
-  getThermalPrinterUsb,
   isRawBtSupported,
+  isThermalPrintingSupported,
   reconnectThermalPrinter,
-  type ThermalPrinterUsbDevice,
   useThermalPrinterSettings,
 } from "@/lib/thermal-printer";
 
@@ -30,23 +29,20 @@ export function useThermalPrinterStatus(): ThermalPrinterStatus {
         });
     }
 
-    function handleDisconnect(event: Event) {
-      const device = (event as Event & { device: ThermalPrinterUsbDevice })
-        .device;
-      forgetThermalPrinter(device);
+    function handleDisconnect(event: USBConnectionEvent) {
+      forgetThermalPrinter(event.device);
       checkConnection();
     }
 
     checkConnection();
-    const usb = getThermalPrinterUsb();
-    if (isRawBtSupported() || !usb) return;
+    if (isRawBtSupported() || !isThermalPrintingSupported()) return;
 
-    usb.addEventListener("connect", checkConnection);
-    usb.addEventListener("disconnect", handleDisconnect);
+    navigator.usb.addEventListener("connect", checkConnection);
+    navigator.usb.addEventListener("disconnect", handleDisconnect);
     return () => {
       isActive = false;
-      usb.removeEventListener("connect", checkConnection);
-      usb.removeEventListener("disconnect", handleDisconnect);
+      navigator.usb.removeEventListener("connect", checkConnection);
+      navigator.usb.removeEventListener("disconnect", handleDisconnect);
     };
   }, [isEnabled]);
 

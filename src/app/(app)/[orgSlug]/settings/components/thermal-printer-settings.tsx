@@ -15,14 +15,16 @@ import { Switch } from "@/components/ui/switch";
 import {
   connectThermalPrinter,
   getThermalPaperColumns,
-  isRawBtSupported,
   isThermalPrintingSupported,
   printThermalReceipt,
   reconnectThermalPrinter,
   setThermalPaperWidth,
+  setThermalPrinterMode,
   setThermalPrintingEnabled,
   THERMAL_PAPER_WIDTHS,
+  THERMAL_PRINTER_MODES,
   type ThermalPaperWidth,
+  type ThermalPrinterMode,
   useThermalPrinterSettings,
 } from "@/lib/thermal-printer";
 
@@ -30,6 +32,19 @@ const PAPER_WIDTH_OPTIONS = THERMAL_PAPER_WIDTHS.map((paperWidth) => ({
   value: paperWidth,
   label: paperWidth,
 }));
+const PRINTER_MODE_LABELS = {
+  usb: "Cabo USB",
+  rawbt: "Rede (RawBT)",
+} as const satisfies Record<ThermalPrinterMode, string>;
+
+const PRINTER_MODE_OPTIONS = THERMAL_PRINTER_MODES.map((mode) => ({
+  value: mode,
+  label: PRINTER_MODE_LABELS[mode],
+}));
+
+function isThermalPrinterMode(value: unknown): value is ThermalPrinterMode {
+  return THERMAL_PRINTER_MODES.some((mode) => mode === value);
+}
 
 function subscribeToNothing() {
   return () => undefined;
@@ -74,10 +89,12 @@ export function ThermalPrinterSettings() {
     isThermalPrintingSupported,
     getIsSupportedOnServer,
   );
-  const { isEnabled, paperWidth, printerName } = useThermalPrinterSettings();
+  const { isEnabled, paperWidth, printerName, mode } =
+    useThermalPrinterSettings();
   const [isConnecting, setIsConnecting] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const hasConfiguredPrinter = mode === "rawbt" || Boolean(printerName);
 
   useEffect(() => {
     if (!isSupported) return;
@@ -125,9 +142,9 @@ export function ThermalPrinterSettings() {
       <header className="flex flex-col gap-1">
         <h2 className="font-semibold text-lg">Impressora térmica</h2>
         <p className="text-muted-foreground text-sm">
-          {isRawBtSupported()
-            ? "Envia os tickets diretamente para o RawBT, que deve estar configurado para a impressora Ethernet."
-            : "Imprime os tickets direto na impressora USB, sem abrir a janela de impressão. A configuração vale só para este computador, então faça em cada aparelho que imprime."}
+          Imprime os tickets direto na impressora, sem abrir a janela de
+          impressão. A configuração vale só para este aparelho, então faça em
+          cada um que imprime.
         </p>
       </header>
 
@@ -140,19 +157,50 @@ export function ThermalPrinterSettings() {
         <>
           <div className="flex items-center justify-between gap-4">
             <div className="flex flex-col gap-0.5">
+              <span className="font-medium text-sm">Como imprimir</span>
+              <p className="text-muted-foreground text-sm">
+                {mode === "rawbt"
+                  ? "Pelo app RawBT, configurado com a impressora da rede (Wi-Fi ou cabo de rede)."
+                  : "Pela impressora ligada no cabo USB deste aparelho."}
+              </p>
+            </div>
+            <Select
+              items={PRINTER_MODE_OPTIONS}
+              value={mode}
+              onValueChange={(value) => {
+                if (isThermalPrinterMode(value)) setThermalPrinterMode(value);
+              }}
+            >
+              <SelectTrigger className="h-10 w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PRINTER_MODE_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col gap-0.5">
               <label htmlFor={switchId} className="font-medium text-sm">
                 Imprimir direto na impressora
               </label>
               <p className="text-muted-foreground text-sm">
-                {printerName
-                  ? `Impressora pareada: ${printerName}`
-                  : "Nenhuma impressora pareada ainda."}
+                {mode === "rawbt"
+                  ? "Os tickets vão direto para o RawBT."
+                  : printerName
+                    ? `Impressora pareada: ${printerName}`
+                    : "Nenhuma impressora pareada ainda."}
               </p>
             </div>
             <Switch
               id={switchId}
               checked={isEnabled}
-              disabled={!printerName}
+              disabled={!hasConfiguredPrinter}
               onCheckedChange={setThermalPrintingEnabled}
             />
           </div>
@@ -185,28 +233,24 @@ export function ThermalPrinterSettings() {
           </div>
 
           <div className="flex flex-wrap gap-2">
+            {mode === "usb" && (
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 px-5"
+                disabled={isConnecting}
+                aria-busy={isConnecting}
+                onClick={pairPrinter}
+              >
+                <Printer aria-hidden />
+                {printerName ? "Parear outra impressora" : "Parear impressora"}
+              </Button>
+            )}
             <Button
               type="button"
               variant="outline"
               className="h-11 px-5"
-              disabled={isConnecting}
-              aria-busy={isConnecting}
-              onClick={pairPrinter}
-            >
-              <Printer aria-hidden />
-              {isRawBtSupported()
-                ? printerName
-                  ? "Reconfigurar RawBT"
-                  : "Usar RawBT"
-                : printerName
-                  ? "Parear outra impressora"
-                  : "Parear impressora"}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="h-11 px-5"
-              disabled={!printerName || isTesting}
+              disabled={!hasConfiguredPrinter || isTesting}
               aria-busy={isTesting}
               onClick={printTest}
             >

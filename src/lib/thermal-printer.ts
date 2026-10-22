@@ -4,13 +4,18 @@ import { useSyncExternalStore } from "react";
 
 const ENABLED_STORAGE_KEY = "tably-thermal-printer-enabled";
 const DEVICE_STORAGE_KEY = "tably-thermal-printer-device";
-const RAWBT_STORAGE_KEY = "tably-thermal-printer-rawbt";
+const MODE_STORAGE_KEY = "tably-thermal-printer-mode";
+const LEGACY_RAWBT_STORAGE_KEY = "tably-thermal-printer-rawbt";
+const RAWBT_INTENT_SUFFIX =
+  "#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;";
 const PAPER_WIDTH_STORAGE_KEY = "tably-thermal-printer-paper-width";
 const SETTINGS_CHANGE_EVENT = "tably-thermal-printer-change";
 
 export const THERMAL_PAPER_WIDTHS = ["58mm", "80mm"] as const;
 
 export type ThermalPaperWidth = (typeof THERMAL_PAPER_WIDTHS)[number];
+export const THERMAL_PRINTER_MODES = ["usb", "rawbt"] as const;
+export type ThermalPrinterMode = (typeof THERMAL_PRINTER_MODES)[number];
 
 const PAPER_COLUMNS = {
   "58mm": 32,
@@ -22,7 +27,7 @@ const DEFAULT_PRINTER_NAME = "Impressora térmica";
 const RAWBT_PRINTER_NAME = "RawBT";
 
 type ConnectedThermalPrinter = {
-  device: ThermalPrinterUsbDevice;
+  device: USBDevice;
   endpointNumber: number;
   productName: string;
 };
@@ -32,65 +37,6 @@ type SavedThermalPrinterDevice = {
   productId: number;
   serialNumber: string | null;
   productName: string;
-};
-
-type ThermalPrinterEndpoint = {
-  direction: "in" | "out";
-  endpointNumber: number;
-};
-
-type ThermalPrinterAlternate = {
-  endpoints: ThermalPrinterEndpoint[];
-};
-
-type ThermalPrinterInterface = {
-  interfaceNumber: number;
-  alternates: ThermalPrinterAlternate[];
-};
-
-type ThermalPrinterConfiguration = {
-  configurationValue: number;
-  interfaces: ThermalPrinterInterface[];
-};
-
-type ThermalPrinterTransferResult = {
-  status: "ok" | "stall" | "babble";
-};
-
-export type ThermalPrinterUsbDevice = {
-  opened: boolean;
-  configuration: ThermalPrinterConfiguration | null;
-  configurations: ThermalPrinterConfiguration[];
-  productName: string | null;
-  vendorId: number;
-  productId: number;
-  serialNumber: string | null;
-  open(): Promise<void>;
-  selectConfiguration(configurationValue: number): Promise<void>;
-  claimInterface(interfaceNumber: number): Promise<void>;
-  transferOut(
-    endpointNumber: number,
-    data: BufferSource,
-  ): Promise<ThermalPrinterTransferResult>;
-};
-
-export type ThermalPrinterUsb = {
-  requestDevice(options: {
-    filters: never[];
-  }): Promise<ThermalPrinterUsbDevice>;
-  getDevices(): Promise<ThermalPrinterUsbDevice[]>;
-  addEventListener(
-    type: "connect" | "disconnect",
-    listener: (event: Event) => void,
-  ): void;
-  removeEventListener(
-    type: "connect" | "disconnect",
-    listener: (event: Event) => void,
-  ): void;
-};
-
-type NavigatorWithUsb = Navigator & {
-  usb: ThermalPrinterUsb;
 };
 
 let connectedPrinter: ConnectedThermalPrinter | null = null;
@@ -110,16 +56,25 @@ function writeStorage(key: string, value: string) {
   } catch {
     return;
   }
+
   window.dispatchEvent(new Event(SETTINGS_CHANGE_EVENT));
 }
 
-function removeStorage(key: string) {
-  try {
-    window.localStorage.removeItem(key);
-  } catch {
-    return;
-  }
-  window.dispatchEvent(new Event(SETTINGS_CHANGE_EVENT));
+function isThermalPrinterMode(
+  value: string | null,
+): value is ThermalPrinterMode {
+  return THERMAL_PRINTER_MODES.some((mode) => mode === value);
+}
+
+export function getThermalPrinterMode(): ThermalPrinterMode {
+  if (typeof window === "undefined") return "usb";
+  const mode = readStorage(MODE_STORAGE_KEY);
+  if (isThermalPrinterMode(mode)) return mode;
+  return readStorage(LEGACY_RAWBT_STORAGE_KEY) === "true" ? "rawbt" : "usb";
+}
+
+export function setThermalPrinterMode(mode: ThermalPrinterMode) {
+  writeStorage(MODE_STORAGE_KEY, mode);
 }
 
 function getSavedDevice(): SavedThermalPrinterDevice | null {
@@ -137,17 +92,11 @@ function isThermalPaperWidth(value: string | null): value is ThermalPaperWidth {
   return THERMAL_PAPER_WIDTHS.some((paperWidth) => paperWidth === value);
 }
 
-function hasWebUsb(value: Navigator): value is NavigatorWithUsb {
-  return "usb" in value && typeof value.usb === "object" && value.usb !== null;
-}
-
-export function getThermalPrinterUsb(): ThermalPrinterUsb | null {
-  if (typeof navigator === "undefined" || !hasWebUsb(navigator)) return null;
-  return navigator.usb;
-}
-
 export function isThermalPrintingSupported(): boolean {
-  return isRawBtSupported() || getThermalPrinterUsb() !== null;
+  return (
+    isRawBtSupported() ||
+    (typeof navigator !== "undefined" && "usb" in navigator)
+  );
 }
 
 export function isRawBtSupported(): boolean {
@@ -181,7 +130,7 @@ export function getThermalPaperColumns(): number {
 
 export function getSavedThermalPrinterName(): string | null {
   if (typeof window === "undefined") return null;
-  if (readStorage(RAWBT_STORAGE_KEY) === "true") return RAWBT_PRINTER_NAME;
+  if (getThermalPrinterMode() === "rawbt") return RAWBT_PRINTER_NAME;
   return getSavedDevice()?.productName ?? null;
 }
 
@@ -218,12 +167,17 @@ export function useThermalPrinterSettings() {
     getSavedThermalPrinterName,
     getPrinterNameOnServer,
   );
+  const mode = useSyncExternalStore(
+    subscribeToSettings,
+    getThermalPrinterMode,
+    () => "usb" as ThermalPrinterMode,
+  );
 
-  return { isEnabled, paperWidth, printerName };
+  return { isEnabled, paperWidth, printerName, mode };
 }
 
 async function openPrinterDevice(
-  device: ThermalPrinterUsbDevice,
+  device: USBDevice,
 ): Promise<ConnectedThermalPrinter> {
   if (!device.opened) await device.open();
 
@@ -272,16 +226,8 @@ async function openPrinterDevice(
 }
 
 export async function connectThermalPrinter(): Promise<string> {
-  if (isRawBtSupported()) {
-    writeStorage(RAWBT_STORAGE_KEY, "true");
-    return RAWBT_PRINTER_NAME;
-  }
-
-  const usb = getThermalPrinterUsb();
-  if (!usb) {
-    throw new Error("Este navegador não oferece suporte à impressão USB.");
-  }
-  const device = await usb.requestDevice({ filters: [] });
+  if (getThermalPrinterMode() === "rawbt") return "RawBT";
+  const device = await navigator.usb.requestDevice({ filters: [] });
   const printer = await openPrinterDevice(device);
 
   writeStorage(
@@ -297,20 +243,14 @@ export async function connectThermalPrinter(): Promise<string> {
 }
 
 export async function reconnectThermalPrinter(): Promise<string | null> {
-  if (isRawBtSupported()) {
-    return readStorage(RAWBT_STORAGE_KEY) === "true"
-      ? RAWBT_PRINTER_NAME
-      : null;
-  }
+  if (getThermalPrinterMode() === "rawbt") return RAWBT_PRINTER_NAME;
   if (!isThermalPrintingSupported()) return null;
   if (connectedPrinter?.device.opened) return connectedPrinter.productName;
 
   const savedDevice = getSavedDevice();
   if (!savedDevice) return null;
 
-  const usb = getThermalPrinterUsb();
-  if (!usb) return null;
-  const devices = await usb.getDevices();
+  const devices = await navigator.usb.getDevices();
   const device = devices.find(
     (candidate) =>
       candidate.vendorId === savedDevice.vendorId &&
@@ -324,17 +264,16 @@ export async function reconnectThermalPrinter(): Promise<string | null> {
   return printer.productName;
 }
 
-export function forgetThermalPrinter(device: ThermalPrinterUsbDevice) {
-  if (connectedPrinter?.device === device) connectedPrinter = null;
-}
-
-function printWithRawBt(bytes: Uint8Array): Promise<void> {
-  const rawData = Array.from(bytes, (byte) => String.fromCharCode(byte)).join(
+function buildRawBtIntentUrl(bytes: Uint8Array): string {
+  const binary = Array.from(bytes, (byte) => String.fromCharCode(byte)).join(
     "",
   );
-  const printUrl = `rawbt:${encodeURIComponent(rawData)}`;
+  return `intent:base64,${window.btoa(binary)}${RAWBT_INTENT_SUFFIX}`;
+}
+
+function printRawBtReceipt(bytes: Uint8Array): Promise<void> {
   const link = document.createElement("a");
-  link.href = printUrl;
+  link.href = buildRawBtIntentUrl(bytes);
   link.setAttribute("aria-hidden", "true");
   link.style.display = "none";
   document.body.appendChild(link);
@@ -343,12 +282,11 @@ function printWithRawBt(bytes: Uint8Array): Promise<void> {
   return Promise.resolve();
 }
 
-async function transferReceiptBytes(bytes: Uint8Array) {
-  if (isRawBtSupported() && readStorage(RAWBT_STORAGE_KEY) === "true") {
-    await printWithRawBt(bytes);
-    return;
-  }
+export function forgetThermalPrinter(device: USBDevice) {
+  if (connectedPrinter?.device === device) connectedPrinter = null;
+}
 
+async function transferReceiptBytes(bytes: Uint8Array) {
   if (!connectedPrinter) await reconnectThermalPrinter();
   if (!connectedPrinter) {
     throw new Error("Nenhuma impressora térmica conectada.");
@@ -360,12 +298,14 @@ async function transferReceiptBytes(bytes: Uint8Array) {
   );
 }
 
-export function printThermalReceipt(bytes: Uint8Array): Promise<void> {
+function printUsbReceipt(bytes: Uint8Array): Promise<void> {
   const job = printQueue.then(() => transferReceiptBytes(bytes));
   printQueue = job.catch(() => undefined);
   return job;
 }
 
-export function disableRawBtPrinting() {
-  removeStorage(RAWBT_STORAGE_KEY);
+export function printThermalReceipt(bytes: Uint8Array): Promise<void> {
+  return getThermalPrinterMode() === "rawbt"
+    ? printRawBtReceipt(bytes)
+    : printUsbReceipt(bytes);
 }
