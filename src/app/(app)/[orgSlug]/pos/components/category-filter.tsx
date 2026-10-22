@@ -12,9 +12,16 @@ type CategoryFilterProps = {
   onSelect: (categoryId: CategoryId | null) => void;
 };
 
-export function CategoryFilter({ options, selectedCategoryId, onSelect }: CategoryFilterProps) {
+export function CategoryFilter({
+  options,
+  selectedCategoryId,
+  onSelect,
+}: CategoryFilterProps) {
   return (
-    <nav aria-label="Categorias" className="-mx-6 flex gap-2 overflow-x-auto px-6">
+    <nav
+      aria-label="Categorias"
+      className="-mx-6 flex gap-2 overflow-x-auto px-6"
+    >
       {options.map((option) => {
         const isSelected = option.id === selectedCategoryId;
         return (
@@ -25,7 +32,9 @@ export function CategoryFilter({ options, selectedCategoryId, onSelect }: Catego
             onClick={() => onSelect(option.id)}
             className={cn(
               "flex h-9 shrink-0 items-center whitespace-nowrap rounded-lg border px-3 font-medium text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/40",
-              isSelected ? "border-foreground bg-foreground text-background" : "bg-background hover:bg-muted",
+              isSelected
+                ? "border-foreground bg-foreground text-background"
+                : "bg-background hover:bg-muted",
             )}
           >
             {option.label}

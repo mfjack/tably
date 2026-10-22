@@ -2,16 +2,21 @@
 
 import { Search } from "lucide-react";
 import { useRef } from "react";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
-import { Kbd } from "@/components/ui/kbd";
-import { useKeyboardShortcut } from "@/hooks/use-keyboard-shortcut";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 
 type ProductSearchInputProps = {
   searchTerm: string;
   onSearchTermChange: (searchTerm: string) => void;
 };
 
-export function ProductSearchInput({ searchTerm, onSearchTermChange }: ProductSearchInputProps) {
+export function ProductSearchInput({
+  searchTerm,
+  onSearchTermChange,
+}: ProductSearchInputProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   return (

@@ -9,7 +9,9 @@ type ThermalPrinterWarningProps = {
   settingsHref: string;
 };
 
-export function ThermalPrinterWarning({ settingsHref }: ThermalPrinterWarningProps) {
+export function ThermalPrinterWarning({
+  settingsHref,
+}: ThermalPrinterWarningProps) {
   const status = useThermalPrinterStatus();
   if (status !== "disconnected") return null;
 

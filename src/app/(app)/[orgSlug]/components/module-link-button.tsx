@@ -8,9 +8,19 @@ type ModuleLinkButtonProps = {
   icon: LucideIcon;
 };
 
-export function ModuleLinkButton({ href, label, icon: Icon }: ModuleLinkButtonProps) {
+export function ModuleLinkButton({
+  href,
+  label,
+  icon: Icon,
+}: ModuleLinkButtonProps) {
   return (
-    <Button variant="outline" className="h-9 px-3 sm:px-4" aria-label={label} nativeButton={false} render={<Link href={href} />}>
+    <Button
+      variant="outline"
+      className="h-9 px-3 sm:px-4"
+      aria-label={label}
+      nativeButton={false}
+      render={<Link href={href} />}
+    >
       <Icon aria-hidden />
       <span className="hidden sm:inline">{label}</span>
     </Button>

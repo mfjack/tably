@@ -1,12 +1,19 @@
 import { SearchX } from "lucide-react";
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { IngredientId } from "@/features/ingredients/types";
 import type { ProductId } from "@/features/products/types";
 import type { PosProduct } from "../hooks/use-pos-catalog";
 import { ProductCard } from "./product-card";
 
-const GRID_CLASS_NAME = "grid grid-cols-3 gap-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6";
+const GRID_CLASS_NAME =
+  "grid grid-cols-3 gap-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6";
 
 const LOADING_CARD_COUNT = 10;
 
@@ -17,12 +24,20 @@ type ProductGridProps = {
   onAddStock?: (ingredientId: IngredientId) => void;
 };
 
-export function ProductGrid({ products, isLoading, onAdd, onAddStock }: ProductGridProps) {
+export function ProductGrid({
+  products,
+  isLoading,
+  onAdd,
+  onAddStock,
+}: ProductGridProps) {
   if (isLoading) {
     return (
       <div className={GRID_CLASS_NAME}>
         {Array.from({ length: LOADING_CARD_COUNT }, (_, index) => (
-          <Skeleton key={`loading-${index.toString()}`} className="h-36 rounded-xl" />
+          <Skeleton
+            key={`loading-${index.toString()}`}
+            className="h-36 rounded-xl"
+          />
         ))}
       </div>
     );
@@ -36,7 +51,10 @@ export function ProductGrid({ products, isLoading, onAdd, onAddStock }: ProductG
             <SearchX aria-hidden />
           </EmptyMedia>
           <EmptyTitle>Nenhum produto encontrado</EmptyTitle>
-          <EmptyDescription>Confira a busca e a categoria, ou cadastre produtos ativos no módulo Produtos.</EmptyDescription>
+          <EmptyDescription>
+            Confira a busca e a categoria, ou cadastre produtos ativos no módulo
+            Produtos.
+          </EmptyDescription>
         </EmptyHeader>
       </Empty>
     );
@@ -45,7 +63,12 @@ export function ProductGrid({ products, isLoading, onAdd, onAddStock }: ProductG
   return (
     <div className={GRID_CLASS_NAME}>
       {products.map((product) => (
-        <ProductCard key={product.id} product={product} onAdd={onAdd} onAddStock={onAddStock} />
+        <ProductCard
+          key={product.id}
+          product={product}
+          onAdd={onAdd}
+          onAddStock={onAddStock}
+        />
       ))}
     </div>
   );

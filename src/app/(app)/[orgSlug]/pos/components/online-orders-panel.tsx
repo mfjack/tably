@@ -14,7 +14,10 @@ import { useOnlineOrdersRealtime } from "@/features/online-orders/hooks/use-onli
 import { usePendingOnlineOrdersQuery } from "@/features/online-orders/hooks/use-pending-online-orders-query";
 import { useRejectOnlineOrderMutation } from "@/features/online-orders/hooks/use-reject-online-order-mutation";
 import type { PendingOnlineOrder } from "@/features/online-orders/types";
-import { type OrderTicketBusiness, printOrderTicket } from "@/features/orders/print-order-ticket";
+import {
+  type OrderTicketBusiness,
+  printOrderTicket,
+} from "@/features/orders/print-order-ticket";
 import type { OrganizationId } from "@/features/organizations/types";
 import { ItemAddonNames } from "@/features/product-addons/components/item-addon-names";
 import { useNow } from "@/hooks/use-now";
@@ -35,19 +38,28 @@ function formatElapsedTime(createdAt: string, now: Date) {
   return minutes === 0 ? "agora" : `há ${minutes} min`;
 }
 
-export function OnlineOrdersPanel({ organizationId, ticketBusiness, kitchenHref, isKitchenEnabled }: OnlineOrdersPanelProps) {
+export function OnlineOrdersPanel({
+  organizationId,
+  ticketBusiness,
+  kitchenHref,
+  isKitchenEnabled,
+}: OnlineOrdersPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
   const now = useNow(ELAPSED_TIME_REFRESH_IN_MS);
-  const { data: pendingOrders = [] } = usePendingOnlineOrdersQuery(organizationId);
+  const { data: pendingOrders = [] } =
+    usePendingOnlineOrdersQuery(organizationId);
   const acceptMutation = useAcceptOnlineOrderMutation(organizationId);
   const rejectMutation = useRejectOnlineOrderMutation(organizationId);
   const pendingCount = pendingOrders.length;
 
   useOnlineOrdersRealtime(organizationId, (customerName) => {
     playNewTicketSound();
-    toast(`Novo pedido pelo cardápio${customerName ? ` · ${customerName}` : ""}`, {
-      action: { label: "Ver", onClick: () => setIsOpen(true) },
-    });
+    toast(
+      `Novo pedido pelo cardápio${customerName ? ` · ${customerName}` : ""}`,
+      {
+        action: { label: "Ver", onClick: () => setIsOpen(true) },
+      },
+    );
   });
 
   function acceptOrder(order: PendingOnlineOrder) {
@@ -70,7 +82,9 @@ export function OnlineOrdersPanel({ organizationId, ticketBusiness, kitchenHref,
           createdAt: new Date(),
         });
         toast.success(
-          isKitchenEnabled ? `Comanda de ${customerName} aberta e enviada à cozinha.` : `Comanda de ${customerName} aberta.`,
+          isKitchenEnabled
+            ? `Comanda de ${customerName} aberta e enviada à cozinha.`
+            : `Comanda de ${customerName} aberta.`,
         );
       },
       onError: (error) => toast.error(error.message),
@@ -79,7 +93,8 @@ export function OnlineOrdersPanel({ organizationId, ticketBusiness, kitchenHref,
 
   function rejectOrder(order: PendingOnlineOrder) {
     rejectMutation.mutate(order.id, {
-      onSuccess: () => toast.success(`Pedido de ${order.customerName} recusado.`),
+      onSuccess: () =>
+        toast.success(`Pedido de ${order.customerName} recusado.`),
       onError: (error) => toast.error(error.message),
     });
   }
@@ -98,7 +113,10 @@ export function OnlineOrdersPanel({ organizationId, ticketBusiness, kitchenHref,
         aria-label={`Pedidos pelo cardápio (${pendingCount})`}
         onClick={() => setIsOpen(true)}
       >
-        <BellRing aria-hidden className={cn(pendingCount > 0 && "animate-pulse")} />
+        <BellRing
+          aria-hidden
+          className={cn(pendingCount > 0 && "animate-pulse")}
+        />
         <span className="hidden sm:inline">Pedidos</span>
         {pendingCount > 0 && (
           <span className="flex size-5 items-center justify-center rounded-full bg-destructive font-semibold text-white text-xs tabular-nums">
@@ -116,13 +134,20 @@ export function OnlineOrdersPanel({ organizationId, ticketBusiness, kitchenHref,
           <>
             <Button
               variant="outline"
-              className={cn(DIALOG_ACTION_BUTTON_CLASS_NAME, !kitchenHref && "col-span-2")}
+              className={cn(
+                DIALOG_ACTION_BUTTON_CLASS_NAME,
+                !kitchenHref && "col-span-2",
+              )}
               onClick={() => setIsOpen(false)}
             >
               Fechar
             </Button>
             {kitchenHref && (
-              <Button className={DIALOG_ACTION_BUTTON_CLASS_NAME} nativeButton={false} render={<Link href={kitchenHref} />}>
+              <Button
+                className={DIALOG_ACTION_BUTTON_CLASS_NAME}
+                nativeButton={false}
+                render={<Link href={kitchenHref} />}
+              >
                 <ChefHat aria-hidden />
                 Ir para a cozinha
               </Button>
@@ -132,32 +157,51 @@ export function OnlineOrdersPanel({ organizationId, ticketBusiness, kitchenHref,
       >
         {pendingCount === 0 ? (
           <p className="py-8 text-center text-muted-foreground text-sm">
-            Nenhum pedido aguardando. Quando um cliente pedir pelo cardápio, ele aparece aqui com um aviso sonoro.
+            Nenhum pedido aguardando. Quando um cliente pedir pelo cardápio, ele
+            aparece aqui com um aviso sonoro.
           </p>
         ) : (
           <ul className="flex flex-col gap-3">
             {pendingOrders.map((order) => {
               const isDeciding = decidingOrderId === order.id;
               return (
-                <li key={order.id} className="flex flex-col gap-3 rounded-xl border p-4">
+                <li
+                  key={order.id}
+                  className="flex flex-col gap-3 rounded-xl border p-4"
+                >
                   <div className="flex items-baseline justify-between gap-3">
-                    <span className="truncate font-semibold text-base">{order.customerName}</span>
-                    <span className="shrink-0 text-muted-foreground text-sm">{formatElapsedTime(order.createdAt, now)}</span>
+                    <span className="truncate font-semibold text-base">
+                      {order.customerName}
+                    </span>
+                    <span className="shrink-0 text-muted-foreground text-sm">
+                      {formatElapsedTime(order.createdAt, now)}
+                    </span>
                   </div>
                   <ul className="flex flex-col gap-1 text-sm">
                     {order.items.map((item, index) => (
-                      <li key={`${item.productId}-${index.toString()}`} className="flex justify-between gap-3">
+                      <li
+                        key={`${item.productId}-${index.toString()}`}
+                        className="flex justify-between gap-3"
+                      >
                         <span>
                           {item.quantity}x {item.name}
                           <ItemAddonNames addonNames={item.addonNames} />
                         </span>
-                        <span className="shrink-0 tabular-nums">{formatCurrency(item.unitPrice * item.quantity)}</span>
+                        <span className="shrink-0 tabular-nums">
+                          {formatCurrency(item.unitPrice * item.quantity)}
+                        </span>
                       </li>
                     ))}
                   </ul>
-                  {order.note && <p className="rounded-lg bg-muted px-3 py-2 text-sm">{order.note}</p>}
+                  {order.note && (
+                    <p className="rounded-lg bg-muted px-3 py-2 text-sm">
+                      {order.note}
+                    </p>
+                  )}
                   <div className="flex items-center justify-between gap-3 border-t pt-3">
-                    <span className="font-semibold tabular-nums">{formatCurrency(order.total)}</span>
+                    <span className="font-semibold tabular-nums">
+                      {formatCurrency(order.total)}
+                    </span>
                     <div className="flex gap-2">
                       <Button
                         variant="outline"
@@ -172,7 +216,9 @@ export function OnlineOrdersPanel({ organizationId, ticketBusiness, kitchenHref,
                         disabled={decidingOrderId !== null}
                         onClick={() => acceptOrder(order)}
                       >
-                        {isDeciding && acceptMutation.isPending ? "Aceitando..." : "Aceitar e imprimir"}
+                        {isDeciding && acceptMutation.isPending
+                          ? "Aceitando..."
+                          : "Aceitar e imprimir"}
                       </Button>
                     </div>
                   </div>

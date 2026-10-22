@@ -3852,6 +3852,13 @@ export type Database = {
         }
         Returns: undefined
       }
+      has_any_module_access: {
+        Args: {
+          p_modules: Database["public"]["Enums"]["app_module"][]
+          p_organization_id: string
+        }
+        Returns: boolean
+      }
       has_loyalty_stamp_today: {
         Args: { p_customer_id: string }
         Returns: boolean

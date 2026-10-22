@@ -15,13 +15,18 @@ type ProductCardProps = {
   onAddStock?: (ingredientId: IngredientId) => void;
 };
 
-function getAvailabilityLabel(availability: ProductAvailability): string | null {
+function getAvailabilityLabel(
+  availability: ProductAvailability,
+): string | null {
   if (availability.status === "low") return `${availability.remaining}`;
   if (availability.status === "out") return "Esgotado";
   return null;
 }
 
-function getAccessibleLabel(product: PosProduct, availabilityLabel: string | null) {
+function getAccessibleLabel(
+  product: PosProduct,
+  availabilityLabel: string | null,
+) {
   return [
     product.name,
     formatCurrency(product.price),
@@ -32,7 +37,11 @@ function getAccessibleLabel(product: PosProduct, availabilityLabel: string | nul
     .join(", ");
 }
 
-function ProductCardComponent({ product, onAdd, onAddStock }: ProductCardProps) {
+function ProductCardComponent({
+  product,
+  onAdd,
+  onAddStock,
+}: ProductCardProps) {
   const { availability, cartQuantity } = product;
   const isOut = availability.status === "out";
   const isLow = availability.status === "low";
@@ -63,17 +72,33 @@ function ProductCardComponent({ product, onAdd, onAddStock }: ProductCardProps) 
         )}
       >
         {product.imageUrl ? (
-          <Image src={product.imageUrl} alt="" fill sizes="200px" className="object-cover" />
+          <Image
+            src={product.imageUrl}
+            alt=""
+            fill
+            sizes="200px"
+            className="object-cover"
+          />
         ) : (
           <ShoppingBag className="size-4" strokeWidth={1.5} aria-hidden />
         )}
       </div>
 
       <div className="pointer-events-none flex min-w-0 flex-col gap-0.5 px-1 pb-0.5">
-        <span className={cn("truncate font-semibold text-xs", isOut && "text-muted-foreground/80")}>{product.name}</span>
+        <span
+          className={cn(
+            "truncate font-semibold text-xs",
+            isOut && "text-muted-foreground/80",
+          )}
+        >
+          {product.name}
+        </span>
         <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-2 gap-y-1">
           <span
-            className={cn("whitespace-nowrap text-muted-foreground text-xs tabular-nums", isOut && "text-muted-foreground/60")}
+            className={cn(
+              "whitespace-nowrap text-muted-foreground text-xs tabular-nums",
+              isOut && "text-muted-foreground/60",
+            )}
           >
             {formatCurrency(product.price)}
           </span>

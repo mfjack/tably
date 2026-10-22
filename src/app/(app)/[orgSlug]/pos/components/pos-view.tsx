@@ -5,14 +5,20 @@ import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useOpenCashSessionQuery } from "@/features/cash-register/hooks/use-open-cash-session-query";
-import { buildCategoryOrder, sortByCategoryOrder } from "@/features/categories/category-order";
+import {
+  buildCategoryOrder,
+  sortByCategoryOrder,
+} from "@/features/categories/category-order";
 import type { CategoryId } from "@/features/categories/types";
 import { StockEntryDialog } from "@/features/ingredients/components/stock-entry-dialog";
 import { useIngredientsMap } from "@/features/ingredients/hooks/use-ingredients-map";
 import type { IngredientId } from "@/features/ingredients/types";
 import { PaymentDialog } from "@/features/orders/components/payment-dialog";
 import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
-import type { OrganizationCheckoutSettings, OrganizationId } from "@/features/organizations/types";
+import type {
+  OrganizationCheckoutSettings,
+  OrganizationId,
+} from "@/features/organizations/types";
 import {
   getCartTabLabel,
   useActiveCartTab,
@@ -28,11 +34,21 @@ import type { Product, ProductId } from "@/features/products/types";
 import { useIsOnline } from "@/hooks/use-is-online";
 import { ModuleLinkButton } from "../../components/module-link-button";
 import { PageHeader } from "../../components/page-header";
-import { type GroupCheckoutMode, useGroupCheckout } from "../hooks/use-group-checkout";
-import { type CartLine, type PosProduct, usePosCatalog } from "../hooks/use-pos-catalog";
+import {
+  type GroupCheckoutMode,
+  useGroupCheckout,
+} from "../hooks/use-group-checkout";
+import {
+  type CartLine,
+  type PosProduct,
+  usePosCatalog,
+} from "../hooks/use-pos-catalog";
 import { usePosCheckout } from "../hooks/use-pos-checkout";
 import { CartPanel } from "./cart-panel";
-import { CartTabNameDialog, type CartTabNameDialogState } from "./cart-tab-name-dialog";
+import {
+  CartTabNameDialog,
+  type CartTabNameDialogState,
+} from "./cart-tab-name-dialog";
 import { CartTabsBar } from "./cart-tabs-bar";
 import { CashRegisterClosedState } from "./cash-register-closed-state";
 import { CashRegisterPanel } from "./cash-register-panel";
@@ -102,21 +118,35 @@ export function PosView({
   const selectCartTab = useCartStore((state) => state.selectCartTab);
   const renameCartTab = useCartStore((state) => state.renameCartTab);
   const activeCartTab = useActiveCartTab(organizationId);
-  const [groupDialogMode, setGroupDialogMode] = useState<GroupCheckoutMode | null>(null);
-  const [tabNameDialogState, setTabNameDialogState] = useState<CartTabNameDialogState>({ mode: "closed" });
+  const [groupDialogMode, setGroupDialogMode] =
+    useState<GroupCheckoutMode | null>(null);
+  const [tabNameDialogState, setTabNameDialogState] =
+    useState<CartTabNameDialogState>({ mode: "closed" });
   const { tabs: cartTabs } = useCartTabs(organizationId);
   const activeCartTabId = useActiveCartTabId(organizationId);
 
-  const { posProducts, cartLines, buildCartLines, getAddonOptions, categories, isLoading, errorMessage } = usePosCatalog(
-    organizationId,
-    cart,
+  const {
+    posProducts,
+    cartLines,
+    buildCartLines,
+    getAddonOptions,
+    categories,
+    isLoading,
+    errorMessage,
+  } = usePosCatalog(organizationId, cart);
+  const categoryOrder = useMemo(
+    () => buildCategoryOrder(categories),
+    [categories],
   );
-  const categoryOrder = useMemo(() => buildCategoryOrder(categories), [categories]);
   const isOnline = useIsOnline();
   const cashSessionQuery = useOpenCashSessionQuery(organizationId);
-  const isCashRegisterClosed = isOnline && cashSessionQuery.isSuccess && cashSessionQuery.data === null;
-  const [isOpenRegisterDialogOpen, setIsOpenRegisterDialogOpen] = useState(false);
-  const catalogErrorMessage = errorMessage ?? (!isOnline && isLoading ? OFFLINE_CATALOG_MESSAGE : undefined);
+  const isCashRegisterClosed =
+    isOnline && cashSessionQuery.isSuccess && cashSessionQuery.data === null;
+  const [isOpenRegisterDialogOpen, setIsOpenRegisterDialogOpen] =
+    useState(false);
+  const catalogErrorMessage =
+    errorMessage ??
+    (!isOnline && isLoading ? OFFLINE_CATALOG_MESSAGE : undefined);
   const checkout = usePosCheckout({
     organizationId,
     ticketBusiness,
@@ -139,15 +169,20 @@ export function PosView({
 
   const [searchTerm, setSearchTerm] = useState("");
   const [noteCartLine, setNoteCartLine] = useState<CartLine | null>(null);
-  const [addonPickerProduct, setAddonPickerProduct] = useState<Product | null>(null);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<CategoryId | null>(null);
+  const [addonPickerProduct, setAddonPickerProduct] = useState<Product | null>(
+    null,
+  );
+  const [selectedCategoryId, setSelectedCategoryId] =
+    useState<CategoryId | null>(null);
 
   const isKitchenPayment = checkout.checkoutStep.step === "kitchen-payment";
   const isQuickPayment = checkout.checkoutStep.step === "quick-payment";
 
   const categoryOptions = useMemo<CategoryFilterOption[]>(() => {
     const categoryIdsWithProducts = new Set<CategoryId>(
-      posProducts.flatMap((product) => (product.categoryId ? [product.categoryId] : [])),
+      posProducts.flatMap((product) =>
+        product.categoryId ? [product.categoryId] : [],
+      ),
     );
 
     return [
@@ -162,34 +197,63 @@ export function PosView({
     const normalizedSearch = searchTerm.trim().toLocaleLowerCase("pt-BR");
     return posProducts.filter(
       (product) =>
-        (selectedCategoryId === null || product.categoryId === selectedCategoryId) &&
+        (selectedCategoryId === null ||
+          product.categoryId === selectedCategoryId) &&
         (normalizedSearch === "" || matchesSearch(product, normalizedSearch)),
     );
   }, [posProducts, searchTerm, selectedCategoryId]);
 
   const { ingredientsById } = useIngredientsMap(organizationId);
-  const [stockEntryIngredientId, setStockEntryIngredientId] = useState<IngredientId | null>(null);
-  const stockEntryIngredient = stockEntryIngredientId ? (ingredientsById.get(stockEntryIngredientId) ?? null) : null;
+  const [stockEntryIngredientId, setStockEntryIngredientId] =
+    useState<IngredientId | null>(null);
+  const stockEntryIngredient = stockEntryIngredientId
+    ? (ingredientsById.get(stockEntryIngredientId) ?? null)
+    : null;
 
   const handleAddProduct = useCallback(
     (productId: ProductId) => {
       const product = posProducts.find(({ id }) => id === productId);
-      if (checkoutSettings.isProductAddonsEnabled && product?.addons.some((addon) => addon.isActive)) {
+      if (
+        checkoutSettings.isProductAddonsEnabled &&
+        product?.addons.some((addon) => addon.isActive)
+      ) {
         setAddonPickerProduct(product);
         return;
       }
       addProductToCart(organizationId, productId);
     },
-    [addProductToCart, checkoutSettings.isProductAddonsEnabled, organizationId, posProducts],
+    [
+      addProductToCart,
+      checkoutSettings.isProductAddonsEnabled,
+      organizationId,
+      posProducts,
+    ],
   );
 
   const handleDecrementItem = useCallback(
-    (cartLine: CartLine) => decrementCartItem(organizationId, cartLine.product.id, cartLine.note, cartLine.cartAddonIds),
+    (cartLine: CartLine) =>
+      decrementCartItem(
+        organizationId,
+        cartLine.product.id,
+        cartLine.note,
+        cartLine.cartAddonIds,
+      ),
     [decrementCartItem, organizationId],
   );
 
-  function saveItemNote(cartLine: CartLine, note: string, quantityToMove: number) {
-    setCartItemNote(organizationId, cartLine.product.id, cartLine.note, note, quantityToMove, cartLine.cartAddonIds);
+  function saveItemNote(
+    cartLine: CartLine,
+    note: string,
+    quantityToMove: number,
+  ) {
+    setCartItemNote(
+      organizationId,
+      cartLine.product.id,
+      cartLine.note,
+      note,
+      quantityToMove,
+      cartLine.cartAddonIds,
+    );
   }
 
   function submitTabName(name: string) {
@@ -258,7 +322,9 @@ export function PosView({
       tabs={cartTabs}
       activeTabId={activeCartTabId}
       onSelect={(tabId) => selectCartTab(organizationId, tabId)}
-      onRename={(tab) => setTabNameDialogState({ mode: "rename", currentName: tab.name })}
+      onRename={(tab) =>
+        setTabNameDialogState({ mode: "rename", currentName: tab.name })
+      }
       onAdd={() => setTabNameDialogState({ mode: "create" })}
       onRemove={(tabId) => finishCartTab(organizationId, tabId)}
     />
@@ -287,13 +353,21 @@ export function PosView({
                   isKitchenEnabled={isKitchenEnabled}
                 />
               )}
-              {canOpenOrderTabs && <ModuleLinkButton href={orderTabsHref} label="Comandas" icon={ClipboardList} />}
+              {canOpenOrderTabs && (
+                <ModuleLinkButton
+                  href={orderTabsHref}
+                  label="Comandas"
+                  icon={ClipboardList}
+                />
+              )}
             </>
           }
         />
         {isCashRegisterClosed ? (
           <div className="flex min-h-0 flex-1 flex-col px-4 py-6 md:px-6">
-            <CashRegisterClosedState onOpenRegister={() => setIsOpenRegisterDialogOpen(true)} />
+            <CashRegisterClosedState
+              onOpenRegister={() => setIsOpenRegisterDialogOpen(true)}
+            />
           </div>
         ) : (
           <>
@@ -303,7 +377,10 @@ export function PosView({
                 selectedCategoryId={selectedCategoryId}
                 onSelect={setSelectedCategoryId}
               />
-              <ProductSearchInput searchTerm={searchTerm} onSearchTermChange={setSearchTerm} />
+              <ProductSearchInput
+                searchTerm={searchTerm}
+                onSearchTermChange={setSearchTerm}
+              />
             </div>
             <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pt-6 pb-28 md:px-6 md:pb-8">
               {catalogErrorMessage ? (
@@ -315,7 +392,9 @@ export function PosView({
                   products={visibleProducts}
                   isLoading={isLoading || !isCartHydrated}
                   onAdd={handleAddProduct}
-                  onAddStock={canAddStock ? setStockEntryIngredientId : undefined}
+                  onAddStock={
+                    canAddStock ? setStockEntryIngredientId : undefined
+                  }
                 />
               )}
             </div>
@@ -328,12 +407,16 @@ export function PosView({
         variant="sidebar"
         cartLines={isCartHydrated ? cartLines : []}
         isSendingToKitchen={checkout.isPlacingOrder || groupCheckout.isPlacing}
-        sendToKitchenLabel={hasManyOrders ? `Imprimir todos (${tabsWithItems.length})` : undefined}
+        sendToKitchenLabel={
+          hasManyOrders ? `Imprimir todos (${tabsWithItems.length})` : undefined
+        }
         onDecrement={handleDecrementItem}
         onEditItemNote={setNoteCartLine}
         onSendToKitchen={startSendToKitchen}
         onQuickPayment={startQuickPayment}
-        quickPaymentLabel={hasManyOrders ? `Pagamento (${tabsWithItems.length})` : undefined}
+        quickPaymentLabel={
+          hasManyOrders ? `Pagamento (${tabsWithItems.length})` : undefined
+        }
         tabTarget={tabTarget}
         isAddingToTab={checkout.isAddingToTab}
         onAddToTab={checkout.addToTab}
@@ -344,12 +427,16 @@ export function PosView({
         hasOpenOrders={hasItemsInAnyTab}
         cartLines={isCartHydrated ? cartLines : []}
         isSendingToKitchen={checkout.isPlacingOrder || groupCheckout.isPlacing}
-        sendToKitchenLabel={hasManyOrders ? `Imprimir todos (${tabsWithItems.length})` : undefined}
+        sendToKitchenLabel={
+          hasManyOrders ? `Imprimir todos (${tabsWithItems.length})` : undefined
+        }
         onDecrement={handleDecrementItem}
         onEditItemNote={setNoteCartLine}
         onSendToKitchen={startSendToKitchen}
         onQuickPayment={startQuickPayment}
-        quickPaymentLabel={hasManyOrders ? `Pagamento (${tabsWithItems.length})` : undefined}
+        quickPaymentLabel={
+          hasManyOrders ? `Pagamento (${tabsWithItems.length})` : undefined
+        }
         tabTarget={tabTarget}
         isAddingToTab={checkout.isAddingToTab}
         onAddToTab={checkout.addToTab}
@@ -374,7 +461,9 @@ export function PosView({
         organizationId={organizationId}
         isOpen={isKitchenPayment || isQuickPayment}
         title="Pagamento"
-        submitLabel={isKitchenPayment ? "Pagamento recebido" : "Confirmar pagamento"}
+        submitLabel={
+          isKitchenPayment ? "Pagamento recebido" : "Confirmar pagamento"
+        }
         summary={checkout.paymentSummary}
         checkoutSettings={checkoutSettings}
         isServiceFeeSuggested={false}
@@ -410,7 +499,11 @@ export function PosView({
           }}
         />
       )}
-      <ItemNoteDialog cartLine={noteCartLine} onClose={() => setNoteCartLine(null)} onSave={saveItemNote} />
+      <ItemNoteDialog
+        cartLine={noteCartLine}
+        onClose={() => setNoteCartLine(null)}
+        onSave={saveItemNote}
+      />
       <GroupOrdersDialog
         organizationId={organizationId}
         entries={groupOrderEntries}
@@ -426,17 +519,26 @@ export function PosView({
           organizationId={organizationId}
           isOpen
           title={`Pagamento · ${groupCheckout.currentGroup.customerName} (${groupCheckout.position}/${groupCheckout.groupCount})`}
-          submitLabel={groupCheckout.mode === "kitchen" ? "Pagamento recebido" : "Confirmar pagamento"}
+          submitLabel={
+            groupCheckout.mode === "kitchen"
+              ? "Pagamento recebido"
+              : "Confirmar pagamento"
+          }
           summary={groupCheckout.summary}
           checkoutSettings={checkoutSettings}
           isServiceFeeSuggested={false}
           isSubmitting={groupCheckout.isPlacing}
           onClose={groupCheckout.cancel}
-          onConfirm={(payments, adjustments, total) => void groupCheckout.submit({ payments, adjustments, total })}
+          onConfirm={(payments, adjustments, total) =>
+            void groupCheckout.submit({ payments, adjustments, total })
+          }
           secondaryAction={
             checkoutSettings.isOrderTabsEnabled
               ? {
-                  label: groupCheckout.mode === "kitchen" ? "Abrir comanda" : "Criar comanda",
+                  label:
+                    groupCheckout.mode === "kitchen"
+                      ? "Abrir comanda"
+                      : "Criar comanda",
                   isPending: false,
                   onClick: () => void groupCheckout.submit(undefined),
                 }
@@ -448,7 +550,11 @@ export function PosView({
         state={tabNameDialogState}
         organizationId={organizationId}
         otherTabNames={cartTabs
-          .filter((tab) => tabNameDialogState.mode !== "rename" || tab.id !== activeCartTabId)
+          .filter(
+            (tab) =>
+              tabNameDialogState.mode !== "rename" ||
+              tab.id !== activeCartTabId,
+          )
           .map((tab) => tab.name)
           .filter(Boolean)}
         onClose={() => setTabNameDialogState({ mode: "closed" })}

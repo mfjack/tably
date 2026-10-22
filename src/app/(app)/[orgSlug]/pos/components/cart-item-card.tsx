@@ -11,7 +11,11 @@ type CartItemCardProps = {
   onEditNote: (cartLine: CartLine) => void;
 };
 
-export function CartItemCard({ cartLine, onDecrement, onEditNote }: CartItemCardProps) {
+export function CartItemCard({
+  cartLine,
+  onDecrement,
+  onEditNote,
+}: CartItemCardProps) {
   const { product, addons, displayName, quantity, note, total } = cartLine;
   const hasNote = note !== "";
 
@@ -22,16 +26,28 @@ export function CartItemCard({ cartLine, onDecrement, onEditNote }: CartItemCard
       </span>
       <div className="flex min-w-0 flex-1 flex-col">
         <span className="truncate font-semibold text-sm">{product.name}</span>
-        {addons.length > 0 && <span className="truncate text-muted-foreground text-xs">{formatAddonNames(addons)}</span>}
-        {hasNote && <span className="truncate text-primary text-xs">↳ {note}</span>}
-        <span className="text-muted-foreground text-sm tabular-nums">{formatCurrency(total)}</span>
+        {addons.length > 0 && (
+          <span className="truncate text-muted-foreground text-xs">
+            {formatAddonNames(addons)}
+          </span>
+        )}
+        {hasNote && (
+          <span className="truncate text-primary text-xs">↳ {note}</span>
+        )}
+        <span className="text-muted-foreground text-sm tabular-nums">
+          {formatCurrency(total)}
+        </span>
       </div>
       <Button
         type="button"
         variant="outline"
         size="icon-lg"
         className={cn(hasNote && "border-primary text-primary")}
-        aria-label={hasNote ? `Editar observação de ${displayName}` : `Adicionar observação a ${displayName}`}
+        aria-label={
+          hasNote
+            ? `Editar observação de ${displayName}`
+            : `Adicionar observação a ${displayName}`
+        }
         onClick={() => onEditNote(cartLine)}
       >
         <MessageSquareText aria-hidden />
