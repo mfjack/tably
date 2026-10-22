@@ -1,7 +1,10 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef } from "react";
+import { useCallback } from "react";
 import type { OrganizationId } from "@/features/organizations/types";
-import { createClient } from "@/lib/supabase/client";
+import {
+  type RealtimeChange,
+  useOrganizationRealtime,
+} from "@/hooks/use-organization-realtime";
 import { getPendingOnlineOrdersQueryKey } from "./use-pending-online-orders-query";
 
 export function useOnlineOrdersRealtime(
@@ -9,43 +12,27 @@ export function useOnlineOrdersRealtime(
   onOrderCreated: (customerName: string) => void,
 ) {
   const queryClient = useQueryClient();
-  const onOrderCreatedRef = useRef(onOrderCreated);
+  const refetchOrders = useCallback(() => {
+    void queryClient.invalidateQueries({
+      queryKey: getPendingOnlineOrdersQueryKey(organizationId),
+    });
+  }, [queryClient, organizationId]);
 
-  useEffect(() => {
-    onOrderCreatedRef.current = onOrderCreated;
-  }, [onOrderCreated]);
+  const handleChange = useCallback(
+    (change: RealtimeChange) => {
+      if (change.eventType === "INSERT") {
+        const customerName = change.new.customer_name;
+        onOrderCreated(typeof customerName === "string" ? customerName : "");
+      }
+      refetchOrders();
+    },
+    [onOrderCreated, refetchOrders],
+  );
 
-  useEffect(() => {
-    const supabase = createClient();
-    const queryKey = getPendingOnlineOrdersQueryKey(organizationId);
-    const channel = supabase
-      .channel(`online-orders:${organizationId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "online_orders",
-          filter: `organization_id=eq.${organizationId}`,
-        },
-        (payload) => {
-          if (payload.eventType === "INSERT") {
-            const customerName = payload.new.customer_name;
-            onOrderCreatedRef.current(
-              typeof customerName === "string" ? customerName : "",
-            );
-          }
-          void queryClient.invalidateQueries({ queryKey });
-        },
-      )
-      .subscribe((status) => {
-        if (status === "SUBSCRIBED") {
-          void queryClient.invalidateQueries({ queryKey });
-        }
-      });
-
-    return () => {
-      void supabase.removeChannel(channel);
-    };
-  }, [organizationId, queryClient]);
+  useOrganizationRealtime({
+    table: "online_orders",
+    organizationId,
+    onChange: handleChange,
+    onSubscribed: refetchOrders,
+  });
 }
