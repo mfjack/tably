@@ -6,18 +6,21 @@ import { type DefaultValues, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { FormDialog } from "@/components/dialog/form-dialog";
 import { DateField } from "@/components/form/date-field";
+import { FilePickerField } from "@/components/form/file-picker-field";
 import { MaskedField } from "@/components/form/masked-field";
 import { NumberField } from "@/components/form/number-field";
 import { SelectField } from "@/components/form/select-field";
 import { SwitchField } from "@/components/form/switch-field";
 import { TextField } from "@/components/form/text-field";
 import { TextareaField } from "@/components/form/textarea-field";
-import { FieldGroup } from "@/components/ui/field";
+import { FieldGroup, FieldSeparator } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { parseBoleto } from "@/features/finance/boleto";
+import { MAX_FINANCIAL_DOCUMENT_SIZE_IN_MEGABYTES } from "@/features/finance/documents";
 import { useCreateFinancialEntryMutation } from "@/features/finance/hooks/use-create-financial-entry-mutation";
 import { useUpdateFinancialEntryMutation } from "@/features/finance/hooks/use-update-financial-entry-mutation";
+import { useUploadFinancialDocumentMutation } from "@/features/finance/hooks/use-upload-financial-document-mutation";
 import {
   ENTRY_KIND_LABELS,
   RECURRENCE_FREQUENCY_LABELS,
@@ -31,6 +34,7 @@ import {
 import type {
   FinancialCategory,
   FinancialEntry,
+  FinancialEntryId,
   FinancialEntryKind,
 } from "@/features/finance/types";
 import type { OrganizationId } from "@/features/organizations/types";
@@ -126,6 +130,9 @@ export function EntryFormDialog({
   const [scope, setScope] = useState<EntryEditScope>("single");
   const createMutation = useCreateFinancialEntryMutation(organizationId);
   const updateMutation = useUpdateFinancialEntryMutation(organizationId);
+  const uploadMutation = useUploadFinancialDocumentMutation(organizationId);
+  const [file, setFile] = useState<File | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
   const { supplierOptions, hasSuppliers } = useSupplierOptions(
     organizationId,
     isOpen && kind === "expense",
@@ -164,9 +171,19 @@ export function EntryFormDialog({
     lastParsedLineRef.current =
       state.mode === "edit" ? (state.entry.digitableLine ?? "") : "";
     setScope("single");
+    setFile(null);
+    setFileError(null);
     createMutation.reset();
     updateMutation.reset();
-  }, [state, today, form, createMutation.reset, updateMutation.reset]);
+    uploadMutation.reset();
+  }, [
+    state,
+    today,
+    form,
+    createMutation.reset,
+    updateMutation.reset,
+    uploadMutation.reset,
+  ]);
 
   useEffect(() => {
     if (!digitableLine || !BOLETO_LENGTHS.has(digitableLine.length)) return;
@@ -195,7 +212,10 @@ export function EntryFormDialog({
     }
   }, [digitableLine, today, form]);
 
-  const isSubmitting = createMutation.isPending || updateMutation.isPending;
+  const isSubmitting =
+    createMutation.isPending ||
+    updateMutation.isPending ||
+    uploadMutation.isPending;
   const kindLabel = ENTRY_KIND_LABELS[kind].toLowerCase();
 
   const handleSubmit = form.handleSubmit((values) => {
@@ -223,9 +243,49 @@ export function EntryFormDialog({
       kind === "income"
         ? { ...values, repeat: "none", isPaid: true, paidAt: values.dueDate }
         : values,
-      callbacks,
+      {
+        onSuccess: (entryId) => attachFile(entryId, callbacks.onSuccess),
+        onError: callbacks.onError,
+      },
     );
   });
+
+  function attachFile(entryId: FinancialEntryId | null, onDone: () => void) {
+    if (!file || !entryId) {
+      onDone();
+      return;
+    }
+    uploadMutation.mutate(
+      { entryId, field: "document", file },
+      {
+        onSuccess: onDone,
+        onError: (error) => {
+          toast.error(
+            `Lançamento criado, mas o anexo não foi enviado: ${error.message} Anexe pelo menu da conta.`,
+          );
+          onClose();
+        },
+      },
+    );
+  }
+
+  const filePicker = !editingEntry && (
+    <FilePickerField
+      label={
+        kind === "expense"
+          ? "Boleto ou nota (opcional)"
+          : "Documento (opcional)"
+      }
+      file={file}
+      error={fileError}
+      maxSizeInMegabytes={MAX_FINANCIAL_DOCUMENT_SIZE_IN_MEGABYTES}
+      isLabelVisible
+      onFileChange={(selectedFile, error) => {
+        setFile(selectedFile);
+        setFileError(error);
+      }}
+    />
+  );
 
   return (
     <FormDialog
@@ -234,7 +294,7 @@ export function EntryFormDialog({
       title={editingEntry ? `Editar ${kindLabel}` : `Nova ${kindLabel}`}
       description={
         kind === "expense"
-          ? "Conta a pagar. Cole o código do boleto para preencher valor e vencimento."
+          ? "Conta a pagar. Fica em aberto até você marcar como paga."
           : "Dinheiro que entrou. Fica registrado como recebido nessa data e nessa conta."
       }
       submitLabel={editingEntry ? "Salvar" : "Criar"}
@@ -244,16 +304,20 @@ export function EntryFormDialog({
     >
       <FieldGroup>
         {kind === "expense" && (
-          <MaskedField
-            control={form.control}
-            name="digitableLine"
-            label="Código do boleto (opcional)"
-            description="Linha digitável do boleto ou da conta de consumo."
-            mask="boleto"
-            placeholder="Cole ou digite os números"
-            autoComplete="off"
-          />
+          <>
+            <MaskedField
+              control={form.control}
+              name="digitableLine"
+              label="Código do boleto (opcional)"
+              mask="boleto"
+              placeholder="Cole ou digite os números"
+              autoComplete="off"
+            />
+            {filePicker}
+            <FieldSeparator />
+          </>
         )}
+
         <TextField
           control={form.control}
           name="description"
@@ -301,15 +365,27 @@ export function EntryFormDialog({
             />
           )}
         </div>
+        {kind === "income" && filePicker}
 
         {!editingEntry && kind === "expense" && (
           <>
-            <div className="grid gap-5 sm:grid-cols-2">
+            <FieldSeparator />
+            <div className="grid items-end gap-5 sm:grid-cols-2">
               <SelectField
                 control={form.control}
                 name="repeat"
                 label="Repetição"
                 options={REPEAT_OPTIONS}
+              />
+              <SwitchField
+                control={form.control}
+                name="isPaid"
+                label="Já foi paga"
+                description={
+                  repeat === "none"
+                    ? undefined
+                    : "Marca só o primeiro vencimento."
+                }
               />
               {repeat === "installments" && (
                 <NumberField
@@ -336,104 +412,94 @@ export function EntryFormDialog({
                   description="Vazio: repete sem data para acabar."
                 />
               )}
+              {isPaid && (
+                <DateField
+                  control={form.control}
+                  name="paidAt"
+                  label="Data do pagamento"
+                />
+              )}
             </div>
             {repeat === "installments" && amount && installmentCount ? (
               <p className="text-muted-foreground text-sm">
                 Total: {formatCurrency(amount * installmentCount)}
               </p>
             ) : null}
-            <SwitchField
-              control={form.control}
-              name="isPaid"
-              label={kind === "expense" ? "Já foi paga" : "Já foi recebida"}
-              description={
-                repeat === "none"
-                  ? undefined
-                  : "Marca só o primeiro vencimento."
-              }
-            />
-            {isPaid && (
-              <DateField
+          </>
+        )}
+
+        {(editingEntry?.recurrenceId || editingEntry?.installmentGroupId) && (
+          <>
+            <FieldSeparator />
+            {editingEntry.installmentGroupId && (
+              <NumberField
                 control={form.control}
-                name="paidAt"
-                label={
-                  kind === "expense"
-                    ? "Data do pagamento"
-                    : "Data do recebimento"
-                }
+                name="installmentCount"
+                label="Número de parcelas"
+                description="Aumentar cria novas parcelas no fim. Diminuir apaga as últimas em aberto."
+                format="integer"
+                placeholder="Ex.: 10"
               />
+            )}
+
+            <RadioGroup
+              value={scope}
+              onValueChange={(value) => {
+                const nextScope = ENTRY_EDIT_SCOPES.find(
+                  (editScope) => editScope === value,
+                );
+                if (nextScope) setScope(nextScope);
+              }}
+              className="gap-3 rounded-lg border p-4"
+            >
+              <p className="font-medium text-sm">
+                {editingEntry.recurrenceId
+                  ? "Essa conta se repete. Aplicar as mudanças em:"
+                  : "Essa conta é parcelada. Aplicar as mudanças em:"}
+              </p>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="single" id={`${scopeId}-single`} />
+                <Label htmlFor={`${scopeId}-single`}>
+                  {editingEntry.recurrenceId
+                    ? "Só neste vencimento"
+                    : "Só nesta parcela"}
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="following" id={`${scopeId}-following`} />
+                <Label htmlFor={`${scopeId}-following`}>
+                  {editingEntry.recurrenceId
+                    ? "Neste e nos próximos"
+                    : "Nesta e nas próximas"}
+                </Label>
+              </div>
+              <p className="text-muted-foreground text-xs">
+                {editingEntry.recurrenceId
+                  ? "Nos próximos, muda também o dia do vencimento, a frequência e a data de fim."
+                  : "Nas próximas, muda também o vencimento, mantendo uma por mês."}
+              </p>
+            </RadioGroup>
+
+            {editingEntry.recurrenceId && scope === "following" && (
+              <div className="grid gap-5 sm:grid-cols-2">
+                <SelectField
+                  control={form.control}
+                  name="frequency"
+                  label="Frequência"
+                  options={FREQUENCY_OPTIONS}
+                />
+                <DateField
+                  control={form.control}
+                  name="endDate"
+                  label="Até (opcional)"
+                  description="Vazio: repete sem data para acabar."
+                />
+              </div>
             )}
           </>
         )}
 
-        {editingEntry?.installmentGroupId && (
-          <NumberField
-            control={form.control}
-            name="installmentCount"
-            label="Número de parcelas"
-            description="Aumentar cria novas parcelas no fim. Diminuir apaga as últimas em aberto."
-            format="integer"
-            placeholder="Ex.: 10"
-          />
-        )}
-
-        {(editingEntry?.recurrenceId || editingEntry?.installmentGroupId) && (
-          <RadioGroup
-            value={scope}
-            onValueChange={(value) => {
-              const nextScope = ENTRY_EDIT_SCOPES.find(
-                (editScope) => editScope === value,
-              );
-              if (nextScope) setScope(nextScope);
-            }}
-            className="gap-3 rounded-lg border p-4"
-          >
-            <p className="font-medium text-sm">
-              {editingEntry.recurrenceId
-                ? "Essa conta se repete. Aplicar as mudanças em:"
-                : "Essa conta é parcelada. Aplicar as mudanças em:"}
-            </p>
-            <div className="flex items-center gap-2">
-              <RadioGroupItem value="single" id={`${scopeId}-single`} />
-              <Label htmlFor={`${scopeId}-single`}>
-                {editingEntry.recurrenceId
-                  ? "Só neste vencimento"
-                  : "Só nesta parcela"}
-              </Label>
-            </div>
-            <div className="flex items-center gap-2">
-              <RadioGroupItem value="following" id={`${scopeId}-following`} />
-              <Label htmlFor={`${scopeId}-following`}>
-                {editingEntry.recurrenceId
-                  ? "Neste e nos próximos"
-                  : "Nesta e nas próximas"}
-              </Label>
-            </div>
-            <p className="text-muted-foreground text-xs">
-              {editingEntry.recurrenceId
-                ? "Nos próximos, muda também o dia do vencimento, a frequência e a data de fim."
-                : "Nas próximas, muda também o vencimento, mantendo uma por mês."}
-            </p>
-          </RadioGroup>
-        )}
-
-        {editingEntry?.recurrenceId && scope === "following" && (
-          <div className="grid gap-5 sm:grid-cols-2">
-            <SelectField
-              control={form.control}
-              name="frequency"
-              label="Frequência"
-              options={FREQUENCY_OPTIONS}
-            />
-            <DateField
-              control={form.control}
-              name="endDate"
-              label="Até (opcional)"
-              description="Vazio: repete sem data para acabar."
-            />
-          </div>
-        )}
-
+        <FieldSeparator />
         <TextareaField
           control={form.control}
           name="notes"

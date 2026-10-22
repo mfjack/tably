@@ -1,18 +1,17 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FileUp } from "lucide-react";
-import { type ChangeEvent, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { type DefaultValues, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { FormDialog } from "@/components/dialog/form-dialog";
 import { DateField } from "@/components/form/date-field";
+import { FilePickerField } from "@/components/form/file-picker-field";
 import { SelectField } from "@/components/form/select-field";
 import { TextField } from "@/components/form/text-field";
 import { TextareaField } from "@/components/form/textarea-field";
 import { FieldGroup } from "@/components/ui/field";
 import {
-  formatFileSize,
   MAX_DOCUMENT_SIZE_IN_MEGABYTES,
   removeFileExtension,
 } from "@/features/documents/document-files";
@@ -25,11 +24,6 @@ import {
 } from "@/features/documents/schemas";
 import type { OrganizationDocument } from "@/features/documents/types";
 import type { OrganizationId } from "@/features/organizations/types";
-import {
-  ACCEPTED_DOCUMENT_TYPES,
-  getDocumentFileError,
-} from "@/lib/document-files";
-import { cn } from "@/lib/utils";
 
 const EMPTY_DOCUMENT_FORM: DefaultValues<DocumentFormInput> = {
   name: "",
@@ -63,7 +57,6 @@ export function DocumentFormDialog({
 }: DocumentFormDialogProps) {
   const createMutation = useCreateDocumentMutation(organizationId);
   const updateMutation = useUpdateDocumentMutation(organizationId);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const form = useForm<DocumentFormInput>({
@@ -81,18 +74,10 @@ export function DocumentFormDialog({
     updateMutation.reset();
   }, [isOpen, document, form, createMutation.reset, updateMutation.reset]);
 
-  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
-    const selectedFile = event.target.files?.[0];
-    event.target.value = "";
-    if (!selectedFile) return;
-
-    const error = getDocumentFileError(
-      selectedFile,
-      MAX_DOCUMENT_SIZE_IN_MEGABYTES,
-    );
+  function handleFileChange(selectedFile: File | null, error: string | null) {
     setFileError(error);
-    setFile(error ? null : selectedFile);
-    if (!error && !form.getValues("name")) {
+    setFile(selectedFile);
+    if (selectedFile && !form.getValues("name")) {
       form.setValue("name", removeFileExtension(selectedFile.name), {
         shouldValidate: true,
       });
@@ -137,44 +122,13 @@ export function DocumentFormDialog({
     >
       <FieldGroup>
         {!isEditing && (
-          <div className="flex flex-col gap-1.5">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept={ACCEPTED_DOCUMENT_TYPES}
-              className="sr-only"
-              onChange={handleFileChange}
-              aria-label="Arquivo do documento"
-            />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className={cn(
-                "flex items-center gap-3 rounded-xl border border-dashed p-4 text-left transition-colors hover:bg-muted/50",
-                fileError && "border-destructive",
-              )}
-            >
-              <FileUp
-                className="size-6 shrink-0 text-muted-foreground"
-                aria-hidden
-              />
-              <span className="flex min-w-0 flex-col">
-                <span className="truncate font-medium text-sm">
-                  {file ? file.name : "Escolher arquivo"}
-                </span>
-                <span className="text-muted-foreground text-xs">
-                  {file
-                    ? `${formatFileSize(file.size)} · toque para trocar`
-                    : "PDF, JPG, PNG ou WEBP. No celular, dá para tirar a foto na hora."}
-                </span>
-              </span>
-            </button>
-            {fileError && (
-              <p className="text-destructive text-sm" role="alert">
-                {fileError}
-              </p>
-            )}
-          </div>
+          <FilePickerField
+            label="Arquivo do documento"
+            file={file}
+            error={fileError}
+            maxSizeInMegabytes={MAX_DOCUMENT_SIZE_IN_MEGABYTES}
+            onFileChange={handleFileChange}
+          />
         )}
         <div className="grid gap-5 sm:grid-cols-2">
           <TextField

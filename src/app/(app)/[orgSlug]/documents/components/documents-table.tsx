@@ -7,12 +7,10 @@ import { createDataTableColumnHelper } from "@/components/data-table/data-table-
 import { DataTableRowActionButton } from "@/components/data-table/data-table-row-action-button";
 import { useDataTable } from "@/components/data-table/use-data-table";
 import { Badge } from "@/components/ui/badge";
-import {
-  DOCUMENT_EXPIRY_WARNING_DAYS,
-  formatFileSize,
-} from "@/features/documents/document-files";
+import { DOCUMENT_EXPIRY_WARNING_DAYS } from "@/features/documents/document-files";
 import { DOCUMENT_KIND_LABELS } from "@/features/documents/document-kinds";
 import type { OrganizationDocument } from "@/features/documents/types";
+import { formatFileSize } from "@/lib/document-files";
 import { getExpiryStatus } from "@/lib/expiry";
 import { formatDateKey } from "@/lib/format";
 

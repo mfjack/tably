@@ -1,4 +1,5 @@
-const BYTES_PER_MEGABYTE = 1024 * 1024;
+const BYTES_PER_KILOBYTE = 1024;
+const BYTES_PER_MEGABYTE = BYTES_PER_KILOBYTE * BYTES_PER_KILOBYTE;
 
 export const DOCUMENT_EXTENSIONS_BY_TYPE: Readonly<Record<string, string>> = {
   "application/pdf": "pdf",
@@ -26,4 +27,11 @@ export function getDocumentFileError(
 
 export function buildDocumentPath(folder: string, file: File): string {
   return `${folder}/${crypto.randomUUID()}.${DOCUMENT_EXTENSIONS_BY_TYPE[file.type]}`;
+}
+
+export function formatFileSize(sizeBytes: number): string {
+  const kilobytes = sizeBytes / BYTES_PER_KILOBYTE;
+  if (kilobytes < BYTES_PER_KILOBYTE)
+    return `${Math.max(1, Math.round(kilobytes))} KB`;
+  return `${(kilobytes / BYTES_PER_KILOBYTE).toFixed(1).replace(".", ",")} MB`;
 }

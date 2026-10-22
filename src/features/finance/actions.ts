@@ -268,7 +268,7 @@ function toEntryValues(input: EntryInput) {
 export async function createFinancialEntry(
   organizationId: OrganizationId,
   input: EntryInput,
-): Promise<ActionResult> {
+): Promise<ActionResult<FinancialEntryId | null>> {
   if (!(await canUseFinance(organizationId))) return ACCESS_DENIED;
 
   const parsedInput = entrySchema.safeParse(input);
@@ -313,41 +313,61 @@ export async function createFinancialEntry(
         .eq("recurrence_id", recurrence.id)
         .eq("due_date", entry.dueDate);
     }
-    return actionSuccess();
+    const { data: firstEntry } = await supabase
+      .from("financial_entries")
+      .select("id")
+      .eq("recurrence_id", recurrence.id)
+      .eq("due_date", entry.dueDate)
+      .maybeSingle();
+    return actionSuccess(
+      firstEntry ? (firstEntry.id as FinancialEntryId) : null,
+    );
   }
 
   if (entry.repeat === "installments" && entry.installmentCount) {
     const installmentGroupId = crypto.randomUUID();
     const firstDueDate = parseISO(entry.dueDate);
-    const { error } = await supabase.from("financial_entries").insert(
-      Array.from({ length: entry.installmentCount }, (_, index) => ({
-        ...values,
-        ...(index === 0 ? payment : { paid_at: null, paid_amount: null }),
-        organization_id: organizationId,
-        due_date: toDateKey(addMonths(firstDueDate, index)),
-        installment_group_id: installmentGroupId,
-        installment_number: index + 1,
-        installment_count: entry.installmentCount,
-        barcode: index === 0 ? entry.digitableLine || null : null,
-      })),
-    );
+    const { data: installments, error } = await supabase
+      .from("financial_entries")
+      .insert(
+        Array.from({ length: entry.installmentCount }, (_, index) => ({
+          ...values,
+          ...(index === 0 ? payment : { paid_at: null, paid_amount: null }),
+          organization_id: organizationId,
+          due_date: toDateKey(addMonths(firstDueDate, index)),
+          installment_group_id: installmentGroupId,
+          installment_number: index + 1,
+          installment_count: entry.installmentCount,
+          barcode: index === 0 ? entry.digitableLine || null : null,
+        })),
+      )
+      .select("id, installment_number");
 
     if (error)
       return databaseFailure("Não foi possível salvar as parcelas.", error);
-    return actionSuccess();
+    const firstInstallment = installments.find(
+      (installment) => installment.installment_number === 1,
+    );
+    return actionSuccess(
+      firstInstallment ? (firstInstallment.id as FinancialEntryId) : null,
+    );
   }
 
-  const { error } = await supabase.from("financial_entries").insert({
-    ...values,
-    ...payment,
-    organization_id: organizationId,
-    due_date: entry.dueDate,
-    barcode: entry.digitableLine || null,
-  });
+  const { data: createdEntry, error } = await supabase
+    .from("financial_entries")
+    .insert({
+      ...values,
+      ...payment,
+      organization_id: organizationId,
+      due_date: entry.dueDate,
+      barcode: entry.digitableLine || null,
+    })
+    .select("id")
+    .single();
 
   if (error)
     return databaseFailure("Não foi possível salvar o lançamento.", error);
-  return actionSuccess();
+  return actionSuccess(createdEntry.id as FinancialEntryId);
 }
 
 export async function updateFinancialEntry(
