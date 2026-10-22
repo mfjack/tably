@@ -6,7 +6,7 @@ import type { ProductId } from "@/features/products/types";
 import type { PosProduct } from "../hooks/use-pos-catalog";
 import { ProductCard } from "./product-card";
 
-const GRID_CLASS_NAME = "grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-6";
+const GRID_CLASS_NAME = "grid grid-cols-3 gap-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6";
 
 const LOADING_CARD_COUNT = 10;
 
