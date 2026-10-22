@@ -1,5 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { getOperatorsQueryKey } from "@/features/operators/hooks/use-operators-query";
+import { useMutation } from "@tanstack/react-query";
 import type { OrganizationId } from "@/features/organizations/types";
 import { useInvalidateTimeClockEmployees } from "@/features/time-clock/hooks/use-invalidate-time-clock-employees";
 import { unwrapActionResult } from "@/lib/action-result";
@@ -12,7 +11,6 @@ export function getResetEmployeePinMutationKey(organizationId: OrganizationId) {
 }
 
 export function useResetEmployeePinMutation(organizationId: OrganizationId) {
-  const queryClient = useQueryClient();
   const invalidateEmployees = useInvalidateEmployees(organizationId);
   const invalidateTimeClockEmployees =
     useInvalidateTimeClockEmployees(organizationId);
@@ -22,12 +20,6 @@ export function useResetEmployeePinMutation(organizationId: OrganizationId) {
     mutationFn: async (employeeId: EmployeeId) =>
       unwrapActionResult(await resetEmployeePin(organizationId, employeeId)),
     onSuccess: () =>
-      Promise.all([
-        invalidateEmployees(),
-        invalidateTimeClockEmployees(),
-        queryClient.invalidateQueries({
-          queryKey: getOperatorsQueryKey(organizationId),
-        }),
-      ]),
+      Promise.all([invalidateEmployees(), invalidateTimeClockEmployees()]),
   });
 }

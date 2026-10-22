@@ -64,9 +64,6 @@ export const employeeSchema = z
     dependents: z.number().int().min(0).max(MAX_DEPENDENTS).optional(),
     hasTransportVoucher: z.boolean(),
     notes: z.string().trim().max(300, "Observação muito longa."),
-    hasSystemAccess: z.boolean(),
-    allowedModules: z.array(z.enum(Constants.public.Enums.app_module)),
-    canAccessSettings: z.boolean(),
   })
   .refine(
     (employee) =>
@@ -84,16 +81,6 @@ export const employeeSchema = z
     {
       message: "O desligamento não pode ser antes da admissão.",
       path: ["terminationDate"],
-    },
-  )
-  .refine(
-    (employee) =>
-      !employee.hasSystemAccess ||
-      employee.allowedModules.length > 0 ||
-      employee.canAccessSettings,
-    {
-      message: "Escolha pelo menos uma página.",
-      path: ["allowedModules"],
     },
   );
 

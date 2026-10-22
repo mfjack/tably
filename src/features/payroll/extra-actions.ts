@@ -3,11 +3,11 @@
 import { addDays, format, parseISO, subMonths } from "date-fns";
 import { EMPLOYEE_COLUMNS, toEmployee } from "@/features/employees/mappers";
 import type { Employee, EmployeeId } from "@/features/employees/types";
+import type { OrganizationId } from "@/features/organizations/types";
 import {
   hasModuleAccess,
   MODULE_ACCESS_DENIED_MESSAGE,
-} from "@/features/operators/module-access";
-import type { OrganizationId } from "@/features/organizations/types";
+} from "@/features/team/module-access";
 import { getOrganizationClock } from "@/features/time-clock/load-timesheet";
 import type { TimesheetSummary } from "@/features/time-clock/timesheet";
 import {

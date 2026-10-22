@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
-  APP_MODULES,
   buildOrganizationPath,
   getAppModule,
 } from "@/features/modules/app-modules";
@@ -37,9 +36,6 @@ export default async function EmployeesPage({
       title={employeesModule.label}
       description={employeesModule.description}
       today={clock.today}
-      visibleModuleIds={APP_MODULES.map(({ id }) => id).filter(
-        (moduleId) => !organization.hiddenModules.includes(moduleId),
-      )}
       employeesHref={buildOrganizationPath(organization.slug, "employees")}
       payrollHref={
         accessibleModuleIds.includes("payroll")

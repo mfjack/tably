@@ -1,13 +1,12 @@
 import "server-only";
 
 import { notFound, redirect } from "next/navigation";
-import { getEffectiveHiddenModules } from "@/features/operators/access";
-import { getOperatorAccess } from "@/features/operators/queries";
 import { getUserOrganizationBySlug } from "@/features/organizations/queries";
 import type {
   AppModuleId,
   UserOrganization,
 } from "@/features/organizations/types";
+import { getEffectiveHiddenModules } from "@/features/team/access";
 import { APP_MODULES, buildOrganizationHomePath } from "./app-modules";
 
 export async function requireVisibleModule(
@@ -20,11 +19,7 @@ export async function requireVisibleModule(
     notFound();
   }
 
-  const access = await getOperatorAccess(organization.id);
-  const hiddenModules = getEffectiveHiddenModules(
-    organization.hiddenModules,
-    access,
-  );
+  const hiddenModules = getEffectiveHiddenModules(organization);
 
   if (hiddenModules.includes(moduleId)) {
     redirect(buildOrganizationHomePath(organization.slug, hiddenModules));
@@ -36,11 +31,7 @@ export async function requireVisibleModule(
 export async function getAccessibleModuleIds(
   organization: UserOrganization,
 ): Promise<AppModuleId[]> {
-  const access = await getOperatorAccess(organization.id);
-  const hiddenModules = getEffectiveHiddenModules(
-    organization.hiddenModules,
-    access,
-  );
+  const hiddenModules = getEffectiveHiddenModules(organization);
   return APP_MODULES.map(({ id }) => id).filter(
     (moduleId) => !hiddenModules.includes(moduleId),
   );

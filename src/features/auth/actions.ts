@@ -62,7 +62,8 @@ export async function signUp(
   const parsedInput = signUpSchema.safeParse(input);
   if (!parsedInput.success) return actionFailure(INVALID_FORM_MESSAGE);
 
-  const { name, email, password, plan, billingCycle } = parsedInput.data;
+  const { name, email, password, plan, billingCycle, nextPath } =
+    parsedInput.data;
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -73,7 +74,7 @@ export async function signUp(
         selected_plan: plan,
         selected_billing_cycle: billingCycle,
       },
-      emailRedirectTo: buildAuthCallbackUrl(ROUTES.home),
+      emailRedirectTo: buildAuthCallbackUrl(getSafeRedirectPath(nextPath)),
     },
   });
   if (error) return actionFailure(getAuthErrorMessage(error));

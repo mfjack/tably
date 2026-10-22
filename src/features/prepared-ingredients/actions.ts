@@ -4,7 +4,7 @@ import type { IngredientId } from "@/features/ingredients/types";
 import {
   hasModuleAccessToRecord,
   MODULE_ACCESS_DENIED_MESSAGE,
-} from "@/features/operators/module-access";
+} from "@/features/team/module-access";
 import {
   type ActionResult,
   actionFailure,

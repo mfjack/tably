@@ -1,13 +1,13 @@
 "use server";
 
+import type { OrderId } from "@/features/orders/types";
+import type { OrganizationId } from "@/features/organizations/types";
+import { parseOrderItemAddons } from "@/features/product-addons/item-addons";
 import {
   hasModuleAccess,
   hasModuleAccessToRecord,
   MODULE_ACCESS_DENIED_MESSAGE,
-} from "@/features/operators/module-access";
-import type { OrderId } from "@/features/orders/types";
-import type { OrganizationId } from "@/features/organizations/types";
-import { parseOrderItemAddons } from "@/features/product-addons/item-addons";
+} from "@/features/team/module-access";
 import {
   type ActionResult,
   actionFailure,

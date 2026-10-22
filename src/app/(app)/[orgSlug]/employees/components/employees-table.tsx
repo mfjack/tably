@@ -105,9 +105,6 @@ export function EmployeesTable({
                   PIN pendente
                 </Badge>
               )}
-              {row.original.systemAccess && (
-                <Badge variant="secondary">Usa o sistema</Badge>
-              )}
             </div>
           );
         },

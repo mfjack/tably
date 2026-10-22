@@ -1,11 +1,10 @@
 "use server";
 
+import type { OrganizationId } from "@/features/organizations/types";
 import {
   hasModuleAccess,
   MODULE_ACCESS_DENIED_MESSAGE,
-} from "@/features/operators/module-access";
-import type { OperatorId } from "@/features/operators/types";
-import type { OrganizationId } from "@/features/organizations/types";
+} from "@/features/team/module-access";
 import {
   type ActionResult,
   actionFailure,
@@ -26,15 +25,6 @@ import {
 } from "./mappers";
 
 const ACCESS_DENIED = actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
-
-const EMPLOYEE_ACCESS_ERROR_MESSAGES: Readonly<Record<string, string>> = {
-  "23505":
-    "Já existe um operador com o nome desse funcionário. Renomeie um dos dois.",
-  "22023": "Escolha pelo menos uma página para o acesso ao sistema.",
-  TB004: "Pelo menos um operador precisa ter acesso a Configurações.",
-  TB011:
-    "Você atingiu o limite de operadores do seu plano. Troque de plano em Configurações, na aba Assinatura, para dar acesso ao sistema a este funcionário.",
-};
 
 async function canUseEmployees(organizationId: OrganizationId) {
   return hasModuleAccess(organizationId, "employees");
@@ -68,9 +58,7 @@ export async function listEmployees(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("employees")
-    .select(
-      `${EMPLOYEE_COLUMNS}, operators(id, allowed_modules, can_access_settings), time_punches(count), payslips(count)`,
-    )
+    .select(`${EMPLOYEE_COLUMNS}, time_punches(count), payslips(count)`)
     .eq("organization_id", organizationId)
     .order("name");
 
@@ -79,20 +67,12 @@ export async function listEmployees(
 
   return actionSuccess(
     data.map((row) => {
-      const operator = row.operators[0];
       const hasRecords =
         (row.time_punches[0]?.count ?? 0) > 0 ||
         (row.payslips[0]?.count ?? 0) > 0;
       return {
         ...toEmployee(row),
         canDelete: !hasRecords,
-        systemAccess: operator
-          ? {
-              operatorId: operator.id as OperatorId,
-              allowedModules: operator.allowed_modules,
-              canAccessSettings: operator.can_access_settings,
-            }
-          : null,
       };
     }),
   );
@@ -132,7 +112,7 @@ export async function saveEmployee(
     notes: employee.notes || null,
   };
   const supabase = await createClient();
-  const { data, error } = employeeId
+  const { error } = employeeId
     ? await supabase
         .from("employees")
         .update(values)
@@ -151,23 +131,6 @@ export async function saveEmployee(
       isUniqueViolation(error)
         ? "Já existe um funcionário com esse CPF."
         : "Não foi possível salvar o funcionário.",
-    );
-  }
-
-  const { error: accessError } = await supabase.rpc("save_employee_access", {
-    p_employee_id: data.id,
-    p_is_enabled: employee.hasSystemAccess,
-    p_allowed_modules: employee.allowedModules,
-    p_can_access_settings: employee.canAccessSettings,
-  });
-
-  if (accessError) {
-    return actionFailure(
-      `Funcionário salvo, mas o acesso ao sistema não. ${
-        (accessError.code &&
-          EMPLOYEE_ACCESS_ERROR_MESSAGES[accessError.code]) ??
-        "Tente de novo."
-      }`,
     );
   }
 

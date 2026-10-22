@@ -97,21 +97,21 @@ export function getSubscriptionChargeAmount(
     : subscription.monthlyPrice;
 }
 
-export type OperatorLimit = {
-  maxOperators: number;
+export type TeamMemberLimit = {
+  maxMembers: number;
   planLabel: string;
 };
 
-export function getOperatorLimit(
+export function getTeamMemberLimit(
   subscription: Subscription | null,
-): OperatorLimit | null {
+): TeamMemberLimit | null {
   if (!subscription) return null;
   if (getSubscriptionState(subscription).hasAllModules) return null;
 
-  const { operatorLimit, label } = PLAN_DETAILS[subscription.plan];
-  return operatorLimit === null
+  const { teamMemberLimit, label } = PLAN_DETAILS[subscription.plan];
+  return teamMemberLimit === null
     ? null
-    : { maxOperators: operatorLimit, planLabel: label };
+    : { maxMembers: teamMemberLimit, planLabel: label };
 }
 
 export function getPlanHiddenModules(

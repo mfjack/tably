@@ -40,13 +40,13 @@ export default function TermsPage() {
         </p>
       </LegalSection>
 
-      <LegalSection title="3. Conta, operadores e segurança">
+      <LegalSection title="3. Conta, equipe e segurança">
         <LegalList
           items={[
             "Você é responsável pelos dados informados no cadastro e por mantê-los atualizados.",
-            "O dono do estabelecimento responde pelas pessoas a quem dá acesso, como gerentes, operadores e funcionários, e pelas permissões que define para cada um.",
+            "O dono do estabelecimento responde pelas pessoas que convida para a equipe, como gerentes, caixas e contadores, e pelas permissões que define para cada uma.",
             "Senhas e PINs são pessoais. Não compartilhe e avise imediatamente se suspeitar de uso indevido.",
-            "Ações feitas com o seu acesso ou com o PIN de um operador são consideradas feitas pelo estabelecimento.",
+            "Ações feitas com o seu acesso ou com o acesso de alguém da sua equipe são consideradas feitas pelo estabelecimento.",
           ]}
         />
       </LegalSection>

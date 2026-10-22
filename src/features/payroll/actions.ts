@@ -3,11 +3,11 @@
 import { getEmployeeStatus } from "@/features/employees/labels";
 import { EMPLOYEE_COLUMNS, toEmployee } from "@/features/employees/mappers";
 import type { EmployeeId } from "@/features/employees/types";
+import type { OrganizationId } from "@/features/organizations/types";
 import {
   hasModuleAccess,
   MODULE_ACCESS_DENIED_MESSAGE,
-} from "@/features/operators/module-access";
-import type { OrganizationId } from "@/features/organizations/types";
+} from "@/features/team/module-access";
 import {
   getOrganizationClock,
   loadTimesheet,

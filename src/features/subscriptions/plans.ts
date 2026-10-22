@@ -62,21 +62,21 @@ export const PLAN_DETAILS = {
     price: 49,
     yearlyPrice: 490,
     modules: ESSENTIAL_MODULES,
-    operatorLimit: 2,
+    teamMemberLimit: 2,
   },
   management: {
     label: "Gestão",
     price: 99,
     yearlyPrice: 990,
     modules: MANAGEMENT_MODULES,
-    operatorLimit: 5,
+    teamMemberLimit: 5,
   },
   complete: {
     label: "Equipe",
     price: 149,
     yearlyPrice: 1490,
     modules: COMPLETE_MODULES,
-    operatorLimit: null,
+    teamMemberLimit: null,
   },
 } as const satisfies Record<
   SubscriptionPlan,
@@ -85,7 +85,7 @@ export const PLAN_DETAILS = {
     price: number;
     yearlyPrice: number;
     modules: readonly AppModuleId[];
-    operatorLimit: number | null;
+    teamMemberLimit: number | null;
   }
 >;
 

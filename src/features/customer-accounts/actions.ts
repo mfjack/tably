@@ -1,10 +1,5 @@
 "use server";
 
-import {
-  hasModuleAccess,
-  hasModuleAccessToRecord,
-  MODULE_ACCESS_DENIED_MESSAGE,
-} from "@/features/operators/module-access";
 import { PAYMENT_METHOD_NOT_ACCEPTED_MESSAGE } from "@/features/orders/messages";
 import type { OrderId } from "@/features/orders/types";
 import type { OrganizationId } from "@/features/organizations/types";
@@ -12,6 +7,11 @@ import {
   formatItemNameWithAddons,
   parseOrderItemAddons,
 } from "@/features/product-addons/item-addons";
+import {
+  hasModuleAccess,
+  hasModuleAccessToRecord,
+  MODULE_ACCESS_DENIED_MESSAGE,
+} from "@/features/team/module-access";
 import {
   type ActionResult,
   actionFailure,

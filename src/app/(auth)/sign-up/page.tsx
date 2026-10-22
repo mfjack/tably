@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "Criar conta" };
 export default async function SignUpPage({
   searchParams,
 }: PageProps<"/sign-up">) {
-  const { plan, cycle } = await searchParams;
+  const { plan, cycle, next: nextPath } = await searchParams;
   const planSelection = parsePlanSelection(plan, cycle);
 
   return (
@@ -24,7 +24,10 @@ export default async function SignUpPage({
             : "Leva menos de um minuto."
         }
       />
-      <SignUpForm planSelection={planSelection} />
+      <SignUpForm
+        planSelection={planSelection}
+        nextPath={typeof nextPath === "string" ? nextPath : undefined}
+      />
     </div>
   );
 }

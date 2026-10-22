@@ -1,24 +1,33 @@
 import { APP_MODULES } from "@/features/modules/app-modules";
-import type { AppModuleId } from "@/features/organizations/types";
-import type { OperatorAccess } from "./types";
+import type {
+  AppModuleId,
+  UserOrganization,
+} from "@/features/organizations/types";
 
 const ALL_MODULE_IDS: readonly AppModuleId[] = APP_MODULES.map(
   (appModule) => appModule.id,
 );
 
-export function getEffectiveHiddenModules(
-  hiddenModules: readonly AppModuleId[],
-  access: OperatorAccess,
-): AppModuleId[] {
-  if (access.mode !== "unlocked") return [...hiddenModules];
+type AccessOrganization = Pick<UserOrganization, "memberAccess">;
 
+export function isModuleAllowed(
+  organization: AccessOrganization,
+  moduleId: AppModuleId,
+): boolean {
+  const { allowedModules } = organization.memberAccess;
+  return allowedModules === null || allowedModules.includes(moduleId);
+}
+
+export function getEffectiveHiddenModules(
+  organization: Pick<UserOrganization, "hiddenModules" | "memberAccess">,
+): AppModuleId[] {
   return ALL_MODULE_IDS.filter(
     (moduleId) =>
-      hiddenModules.includes(moduleId) ||
-      !access.operator.allowedModules.includes(moduleId),
+      organization.hiddenModules.includes(moduleId) ||
+      !isModuleAllowed(organization, moduleId),
   );
 }
 
-export function canAccessSettings(access: OperatorAccess): boolean {
-  return access.mode !== "unlocked" || access.operator.canAccessSettings;
+export function canAccessSettings(organization: AccessOrganization): boolean {
+  return organization.memberAccess.canAccessSettings;
 }

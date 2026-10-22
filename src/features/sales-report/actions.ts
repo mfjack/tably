@@ -1,12 +1,12 @@
 "use server";
 
 import * as z from "zod";
+import type { OrganizationId } from "@/features/organizations/types";
+import type { ProductId } from "@/features/products/types";
 import {
   hasModuleAccess,
   MODULE_ACCESS_DENIED_MESSAGE,
-} from "@/features/operators/module-access";
-import type { OrganizationId } from "@/features/organizations/types";
-import type { ProductId } from "@/features/products/types";
+} from "@/features/team/module-access";
 import {
   type ActionResult,
   actionFailure,

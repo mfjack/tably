@@ -17,14 +17,16 @@ import {
   buildPlanSelectionQuery,
   type PlanSelection,
 } from "@/features/subscriptions/plans";
-import { ROUTES } from "@/lib/routes";
+import { buildAuthRoute, ROUTES } from "@/lib/routes";
+import { getSafeRedirectPath } from "@/lib/safe-redirect";
 import { EmailConfirmationNotice } from "./email-confirmation-notice";
 
 type SignUpFormProps = {
   planSelection: PlanSelection | null;
+  nextPath?: string;
 };
 
-export function SignUpForm({ planSelection }: SignUpFormProps) {
+export function SignUpForm({ planSelection, nextPath }: SignUpFormProps) {
   const router = useRouter();
   const signUpMutation = useSignUpMutation();
   const form = useForm<SignUpInput>({
@@ -34,10 +36,12 @@ export function SignUpForm({ planSelection }: SignUpFormProps) {
 
   const handleSubmit = form.handleSubmit((values) => {
     signUpMutation.mutate(
-      { ...values, ...planSelection },
+      { ...values, ...planSelection, nextPath },
       {
         onSuccess: ({ requiresEmailConfirmation }) => {
-          if (!requiresEmailConfirmation) router.replace(ROUTES.home);
+          if (!requiresEmailConfirmation) {
+            router.replace(getSafeRedirectPath(nextPath));
+          }
         },
       },
     );
@@ -90,7 +94,7 @@ export function SignUpForm({ planSelection }: SignUpFormProps) {
               nextPath={
                 planSelection
                   ? `${ROUTES.newOrganization}?${buildPlanSelectionQuery(planSelection)}`
-                  : undefined
+                  : nextPath
               }
             />
           </div>
@@ -100,7 +104,7 @@ export function SignUpForm({ planSelection }: SignUpFormProps) {
       <div className="flex flex-col items-center gap-3">
         <AuthFooterLink
           question="Já tem conta?"
-          href={ROUTES.login}
+          href={buildAuthRoute(ROUTES.login, nextPath)}
           linkLabel="Entrar"
         />
         <LegalNotice actionLabel="Ao criar uma conta" />

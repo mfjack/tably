@@ -13,6 +13,10 @@ export function getWhatsAppUrl(phone: string) {
   return `https://wa.me/${BRAZIL_COUNTRY_CODE}${phone}`;
 }
 
+export function getWhatsAppShareUrl(message: string) {
+  return `https://wa.me/?text=${encodeURIComponent(message)}`;
+}
+
 export function WhatsAppLink({ phone, className }: WhatsAppLinkProps) {
   return (
     <a

@@ -1,4 +1,4 @@
-import type { OperatorId } from "@/features/operators/types";
+import type { UserId } from "@/features/auth/types";
 import type { Brand } from "@/lib/brand";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -25,7 +25,7 @@ export type TaskCompletion = {
 };
 
 export type TaskAssignee = {
-  id: OperatorId;
+  id: UserId;
   name: string;
 };
 

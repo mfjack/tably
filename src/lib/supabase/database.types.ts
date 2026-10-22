@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.17"
   }
   graphql_public: {
     Tables: {
@@ -1260,18 +1260,24 @@ export type Database = {
       }
       memberships: {
         Row: {
+          allowed_modules: Database["public"]["Enums"]["app_module"][] | null
+          can_access_settings: boolean
           created_at: string
           organization_id: string
           role: Database["public"]["Enums"]["member_role"]
           user_id: string
         }
         Insert: {
+          allowed_modules?: Database["public"]["Enums"]["app_module"][] | null
+          can_access_settings?: boolean
           created_at?: string
           organization_id: string
           role: Database["public"]["Enums"]["member_role"]
           user_id: string
         }
         Update: {
+          allowed_modules?: Database["public"]["Enums"]["app_module"][] | null
+          can_access_settings?: boolean
           created_at?: string
           organization_id?: string
           role?: Database["public"]["Enums"]["member_role"]
@@ -1346,60 +1352,6 @@ export type Database = {
           },
           {
             foreignKeyName: "online_orders_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      operators: {
-        Row: {
-          allowed_modules: Database["public"]["Enums"]["app_module"][]
-          can_access_settings: boolean
-          created_at: string
-          employee_id: string | null
-          has_pin: boolean | null
-          id: string
-          name: string
-          organization_id: string
-          pin_hash: string | null
-          updated_at: string
-        }
-        Insert: {
-          allowed_modules?: Database["public"]["Enums"]["app_module"][]
-          can_access_settings?: boolean
-          created_at?: string
-          employee_id?: string | null
-          has_pin?: boolean | null
-          id?: string
-          name: string
-          organization_id: string
-          pin_hash?: string | null
-          updated_at?: string
-        }
-        Update: {
-          allowed_modules?: Database["public"]["Enums"]["app_module"][]
-          can_access_settings?: boolean
-          created_at?: string
-          employee_id?: string | null
-          has_pin?: boolean | null
-          id?: string
-          name?: string
-          organization_id?: string
-          pin_hash?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "operators_employee_fkey"
-            columns: ["employee_id", "organization_id"]
-            isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id", "organization_id"]
-          },
-          {
-            foreignKeyName: "operators_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -1753,6 +1705,56 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "organization_documents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          allowed_modules: Database["public"]["Enums"]["app_module"][]
+          can_access_settings: boolean
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          id: string
+          invitee_name: string
+          organization_id: string
+          token: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          allowed_modules?: Database["public"]["Enums"]["app_module"][]
+          can_access_settings?: boolean
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          invitee_name: string
+          organization_id: string
+          token?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          allowed_modules?: Database["public"]["Enums"]["app_module"][]
+          can_access_settings?: boolean
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          invitee_name?: string
+          organization_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_invitations_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -3096,7 +3098,7 @@ export type Database = {
       }
       tasks: {
         Row: {
-          assigned_operator_id: string | null
+          assigned_user_id: string | null
           created_at: string
           due_day: number | null
           due_weekday: number | null
@@ -3113,7 +3115,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          assigned_operator_id?: string | null
+          assigned_user_id?: string | null
           created_at?: string
           due_day?: number | null
           due_weekday?: number | null
@@ -3130,7 +3132,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          assigned_operator_id?: string | null
+          assigned_user_id?: string | null
           created_at?: string
           due_day?: number | null
           due_weekday?: number | null
@@ -3147,13 +3149,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "tasks_assigned_operator_fkey"
-            columns: ["assigned_operator_id", "organization_id"]
-            isOneToOne: false
-            referencedRelation: "operators"
-            referencedColumns: ["id", "organization_id"]
-          },
           {
             foreignKeyName: "tasks_list_id_organization_id_fkey"
             columns: ["list_id", "organization_id"]
@@ -3442,6 +3437,7 @@ export type Database = {
       }
     }
     Functions: {
+      accept_invitation: { Args: { p_token: string }; Returns: string }
       accept_online_order: {
         Args: { p_online_order_id: string }
         Returns: {
@@ -3669,10 +3665,6 @@ export type Database = {
         }
         Returns: string
       }
-      create_operator_pin: {
-        Args: { p_operator_id: string; p_pin: string }
-        Returns: undefined
-      }
       create_organization: {
         Args: { p_name: string; p_slug: string }
         Returns: {
@@ -3753,7 +3745,6 @@ export type Database = {
         Returns: undefined
       }
       delete_my_account: { Args: never; Returns: undefined }
-      delete_operator: { Args: { p_operator_id: string }; Returns: undefined }
       deliver_offline_kitchen_ticket: {
         Args: { p_delivered_at: string; p_ticket_id: string }
         Returns: undefined
@@ -3761,10 +3752,6 @@ export type Database = {
       describe_payslip_payable: {
         Args: { p_payslip: Database["public"]["Tables"]["payslips"]["Row"] }
         Returns: string
-      }
-      ensure_operator_with_settings: {
-        Args: { p_organization_id: string }
-        Returns: undefined
       }
       get_account_balance: { Args: { p_account_id: string }; Returns: number }
       get_addons_total: { Args: { p_addons: Json }; Returns: number }
@@ -3799,6 +3786,14 @@ export type Database = {
         Args: { p_from: string; p_organization_id: string; p_to: string }
         Returns: Json
       }
+      get_invitation: {
+        Args: { p_token: string }
+        Returns: {
+          invitee_name: string
+          organization_name: string
+          status: string
+        }[]
+      }
       get_loyalty_balance: { Args: { p_customer_id: string }; Returns: number }
       get_online_order_status: {
         Args: { p_online_order_id: string }
@@ -3807,10 +3802,6 @@ export type Database = {
       get_open_cash_session: {
         Args: { p_organization_id: string }
         Returns: Json
-      }
-      get_operator_limit: {
-        Args: { p_organization_id: string }
-        Returns: number
       }
       get_payment_fee_percent: {
         Args: {
@@ -3840,7 +3831,7 @@ export type Database = {
         }
         Returns: Json
       }
-      grant_module_to_settings_operators: {
+      grant_module_to_settings_members: {
         Args: {
           p_module: Database["public"]["Enums"]["app_module"]
           p_organization_id: string
@@ -3877,10 +3868,6 @@ export type Database = {
         Returns: boolean
       }
       is_member: { Args: { org_id: string }; Returns: boolean }
-      is_operator_employee_active: {
-        Args: { p_operator_id: string }
-        Returns: boolean
-      }
       is_platform_admin: { Args: never; Returns: boolean }
       list_cash_sessions: {
         Args: {
@@ -3908,6 +3895,18 @@ export type Database = {
         Returns: {
           id: string
           name: string
+        }[]
+      }
+      list_organization_members: {
+        Args: { p_organization_id: string }
+        Returns: {
+          allowed_modules: Database["public"]["Enums"]["app_module"][]
+          can_access_settings: boolean
+          created_at: string
+          email: string
+          full_name: string
+          role: Database["public"]["Enums"]["member_role"]
+          user_id: string
         }[]
       }
       list_time_clock_employees: {
@@ -4107,6 +4106,10 @@ export type Database = {
         Args: { p_online_order_id: string }
         Returns: undefined
       }
+      remove_member: {
+        Args: { p_organization_id: string; p_user_id: string }
+        Returns: undefined
+      }
       remove_order_item: {
         Args: { p_order_item_id: string; p_quantity?: number }
         Returns: number
@@ -4144,15 +4147,6 @@ export type Database = {
         }
         Returns: string
       }
-      save_employee_access: {
-        Args: {
-          p_allowed_modules: Database["public"]["Enums"]["app_module"][]
-          p_can_access_settings: boolean
-          p_employee_id: string
-          p_is_enabled: boolean
-        }
-        Returns: undefined
-      }
       save_ingredient_label_defaults: {
         Args: {
           p_ingredient_id: string
@@ -4160,17 +4154,6 @@ export type Database = {
           p_storage: Database["public"]["Enums"]["storage_condition"]
         }
         Returns: undefined
-      }
-      save_operator: {
-        Args: {
-          p_allowed_modules: Database["public"]["Enums"]["app_module"][]
-          p_can_access_settings: boolean
-          p_name: string
-          p_operator_id?: string
-          p_organization_id: string
-          p_pin?: string
-        }
-        Returns: string
       }
       save_prepared_recipe: {
         Args: {
@@ -4243,9 +4226,14 @@ export type Database = {
         }
         Returns: string
       }
-      verify_operator_pin: {
-        Args: { p_operator_id: string; p_pin: string }
-        Returns: boolean
+      update_member_access: {
+        Args: {
+          p_allowed_modules: Database["public"]["Enums"]["app_module"][]
+          p_can_access_settings: boolean
+          p_organization_id: string
+          p_user_id: string
+        }
+        Returns: undefined
       }
       void_time_punch: {
         Args: { p_punch_id: string; p_reason: string }

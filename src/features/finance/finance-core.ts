@@ -1,11 +1,11 @@
 import "server-only";
 
 import { addDays, format, parseISO } from "date-fns";
+import type { OrganizationId } from "@/features/organizations/types";
 import {
   hasModuleAccess,
   MODULE_ACCESS_DENIED_MESSAGE,
-} from "@/features/operators/module-access";
-import type { OrganizationId } from "@/features/organizations/types";
+} from "@/features/team/module-access";
 import { actionFailure } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_CATEGORIES } from "./labels";

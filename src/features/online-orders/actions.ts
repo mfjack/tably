@@ -2,15 +2,15 @@
 
 import * as z from "zod";
 import { getPublicMenu } from "@/features/menu/queries";
-import {
-  hasModuleAccess,
-  hasModuleAccessToRecord,
-  MODULE_ACCESS_DENIED_MESSAGE,
-} from "@/features/operators/module-access";
 import type { OrderId } from "@/features/orders/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import { parseOrderItemAddons } from "@/features/product-addons/item-addons";
 import type { ProductId } from "@/features/products/types";
+import {
+  hasModuleAccess,
+  hasModuleAccessToRecord,
+  MODULE_ACCESS_DENIED_MESSAGE,
+} from "@/features/team/module-access";
 import {
   type ActionResult,
   actionFailure,

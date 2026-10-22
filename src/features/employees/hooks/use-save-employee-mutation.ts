@@ -1,5 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { getOperatorsQueryKey } from "@/features/operators/hooks/use-operators-query";
+import { useMutation } from "@tanstack/react-query";
 import type { OrganizationId } from "@/features/organizations/types";
 import { useInvalidatePayroll } from "@/features/payroll/hooks/use-invalidate-payroll";
 import { useInvalidateTimeClockEmployees } from "@/features/time-clock/hooks/use-invalidate-time-clock-employees";
@@ -15,7 +14,6 @@ export function getSaveEmployeeMutationKey(organizationId: OrganizationId) {
 }
 
 export function useSaveEmployeeMutation(organizationId: OrganizationId) {
-  const queryClient = useQueryClient();
   const invalidateEmployees = useInvalidateEmployees(organizationId);
   const invalidateTimeClockEmployees =
     useInvalidateTimeClockEmployees(organizationId);
@@ -38,9 +36,6 @@ export function useSaveEmployeeMutation(organizationId: OrganizationId) {
         invalidateTimeClockEmployees(),
         invalidateTimesheets(),
         invalidatePayroll(),
-        queryClient.invalidateQueries({
-          queryKey: getOperatorsQueryKey(organizationId),
-        }),
       ]),
   });
 }

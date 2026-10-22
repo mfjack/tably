@@ -1,11 +1,12 @@
 "use server";
 
+import type { UserId } from "@/features/auth/types";
+import type { OrganizationId } from "@/features/organizations/types";
 import {
   hasModuleAccess,
   MODULE_ACCESS_DENIED_MESSAGE,
-} from "@/features/operators/module-access";
-import type { OperatorId } from "@/features/operators/types";
-import type { OrganizationId } from "@/features/organizations/types";
+} from "@/features/team/module-access";
+import { listTeamMemberSummaries } from "@/features/team/queries";
 import {
   type ActionResult,
   actionFailure,
@@ -59,11 +60,11 @@ export async function listTaskLists(
   if (todayError)
     return databaseFailure("Não foi possível carregar as tarefas.", todayError);
 
-  const [listsResult, completionsResult] = await Promise.all([
+  const [listsResult, completionsResult, members] = await Promise.all([
     supabase
       .from("task_lists")
       .select(
-        "id, name, period, position, created_at, tasks(id, title, kind, instructions, min_temperature, max_temperature, position, created_at, frequency, due_weekday, due_day, assigned_operator_id, assignee:operators(name))",
+        "id, name, period, position, created_at, tasks(id, title, kind, instructions, min_temperature, max_temperature, position, created_at, frequency, due_weekday, due_day, assigned_user_id)",
       )
       .eq("organization_id", organizationId)
       .order("position")
@@ -75,7 +76,11 @@ export async function listTaskLists(
       )
       .eq("organization_id", organizationId)
       .gte("period_start", subtractDays(today, COMPLETIONS_LOOKBACK_IN_DAYS)),
+    listTeamMemberSummaries(organizationId),
   ]);
+  const memberNames = new Map(
+    members.map((member) => [member.userId, member.name]),
+  );
 
   if (listsResult.error || completionsResult.error) {
     return actionFailure("Não foi possível carregar as tarefas.");
@@ -122,13 +127,14 @@ export async function listTaskLists(
             frequency: task.frequency,
             dueWeekday: task.due_weekday,
             dueDay: task.due_day,
-            assignee:
-              task.assigned_operator_id && task.assignee
-                ? {
-                    id: task.assigned_operator_id as OperatorId,
-                    name: task.assignee.name,
-                  }
-                : null,
+            assignee: task.assigned_user_id
+              ? {
+                  id: task.assigned_user_id as UserId,
+                  name:
+                    memberNames.get(task.assigned_user_id as UserId) ??
+                    "Pessoa removida",
+                }
+              : null,
             completion:
               completionsByKey.get(
                 `${task.id}:${getPeriodStart(task.frequency, today)}`,
@@ -248,7 +254,7 @@ export async function updateTask(
     frequency,
     dueWeekday,
     dueDay,
-    assignedOperatorId,
+    assignedUserId,
   } = parsedInput.data;
   const isTemperature = kind === "temperature";
   const weekday = fromSelectFieldValue(dueWeekday);
@@ -265,7 +271,7 @@ export async function updateTask(
       frequency,
       due_weekday: frequency === "weekly" && weekday ? Number(weekday) : null,
       due_day: frequency === "monthly" && day ? Number(day) : null,
-      assigned_operator_id: fromSelectFieldValue(assignedOperatorId) ?? null,
+      assigned_user_id: fromSelectFieldValue(assignedUserId) ?? null,
     })
     .eq("id", taskId)
     .eq("organization_id", organizationId)

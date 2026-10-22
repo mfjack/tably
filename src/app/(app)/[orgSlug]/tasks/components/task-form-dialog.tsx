@@ -10,7 +10,6 @@ import { SelectField } from "@/components/form/select-field";
 import { TextField } from "@/components/form/text-field";
 import { TextareaField } from "@/components/form/textarea-field";
 import { FieldGroup } from "@/components/ui/field";
-import type { OperatorSummary } from "@/features/operators/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import { useUpdateTaskMutation } from "@/features/tasks/hooks/use-update-task-mutation";
 import { type TaskInput, taskSchema } from "@/features/tasks/schemas";
@@ -19,6 +18,7 @@ import {
   WEEKDAY_OPTIONS,
 } from "@/features/tasks/task-schedule";
 import type { Task } from "@/features/tasks/types";
+import type { TeamMemberSummary } from "@/features/team/types";
 import {
   NONE_SELECT_VALUE,
   toSelectFieldValue,
@@ -51,7 +51,7 @@ const WEEKDAY_SELECT_OPTIONS = [
 type TaskFormDialogProps = {
   organizationId: OrganizationId;
   task: Task | null;
-  operators: readonly OperatorSummary[];
+  members: readonly TeamMemberSummary[];
   onClose: () => void;
 };
 
@@ -65,14 +65,14 @@ function toFormValues(task: Task): DefaultValues<TaskInput> {
     frequency: task.frequency,
     dueWeekday: toSelectFieldValue(task.dueWeekday?.toString() ?? null),
     dueDay: toSelectFieldValue(task.dueDay?.toString() ?? null),
-    assignedOperatorId: toSelectFieldValue(task.assignee?.id ?? null),
+    assignedUserId: toSelectFieldValue(task.assignee?.id ?? null),
   };
 }
 
 export function TaskFormDialog({
   organizationId,
   task,
-  operators,
+  members,
   onClose,
 }: TaskFormDialogProps) {
   const updateTaskMutation = useUpdateTaskMutation(organizationId);
@@ -174,16 +174,16 @@ export function TaskFormDialog({
             options={DAY_OPTIONS}
           />
         )}
-        {operators.length > 0 && (
+        {members.length > 1 && (
           <SelectField
             control={form.control}
-            name="assignedOperatorId"
+            name="assignedUserId"
             label="Responsável"
             options={[
               { value: NONE_SELECT_VALUE, label: "Qualquer pessoa" },
-              ...operators.map((operator) => ({
-                value: operator.id,
-                label: operator.name,
+              ...members.map((member) => ({
+                value: member.userId,
+                label: member.name,
               })),
             ]}
           />

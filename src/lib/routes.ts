@@ -6,6 +6,7 @@ export const ROUTES = {
   resetPassword: "/reset-password",
   authCallback: "/auth/callback",
   newOrganization: "/new-organization",
+  invite: "/invite",
   terms: "/terms",
   privacy: "/privacy",
 } as const;
@@ -21,6 +22,7 @@ export const PUBLIC_ROUTES = [
   ...AUTH_ROUTES,
   "/auth",
   "/menu",
+  ROUTES.invite,
   "/api/public",
   ROUTES.terms,
   ROUTES.privacy,
@@ -29,3 +31,7 @@ export const PUBLIC_ROUTES = [
 export const LOGIN_ERROR_CODES = {
   invalidLink: "invalid-link",
 } as const;
+
+export function buildAuthRoute(route: string, nextPath?: string): string {
+  return nextPath ? `${route}?next=${encodeURIComponent(nextPath)}` : route;
+}

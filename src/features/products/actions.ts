@@ -2,13 +2,13 @@
 
 import type { CategoryId } from "@/features/categories/types";
 import type { IngredientId } from "@/features/ingredients/types";
+import type { OrganizationId } from "@/features/organizations/types";
+import type { ProductAddonId } from "@/features/product-addons/types";
 import {
   hasModuleAccess,
   hasModuleAccessToRecord,
   MODULE_ACCESS_DENIED_MESSAGE,
-} from "@/features/operators/module-access";
-import type { OrganizationId } from "@/features/organizations/types";
-import type { ProductAddonId } from "@/features/product-addons/types";
+} from "@/features/team/module-access";
 import {
   type ActionResult,
   actionFailure,

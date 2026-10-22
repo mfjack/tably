@@ -2,15 +2,15 @@
 
 import * as z from "zod";
 import {
-  hasAnyModuleAccess,
-  hasModuleAccess,
-  MODULE_ACCESS_DENIED_MESSAGE,
-} from "@/features/operators/module-access";
-import {
   PAYMENT_METHOD_VALUES,
   sortByPaymentMethod,
 } from "@/features/orders/payment-methods";
 import type { OrganizationId } from "@/features/organizations/types";
+import {
+  hasAnyModuleAccess,
+  hasModuleAccess,
+  MODULE_ACCESS_DENIED_MESSAGE,
+} from "@/features/team/module-access";
 import {
   type ActionResult,
   actionFailure,

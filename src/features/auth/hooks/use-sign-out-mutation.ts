@@ -9,7 +9,7 @@ export function getSignOutMutationKey() {
   return ["auth", "sign-out"] as const;
 }
 
-export function useSignOutMutation() {
+export function useSignOutMutation(redirectPath: string = ROUTES.login) {
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -19,7 +19,7 @@ export function useSignOutMutation() {
     onSuccess: async () => {
       queryClient.clear();
       await clearOfflineCaches();
-      router.replace(ROUTES.login);
+      router.replace(redirectPath);
       router.refresh();
     },
   });

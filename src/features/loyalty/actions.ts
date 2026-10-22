@@ -1,11 +1,11 @@
 "use server";
 
+import type { OrganizationId } from "@/features/organizations/types";
 import {
   hasAnyModuleAccess,
   hasModuleAccess,
   MODULE_ACCESS_DENIED_MESSAGE,
-} from "@/features/operators/module-access";
-import type { OrganizationId } from "@/features/organizations/types";
+} from "@/features/team/module-access";
 import {
   type ActionResult,
   actionFailure,
@@ -79,7 +79,7 @@ export async function saveLoyaltySettings(
   }
 
   if (settings.isEnabled) {
-    await supabase.rpc("grant_module_to_settings_operators", {
+    await supabase.rpc("grant_module_to_settings_members", {
       p_organization_id: organizationId,
       p_module: "loyalty",
     });

@@ -1,14 +1,14 @@
 "use server";
 
 import { TERMS_VERSION } from "@/features/legal/legal-info";
-import {
-  hasModuleAccess,
-  MODULE_ACCESS_DENIED_MESSAGE,
-} from "@/features/operators/module-access";
 import type {
   BillingCycle,
   SubscriptionPlan,
 } from "@/features/subscriptions/plans";
+import {
+  hasModuleAccess,
+  MODULE_ACCESS_DENIED_MESSAGE,
+} from "@/features/team/module-access";
 import {
   type ActionResult,
   actionFailure,

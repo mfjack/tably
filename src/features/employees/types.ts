@@ -1,5 +1,3 @@
-import type { OperatorId } from "@/features/operators/types";
-import type { AppModuleId } from "@/features/organizations/types";
 import type { Brand } from "@/lib/brand";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -50,14 +48,7 @@ export type Employee = {
   hasPin: boolean;
 };
 
-export type EmployeeSystemAccess = {
-  operatorId: OperatorId;
-  allowedModules: AppModuleId[];
-  canAccessSettings: boolean;
-};
-
 export type EmployeeWithAccess = Employee & {
-  systemAccess: EmployeeSystemAccess | null;
   canDelete: boolean;
 };
 

@@ -33,6 +33,7 @@ export const signUpSchema = z.object({
   password: newPasswordSchema,
   plan: z.enum(SUBSCRIPTION_PLANS).optional(),
   billingCycle: z.enum(BILLING_CYCLES).optional(),
+  nextPath: z.string().optional(),
 });
 
 export const forgotPasswordSchema = z.object({ email: emailSchema });

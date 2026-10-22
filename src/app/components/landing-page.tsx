@@ -70,7 +70,7 @@ const FEATURES = [
     icon: Users,
     title: "Equipe",
     description:
-      "Operadores com PIN e permissões, ponto eletrônico, escalas e estimativa da folha.",
+      "Convite da equipe por link com permissões por pessoa, ponto eletrônico, escalas e estimativa da folha.",
   },
   {
     icon: BarChart3,

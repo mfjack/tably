@@ -2,11 +2,11 @@
 
 import { addDays, format, parseISO } from "date-fns";
 import type { EmployeeId } from "@/features/employees/types";
+import type { OrganizationId } from "@/features/organizations/types";
 import {
   hasModuleAccess,
   MODULE_ACCESS_DENIED_MESSAGE,
-} from "@/features/operators/module-access";
-import type { OrganizationId } from "@/features/organizations/types";
+} from "@/features/team/module-access";
 import {
   type ActionResult,
   actionFailure,

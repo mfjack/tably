@@ -85,7 +85,7 @@ export default function PrivacyPage() {
             "Conexões criptografadas (HTTPS).",
             "Cada estabelecimento só acessa os próprios dados, com regras de acesso aplicadas no banco de dados.",
             "Dados sensíveis, como salários, folha e documentos financeiros, ficam restritos a donos e gerentes.",
-            "PINs de operadores e funcionários são guardados apenas de forma criptografada, com bloqueio após tentativas erradas.",
+            "PINs de funcionários são guardados apenas de forma criptografada, com bloqueio após tentativas erradas.",
           ]}
         />
         <p>
@@ -123,9 +123,9 @@ export default function PrivacyPage() {
 
       <LegalSection title="8. Cookies e armazenamento no aparelho">
         <p>
-          Usamos cookies essenciais para manter você conectado e para a sessão
-          dos operadores, e o armazenamento do navegador para o carrinho, o modo
-          offline e preferências. Não usamos cookies de publicidade.
+          Usamos cookies essenciais para manter você conectado e o armazenamento
+          do navegador para o carrinho, o modo offline e preferências. Não
+          usamos cookies de publicidade.
         </p>
       </LegalSection>
 

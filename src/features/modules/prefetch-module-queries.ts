@@ -1,11 +1,11 @@
 import "server-only";
 
 import type { DehydratedState } from "@tanstack/react-query";
-import { hasModuleAccess } from "@/features/operators/module-access";
 import type {
   AppModuleId,
   OrganizationId,
 } from "@/features/organizations/types";
+import { hasModuleAccess } from "@/features/team/module-access";
 import {
   type ActionQuery,
   prefetchActionQueries,

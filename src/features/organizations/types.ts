@@ -10,11 +10,17 @@ export type MemberRole = Database["public"]["Enums"]["member_role"];
 
 export type AppModuleId = Database["public"]["Enums"]["app_module"];
 
+export type MemberAccess = {
+  allowedModules: AppModuleId[] | null;
+  canAccessSettings: boolean;
+};
+
 export type UserOrganization = {
   id: OrganizationId;
   name: string;
   slug: string;
   role: MemberRole;
+  memberAccess: MemberAccess;
   hiddenModules: AppModuleId[];
   manuallyHiddenModules: AppModuleId[];
   selectableModules: AppModuleId[];

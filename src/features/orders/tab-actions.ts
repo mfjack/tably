@@ -4,18 +4,18 @@ import {
   findOnlineOrderLoyalty,
   recordLoyaltyPurchase,
 } from "@/features/loyalty/record-loyalty-purchase";
-import {
-  hasAnyModuleAccess,
-  hasModuleAccess,
-  hasModuleAccessToRecord,
-  MODULE_ACCESS_DENIED_MESSAGE,
-} from "@/features/operators/module-access";
 import type { OrganizationId } from "@/features/organizations/types";
 import {
   getAddonsTotal,
   parseOrderItemAddons,
 } from "@/features/product-addons/item-addons";
 import type { ProductId } from "@/features/products/types";
+import {
+  hasAnyModuleAccess,
+  hasModuleAccess,
+  hasModuleAccessToRecord,
+  MODULE_ACCESS_DENIED_MESSAGE,
+} from "@/features/team/module-access";
 import {
   type ActionResult,
   actionFailure,

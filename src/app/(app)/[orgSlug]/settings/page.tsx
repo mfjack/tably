@@ -5,13 +5,12 @@ import {
   buildOrganizationHomePath,
   SETTINGS_PAGE,
 } from "@/features/modules/app-modules";
+import { canManageOrganization } from "@/features/organizations/permissions";
+import { getUserOrganizationBySlug } from "@/features/organizations/queries";
 import {
   canAccessSettings,
   getEffectiveHiddenModules,
-} from "@/features/operators/access";
-import { getOperatorAccess } from "@/features/operators/queries";
-import { canManageOrganization } from "@/features/organizations/permissions";
-import { getUserOrganizationBySlug } from "@/features/organizations/queries";
+} from "@/features/team/access";
 import { SettingsView } from "./components/settings-view";
 
 export const metadata: Metadata = { title: SETTINGS_PAGE.label };
@@ -29,12 +28,10 @@ export default async function SettingsPage({
 
   if (!organization || !currentUser) notFound();
 
-  const access = await getOperatorAccess(organization.id);
-
-  if (!canAccessSettings(access)) {
+  if (!canAccessSettings(organization)) {
     const homePath = buildOrganizationHomePath(
       organization.slug,
-      getEffectiveHiddenModules(organization.hiddenModules, access),
+      getEffectiveHiddenModules(organization),
     );
     if (homePath.endsWith(`/${SETTINGS_PAGE.path}`)) notFound();
     redirect(homePath);

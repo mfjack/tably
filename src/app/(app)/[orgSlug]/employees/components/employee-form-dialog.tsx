@@ -2,12 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useMemo } from "react";
-import {
-  type DefaultValues,
-  useController,
-  useForm,
-  useWatch,
-} from "react-hook-form";
+import { type DefaultValues, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { FormDialog } from "@/components/dialog/form-dialog";
 import { DateField } from "@/components/form/date-field";
@@ -31,15 +26,11 @@ import type {
   EmployeeWithAccess,
   WorkSchedule,
 } from "@/features/employees/types";
-import type {
-  AppModuleId,
-  OrganizationId,
-} from "@/features/organizations/types";
+import type { OrganizationId } from "@/features/organizations/types";
 import {
   NONE_SELECT_VALUE,
   toSelectFieldValue,
 } from "@/lib/optional-select-value";
-import { PageAccessField } from "../../components/page-access-field";
 
 const EMPLOYMENT_TYPE_OPTIONS = Object.entries(EMPLOYMENT_TYPE_LABELS).map(
   ([value, label]) => ({ value, label }),
@@ -67,9 +58,6 @@ const EMPTY_EMPLOYEE_FORM: DefaultValues<EmployeeInput> = {
   dependents: undefined,
   hasTransportVoucher: false,
   notes: "",
-  hasSystemAccess: false,
-  allowedModules: [],
-  canAccessSettings: false,
 };
 
 type EmployeeFormDialogProps = {
@@ -77,7 +65,6 @@ type EmployeeFormDialogProps = {
   isOpen: boolean;
   employee?: EmployeeWithAccess;
   workSchedules: readonly WorkSchedule[];
-  visibleModuleIds: readonly AppModuleId[];
   onClose: () => void;
 };
 
@@ -102,9 +89,6 @@ function toFormValues(
     dependents: employee.dependents,
     hasTransportVoucher: employee.hasTransportVoucher,
     notes: employee.notes ?? "",
-    hasSystemAccess: employee.systemAccess !== null,
-    allowedModules: employee.systemAccess?.allowedModules ?? [],
-    canAccessSettings: employee.systemAccess?.canAccessSettings ?? false,
   };
 }
 
@@ -121,7 +105,6 @@ export function EmployeeFormDialog({
   isOpen,
   employee,
   workSchedules,
-  visibleModuleIds,
   onClose,
 }: EmployeeFormDialogProps) {
   const saveEmployeeMutation = useSaveEmployeeMutation(organizationId);
@@ -130,18 +113,6 @@ export function EmployeeFormDialog({
     defaultValues: EMPTY_EMPLOYEE_FORM,
   });
   const isEditing = employee !== undefined;
-  const hasSystemAccess = useWatch({
-    control: form.control,
-    name: "hasSystemAccess",
-  });
-  const allowedModulesField = useController({
-    control: form.control,
-    name: "allowedModules",
-  });
-  const settingsField = useController({
-    control: form.control,
-    name: "canAccessSettings",
-  });
   const scheduleOptions = useMemo(
     () => [
       { value: NONE_SELECT_VALUE, label: "Sem jornada definida" },
@@ -310,24 +281,6 @@ export function EmployeeFormDialog({
           label="Observações"
           placeholder="Ex.: Trabalha em escala 6x1"
         />
-
-        <FormSectionTitle>Acesso ao sistema</FormSectionTitle>
-        <SwitchField
-          control={form.control}
-          name="hasSystemAccess"
-          label="Pode usar o sistema"
-          description="A pessoa entra com o mesmo PIN do ponto, que ela mesma cria no primeiro acesso."
-        />
-        {hasSystemAccess && (
-          <PageAccessField
-            allowedModules={allowedModulesField.field.value}
-            canAccessSettings={settingsField.field.value}
-            visibleModuleIds={visibleModuleIds}
-            errorMessage={allowedModulesField.fieldState.error?.message}
-            onAllowedModulesChange={allowedModulesField.field.onChange}
-            onCanAccessSettingsChange={settingsField.field.onChange}
-          />
-        )}
       </FieldGroup>
     </FormDialog>
   );

@@ -11,7 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { OperatorId, OperatorSummary } from "@/features/operators/types";
+import type { UserId } from "@/features/auth/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import { TemperatureReadingDialog } from "@/features/tasks/components/temperature-reading-dialog";
 import { useDeleteTaskListMutation } from "@/features/tasks/hooks/use-delete-task-list-mutation";
@@ -24,6 +24,7 @@ import type {
   TaskList,
   TemperatureTask,
 } from "@/features/tasks/types";
+import type { TeamMemberSummary } from "@/features/team/types";
 import { useSearchParamState } from "@/hooks/use-search-param-state";
 import { createOptionParser } from "@/lib/search-params";
 import { cn } from "@/lib/utils";
@@ -54,14 +55,14 @@ const parseTaskFilter = createOptionParser(TASK_FILTERS);
 function filterTaskLists(
   taskBoard: TaskBoard,
   filter: TaskFilter,
-  activeOperatorId: OperatorId | null,
+  currentUserId: UserId | null,
 ): TaskList[] {
-  if (filter === "all" || !activeOperatorId) return taskBoard.taskLists;
+  if (filter === "all" || !currentUserId) return taskBoard.taskLists;
   return taskBoard.taskLists
     .map((taskList) => ({
       ...taskList,
       tasks: taskList.tasks.filter(
-        (task) => task.assignee?.id === activeOperatorId,
+        (task) => task.assignee?.id === currentUserId,
       ),
     }))
     .filter((taskList) => taskList.tasks.length > 0);
@@ -72,8 +73,8 @@ type TasksViewProps = {
   businessName: string;
   title: string;
   canManage: boolean;
-  operators: OperatorSummary[];
-  activeOperatorId: OperatorId | null;
+  members: TeamMemberSummary[];
+  currentUserId: UserId | null;
 };
 
 export function TasksView({
@@ -81,8 +82,8 @@ export function TasksView({
   businessName,
   title,
   canManage,
-  operators,
-  activeOperatorId,
+  members,
+  currentUserId,
 }: TasksViewProps) {
   const taskListsQuery = useTaskListsQuery(organizationId);
   const setTaskDoneMutation = useSetTaskDoneMutation(organizationId);
@@ -160,7 +161,7 @@ export function TasksView({
 
   const taskBoard = taskListsQuery.data;
   const taskLists = taskBoard
-    ? filterTaskLists(taskBoard, filter, activeOperatorId)
+    ? filterTaskLists(taskBoard, filter, currentUserId)
     : undefined;
 
   return (
@@ -224,7 +225,7 @@ export function TasksView({
           />
         ) : (
           <div className="flex min-h-0 flex-col gap-4">
-            {activeOperatorId && (
+            {currentUserId && members.length > 1 && (
               <Tabs
                 value={filter}
                 onValueChange={changeFilter}
@@ -297,7 +298,7 @@ export function TasksView({
       <TaskFormDialog
         organizationId={organizationId}
         task={taskToEdit}
-        operators={operators}
+        members={members}
         onClose={() => setTaskToEdit(null)}
       />
       <ConfirmDialog

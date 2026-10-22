@@ -1,11 +1,11 @@
 "use server";
 
+import type { OrganizationId } from "@/features/organizations/types";
 import {
   hasModuleAccess,
   hasModuleAccessToRecord,
   MODULE_ACCESS_DENIED_MESSAGE,
-} from "@/features/operators/module-access";
-import type { OrganizationId } from "@/features/organizations/types";
+} from "@/features/team/module-access";
 import {
   type ActionResult,
   actionFailure,

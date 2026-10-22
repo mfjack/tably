@@ -2,22 +2,19 @@ import { notFound } from "next/navigation";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { getCurrentUser } from "@/features/auth/queries";
 import { buildOrganizationPath } from "@/features/modules/app-modules";
-import {
-  canAccessSettings,
-  getEffectiveHiddenModules,
-} from "@/features/operators/access";
-import { getOperatorAccess } from "@/features/operators/queries";
 import { canManageOrganization } from "@/features/organizations/permissions";
 import {
   getUserOrganizationBySlug,
   getUserOrganizations,
 } from "@/features/organizations/queries";
 import { getSubscriptionState } from "@/features/subscriptions/subscription-state";
+import {
+  canAccessSettings,
+  getEffectiveHiddenModules,
+} from "@/features/team/access";
 import { AppSidebar } from "./components/app-sidebar";
 import { OfflineOrderSync } from "./components/offline-order-sync";
 import { OnlineOrdersNotifier } from "./components/online-orders-notifier";
-import { OperatorAutoLock } from "./components/operator-auto-lock";
-import { OperatorLockScreen } from "./components/operator-lock-screen";
 import { ServerDataRefresher } from "./components/server-data-refresher";
 import { SidebarOverlay } from "./components/sidebar-overlay";
 import { SubscriptionBanner } from "./components/subscription-banner";
@@ -50,27 +47,7 @@ export default async function OrganizationLayout({
     );
   }
 
-  const access = await getOperatorAccess(organization.id);
-
-  if (access.mode === "locked") {
-    return (
-      <>
-        <OperatorLockScreen
-          organizationId={organization.id}
-          organizationName={organization.name}
-          operators={access.operators}
-        />
-        <ServerDataRefresher />
-        <OfflineOrderSync />
-        <OperatorAutoLock organizationId={organization.id} isUnlocked={false} />
-      </>
-    );
-  }
-
-  const hiddenModules = getEffectiveHiddenModules(
-    organization.hiddenModules,
-    access,
-  );
+  const hiddenModules = getEffectiveHiddenModules(organization);
 
   return (
     <SidebarProvider defaultOpen={false}>
@@ -79,10 +56,7 @@ export default async function OrganizationLayout({
         organizations={organizations}
         currentUser={currentUser}
         hiddenModules={hiddenModules}
-        canAccessSettings={canAccessSettings(access)}
-        activeOperatorName={
-          access.mode === "unlocked" ? access.operator.name : null
-        }
+        canAccessSettings={canAccessSettings(organization)}
       />
       <SidebarInset className="h-svh overflow-hidden">
         {subscriptionState?.isExpiringSoon && (
@@ -104,9 +78,6 @@ export default async function OrganizationLayout({
             posHref={buildOrganizationPath(organization.slug, "pos")}
           />
         )}
-      {access.mode === "unlocked" && (
-        <OperatorAutoLock organizationId={organization.id} isUnlocked />
-      )}
     </SidebarProvider>
   );
 }

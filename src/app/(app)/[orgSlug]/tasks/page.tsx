@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
+import { getCurrentUserId } from "@/features/auth/queries";
 import { getAppModule } from "@/features/modules/app-modules";
 import { requireVisibleModule } from "@/features/modules/require-visible-module";
-import {
-  getOperatorAccess,
-  listOperatorSummaries,
-} from "@/features/operators/queries";
 import { canManageCatalog } from "@/features/organizations/permissions";
+import { listTeamMemberSummaries } from "@/features/team/queries";
 import { TasksView } from "./components/tasks-view";
 
 const tasksModule = getAppModule("tasks");
@@ -17,9 +15,9 @@ export default async function TasksPage({
 }: PageProps<"/[orgSlug]/tasks">) {
   const { orgSlug } = await params;
   const organization = await requireVisibleModule(orgSlug, "tasks");
-  const [operators, access] = await Promise.all([
-    listOperatorSummaries(organization.id),
-    getOperatorAccess(organization.id),
+  const [members, currentUserId] = await Promise.all([
+    listTeamMemberSummaries(organization.id),
+    getCurrentUserId(),
   ]);
 
   return (
@@ -28,8 +26,8 @@ export default async function TasksPage({
       businessName={organization.name}
       title={tasksModule.label}
       canManage={canManageCatalog(organization.role)}
-      operators={operators}
-      activeOperatorId={access.mode === "unlocked" ? access.operator.id : null}
+      members={members}
+      currentUserId={currentUserId}
     />
   );
 }

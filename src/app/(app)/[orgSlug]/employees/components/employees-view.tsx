@@ -15,10 +15,7 @@ import type {
   WorkSchedule,
 } from "@/features/employees/types";
 import { buildOrganizationPath } from "@/features/modules/app-modules";
-import type {
-  AppModuleId,
-  OrganizationId,
-} from "@/features/organizations/types";
+import type { OrganizationId } from "@/features/organizations/types";
 import { ListEmptyState } from "../../components/list-empty-state";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
@@ -43,7 +40,6 @@ type EmployeesViewProps = {
   title: string;
   description: string;
   today: string;
-  visibleModuleIds: AppModuleId[];
   employeesHref: string;
   payrollHref: string | null;
 };
@@ -54,7 +50,6 @@ export function EmployeesView({
   title,
   description,
   today,
-  visibleModuleIds,
   employeesHref,
   payrollHref,
 }: EmployeesViewProps) {
@@ -175,7 +170,6 @@ export function EmployeesView({
         isOpen={formState.mode !== "closed"}
         employee={formState.mode === "edit" ? formState.employee : undefined}
         workSchedules={workSchedulesQuery.data ?? EMPTY_WORK_SCHEDULES}
-        visibleModuleIds={visibleModuleIds}
         onClose={() => setFormState({ mode: "closed" })}
       />
       <WorkSchedulesDialog

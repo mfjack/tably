@@ -2,10 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { CurrentUser } from "@/features/auth/types";
 import { APP_MODULES } from "@/features/modules/app-modules";
 import type { UserOrganization } from "@/features/organizations/types";
-import {
-  getOperatorLimit,
-  getPlanHiddenModules,
-} from "@/features/subscriptions/subscription-state";
+import { getPlanHiddenModules } from "@/features/subscriptions/subscription-state";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
 import { CheckoutSettingsForm } from "./checkout-settings-form";
@@ -13,11 +10,11 @@ import { DeleteAccountSection } from "./delete-account-section";
 import { LoyaltySettingsForm } from "./loyalty-settings-form";
 import { MenuSettings } from "./menu-settings";
 import { ModuleVisibilityForm } from "./module-visibility-form";
-import { OperatorsSettings } from "./operators-settings";
 import { OrganizationSettingsForm } from "./organization-settings-form";
 import { PaymentFeesForm } from "./payment-fees-form";
 import { ProfileForm } from "./profile-form";
 import { SubscriptionSettings } from "./subscription-settings";
+import { TeamSettings } from "./team-settings";
 import { ThermalPrinterSettings } from "./thermal-printer-settings";
 
 type SettingsViewProps = {
@@ -45,7 +42,7 @@ export function SettingsView({
         "checkout",
         "loyalty",
         "subscription",
-        "operators",
+        "team",
         "menu",
         "printer",
         "profile",
@@ -83,9 +80,11 @@ export function SettingsView({
                     Assinatura
                   </TabsTrigger>
                 )}
-                <TabsTrigger value="operators" className="shrink-0 px-4">
-                  Operadores
-                </TabsTrigger>
+                {organization.role === "owner" && (
+                  <TabsTrigger value="team" className="shrink-0 px-4">
+                    Equipe
+                  </TabsTrigger>
+                )}
                 <TabsTrigger value="menu" className="shrink-0 px-4">
                   Cardápio
                 </TabsTrigger>
@@ -151,21 +150,20 @@ export function SettingsView({
                   />
                 </TabsContent>
               )}
-              <TabsContent
-                value="operators"
-                className="min-h-0 overflow-y-auto"
-              >
-                <OperatorsSettings
-                  organizationId={organization.id}
-                  operatorLimit={getOperatorLimit(organization.subscription)}
-                  visibleModuleIds={APP_MODULES.map(
-                    (appModule) => appModule.id,
-                  ).filter(
-                    (moduleId) =>
-                      !organization.hiddenModules.includes(moduleId),
-                  )}
-                />
-              </TabsContent>
+              {organization.role === "owner" && (
+                <TabsContent value="team" className="min-h-0 overflow-y-auto">
+                  <TeamSettings
+                    organizationId={organization.id}
+                    organizationName={organization.name}
+                    visibleModuleIds={APP_MODULES.map(
+                      (appModule) => appModule.id,
+                    ).filter(
+                      (moduleId) =>
+                        !organization.hiddenModules.includes(moduleId),
+                    )}
+                  />
+                </TabsContent>
+              )}
               <TabsContent value="menu" className="min-h-0 overflow-y-auto">
                 <MenuSettings
                   key={organization.id}

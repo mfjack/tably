@@ -1,12 +1,12 @@
 "use server";
 
 import { recordLoyaltyPurchase } from "@/features/loyalty/record-loyalty-purchase";
+import type { OrganizationId } from "@/features/organizations/types";
 import {
   hasAnyModuleAccess,
   hasModuleAccess,
   MODULE_ACCESS_DENIED_MESSAGE,
-} from "@/features/operators/module-access";
-import type { OrganizationId } from "@/features/organizations/types";
+} from "@/features/team/module-access";
 import {
   type ActionResult,
   actionFailure,

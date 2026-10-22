@@ -1,8 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { buildOrganizationHomePath } from "@/features/modules/app-modules";
-import { getEffectiveHiddenModules } from "@/features/operators/access";
-import { getOperatorAccess } from "@/features/operators/queries";
 import { getUserOrganizationBySlug } from "@/features/organizations/queries";
+import { getEffectiveHiddenModules } from "@/features/team/access";
 
 export default async function OrganizationHomePage({
   params,
@@ -12,12 +11,10 @@ export default async function OrganizationHomePage({
 
   if (!organization) notFound();
 
-  const access = await getOperatorAccess(organization.id);
-
   redirect(
     buildOrganizationHomePath(
       organization.slug,
-      getEffectiveHiddenModules(organization.hiddenModules, access),
+      getEffectiveHiddenModules(organization),
     ),
   );
 }

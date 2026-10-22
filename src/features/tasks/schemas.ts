@@ -37,7 +37,7 @@ export const taskSchema = z
     frequency: z.enum(Constants.public.Enums.task_frequency),
     dueWeekday: z.string().optional(),
     dueDay: z.string().optional(),
-    assignedOperatorId: z.string().optional(),
+    assignedUserId: z.string().optional(),
   })
   .refine(
     (values) =>
