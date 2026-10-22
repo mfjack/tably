@@ -551,6 +551,7 @@ export type Database = {
       financial_categories: {
         Row: {
           created_at: string
+          dre_group: Database["public"]["Enums"]["dre_group"]
           id: string
           is_archived: boolean
           kind: Database["public"]["Enums"]["financial_entry_kind"]
@@ -559,6 +560,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          dre_group: Database["public"]["Enums"]["dre_group"]
           id?: string
           is_archived?: boolean
           kind: Database["public"]["Enums"]["financial_entry_kind"]
@@ -567,6 +569,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          dre_group?: Database["public"]["Enums"]["dre_group"]
           id?: string
           is_archived?: boolean
           kind?: Database["public"]["Enums"]["financial_entry_kind"]
@@ -3789,6 +3792,10 @@ export type Database = {
         Args: { p_from: string; p_organization_id: string; p_to: string }
         Returns: Json
       }
+      get_income_statement: {
+        Args: { p_from: string; p_organization_id: string; p_to: string }
+        Returns: Json
+      }
       get_invitation: {
         Args: { p_token: string }
         Returns: {
@@ -4278,6 +4285,18 @@ export type Database = {
         | "lease_agreement"
         | "digital_certificate"
         | "other"
+      dre_group:
+        | "revenue"
+        | "other_income"
+        | "sales_deductions"
+        | "cost_of_goods"
+        | "packaging"
+        | "personnel"
+        | "occupancy"
+        | "marketing"
+        | "administrative"
+        | "financial"
+        | "investment"
       employment_type: "clt" | "apprentice" | "intern"
       financial_account_kind:
         | "cash"
@@ -4515,6 +4534,19 @@ export const Constants = {
         "lease_agreement",
         "digital_certificate",
         "other",
+      ],
+      dre_group: [
+        "revenue",
+        "other_income",
+        "sales_deductions",
+        "cost_of_goods",
+        "packaging",
+        "personnel",
+        "occupancy",
+        "marketing",
+        "administrative",
+        "financial",
+        "investment",
       ],
       employment_type: ["clt", "apprentice", "intern"],
       financial_account_kind: [

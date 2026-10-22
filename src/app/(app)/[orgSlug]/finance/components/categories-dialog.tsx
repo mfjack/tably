@@ -8,9 +8,14 @@ import { DetailsDialog } from "@/components/dialog/details-dialog";
 import { DIALOG_ACTION_BUTTON_CLASS_NAME } from "@/components/dialog/dialog-styles";
 import { SelectField } from "@/components/form/select-field";
 import { TextField } from "@/components/form/text-field";
+import { OptionSelect } from "@/components/option-select";
 import { Button } from "@/components/ui/button";
 import { DialogClose } from "@/components/ui/dialog";
 import { Spinner } from "@/components/ui/spinner";
+import {
+  DRE_GROUP_LABELS,
+  getDreGroupOptions,
+} from "@/features/finance/dre-groups";
 import { useDeleteFinancialCategoryMutation } from "@/features/finance/hooks/use-delete-financial-category-mutation";
 import { useSaveFinancialCategoryMutation } from "@/features/finance/hooks/use-save-financial-category-mutation";
 import { ENTRY_KIND_LABELS } from "@/features/finance/labels";
@@ -20,6 +25,9 @@ import type {
   FinancialEntryKind,
 } from "@/features/finance/types";
 import type { OrganizationId } from "@/features/organizations/types";
+import { Constants } from "@/lib/supabase/database.types";
+
+const DRE_GROUP_VALUES = Constants.public.Enums.dre_group;
 
 const KIND_OPTIONS = [
   { value: "expense", label: "Despesa" },
@@ -51,6 +59,28 @@ export function CategoriesDialog({
     defaultValues: { name: "", kind: "expense" },
   });
 
+  function changeDreGroup(category: FinancialCategory, dreGroup: string) {
+    const nextGroup = DRE_GROUP_VALUES.find((group) => group === dreGroup);
+    if (!nextGroup || nextGroup === category.dreGroup) return;
+    saveMutation.mutate(
+      {
+        categoryId: category.id,
+        input: {
+          name: category.name,
+          kind: category.kind,
+          dreGroup: nextGroup,
+        },
+      },
+      {
+        onSuccess: () =>
+          toast.success(
+            `${category.name} agora entra em ${DRE_GROUP_LABELS[nextGroup]}.`,
+          ),
+        onError: (error) => toast.error(error.message),
+      },
+    );
+  }
+
   const handleSubmit = form.handleSubmit((values) =>
     saveMutation.mutate(
       { categoryId: null, input: values },
@@ -71,6 +101,7 @@ export function CategoriesDialog({
       isOpen={isOpen}
       onOpenChange={(isDialogOpen) => !isDialogOpen && onClose()}
       title="Categorias"
+      size="large"
       footer={
         <DialogClose
           render={
@@ -136,6 +167,16 @@ export function CategoriesDialog({
                     <span className="min-w-0 flex-1 truncate text-sm">
                       {category.name}
                     </span>
+                    <OptionSelect
+                      label={`Grupo da DRE de ${category.name}`}
+                      placeholder="Grupo da DRE"
+                      options={getDreGroupOptions(category.kind)}
+                      value={category.dreGroup}
+                      className="h-9 w-44 shrink-0 text-xs data-[size=default]:h-9 sm:w-56"
+                      onValueChange={(dreGroup) =>
+                        changeDreGroup(category, dreGroup)
+                      }
+                    />
                     <Button
                       variant="ghost"
                       size="icon-sm"
@@ -156,8 +197,10 @@ export function CategoriesDialog({
           </section>
         ))}
         <p className="text-muted-foreground text-xs">
-          Ao excluir uma categoria, os lançamentos dela continuam, só ficam sem
-          categoria.
+          O grupo define em que linha da DRE a categoria aparece. Coloque
+          salários e freelas em Pessoal (CMO) e compra de equipamentos em
+          Investimentos. Ao excluir uma categoria, os lançamentos dela
+          continuam, só ficam sem categoria.
         </p>
       </div>
     </DetailsDialog>

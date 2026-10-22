@@ -1,4 +1,5 @@
 import type {
+  DreGroup,
   EntryStatus,
   FinancialAccountKind,
   FinancialEntry,
@@ -31,19 +32,27 @@ export const RECURRENCE_FREQUENCY_LABELS = {
 
 export const DEFAULT_CATEGORIES = {
   expense: [
-    "Insumos e mercadorias",
-    "Embalagens",
-    "Salários e encargos",
-    "Aluguel",
-    "Água, luz e internet",
-    "Impostos e taxas",
-    "Taxas de cartão",
-    "Manutenção",
-    "Marketing",
-    "Outras despesas",
+    { name: "Insumos e mercadorias", dreGroup: "cost_of_goods" },
+    { name: "Embalagens", dreGroup: "packaging" },
+    { name: "Salários e encargos", dreGroup: "personnel" },
+    { name: "Freelas e extras", dreGroup: "personnel" },
+    { name: "Aluguel", dreGroup: "occupancy" },
+    { name: "Água, luz e internet", dreGroup: "occupancy" },
+    { name: "Impostos e taxas", dreGroup: "sales_deductions" },
+    { name: "Manutenção", dreGroup: "administrative" },
+    { name: "Marketing", dreGroup: "marketing" },
+    { name: "Equipamentos e reformas", dreGroup: "investment" },
+    { name: "Outras despesas", dreGroup: "administrative" },
   ],
-  income: ["Vendas", "Recebimento de fiado", "Outras receitas"],
-} as const satisfies Record<FinancialEntryKind, readonly string[]>;
+  income: [
+    { name: "Vendas", dreGroup: "revenue" },
+    { name: "Recebimento de fiado", dreGroup: "other_income" },
+    { name: "Outras receitas", dreGroup: "other_income" },
+  ],
+} as const satisfies Record<
+  FinancialEntryKind,
+  readonly { name: string; dreGroup: DreGroup }[]
+>;
 
 export function getEntryStatus(
   entry: Pick<FinancialEntry, "paidAt" | "dueDate">,

@@ -45,6 +45,7 @@ import { EntriesPanel } from "./entries-panel";
 import { EntryFormDialog, type EntryFormState } from "./entry-form-dialog";
 import { FinanceImportDialog } from "./finance-import-dialog";
 import { FinanceOverview } from "./finance-overview";
+import { IncomeStatementPanel } from "./income-statement-panel";
 import { OpeningBalanceDialog } from "./opening-balance-dialog";
 
 type OpenDialog = "none" | "categories" | "opening-balance" | "import";
@@ -208,8 +209,11 @@ export function FinanceView({
               <TabsTrigger value="payables" className="px-3">
                 A pagar
               </TabsTrigger>
+              <TabsTrigger value="income-statement" className="px-3">
+                DRE
+              </TabsTrigger>
               <TabsTrigger value="analysis" className="px-3">
-                Análises
+                Fluxo de caixa
               </TabsTrigger>
             </TabsList>
             <MonthNavigator
@@ -236,6 +240,16 @@ export function FinanceView({
               onPay={openPayment}
               onEdit={openEditForm}
               onDelete={setEntryToDelete}
+            />
+          </TabsContent>
+          <TabsContent
+            value="income-statement"
+            className="min-h-0 overflow-y-auto"
+          >
+            <IncomeStatementPanel
+              organizationId={organizationId}
+              businessName={organizationName}
+              monthKey={monthKey}
             />
           </TabsContent>
           <TabsContent value="analysis" className="min-h-0 overflow-y-auto">

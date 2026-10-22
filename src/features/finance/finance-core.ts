@@ -67,10 +67,11 @@ export async function ensureFinanceDefaults(organizationId: OrganizationId) {
   if (categoriesResult.count === 0) {
     await supabase.from("financial_categories").insert(
       (["expense", "income"] as const).flatMap((kind) =>
-        DEFAULT_CATEGORIES[kind].map((name) => ({
+        DEFAULT_CATEGORIES[kind].map((category) => ({
           organization_id: organizationId,
           kind,
-          name,
+          name: category.name,
+          dre_group: category.dreGroup,
         })),
       ),
     );

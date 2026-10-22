@@ -8,6 +8,7 @@ import {
 } from "@/lib/action-result";
 import { isUniqueViolation } from "@/lib/database-errors";
 import { createClient } from "@/lib/supabase/server";
+import { DEFAULT_DRE_GROUP_BY_KIND, isDreGroupOfKind } from "./dre-groups";
 import {
   ACCESS_DENIED,
   canUseFinance,
@@ -25,7 +26,7 @@ export async function listFinancialCategories(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("financial_categories")
-    .select("id, name, kind, is_archived")
+    .select("id, name, kind, dre_group, is_archived")
     .eq("organization_id", organizationId)
     .order("name");
 
@@ -37,6 +38,7 @@ export async function listFinancialCategories(
       id: category.id as FinancialCategoryId,
       name: category.name,
       kind: category.kind,
+      dreGroup: category.dre_group,
       isArchived: category.is_archived,
     })),
   );
@@ -54,17 +56,23 @@ export async function saveFinancialCategory(
     return actionFailure("Confira os campos e tente novamente.");
   }
 
+  const { name, kind, dreGroup } = parsedInput.data;
+  if (dreGroup && !isDreGroupOfKind(dreGroup, kind)) {
+    return actionFailure("Esse grupo da DRE não combina com o tipo.");
+  }
+
   const supabase = await createClient();
   const { error } = categoryId
     ? await supabase
         .from("financial_categories")
-        .update({ name: parsedInput.data.name })
+        .update({ name, ...(dreGroup && { dre_group: dreGroup }) })
         .eq("id", categoryId)
         .eq("organization_id", organizationId)
     : await supabase.from("financial_categories").insert({
         organization_id: organizationId,
-        name: parsedInput.data.name,
-        kind: parsedInput.data.kind,
+        name,
+        kind,
+        dre_group: dreGroup ?? DEFAULT_DRE_GROUP_BY_KIND[kind],
       });
 
   if (error) {

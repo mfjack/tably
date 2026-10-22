@@ -34,10 +34,13 @@ export type FinancialAccountBalance = {
   balance: number;
 };
 
+export type DreGroup = Database["public"]["Enums"]["dre_group"];
+
 export type FinancialCategory = {
   id: FinancialCategoryId;
   name: string;
   kind: FinancialEntryKind;
+  dreGroup: DreGroup;
   isArchived: boolean;
 };
 

@@ -1,12 +1,10 @@
 import type { Workbook, Worksheet } from "exceljs";
-import { downloadFile } from "@/lib/download-file";
+import { downloadWorkbook } from "@/lib/download-workbook";
 import { CURRENCY_SYMBOL, formatDateKey } from "@/lib/format";
 import { FINANCE_EXCEL_COLUMNS } from "./finance-excel-columns";
 import { getEntryStatus, getEntryStatusLabel } from "./labels";
 import type { FinancialEntry } from "./types";
 
-const EXCEL_MIME_TYPE =
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 const HEADER_FILL_COLOR = "FF0A0A0A";
 const CURRENCY_FORMAT = `"${CURRENCY_SYMBOL}" #,##0.00`;
 
@@ -124,11 +122,6 @@ async function createFinanceWorkbook(
   }
 
   return { workbook, sheet };
-}
-
-async function downloadWorkbook(workbook: Workbook, fileName: string) {
-  const buffer = await workbook.xlsx.writeBuffer();
-  downloadFile(new Blob([buffer], { type: EXCEL_MIME_TYPE }), fileName);
 }
 
 export async function exportFinanceExcel({

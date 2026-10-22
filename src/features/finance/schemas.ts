@@ -112,6 +112,7 @@ export const categorySchema = z.object({
     .min(1, "Informe o nome da categoria.")
     .max(40, "Nome muito longo."),
   kind: z.enum(Constants.public.Enums.financial_entry_kind),
+  dreGroup: z.enum(Constants.public.Enums.dre_group).optional(),
 });
 
 export type CategoryInput = z.infer<typeof categorySchema>;
