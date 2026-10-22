@@ -2,7 +2,7 @@
 
 import type { IngredientId } from "@/features/ingredients/types";
 import {
-  hasModuleAccessToRecord,
+  hasModuleAccessToRow,
   MODULE_ACCESS_DENIED_MESSAGE,
 } from "@/features/team/module-access";
 import {
@@ -21,21 +21,13 @@ import {
 
 const SINGLE_BATCH = 1;
 
-async function canUseIngredient(ingredientId: IngredientId) {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("ingredients")
-    .select("organization_id")
-    .eq("id", ingredientId)
-    .maybeSingle();
-  return hasModuleAccessToRecord(data?.organization_id, "ingredients");
-}
-
 export async function savePreparedRecipe(
   ingredientId: IngredientId,
   input: PreparedRecipeFormInput,
 ): Promise<ActionResult> {
-  if (!(await canUseIngredient(ingredientId))) {
+  if (
+    !(await hasModuleAccessToRow("ingredients", ingredientId, "ingredients"))
+  ) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }
   const parsedInput = preparedRecipeFormSchema.safeParse(input);
@@ -74,7 +66,9 @@ export async function savePreparedRecipe(
 export async function registerProduction(
   ingredientId: IngredientId,
 ): Promise<ActionResult<ProductionResult>> {
-  if (!(await canUseIngredient(ingredientId))) {
+  if (
+    !(await hasModuleAccessToRow("ingredients", ingredientId, "ingredients"))
+  ) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }
 

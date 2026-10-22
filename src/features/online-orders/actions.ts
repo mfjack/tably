@@ -8,7 +8,7 @@ import { parseOrderItemAddons } from "@/features/product-addons/item-addons";
 import type { ProductId } from "@/features/products/types";
 import {
   hasModuleAccess,
-  hasModuleAccessToRecord,
+  hasModuleAccessToRow,
   MODULE_ACCESS_DENIED_MESSAGE,
 } from "@/features/team/module-access";
 import {
@@ -196,12 +196,7 @@ export async function acceptOnlineOrder(
   onlineOrderId: OnlineOrderId,
 ): Promise<ActionResult<AcceptedOnlineOrder>> {
   const supabase = await createClient();
-  const { data: onlineOrder } = await supabase
-    .from("online_orders")
-    .select("organization_id")
-    .eq("id", onlineOrderId)
-    .maybeSingle();
-  if (!(await hasModuleAccessToRecord(onlineOrder?.organization_id, "pos"))) {
+  if (!(await hasModuleAccessToRow("online_orders", onlineOrderId, "pos"))) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }
   const { data, error } = await supabase
@@ -224,12 +219,7 @@ export async function rejectOnlineOrder(
   onlineOrderId: OnlineOrderId,
 ): Promise<ActionResult> {
   const supabase = await createClient();
-  const { data: onlineOrder } = await supabase
-    .from("online_orders")
-    .select("organization_id")
-    .eq("id", onlineOrderId)
-    .maybeSingle();
-  if (!(await hasModuleAccessToRecord(onlineOrder?.organization_id, "pos"))) {
+  if (!(await hasModuleAccessToRow("online_orders", onlineOrderId, "pos"))) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }
   const { error } = await supabase.rpc("reject_online_order", {

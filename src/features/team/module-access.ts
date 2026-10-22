@@ -5,7 +5,21 @@ import type {
   AppModuleId,
   OrganizationId,
 } from "@/features/organizations/types";
+import { createClient } from "@/lib/supabase/server";
 import { canAccessSettings, isModuleAllowed } from "./access";
+
+type OrganizationRecordTable =
+  | "categories"
+  | "customer_accounts"
+  | "ingredients"
+  | "kitchen_tickets"
+  | "online_orders"
+  | "order_items"
+  | "orders"
+  | "product_addons"
+  | "products"
+  | "purchase_orders"
+  | "suppliers";
 
 export const MODULE_ACCESS_DENIED_MESSAGE =
   "Você não tem acesso a essa página. Peça a liberação ao dono.";
@@ -39,6 +53,20 @@ export async function hasModuleAccessToRecord(
     organizationId as OrganizationId,
     typeof moduleIds === "string" ? [moduleIds] : moduleIds,
   );
+}
+
+export async function hasModuleAccessToRow(
+  table: OrganizationRecordTable,
+  id: string,
+  moduleIds: AppModuleId | readonly AppModuleId[],
+): Promise<boolean> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from(table)
+    .select("organization_id")
+    .eq("id", id)
+    .maybeSingle();
+  return hasModuleAccessToRecord(data?.organization_id, moduleIds);
 }
 
 export async function isOrganizationOwner(

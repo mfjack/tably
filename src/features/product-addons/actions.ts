@@ -4,7 +4,7 @@ import type { IngredientId } from "@/features/ingredients/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import {
   hasModuleAccess,
-  hasModuleAccessToRecord,
+  hasModuleAccessToRow,
   MODULE_ACCESS_DENIED_MESSAGE,
 } from "@/features/team/module-access";
 import {
@@ -94,12 +94,7 @@ export async function deleteProductAddon(
   addonId: ProductAddonId,
 ): Promise<ActionResult> {
   const supabase = await createClient();
-  const { data: addon } = await supabase
-    .from("product_addons")
-    .select("organization_id")
-    .eq("id", addonId)
-    .maybeSingle();
-  if (!(await hasModuleAccessToRecord(addon?.organization_id, "products"))) {
+  if (!(await hasModuleAccessToRow("product_addons", addonId, "products"))) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }
   const { error } = await supabase

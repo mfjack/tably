@@ -5,7 +5,7 @@ import type { OrganizationId } from "@/features/organizations/types";
 import type { SupplierId } from "@/features/suppliers/types";
 import {
   hasModuleAccess,
-  hasModuleAccessToRecord,
+  hasModuleAccessToRow,
   MODULE_ACCESS_DENIED_MESSAGE,
 } from "@/features/team/module-access";
 import {
@@ -99,25 +99,12 @@ export async function createPurchaseOrder(
   return actionSuccess();
 }
 
-async function getOrderOrganizationId(orderId: PurchaseOrderId) {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("purchase_orders")
-    .select("organization_id")
-    .eq("id", orderId)
-    .maybeSingle();
-  return data?.organization_id;
-}
-
 export async function receivePurchaseOrder(
   orderId: PurchaseOrderId,
   input: ReceivePurchaseOrderInput,
 ): Promise<ActionResult> {
   if (
-    !(await hasModuleAccessToRecord(
-      await getOrderOrganizationId(orderId),
-      "ingredients",
-    ))
+    !(await hasModuleAccessToRow("purchase_orders", orderId, "ingredients"))
   ) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }
@@ -152,10 +139,7 @@ export async function cancelPurchaseOrder(
   orderId: PurchaseOrderId,
 ): Promise<ActionResult> {
   if (
-    !(await hasModuleAccessToRecord(
-      await getOrderOrganizationId(orderId),
-      "ingredients",
-    ))
+    !(await hasModuleAccessToRow("purchase_orders", orderId, "ingredients"))
   ) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }

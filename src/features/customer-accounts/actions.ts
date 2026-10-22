@@ -9,7 +9,7 @@ import {
 } from "@/features/product-addons/item-addons";
 import {
   hasModuleAccess,
-  hasModuleAccessToRecord,
+  hasModuleAccessToRow,
   MODULE_ACCESS_DENIED_MESSAGE,
 } from "@/features/team/module-access";
 import {
@@ -96,14 +96,10 @@ export async function listAccountEntries(
   accountId: CustomerAccountId,
 ): Promise<ActionResult<AccountEntry[]>> {
   const supabase = await createClient();
-  const { data: account } = await supabase
-    .from("customer_accounts")
-    .select("organization_id")
-    .eq("id", accountId)
-    .maybeSingle();
   if (
-    !(await hasModuleAccessToRecord(
-      account?.organization_id,
+    !(await hasModuleAccessToRow(
+      "customer_accounts",
+      accountId,
       "customer_accounts",
     ))
   ) {
@@ -187,14 +183,10 @@ export async function registerAccountPayment(
 
   const { amount, method, note } = parsedInput.data;
   const supabase = await createClient();
-  const { data: account } = await supabase
-    .from("customer_accounts")
-    .select("organization_id")
-    .eq("id", accountId)
-    .maybeSingle();
   if (
-    !(await hasModuleAccessToRecord(
-      account?.organization_id,
+    !(await hasModuleAccessToRow(
+      "customer_accounts",
+      accountId,
       "customer_accounts",
     ))
   ) {
@@ -219,14 +211,10 @@ export async function deleteCustomerAccount(
   accountId: CustomerAccountId,
 ): Promise<ActionResult> {
   const supabase = await createClient();
-  const { data: account } = await supabase
-    .from("customer_accounts")
-    .select("organization_id")
-    .eq("id", accountId)
-    .maybeSingle();
   if (
-    !(await hasModuleAccessToRecord(
-      account?.organization_id,
+    !(await hasModuleAccessToRow(
+      "customer_accounts",
+      accountId,
       "customer_accounts",
     ))
   ) {

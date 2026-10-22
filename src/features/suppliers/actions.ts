@@ -3,7 +3,7 @@
 import type { OrganizationId } from "@/features/organizations/types";
 import {
   hasModuleAccess,
-  hasModuleAccessToRecord,
+  hasModuleAccessToRow,
   MODULE_ACCESS_DENIED_MESSAGE,
 } from "@/features/team/module-access";
 import {
@@ -94,14 +94,7 @@ export async function listSupplierPurchases(
   supplierId: SupplierId,
 ): Promise<ActionResult<SupplierPurchase[]>> {
   const supabase = await createClient();
-  const { data: supplier } = await supabase
-    .from("suppliers")
-    .select("organization_id")
-    .eq("id", supplierId)
-    .maybeSingle();
-  if (
-    !(await hasModuleAccessToRecord(supplier?.organization_id, "suppliers"))
-  ) {
+  if (!(await hasModuleAccessToRow("suppliers", supplierId, "suppliers"))) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }
   const { data, error } = await supabase

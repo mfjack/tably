@@ -5,6 +5,7 @@ import type { SupplierId } from "@/features/suppliers/types";
 import {
   hasModuleAccess,
   hasModuleAccessToRecord,
+  hasModuleAccessToRow,
   MODULE_ACCESS_DENIED_MESSAGE,
 } from "@/features/team/module-access";
 import {
@@ -223,13 +224,8 @@ export async function deleteIngredient(
   ingredientId: IngredientId,
 ): Promise<ActionResult> {
   const supabase = await createClient();
-  const { data: ingredient } = await supabase
-    .from("ingredients")
-    .select("organization_id")
-    .eq("id", ingredientId)
-    .maybeSingle();
   if (
-    !(await hasModuleAccessToRecord(ingredient?.organization_id, "ingredients"))
+    !(await hasModuleAccessToRow("ingredients", ingredientId, "ingredients"))
   ) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }

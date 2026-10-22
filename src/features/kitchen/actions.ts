@@ -5,7 +5,7 @@ import type { OrganizationId } from "@/features/organizations/types";
 import { parseOrderItemAddons } from "@/features/product-addons/item-addons";
 import {
   hasModuleAccess,
-  hasModuleAccessToRecord,
+  hasModuleAccessToRow,
   MODULE_ACCESS_DENIED_MESSAGE,
 } from "@/features/team/module-access";
 import {
@@ -116,12 +116,7 @@ export async function setKitchenTicketStatus(
   status: KitchenTicketStatus,
 ): Promise<ActionResult> {
   const supabase = await createClient();
-  const { data: ticket } = await supabase
-    .from("kitchen_tickets")
-    .select("organization_id")
-    .eq("id", ticketId)
-    .maybeSingle();
-  if (!(await hasModuleAccessToRecord(ticket?.organization_id, "kitchen"))) {
+  if (!(await hasModuleAccessToRow("kitchen_tickets", ticketId, "kitchen"))) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }
   const { error } = await supabase.rpc("set_kitchen_ticket_status", {

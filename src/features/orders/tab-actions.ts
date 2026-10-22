@@ -13,7 +13,7 @@ import type { ProductId } from "@/features/products/types";
 import {
   hasAnyModuleAccess,
   hasModuleAccess,
-  hasModuleAccessToRecord,
+  hasModuleAccessToRow,
   MODULE_ACCESS_DENIED_MESSAGE,
 } from "@/features/team/module-access";
 import {
@@ -235,17 +235,7 @@ export async function addOrderItems(
     return actionFailure("Confira o pedido e tente novamente.");
 
   const supabase = await createClient();
-  const { data: order } = await supabase
-    .from("orders")
-    .select("organization_id")
-    .eq("id", orderId)
-    .maybeSingle();
-  if (
-    !(await hasModuleAccessToRecord(order?.organization_id, [
-      "pos",
-      "order_tabs",
-    ]))
-  ) {
+  if (!(await hasModuleAccessToRow("orders", orderId, ["pos", "order_tabs"]))) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }
   const { error } = await supabase.rpc("add_order_items", {
@@ -273,14 +263,7 @@ export async function removeOrderItem(
   orderItemId: OrderItemId,
 ): Promise<ActionResult> {
   const supabase = await createClient();
-  const { data: orderItem } = await supabase
-    .from("order_items")
-    .select("organization_id")
-    .eq("id", orderItemId)
-    .maybeSingle();
-  if (
-    !(await hasModuleAccessToRecord(orderItem?.organization_id, "order_tabs"))
-  ) {
+  if (!(await hasModuleAccessToRow("order_items", orderItemId, "order_tabs"))) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }
   const { error } = await supabase.rpc("remove_order_item", {
@@ -312,12 +295,7 @@ export async function payOrder(
   }
 
   const supabase = await createClient();
-  const { data: order } = await supabase
-    .from("orders")
-    .select("organization_id")
-    .eq("id", orderId)
-    .maybeSingle();
-  if (!(await hasModuleAccessToRecord(order?.organization_id, "order_tabs"))) {
+  if (!(await hasModuleAccessToRow("orders", orderId, "order_tabs"))) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }
   const { error } = await supabase.rpc("pay_order", {
@@ -344,12 +322,7 @@ export async function payOrder(
 
 export async function reopenOrder(orderId: OrderId): Promise<ActionResult> {
   const supabase = await createClient();
-  const { data: order } = await supabase
-    .from("orders")
-    .select("organization_id")
-    .eq("id", orderId)
-    .maybeSingle();
-  if (!(await hasModuleAccessToRecord(order?.organization_id, "order_tabs"))) {
+  if (!(await hasModuleAccessToRow("orders", orderId, "order_tabs"))) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }
   const { error } = await supabase.rpc("reopen_order", {
@@ -366,12 +339,7 @@ export async function reopenOrder(orderId: OrderId): Promise<ActionResult> {
 
 export async function cancelOrder(orderId: OrderId): Promise<ActionResult> {
   const supabase = await createClient();
-  const { data: order } = await supabase
-    .from("orders")
-    .select("organization_id")
-    .eq("id", orderId)
-    .maybeSingle();
-  if (!(await hasModuleAccessToRecord(order?.organization_id, "order_tabs"))) {
+  if (!(await hasModuleAccessToRow("orders", orderId, "order_tabs"))) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }
   const { error } = await supabase.rpc("cancel_order", {
