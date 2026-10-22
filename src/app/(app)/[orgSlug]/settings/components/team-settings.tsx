@@ -10,11 +10,12 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { APP_MODULES, SETTINGS_PAGE } from "@/features/modules/app-modules";
+import { APP_MODULES } from "@/features/modules/app-modules";
 import type {
   AppModuleId,
   OrganizationId,
 } from "@/features/organizations/types";
+import { ESTABLISHMENT_SETTINGS_LABEL } from "@/features/team/access";
 import { useDeleteInvitationMutation } from "@/features/team/hooks/use-delete-invitation-mutation";
 import { useRemoveMemberMutation } from "@/features/team/hooks/use-remove-member-mutation";
 import { useTeamQuery } from "@/features/team/hooks/use-team-query";
@@ -47,7 +48,7 @@ function getPageLabels(
     ...APP_MODULES.filter((appModule) =>
       allowedModules.includes(appModule.id),
     ).map((appModule) => appModule.label),
-    ...(canAccessSettings ? [SETTINGS_PAGE.label] : []),
+    ...(canAccessSettings ? [ESTABLISHMENT_SETTINGS_LABEL] : []),
   ];
 }
 

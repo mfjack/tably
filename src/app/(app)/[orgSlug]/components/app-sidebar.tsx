@@ -19,7 +19,6 @@ type AppSidebarProps = {
   organizations: UserOrganization[];
   currentUser: CurrentUser;
   hiddenModules: AppModuleId[];
-  canAccessSettings: boolean;
 };
 
 export function AppSidebar({
@@ -27,7 +26,6 @@ export function AppSidebar({
   organizations,
   currentUser,
   hiddenModules,
-  canAccessSettings,
 }: AppSidebarProps) {
   return (
     <Sidebar
@@ -47,10 +45,7 @@ export function AppSidebar({
         />
       </SidebarContent>
       <SidebarFooter>
-        <SettingsNavigation
-          organizationSlug={organization.slug}
-          canAccessSettings={canAccessSettings}
-        />
+        <SettingsNavigation organizationSlug={organization.slug} />
         <UserMenu currentUser={currentUser} />
       </SidebarFooter>
     </Sidebar>

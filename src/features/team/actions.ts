@@ -12,6 +12,7 @@ import {
 } from "@/lib/action-result";
 import { getDatabaseErrorMessage } from "@/lib/database-errors";
 import { createClient } from "@/lib/supabase/server";
+import { isOrganizationOwner } from "./module-access";
 import {
   type InvitationInput,
   invitationSchema,
@@ -32,11 +33,6 @@ const INVITATION_ERROR_MESSAGES: Readonly<Record<string, string>> = {
     "Essa conta já faz parte desse estabelecimento. Se o convite é para outra pessoa, toque em Entrar com outra conta.",
   TB041: "Pessoa não encontrada na equipe.",
 };
-
-async function isOrganizationOwner(organizationId: OrganizationId) {
-  const organization = await getUserOrganizationById(organizationId);
-  return organization?.role === "owner";
-}
 
 function getInvitationStatus(expiresAt: string): Invitation["status"] {
   return new Date(expiresAt) < new Date() ? "expired" : "pending";

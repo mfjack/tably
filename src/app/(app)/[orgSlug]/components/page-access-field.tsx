@@ -1,7 +1,8 @@
 import { ToggleChip } from "@/components/toggle-chip";
 import { FieldError, FieldLegend, FieldSet } from "@/components/ui/field";
-import { APP_MODULES, SETTINGS_PAGE } from "@/features/modules/app-modules";
+import { APP_MODULES } from "@/features/modules/app-modules";
 import type { AppModuleId } from "@/features/organizations/types";
+import { ESTABLISHMENT_SETTINGS_LABEL } from "@/features/team/access";
 
 type PageAccessFieldProps = {
   allowedModules: readonly AppModuleId[];
@@ -47,7 +48,7 @@ export function PageAccessField({
           />
         ))}
         <ToggleChip
-          label={SETTINGS_PAGE.label}
+          label={ESTABLISHMENT_SETTINGS_LABEL}
           isSelected={canAccessSettings}
           onToggle={() => onCanAccessSettingsChange(!canAccessSettings)}
         />

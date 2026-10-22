@@ -7,6 +7,7 @@ import type {
 } from "@/features/subscriptions/plans";
 import {
   hasModuleAccess,
+  isOrganizationOwner,
   MODULE_ACCESS_DENIED_MESSAGE,
 } from "@/features/team/module-access";
 import {
@@ -33,6 +34,8 @@ import type { OrganizationId } from "./types";
 
 const MAX_SLUG_ATTEMPTS = 5;
 const UNIQUE_VIOLATION_CODE = "23505";
+const OWNER_ONLY_MESSAGE =
+  "Só o dono do estabelecimento pode alterar essa configuração.";
 const FORBIDDEN_MESSAGE =
   "Só o dono ou um gerente pode alterar o estabelecimento.";
 
@@ -100,8 +103,8 @@ export async function updateOrganizationSettings(
   organizationId: OrganizationId,
   input: OrganizationSettingsInput,
 ): Promise<ActionResult> {
-  if (!(await hasModuleAccess(organizationId, "settings"))) {
-    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  if (!(await isOrganizationOwner(organizationId))) {
+    return actionFailure(OWNER_ONLY_MESSAGE);
   }
 
   const parsedInput = organizationSettingsSchema.safeParse(input);
@@ -246,8 +249,8 @@ export async function updateOrganizationModules(
   organizationId: OrganizationId,
   input: OrganizationModulesInput,
 ): Promise<ActionResult> {
-  if (!(await hasModuleAccess(organizationId, "settings"))) {
-    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  if (!(await isOrganizationOwner(organizationId))) {
+    return actionFailure(OWNER_ONLY_MESSAGE);
   }
 
   const parsedInput = organizationModulesSchema.safeParse(input);

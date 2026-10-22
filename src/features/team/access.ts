@@ -4,6 +4,8 @@ import type {
   UserOrganization,
 } from "@/features/organizations/types";
 
+export const ESTABLISHMENT_SETTINGS_LABEL = "Configurações do estabelecimento";
+
 const ALL_MODULE_IDS: readonly AppModuleId[] = APP_MODULES.map(
   (appModule) => appModule.id,
 );

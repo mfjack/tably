@@ -40,3 +40,10 @@ export async function hasModuleAccessToRecord(
     typeof moduleIds === "string" ? [moduleIds] : moduleIds,
   );
 }
+
+export async function isOrganizationOwner(
+  organizationId: OrganizationId,
+): Promise<boolean> {
+  const organization = await getUserOrganizationById(organizationId);
+  return organization?.role === "owner";
+}

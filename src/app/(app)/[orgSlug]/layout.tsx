@@ -2,16 +2,12 @@ import { notFound } from "next/navigation";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { getCurrentUser } from "@/features/auth/queries";
 import { buildOrganizationPath } from "@/features/modules/app-modules";
-import { canManageOrganization } from "@/features/organizations/permissions";
 import {
   getUserOrganizationBySlug,
   getUserOrganizations,
 } from "@/features/organizations/queries";
 import { getSubscriptionState } from "@/features/subscriptions/subscription-state";
-import {
-  canAccessSettings,
-  getEffectiveHiddenModules,
-} from "@/features/team/access";
+import { getEffectiveHiddenModules } from "@/features/team/access";
 import { AppSidebar } from "./components/app-sidebar";
 import { OfflineOrderSync } from "./components/offline-order-sync";
 import { OnlineOrdersNotifier } from "./components/online-orders-notifier";
@@ -56,14 +52,13 @@ export default async function OrganizationLayout({
         organizations={organizations}
         currentUser={currentUser}
         hiddenModules={hiddenModules}
-        canAccessSettings={canAccessSettings(organization)}
       />
       <SidebarInset className="h-svh overflow-hidden">
         {subscriptionState?.isExpiringSoon && (
           <SubscriptionBanner
             organizationSlug={organization.slug}
             state={subscriptionState}
-            canManage={canManageOrganization(organization.role)}
+            canManage={organization.role === "owner"}
           />
         )}
         {children}

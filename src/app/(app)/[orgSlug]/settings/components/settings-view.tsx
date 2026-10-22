@@ -17,12 +17,19 @@ import { SubscriptionSettings } from "./subscription-settings";
 import { TeamSettings } from "./team-settings";
 import { ThermalPrinterSettings } from "./thermal-printer-settings";
 
+const ESTABLISHMENT_TABS = ["checkout", "loyalty", "menu"] as const;
+
+const OWNER_TABS = ["organization", "modules", "subscription", "team"] as const;
+
+const PERSONAL_TABS = ["printer", "profile"] as const;
+
 type SettingsViewProps = {
   title: string;
   description: string;
   organization: UserOrganization;
   currentUser: CurrentUser;
-  canManageOrganization: boolean;
+  canManageEstablishment: boolean;
+  isOwner: boolean;
   initialTab?: string;
 };
 
@@ -31,23 +38,20 @@ export function SettingsView({
   description,
   organization,
   currentUser,
-  canManageOrganization,
+  canManageEstablishment,
+  isOwner,
   initialTab,
 }: SettingsViewProps) {
-  const defaultTab = canManageOrganization ? "organization" : "profile";
-  const availableTabs = canManageOrganization
-    ? [
-        "organization",
-        "modules",
-        "checkout",
-        "loyalty",
-        "subscription",
-        "team",
-        "menu",
-        "printer",
-        "profile",
-      ]
-    : ["printer", "profile"];
+  const defaultTab = isOwner
+    ? "organization"
+    : canManageEstablishment
+      ? "checkout"
+      : "printer";
+  const availableTabs: readonly string[] = [
+    ...(canManageEstablishment ? ESTABLISHMENT_TABS : []),
+    ...(isOwner ? OWNER_TABS : []),
+    ...PERSONAL_TABS,
+  ];
   return (
     <>
       <PageHeader title={title} description={description} />
@@ -61,7 +65,7 @@ export function SettingsView({
           className="min-h-0 gap-6"
         >
           <TabsList className="w-full justify-start overflow-x-auto group-data-horizontal/tabs:h-10 sm:w-fit">
-            {canManageOrganization && (
+            {isOwner && (
               <>
                 <TabsTrigger value="organization" className="shrink-0 px-4">
                   Estabelecimento
@@ -69,24 +73,30 @@ export function SettingsView({
                 <TabsTrigger value="modules" className="shrink-0 px-4">
                   Páginas
                 </TabsTrigger>
+              </>
+            )}
+            {canManageEstablishment && (
+              <>
                 <TabsTrigger value="checkout" className="shrink-0 px-4">
                   Vendas
                 </TabsTrigger>
                 <TabsTrigger value="loyalty" className="shrink-0 px-4">
                   Fidelidade
                 </TabsTrigger>
+                <TabsTrigger value="menu" className="shrink-0 px-4">
+                  Cardápio
+                </TabsTrigger>
+              </>
+            )}
+            {isOwner && (
+              <>
                 {organization.subscription && (
                   <TabsTrigger value="subscription" className="shrink-0 px-4">
                     Assinatura
                   </TabsTrigger>
                 )}
-                {organization.role === "owner" && (
-                  <TabsTrigger value="team" className="shrink-0 px-4">
-                    Equipe
-                  </TabsTrigger>
-                )}
-                <TabsTrigger value="menu" className="shrink-0 px-4">
-                  Cardápio
+                <TabsTrigger value="team" className="shrink-0 px-4">
+                  Equipe
                 </TabsTrigger>
               </>
             )}
@@ -97,7 +107,7 @@ export function SettingsView({
               Meu perfil
             </TabsTrigger>
           </TabsList>
-          {canManageOrganization && (
+          {isOwner && (
             <>
               <TabsContent
                 value="organization"
@@ -116,6 +126,10 @@ export function SettingsView({
                   selectableModules={organization.selectableModules}
                 />
               </TabsContent>
+            </>
+          )}
+          {canManageEstablishment && (
+            <>
               <TabsContent
                 value="checkout"
                 className="flex min-h-0 flex-col gap-6 overflow-y-auto *:shrink-0"
@@ -139,6 +153,16 @@ export function SettingsView({
                   }
                 />
               </TabsContent>
+              <TabsContent value="menu" className="min-h-0 overflow-y-auto">
+                <MenuSettings
+                  key={organization.id}
+                  organization={organization}
+                />
+              </TabsContent>
+            </>
+          )}
+          {isOwner && (
+            <>
               {organization.subscription && (
                 <TabsContent
                   value="subscription"
@@ -150,24 +174,16 @@ export function SettingsView({
                   />
                 </TabsContent>
               )}
-              {organization.role === "owner" && (
-                <TabsContent value="team" className="min-h-0 overflow-y-auto">
-                  <TeamSettings
-                    organizationId={organization.id}
-                    organizationName={organization.name}
-                    visibleModuleIds={APP_MODULES.map(
-                      (appModule) => appModule.id,
-                    ).filter(
-                      (moduleId) =>
-                        !organization.hiddenModules.includes(moduleId),
-                    )}
-                  />
-                </TabsContent>
-              )}
-              <TabsContent value="menu" className="min-h-0 overflow-y-auto">
-                <MenuSettings
-                  key={organization.id}
-                  organization={organization}
+              <TabsContent value="team" className="min-h-0 overflow-y-auto">
+                <TeamSettings
+                  organizationId={organization.id}
+                  organizationName={organization.name}
+                  visibleModuleIds={APP_MODULES.map(
+                    (appModule) => appModule.id,
+                  ).filter(
+                    (moduleId) =>
+                      !organization.hiddenModules.includes(moduleId),
+                  )}
                 />
               </TabsContent>
             </>
