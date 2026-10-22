@@ -5,7 +5,6 @@ import {
   buildOrganizationPath,
   SETTINGS_PAGE,
 } from "@/features/modules/app-modules";
-import { SidebarCollapseButton } from "./sidebar-collapse-button";
 import { SidebarLink } from "./sidebar-link";
 
 type SettingsNavigationProps = {
@@ -26,7 +25,6 @@ export function SettingsNavigation({
           icon={SETTINGS_PAGE.icon}
         />
       )}
-      <SidebarCollapseButton />
     </SidebarMenu>
   );
 }
