@@ -15,6 +15,7 @@ import { useOpenOrderTabsQuery } from "@/features/orders/hooks/use-open-order-ta
 import { usePaidOrdersQuery } from "@/features/orders/hooks/use-paid-orders-query";
 import { usePayOrderMutation } from "@/features/orders/hooks/use-pay-order-mutation";
 import { useRemoveOrderItemMutation } from "@/features/orders/hooks/use-remove-order-item-mutation";
+import { useReopenOrderMutation } from "@/features/orders/hooks/use-reopen-order-mutation";
 import type { OrderAdjustmentsInput } from "@/features/orders/order-adjustments";
 import { buildOrderDetailsTicket } from "@/features/orders/order-details-ticket";
 import {
@@ -46,6 +47,12 @@ type OpenTabState =
   | { step: "payment"; orderId: OrderId }
   | { step: "cancel"; orderId: OrderId };
 
+type PaidOrderState =
+  | { step: "closed" }
+  | { step: "details" | "reopen"; order: OrderDetails };
+
+type OrderTabsSection = "open" | "history";
+
 type OrderTabsViewProps = {
   organizationId: OrganizationId;
   ticketBusiness: OrderTicketBusiness;
@@ -72,12 +79,15 @@ export function OrderTabsView({
   const removeOrderItemMutation = useRemoveOrderItemMutation(organizationId);
   const payOrderMutation = usePayOrderMutation(organizationId);
   const cancelOrderMutation = useCancelOrderMutation(organizationId);
+  const reopenOrderMutation = useReopenOrderMutation(organizationId);
 
   const [openTabState, setOpenTabState] = useState<OpenTabState>({
     step: "closed",
   });
-  const [selectedPaidOrder, setSelectedPaidOrder] =
-    useState<OrderDetails | null>(null);
+  const [paidOrderState, setPaidOrderState] = useState<PaidOrderState>({
+    step: "closed",
+  });
+  const [section, setSection] = useState<OrderTabsSection>("open");
 
   const selectedOrder =
     openTabState.step === "closed"
@@ -164,6 +174,20 @@ export function OrderTabsView({
     });
   }
 
+  function confirmReopen() {
+    if (paidOrderState.step !== "reopen") return;
+    const reopenedOrder = paidOrderState.order;
+
+    reopenOrderMutation.mutate(reopenedOrder.id, {
+      onSuccess: () => {
+        setPaidOrderState({ step: "closed" });
+        setSection("open");
+        toast.success(`Comanda de ${reopenedOrder.customerName} reaberta.`);
+      },
+      onError: (error) => toast.error(error.message),
+    });
+  }
+
   const openTabCount = openOrderTabsQuery.data?.length ?? 0;
 
   return (
@@ -182,7 +206,13 @@ export function OrderTabsView({
         }
       />
       <PageContent>
-        <Tabs defaultValue="open" className="min-h-0 flex-1 gap-6">
+        <Tabs
+          value={section}
+          onValueChange={(value) =>
+            setSection(value === "history" ? "history" : "open")
+          }
+          className="min-h-0 flex-1 gap-6"
+        >
           <TabsList className="group-data-horizontal/tabs:h-10">
             <TabsTrigger value="open" className="px-4">
               Abertas
@@ -213,7 +243,9 @@ export function OrderTabsView({
               orders={paidOrdersQuery.data}
               isLoading={paidOrdersQuery.isPending}
               errorMessage={paidOrdersQuery.error?.message}
-              onSelect={setSelectedPaidOrder}
+              onSelect={(order) =>
+                setPaidOrderState({ step: "details", order })
+              }
             />
           </TabsContent>
         </Tabs>
@@ -273,9 +305,26 @@ export function OrderTabsView({
         onConfirm={confirmCancel}
       />
       <PaidOrderDialog
-        order={selectedPaidOrder}
-        onClose={() => setSelectedPaidOrder(null)}
+        order={paidOrderState.step === "details" ? paidOrderState.order : null}
+        onClose={() => setPaidOrderState({ step: "closed" })}
         onPrint={printOrder}
+        onReopen={(order) => setPaidOrderState({ step: "reopen", order })}
+      />
+      <ConfirmDialog
+        isOpen={paidOrderState.step === "reopen"}
+        onOpenChange={(isOpen) =>
+          !isOpen &&
+          setPaidOrderState((currentState) =>
+            currentState.step === "reopen"
+              ? { step: "details", order: currentState.order }
+              : currentState,
+          )
+        }
+        title="Reabrir comanda?"
+        description={`A comanda de ${paidOrderState.step === "closed" ? "" : (paidOrderState.order.customerName ?? "")} volta para as abertas e o pagamento é desfeito: sai do caixa, do financeiro, da conta do cliente e da fidelidade. Depois é só cobrar de novo.`}
+        confirmLabel="Reabrir comanda"
+        isConfirming={reopenOrderMutation.isPending}
+        onConfirm={confirmReopen}
       />
     </>
   );

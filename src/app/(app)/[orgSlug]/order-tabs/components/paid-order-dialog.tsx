@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { Printer } from "lucide-react";
+import { Printer, RotateCcw } from "lucide-react";
 import { DetailsDialog } from "@/components/dialog/details-dialog";
 import { DIALOG_ACTION_BUTTON_CLASS_NAME } from "@/components/dialog/dialog-styles";
 import { Button } from "@/components/ui/button";
@@ -19,13 +19,16 @@ type PaidOrderDialogProps = {
   order: OrderDetails | null;
   onClose: () => void;
   onPrint: (order: OrderDetails) => void;
+  onReopen: (order: OrderDetails) => void;
 };
 
 export function PaidOrderDialog({
   order,
   onClose,
   onPrint,
+  onReopen,
 }: PaidOrderDialogProps) {
+  const canReopen = Boolean(order?.customerName);
   const change = order ? getOrderPaymentChange(order) : 0;
   const paymentLineCount = order
     ? order.payments.length + (order.loyaltyReward > 0 ? 1 : 0)
@@ -37,14 +40,30 @@ export function PaidOrderDialog({
       onOpenChange={(isDialogOpen) => !isDialogOpen && onClose()}
       title="Detalhes da comanda"
       footer={
-        <Button
-          type="button"
-          className={cn(DIALOG_ACTION_BUTTON_CLASS_NAME, "col-span-2")}
-          onClick={() => order && onPrint(order)}
-        >
-          <Printer aria-hidden />
-          Imprimir
-        </Button>
+        <>
+          {canReopen && (
+            <Button
+              type="button"
+              variant="outline"
+              className={DIALOG_ACTION_BUTTON_CLASS_NAME}
+              onClick={() => order && onReopen(order)}
+            >
+              <RotateCcw aria-hidden />
+              Reabrir comanda
+            </Button>
+          )}
+          <Button
+            type="button"
+            className={cn(
+              DIALOG_ACTION_BUTTON_CLASS_NAME,
+              !canReopen && "col-span-2",
+            )}
+            onClick={() => order && onPrint(order)}
+          >
+            <Printer aria-hidden />
+            Imprimir
+          </Button>
+        </>
       }
     >
       {order && (

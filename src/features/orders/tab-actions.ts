@@ -342,6 +342,28 @@ export async function payOrder(
   return actionSuccess();
 }
 
+export async function reopenOrder(orderId: OrderId): Promise<ActionResult> {
+  const supabase = await createClient();
+  const { data: order } = await supabase
+    .from("orders")
+    .select("organization_id")
+    .eq("id", orderId)
+    .maybeSingle();
+  if (!(await hasModuleAccessToRecord(order?.organization_id, "order_tabs"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
+  const { error } = await supabase.rpc("reopen_order", {
+    p_order_id: orderId,
+  });
+
+  if (error) {
+    return actionFailure(
+      getOrderErrorMessage(error, "Não foi possível reabrir a comanda."),
+    );
+  }
+  return actionSuccess();
+}
+
 export async function cancelOrder(orderId: OrderId): Promise<ActionResult> {
   const supabase = await createClient();
   const { data: order } = await supabase

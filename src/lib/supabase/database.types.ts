@@ -4026,6 +4026,7 @@ export type Database = {
         Args: { p_order_item_id: string; p_quantity?: number }
         Returns: number
       }
+      reopen_order: { Args: { p_order_id: string }; Returns: undefined }
       report_subscription_payment: {
         Args: { p_organization_id: string }
         Returns: undefined
