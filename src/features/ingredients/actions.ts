@@ -26,6 +26,7 @@ import {
   type StockEntryFormInput,
   stockEntryFormSchema,
 } from "./schemas";
+import { getPurchaseCost } from "./stock-cost";
 import type { Ingredient, IngredientId } from "./types";
 
 const DUPLICATE_NAME_MESSAGE = "Já existe um insumo com esse nome.";
@@ -39,7 +40,7 @@ export async function listIngredients(
   const { data, error } = await supabase
     .from("ingredients")
     .select(
-      "id, name, brand, unit, current_stock, minimum_stock, target_stock, unit_cost, supplier_id, expires_at, label_shelf_life_hours, label_storage, is_prepared, yield_quantity, preparation_instructions, product_ingredients(count), ingredient_components!ingredient_components_prepared_ingredient_id_organization__fkey(component_ingredient_id, quantity), used_as_component:ingredient_components!ingredient_components_component_ingredient_id_organization_fkey(count), product_addons(count)",
+      "id, name, unit, current_stock, minimum_stock, unit_cost, supplier_id, expires_at, label_shelf_life_hours, label_storage, is_prepared, yield_quantity, preparation_instructions, product_ingredients(count), ingredient_components!ingredient_components_prepared_ingredient_id_organization__fkey(component_ingredient_id, quantity), used_as_component:ingredient_components!ingredient_components_component_ingredient_id_organization_fkey(count), product_addons(count)",
     )
     .eq("organization_id", organizationId)
     .order("name");
@@ -51,11 +52,9 @@ export async function listIngredients(
     data.map((ingredient) => ({
       id: ingredient.id as IngredientId,
       name: ingredient.name,
-      brand: ingredient.brand,
       unit: ingredient.unit,
       currentStock: ingredient.current_stock,
       minimumStock: ingredient.minimum_stock,
-      targetStock: ingredient.target_stock,
       unitCost: ingredient.unit_cost,
       supplierId: ingredient.supplier_id as SupplierId | null,
       expiresAt: ingredient.expires_at,
@@ -90,49 +89,32 @@ export async function createIngredient(
 
   const {
     name,
-    brand,
     unit,
     quantity,
     totalCost,
+    freightCost,
     minimumStock,
-    targetStock,
     supplierId,
     expiresAt,
     paymentDueDate,
   } = parsedInput.data;
+  const purchaseCost = getPurchaseCost(totalCost, freightCost);
   const supabase = await createClient();
-  const { data: createdIngredientId, error } = await supabase.rpc(
-    "create_ingredient",
-    {
-      p_organization_id: organizationId,
-      p_name: name,
-      p_unit: unit,
-      p_quantity: quantity ?? 0,
-      p_total_cost: totalCost ?? 0,
-      p_minimum_stock: minimumStock ?? 0,
-      p_brand: brand || undefined,
-      p_supplier_id: fromSelectFieldValue<SupplierId>(supplierId),
-      p_expires_at: expiresAt || undefined,
-      p_payment_due_date:
-        (totalCost ?? 0) > 0 ? paymentDueDate || undefined : undefined,
-    },
-  );
+  const { error } = await supabase.rpc("create_ingredient", {
+    p_organization_id: organizationId,
+    p_name: name,
+    p_unit: unit,
+    p_quantity: quantity ?? 0,
+    p_total_cost: purchaseCost,
+    p_minimum_stock: minimumStock ?? 0,
+    p_supplier_id: fromSelectFieldValue<SupplierId>(supplierId),
+    p_expires_at: expiresAt || undefined,
+    p_payment_due_date:
+      purchaseCost > 0 ? paymentDueDate || undefined : undefined,
+  });
 
   if (isUniqueViolation(error)) return actionFailure(DUPLICATE_NAME_MESSAGE);
   if (error) return databaseFailure(GENERIC_ERROR_MESSAGE, error);
-
-  if (targetStock !== undefined) {
-    const { error: targetError } = await supabase
-      .from("ingredients")
-      .update({ target_stock: targetStock })
-      .eq("id", createdIngredientId);
-    if (targetError) {
-      return databaseFailure(
-        "O insumo foi salvo, mas a quantidade ideal não.",
-        targetError,
-      );
-    }
-  }
 
   return actionSuccess();
 }
@@ -175,10 +157,8 @@ export async function updateIngredient(
 
   const {
     name,
-    brand,
     unit,
     minimumStock,
-    targetStock,
     currentStock,
     currentStockCost,
     supplierId,
@@ -209,9 +189,7 @@ export async function updateIngredient(
     .update({
       name,
       unit,
-      brand: brand || null,
       minimum_stock: minimumStock ?? 0,
-      target_stock: targetStock ?? null,
       supplier_id: fromSelectFieldValue<SupplierId>(supplierId) ?? null,
       expires_at: expiresAt || null,
       ...(currentStockCost !== undefined &&
@@ -282,17 +260,24 @@ export async function createStockEntry(
   const parsedInput = stockEntryFormSchema.safeParse(input);
   if (!parsedInput.success) return actionFailure(INVALID_FORM_MESSAGE);
 
-  const { quantity, totalCost, supplierId, expiresAt, paymentDueDate } =
-    parsedInput.data;
+  const {
+    quantity,
+    totalCost,
+    freightCost,
+    supplierId,
+    expiresAt,
+    paymentDueDate,
+  } = parsedInput.data;
+  const purchaseCost = getPurchaseCost(totalCost, freightCost);
   const supabase = await createClient();
   const { error } = await supabase.from("stock_entries").insert({
     organization_id: organizationId,
     ingredient_id: ingredientId,
     supplier_id: fromSelectFieldValue<SupplierId>(supplierId) ?? null,
     quantity,
-    total_cost: totalCost,
+    total_cost: purchaseCost,
     expires_at: expiresAt || null,
-    payment_due_date: totalCost > 0 ? paymentDueDate || null : null,
+    payment_due_date: purchaseCost > 0 ? paymentDueDate || null : null,
   });
 
   if (error)

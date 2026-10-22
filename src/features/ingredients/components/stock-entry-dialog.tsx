@@ -15,10 +15,12 @@ import {
   type StockEntryFormInput,
   stockEntryFormSchema,
 } from "@/features/ingredients/schemas";
+import { getPurchaseCost } from "@/features/ingredients/stock-cost";
 import type { Ingredient } from "@/features/ingredients/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import { useSupplierOptions } from "@/features/suppliers/hooks/use-supplier-options";
 import { toSelectFieldValue } from "@/lib/optional-select-value";
+import { FreightCostField } from "./freight-cost-field";
 import { StockEntryProjectionSummary } from "./stock-entry-projection-summary";
 
 function buildDefaultValues(
@@ -52,9 +54,9 @@ export function StockEntryDialog({
     resolver: zodResolver(stockEntryFormSchema),
     defaultValues: buildDefaultValues(null),
   });
-  const [quantity, totalCost] = useWatch({
+  const [quantity, totalCost, freightCost] = useWatch({
     control: form.control,
-    name: ["quantity", "totalCost"],
+    name: ["quantity", "totalCost", "freightCost"],
   });
 
   useEffect(() => {
@@ -108,18 +110,19 @@ export function StockEntryDialog({
             format="currency"
             placeholder="Ex.: $ 60,00"
           />
+          <FreightCostField control={form.control} name="freightCost" />
+          <SelectField
+            control={form.control}
+            name="supplierId"
+            label="Fornecedor"
+            options={supplierOptions}
+            description={
+              hasSuppliers
+                ? undefined
+                : "Cadastre fornecedores no módulo Fornecedores para vinculá-los às compras."
+            }
+          />
         </div>
-        <SelectField
-          control={form.control}
-          name="supplierId"
-          label="Fornecedor"
-          options={supplierOptions}
-          description={
-            hasSuppliers
-              ? undefined
-              : "Cadastre fornecedores no módulo Fornecedores para vinculá-los às compras."
-          }
-        />
         <DateField
           control={form.control}
           name="paymentDueDate"
@@ -136,7 +139,7 @@ export function StockEntryDialog({
           <StockEntryProjectionSummary
             ingredient={ingredient}
             quantity={quantity ?? 0}
-            totalCost={totalCost ?? 0}
+            totalCost={getPurchaseCost(totalCost, freightCost)}
           />
         )}
       </FieldGroup>

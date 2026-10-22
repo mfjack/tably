@@ -10,6 +10,7 @@ import { NumberField } from "@/components/form/number-field";
 import { SelectField } from "@/components/form/select-field";
 import { TextField } from "@/components/form/text-field";
 import { FieldGroup } from "@/components/ui/field";
+import { FreightCostField } from "@/features/ingredients/components/freight-cost-field";
 import { useSaveIngredientMutation } from "@/features/ingredients/hooks/use-save-ingredient-mutation";
 import {
   getEditableMeasureUnitOptions,
@@ -31,7 +32,6 @@ import {
 
 const EMPTY_INGREDIENT_FORM: DefaultValues<IngredientFormInput> = {
   name: "",
-  brand: "",
   supplierId: NONE_SELECT_VALUE,
   expiresAt: "",
   paymentDueDate: "",
@@ -42,10 +42,8 @@ function toFormValues(
 ): DefaultValues<IngredientFormInput> {
   return {
     name: ingredient.name,
-    brand: ingredient.brand ?? "",
     unit: toSelectableMeasureUnit(ingredient.unit),
     minimumStock: ingredient.minimumStock,
-    targetStock: ingredient.targetStock ?? undefined,
     currentStock:
       ingredient.currentStock >= 0 ? ingredient.currentStock : undefined,
     supplierId: toSelectFieldValue(ingredient.supplierId),
@@ -138,15 +136,8 @@ export function IngredientFormDialog({
           placeholder="Ex.: Leite integral"
           autoComplete="off"
         />
-        <TextField
-          control={form.control}
-          name="brand"
-          label="Marca"
-          placeholder="Opcional"
-          autoComplete="off"
-        />
-        {isEditing ? (
-          <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid gap-5 sm:grid-cols-2">
+          {isEditing ? (
             <NumberField
               control={form.control}
               name="currentStock"
@@ -155,10 +146,7 @@ export function IngredientFormDialog({
               suffix={unitSymbol}
               placeholder="Ex.: 12"
             />
-            {unitField}
-          </div>
-        ) : (
-          <div className="grid gap-5 sm:grid-cols-2">
+          ) : (
             <NumberField
               control={form.control}
               name="quantity"
@@ -167,10 +155,20 @@ export function IngredientFormDialog({
               suffix={unitSymbol}
               placeholder="Ex.: 12"
             />
-            {unitField}
-          </div>
-        )}
-        <div className="grid gap-5 sm:grid-cols-2">
+          )}
+          {unitField}
+          {!isEditing && (
+            <NumberField
+              control={form.control}
+              name="totalCost"
+              label="Valor total pago"
+              format="currency"
+              placeholder="Ex.: $ 60,00"
+            />
+          )}
+          {!isEditing && (
+            <FreightCostField control={form.control} name="freightCost" />
+          )}
           <NumberField
             control={form.control}
             name="minimumStock"
@@ -180,60 +178,37 @@ export function IngredientFormDialog({
             placeholder="Ex.: 4"
             description="Abaixo disso, o Tably avisa que é hora de comprar."
           />
-          <NumberField
-            control={form.control}
-            name="targetStock"
-            label="Quantidade ideal (opcional)"
-            format="quantity"
-            suffix={unitSymbol}
-            placeholder="Ex.: 12"
-            description="Quanto ter depois de comprar. A lista sugere a diferença."
-          />
-        </div>
-        {isEditing && !ingredient?.isPrepared && (
-          <NumberField
-            control={form.control}
-            name="currentStockCost"
-            label="Valor pago pelo estoque (opcional)"
-            format="currency"
-            placeholder="Ex.: $ 60,00"
-            description="Quanto custou o estoque atual. Recalcula o custo por unidade."
-          />
-        )}
-        {!isEditing && (
-          <div className="grid gap-5 sm:grid-cols-2">
+          {isEditing && !ingredient?.isPrepared && (
             <NumberField
               control={form.control}
-              name="totalCost"
-              label="Valor total pago"
+              name="currentStockCost"
+              label="Valor pago pelo estoque (opcional)"
               format="currency"
               placeholder="Ex.: $ 60,00"
+              description="Quanto custou o estoque atual. Recalcula o custo por unidade."
             />
+          )}
+          {!isEditing && (
             <DateField
               control={form.control}
               name="paymentDueDate"
               label="Data de pagamento"
+              description="Com data, a compra entra como conta a pagar no financeiro. Deixe em branco se já pagou."
             />
-          </div>
-        )}
-        {!isEditing && (
-          <p className="-mt-2 text-muted-foreground text-sm">
-            Com data de pagamento, a compra entra como conta a pagar no
-            financeiro. Deixe em branco se já pagou.
-          </p>
-        )}
-        <SelectField
-          control={form.control}
-          name="supplierId"
-          label="Fornecedor"
-          options={supplierOptions}
-          description={
-            hasSuppliers
-              ? undefined
-              : "Cadastre fornecedores no módulo Fornecedores para vinculá-los."
-          }
-        />
-        <DateField control={form.control} name="expiresAt" label="Validade" />
+          )}
+          <SelectField
+            control={form.control}
+            name="supplierId"
+            label="Fornecedor"
+            options={supplierOptions}
+            description={
+              hasSuppliers
+                ? undefined
+                : "Cadastre fornecedores no módulo Fornecedores para vinculá-los."
+            }
+          />
+          <DateField control={form.control} name="expiresAt" label="Validade" />
+        </div>
       </FieldGroup>
     </FormDialog>
   );

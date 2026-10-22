@@ -14,11 +14,9 @@ import type { Ingredient, IngredientId, MeasureUnit } from "./types";
 export type ShoppingListItem = {
   ingredientId: IngredientId;
   name: string;
-  brand: string | null;
   unit: MeasureUnit;
   currentStock: number;
   minimumStock: number;
-  targetStock: number | null;
 };
 
 export type ShoppingListSupplier = {
@@ -91,11 +89,9 @@ export function buildShoppingList(
     group.items.push({
       ingredientId: ingredient.id,
       name: ingredient.name,
-      brand: ingredient.brand,
       unit: ingredient.unit,
       currentStock: ingredient.currentStock,
       minimumStock: ingredient.minimumStock,
-      targetStock: ingredient.targetStock,
     });
     groups.set(groupKey, group);
   }
@@ -114,12 +110,6 @@ export function buildShoppingList(
     });
 }
 
-export function getSuggestedQuantity(item: ShoppingListItem): number | null {
-  if (item.targetStock === null) return null;
-  const missing = item.targetStock - Math.max(item.currentStock, 0);
-  return missing > 0 ? missing : null;
-}
-
 export function formatItemQuantity(
   quantity: number,
   unit: MeasureUnit,
@@ -128,8 +118,7 @@ export function formatItemQuantity(
 }
 
 function describeItem(item: OrderedItem): string {
-  const brand = item.brand ? ` (${item.brand})` : "";
-  return `${formatItemQuantity(item.quantity, item.unit)} de ${item.name}${brand}`;
+  return `${formatItemQuantity(item.quantity, item.unit)} de ${item.name}`;
 }
 
 export function buildSupplierMessage(
@@ -162,10 +151,7 @@ export function printShoppingList(
       (group) =>
         `<section>${group.supplierName ? `<p class="strong">${escapeHtml(group.supplierName)}</p>` : ""}${group.items
           .map((item) =>
-            buildRow(
-              `${item.name}${item.brand ? ` (${item.brand})` : ""}`,
-              formatItemQuantity(item.quantity, item.unit),
-            ),
+            buildRow(item.name, formatItemQuantity(item.quantity, item.unit)),
           )
           .join("")}</section>`,
     )

@@ -1,5 +1,6 @@
 import * as z from "zod";
 import { MEASURE_UNIT_VALUES } from "./measure-units";
+import { getPurchaseCost } from "./stock-cost";
 
 const optionalDateSchema = z
   .string()
@@ -18,12 +19,11 @@ export const ingredientFormSchema = z
       .trim()
       .min(1, "Informe o nome do insumo.")
       .max(80, "Nome muito longo."),
-    brand: z.string().trim().max(60, "Marca muito longa.").optional(),
     unit: z.enum(MEASURE_UNIT_VALUES, { error: "Escolha a unidade." }),
     quantity: optionalAmountSchema,
     totalCost: optionalAmountSchema,
+    freightCost: optionalAmountSchema,
     minimumStock: optionalAmountSchema,
-    targetStock: z.number().positive("Precisa ser maior que zero.").optional(),
     currentStock: optionalAmountSchema,
     currentStockCost: optionalAmountSchema,
     supplierId: z.string().optional(),
@@ -31,19 +31,15 @@ export const ingredientFormSchema = z
     paymentDueDate: optionalDateSchema,
   })
   .refine(
-    (values) => (values.quantity ?? 0) > 0 || (values.totalCost ?? 0) === 0,
+    (values) =>
+      (values.quantity ?? 0) > 0 ||
+      getPurchaseCost(values.totalCost, values.freightCost) === 0,
     { message: "Informe a quantidade comprada.", path: ["quantity"] },
   )
   .refine(
     (values) =>
       values.currentStockCost === undefined || (values.currentStock ?? 0) > 0,
     { message: "Informe o estoque atual.", path: ["currentStock"] },
-  )
-  .refine(
-    (values) =>
-      values.targetStock === undefined ||
-      values.targetStock > (values.minimumStock ?? 0),
-    { message: "Precisa ser maior que o mínimo.", path: ["targetStock"] },
   );
 
 export const stockEntryFormSchema = z.object({
@@ -53,6 +49,7 @@ export const stockEntryFormSchema = z.object({
   totalCost: z
     .number({ error: "Informe o valor pago." })
     .min(0, "Não pode ser negativo."),
+  freightCost: optionalAmountSchema,
   supplierId: z.string().optional(),
   expiresAt: optionalDateSchema,
   paymentDueDate: optionalDateSchema,

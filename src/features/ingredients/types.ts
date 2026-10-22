@@ -10,11 +10,9 @@ export type MeasureUnit = Database["public"]["Enums"]["measure_unit"];
 export type Ingredient = {
   id: IngredientId;
   name: string;
-  brand: string | null;
   unit: MeasureUnit;
   currentStock: number;
   minimumStock: number;
-  targetStock: number | null;
   unitCost: number;
   supplierId: SupplierId | null;
   expiresAt: string | null;

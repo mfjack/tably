@@ -28,7 +28,6 @@ import {
   formatItemQuantity,
   getInitialShoppingLines,
   getShoppingGroupKey,
-  getSuggestedQuantity,
   type OrderedItem,
   printShoppingList,
   type ShoppingLine,
@@ -407,7 +406,6 @@ export function ShoppingListDialog({
                       {group.items.map((item) => {
                         const isBelowMinimum =
                           item.currentStock <= item.minimumStock;
-                        const suggestedQuantity = getSuggestedQuantity(item);
                         return (
                           <li
                             key={item.ingredientId}
@@ -416,12 +414,6 @@ export function ShoppingListDialog({
                             <div className="flex min-w-0 flex-col gap-0.5">
                               <span className="truncate font-medium text-sm">
                                 {item.name}
-                                {item.brand && (
-                                  <span className="font-normal text-muted-foreground">
-                                    {" "}
-                                    · {item.brand}
-                                  </span>
-                                )}
                               </span>
                               <span className="text-xs tabular-nums">
                                 <span
@@ -443,28 +435,8 @@ export function ShoppingListDialog({
                                     item.minimumStock,
                                     item.unit,
                                   )}
-                                  {item.targetStock !== null &&
-                                    ` · ideal ${formatItemQuantity(item.targetStock, item.unit)}`}
                                 </span>
                               </span>
-                              {suggestedQuantity !== null && (
-                                <button
-                                  type="button"
-                                  className="w-fit font-medium text-primary text-xs tabular-nums hover:underline"
-                                  onClick={() =>
-                                    form.setValue(
-                                      `quantities.${item.ingredientId as IngredientId}`,
-                                      suggestedQuantity,
-                                    )
-                                  }
-                                >
-                                  Pedir{" "}
-                                  {formatItemQuantity(
-                                    suggestedQuantity,
-                                    item.unit,
-                                  )}
-                                </button>
-                              )}
                             </div>
                             <NumberField
                               control={form.control}

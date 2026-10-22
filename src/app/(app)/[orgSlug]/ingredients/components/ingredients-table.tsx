@@ -65,11 +65,6 @@ export function IngredientsTable({
                   <Badge variant="secondary">Produzido</Badge>
                 )}
               </span>
-              {row.original.brand && (
-                <span className="text-muted-foreground text-xs">
-                  {row.original.brand}
-                </span>
-              )}
             </div>
           ),
         }),
