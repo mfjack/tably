@@ -13,7 +13,7 @@ import type { PosProduct } from "../hooks/use-pos-catalog";
 import { ProductCard } from "./product-card";
 
 const GRID_CLASS_NAME =
-  "grid grid-cols-3 gap-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7";
+  "grid grid-cols-3 gap-2.5 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7";
 
 const LOADING_CARD_COUNT = 10;
 
