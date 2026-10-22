@@ -38,6 +38,7 @@ import {
 import type { EntryStatus, FinancialEntry } from "@/features/finance/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import { getIsoWeekday } from "@/features/time-clock/time-utils";
+import { copyToClipboard } from "@/lib/copy-to-clipboard";
 import { ACCEPTED_DOCUMENT_TYPES } from "@/lib/document-files";
 import { formatCurrency, formatDateKey } from "@/lib/format";
 import { openPendingTab } from "@/lib/open-in-new-tab";
@@ -114,14 +115,12 @@ export function EntryRow({
     onPay(entry);
   }
 
-  async function copyDigitableLine() {
+  function copyDigitableLine() {
     if (!entry.digitableLine) return;
-    try {
-      await navigator.clipboard.writeText(entry.digitableLine);
-      toast.success("Código copiado. Cole no app do banco.");
-    } catch {
-      toast.error("Não foi possível copiar.");
-    }
+    return copyToClipboard(
+      entry.digitableLine,
+      "Código copiado. Cole no app do banco.",
+    );
   }
 
   return (

@@ -15,6 +15,7 @@ import {
   menuSettingsSchema,
 } from "@/features/menu/schemas";
 import type { UserOrganization } from "@/features/organizations/types";
+import { copyToClipboard } from "@/lib/copy-to-clipboard";
 import { productionSiteUrl } from "@/lib/env";
 import { createQrCodeDataUrl } from "@/lib/qr-code";
 import { SettingsFormSection } from "./settings-form-section";
@@ -69,13 +70,12 @@ export function MenuSettings({ organization }: MenuSettingsProps) {
     }),
   );
 
-  async function copyMenuUrl() {
-    try {
-      await navigator.clipboard.writeText(menuUrl);
-      toast.success("Link copiado.");
-    } catch {
-      toast.error("Não foi possível copiar o link.");
-    }
+  function copyMenuUrl() {
+    return copyToClipboard(
+      menuUrl,
+      "Link copiado.",
+      "Não foi possível copiar o link.",
+    );
   }
 
   return (

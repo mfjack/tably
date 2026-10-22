@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import type { OrganizationId } from "@/features/organizations/types";
+import { copyToClipboard } from "@/lib/copy-to-clipboard";
 import { createQrCodeDataUrl } from "@/lib/qr-code";
 import { useReportSubscriptionPaymentMutation } from "../hooks/use-report-subscription-payment-mutation";
 import { buildPixPayload, PIX_RECEIVER } from "../pix-payment";
@@ -47,13 +48,12 @@ export function PixPaymentCard({
     };
   }, [payload]);
 
-  async function copyPayload() {
-    try {
-      await navigator.clipboard.writeText(payload);
-      toast.success("Código Pix copiado.");
-    } catch {
-      toast.error("Não foi possível copiar o código.");
-    }
+  function copyPayload() {
+    return copyToClipboard(
+      payload,
+      "Código Pix copiado.",
+      "Não foi possível copiar o código.",
+    );
   }
 
   function reportPayment() {
