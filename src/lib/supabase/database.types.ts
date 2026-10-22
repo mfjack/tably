@@ -589,6 +589,7 @@ export type Database = {
           amount: number
           barcode: string | null
           category_id: string | null
+          counts_in_balance: boolean
           created_at: string
           created_by_name: string | null
           description: string
@@ -617,6 +618,7 @@ export type Database = {
           amount: number
           barcode?: string | null
           category_id?: string | null
+          counts_in_balance?: boolean
           created_at?: string
           created_by_name?: string | null
           description: string
@@ -645,6 +647,7 @@ export type Database = {
           amount?: number
           barcode?: string | null
           category_id?: string | null
+          counts_in_balance?: boolean
           created_at?: string
           created_by_name?: string | null
           description?: string
@@ -3824,6 +3827,10 @@ export type Database = {
         Returns: Json
       }
       get_public_menu: { Args: { p_slug: string }; Returns: Json }
+      get_sales_receipts: {
+        Args: { p_from: string; p_organization_id: string; p_to: string }
+        Returns: number
+      }
       get_sales_report: {
         Args: {
           p_organization_id: string

@@ -87,6 +87,8 @@ export type FinancialOverview = {
   firstMonthKey: string;
   accounts: FinancialAccountBalance[];
   periodIncome: number;
+  periodSales: number;
+  salesBalance: number;
   periodExpense: number;
   overduePayables: EntryTotals;
   monthPayables: EntryTotals;

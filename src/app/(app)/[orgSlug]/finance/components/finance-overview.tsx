@@ -54,10 +54,9 @@ export function FinanceOverview({
   const activeAccounts = overview.accounts.filter(
     (account) => !account.isArchived,
   );
-  const totalBalance = activeAccounts.reduce(
-    (sum, account) => sum + account.balance,
-    0,
-  );
+  const totalBalance =
+    overview.salesBalance +
+    activeAccounts.reduce((sum, account) => sum + account.balance, 0);
   const monthResult = overview.periodIncome - overview.periodExpense;
   const currentMonthKey = overview.today.slice(0, 7);
   const isFutureMonth = monthKey > currentMonthKey;
@@ -74,14 +73,14 @@ export function FinanceOverview({
         <StatCard
           label="Saldo hoje"
           value={formatCurrency(totalBalance)}
-          detail="Saldo inicial + entradas − saídas"
+          detail="Saldo inicial + vendas recebidas + entradas − saídas"
           isAlert={totalBalance < 0}
         />
         {!isFutureMonth && (
           <StatCard
             label="Resultado do mês"
             value={formatCurrency(monthResult)}
-            detail={`Entrou ${formatCurrency(overview.periodIncome)} · Saiu ${formatCurrency(overview.periodExpense)}`}
+            detail={`Entrou ${formatCurrency(overview.periodIncome)} (vendas ${formatCurrency(overview.periodSales)}) · Saiu ${formatCurrency(overview.periodExpense)}`}
             isAlert={monthResult < 0}
           />
         )}

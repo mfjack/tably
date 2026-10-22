@@ -127,6 +127,8 @@ const overviewSchema = z.object({
   ),
   firstMonthKey: z.string(),
   periodIncome: z.number(),
+  periodSales: z.number(),
+  salesBalance: z.number(),
   periodExpense: z.number(),
   overduePayables: z.object({ count: z.number(), amount: z.number() }),
   monthPayables: z.object({ count: z.number(), amount: z.number() }),
