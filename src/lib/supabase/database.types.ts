@@ -3448,6 +3448,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      apply_employee_pin_hash: {
+        Args: { p_employee_id: string; p_pin_hash: string }
+        Returns: undefined
+      }
       apply_loyalty_reward: {
         Args: {
           p_order_id: string
@@ -3465,14 +3469,6 @@ export type Database = {
           p_order_id: string
         }
         Returns: number
-      }
-      apply_person_pin_hash: {
-        Args: {
-          p_employee_id: string
-          p_operator_id: string
-          p_pin_hash: string
-        }
-        Returns: undefined
       }
       assert_payment_method_accepted: {
         Args: {
@@ -4031,10 +4027,7 @@ export type Database = {
         Args: { p_organization_id: string }
         Returns: undefined
       }
-      reset_person_pin: {
-        Args: { p_employee_id?: string; p_operator_id?: string }
-        Returns: undefined
-      }
+      reset_person_pin: { Args: { p_employee_id: string }; Returns: undefined }
       resolve_item_addons: {
         Args: {
           p_addon_ids: string[]
