@@ -31,7 +31,6 @@ import {
   type EntryDeleteScope,
   type EntryEditScope,
   type EntryInput,
-  type EntryListFilter,
   entrySchema,
   type PayEntryInput,
   payEntrySchema,
@@ -39,7 +38,6 @@ import {
 import type {
   FinancialAccountId,
   FinancialCategoryId,
-  FinancialEntriesPage,
   FinancialEntry,
   FinancialEntryAttachmentId,
   FinancialEntryId,
@@ -206,59 +204,6 @@ export async function getFinancialOverview(
       id: account.id as FinancialAccountId,
     })),
     monthEntries: monthEntriesResult.data.map(toFinancialEntry),
-  });
-}
-
-export async function listFinancialEntries(
-  organizationId: OrganizationId,
-  kind: FinancialEntryKind,
-  monthKey: string,
-  filter: EntryListFilter,
-): Promise<ActionResult<FinancialEntriesPage>> {
-  if (!(await canUseFinance(organizationId))) return ACCESS_DENIED;
-  if (!isMonthKey(monthKey)) return actionFailure("Mês inválido.");
-
-  const clock = await getOrganizationClock(organizationId);
-  if (!clock) return actionFailure("Não foi possível carregar os lançamentos.");
-
-  await ensureFinanceDefaults(organizationId);
-  const monthStart = getMonthStart(monthKey);
-  const monthEnd = getMonthEnd(monthKey);
-  await syncRecurrences(organizationId, clock.today, monthEnd);
-
-  const supabase = await createClient();
-  let query = supabase
-    .from("financial_entries")
-    .select(ENTRY_COLUMNS)
-    .eq("organization_id", organizationId)
-    .eq("kind", kind);
-
-  if (filter === "open") {
-    query = query
-      .is("paid_at", null)
-      .or(
-        `and(due_date.gte.${monthStart},due_date.lte.${monthEnd}),due_date.lt.${clock.today}`,
-      )
-      .order("due_date");
-  } else if (filter === "paid") {
-    query = query
-      .gte("paid_at", monthStart)
-      .lte("paid_at", monthEnd)
-      .order("paid_at", { ascending: false });
-  } else {
-    query = query
-      .gte("due_date", monthStart)
-      .lte("due_date", monthEnd)
-      .order("due_date");
-  }
-
-  const { data, error } = await query;
-  if (error)
-    return databaseFailure("Não foi possível carregar os lançamentos.", error);
-
-  return actionSuccess({
-    today: clock.today,
-    entries: data.map(toFinancialEntry),
   });
 }
 

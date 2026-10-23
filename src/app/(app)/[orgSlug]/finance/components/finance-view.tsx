@@ -41,7 +41,6 @@ import { DEFAULT_FINANCE_TAB, parseFinanceTab } from "../finance-search-params";
 import { AnalysisPanel } from "./analysis-panel";
 import { CategoriesDialog } from "./categories-dialog";
 import { DeleteEntryDialog } from "./delete-entry-dialog";
-import { EntriesPanel } from "./entries-panel";
 import { EntryFormDialog, type EntryFormState } from "./entry-form-dialog";
 import { FinanceImportDialog } from "./finance-import-dialog";
 import { FinanceOverview } from "./finance-overview";
@@ -206,9 +205,6 @@ export function FinanceView({
               <TabsTrigger value="overview" className="px-3">
                 Resumo
               </TabsTrigger>
-              <TabsTrigger value="payables" className="px-3">
-                A pagar
-              </TabsTrigger>
               <TabsTrigger value="income-statement" className="px-3">
                 DRE
               </TabsTrigger>
@@ -226,17 +222,6 @@ export function FinanceView({
             <FinanceOverview
               organizationId={organizationId}
               monthKey={monthKey}
-              onPay={openPayment}
-              onEdit={openEditForm}
-              onDelete={setEntryToDelete}
-            />
-          </TabsContent>
-          <TabsContent value="payables" className="min-h-0 overflow-y-auto">
-            <EntriesPanel
-              organizationId={organizationId}
-              kind="expense"
-              monthKey={monthKey}
-              onCreate={() => openCreateForm("expense")}
               onPay={openPayment}
               onEdit={openEditForm}
               onDelete={setEntryToDelete}

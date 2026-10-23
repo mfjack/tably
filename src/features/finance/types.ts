@@ -84,11 +84,6 @@ export type FinancialEntryAttachment = {
   fileName: string;
 };
 
-export type FinancialEntriesPage = {
-  today: string;
-  entries: FinancialEntry[];
-};
-
 export type EntryTotals = {
   count: number;
   amount: number;

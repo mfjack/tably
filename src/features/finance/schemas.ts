@@ -33,10 +33,6 @@ export const ENTRY_DELETE_SCOPES = [
 
 export type EntryDeleteScope = (typeof ENTRY_DELETE_SCOPES)[number];
 
-export const ENTRY_LIST_FILTERS = ["open", "paid", "all"] as const;
-
-export type EntryListFilter = (typeof ENTRY_LIST_FILTERS)[number];
-
 export const entrySchema = z
   .object({
     kind: z.enum(Constants.public.Enums.financial_entry_kind),

@@ -1,13 +1,9 @@
 import { HydrationBoundary } from "@tanstack/react-query";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import {
-  getFinancialOverview,
-  listFinancialEntries,
-} from "@/features/finance/actions";
+import { getFinancialOverview } from "@/features/finance/actions";
 import { listFinancialCategories } from "@/features/finance/category-actions";
 import { getFinancialCategoriesQueryKey } from "@/features/finance/hooks/use-financial-categories-query";
-import { getFinancialEntriesQueryKey } from "@/features/finance/hooks/use-financial-entries-query";
 import { getFinancialOverviewQueryKey } from "@/features/finance/hooks/use-financial-overview-query";
 import { getAppModule } from "@/features/modules/app-modules";
 import { prefetchModuleQueries } from "@/features/modules/prefetch-module-queries";
@@ -18,12 +14,7 @@ import { getMonthKey, parseMonthKey } from "@/features/time-clock/time-utils";
 import type { ActionQuery } from "@/lib/query/prefetch-action-queries";
 import { getSearchParamValue } from "@/lib/search-params";
 import { FinanceView } from "./components/finance-view";
-import {
-  DEFAULT_ENTRY_STATUS_FILTER,
-  DEFAULT_FINANCE_TAB,
-  parseEntryStatusFilter,
-  parseFinanceTab,
-} from "./finance-search-params";
+import { DEFAULT_FINANCE_TAB, parseFinanceTab } from "./finance-search-params";
 
 const financeModule = getAppModule("finance");
 
@@ -46,9 +37,6 @@ export default async function FinancePage({
   const tab =
     parseFinanceTab(getSearchParamValue(query.tab) ?? "") ??
     DEFAULT_FINANCE_TAB;
-  const statusFilter =
-    parseEntryStatusFilter(getSearchParamValue(query.status) ?? "") ??
-    DEFAULT_ENTRY_STATUS_FILTER;
   const organizationId = organization.id;
   const queries: ActionQuery[] = [
     {
@@ -62,19 +50,6 @@ export default async function FinancePage({
       action: () => getFinancialOverview(organizationId, monthKey),
     });
   }
-  if (tab === "payables") {
-    queries.push({
-      queryKey: getFinancialEntriesQueryKey(
-        organizationId,
-        "expense",
-        monthKey,
-        statusFilter,
-      ),
-      action: () =>
-        listFinancialEntries(organizationId, "expense", monthKey, statusFilter),
-    });
-  }
-
   const dehydratedState = await prefetchModuleQueries(
     organizationId,
     "finance",

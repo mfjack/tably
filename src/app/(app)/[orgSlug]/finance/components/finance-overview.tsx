@@ -1,9 +1,11 @@
 "use client";
 
+import { ChevronDown } from "lucide-react";
+import { useState } from "react";
 import { StatCard } from "@/components/stat-card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { sortPaidEntriesLast } from "@/features/finance/entry-order";
 import { useFinancialOverviewQuery } from "@/features/finance/hooks/use-financial-overview-query";
 import type { EntryTotals, FinancialEntry } from "@/features/finance/types";
 import type { OrganizationId } from "@/features/organizations/types";
@@ -31,6 +33,7 @@ export function FinanceOverview({
   onEdit,
   onDelete,
 }: FinanceOverviewProps) {
+  const [isPaidListOpen, setIsPaidListOpen] = useState(false);
   const overviewQuery = useFinancialOverviewQuery(organizationId, monthKey);
   const overview = overviewQuery.data;
 
@@ -58,6 +61,8 @@ export function FinanceOverview({
     overview.salesBalance +
     activeAccounts.reduce((sum, account) => sum + account.balance, 0);
   const monthResult = overview.periodIncome - overview.periodExpense;
+  const openEntries = overview.monthEntries.filter((entry) => !entry.paidAt);
+  const paidEntries = overview.monthEntries.filter((entry) => entry.paidAt);
   const currentMonthKey = overview.today.slice(0, 7);
   const isFutureMonth = monthKey > currentMonthKey;
   const isCurrentMonth = monthKey === currentMonthKey;
@@ -115,27 +120,86 @@ export function FinanceOverview({
       </div>
 
       <section className="flex flex-col gap-3">
-        <h2 className="font-semibold">Contas do mês</h2>
-        {overview.monthEntries.length === 0 ? (
+        <h2 className="font-semibold">Em aberto no mês</h2>
+        {openEntries.length === 0 ? (
           <p className="rounded-2xl border border-dashed px-4 py-8 text-center text-muted-foreground text-sm">
-            Nenhuma conta com vencimento neste mês.
+            {overview.monthEntries.length === 0
+              ? "Nenhuma conta com vencimento neste mês."
+              : "Tudo pago neste mês."}
           </p>
         ) : (
-          <ul className="flex flex-col divide-y rounded-2xl border bg-card">
-            {sortPaidEntriesLast(overview.monthEntries).map((entry) => (
-              <EntryRow
-                key={entry.id}
+          <EntryList
+            organizationId={organizationId}
+            entries={openEntries}
+            today={overview.today}
+            onPay={onPay}
+            onEdit={onEdit}
+            onDelete={onDelete}
+          />
+        )}
+        {paidEntries.length > 0 && (
+          <div className="flex flex-col gap-3">
+            <Button
+              variant="ghost"
+              className="self-start text-muted-foreground"
+              aria-expanded={isPaidListOpen}
+              onClick={() => setIsPaidListOpen((isOpen) => !isOpen)}
+            >
+              Pagas no mês ({paidEntries.length})
+              <ChevronDown
+                aria-hidden
+                className={cn(
+                  "transition-transform",
+                  isPaidListOpen && "rotate-180",
+                )}
+              />
+            </Button>
+            {isPaidListOpen && (
+              <EntryList
                 organizationId={organizationId}
-                entry={entry}
+                entries={paidEntries}
                 today={overview.today}
-                onPay={(entryToPay) => onPay(entryToPay, overview.today)}
+                onPay={onPay}
                 onEdit={onEdit}
                 onDelete={onDelete}
               />
-            ))}
-          </ul>
+            )}
+          </div>
         )}
       </section>
     </div>
+  );
+}
+
+type EntryListProps = Pick<
+  FinanceOverviewProps,
+  "organizationId" | "onPay" | "onEdit" | "onDelete"
+> & {
+  entries: FinancialEntry[];
+  today: string;
+};
+
+function EntryList({
+  organizationId,
+  entries,
+  today,
+  onPay,
+  onEdit,
+  onDelete,
+}: EntryListProps) {
+  return (
+    <ul className="flex flex-col divide-y rounded-2xl border bg-card">
+      {entries.map((entry) => (
+        <EntryRow
+          key={entry.id}
+          organizationId={organizationId}
+          entry={entry}
+          today={today}
+          onPay={(entryToPay) => onPay(entryToPay, today)}
+          onEdit={onEdit}
+          onDelete={onDelete}
+        />
+      ))}
+    </ul>
   );
 }
