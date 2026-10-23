@@ -14,7 +14,6 @@ export type FinancialAnalysisData = {
   today: string;
   averageDailySales: number;
   balanceToday: number;
-  overdue: { income: number; expense: number };
   scheduled: DailySchedule[];
 };
 
@@ -50,12 +49,8 @@ export function buildCashFlowProjection(
     const scheduled = scheduledByDate.get(date);
     const expectedSales =
       includesExpectedSales && index > 0 ? data.averageDailySales : 0;
-    const inflow =
-      (scheduled?.income ?? 0) +
-      expectedSales +
-      (index === 0 ? data.overdue.income : 0);
-    const outflow =
-      (scheduled?.expense ?? 0) + (index === 0 ? data.overdue.expense : 0);
+    const inflow = (scheduled?.income ?? 0) + expectedSales;
+    const outflow = scheduled?.expense ?? 0;
     balance += inflow - outflow;
     return { date, inflow, outflow, balance };
   });

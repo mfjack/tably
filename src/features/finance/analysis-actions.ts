@@ -32,7 +32,6 @@ const analysisSchema = z.object({
   today: z.string(),
   averageDailySales: numberSchema,
   balanceToday: numberSchema,
-  overdue: z.object({ income: numberSchema, expense: numberSchema }),
   scheduled: z.array(
     z.object({
       date: z.string(),

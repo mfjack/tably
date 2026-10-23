@@ -2,7 +2,7 @@
 
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { TriangleAlert } from "lucide-react";
+import { Info, TriangleAlert } from "lucide-react";
 import { useId, useMemo, useState } from "react";
 import { StatCard } from "@/components/stat-card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -69,6 +69,8 @@ export function AnalysisPanel({
     );
   }
 
+  const hasProjectionBase =
+    data.balanceToday !== 0 || data.averageDailySales > 0;
   const movementDays = projection.points.filter(
     (point) => point.inflow > 0 || point.outflow > 0,
   );
@@ -87,7 +89,8 @@ export function AnalysisPanel({
           <div className="flex flex-col gap-0.5">
             <h2 className="font-semibold">Fluxo de caixa projetado</h2>
             <p className="text-muted-foreground text-sm">
-              Saldo de hoje mais o que está agendado para entrar e sair.
+              Saldo de hoje, o que está agendado e a média de vendas dos últimos
+              28 dias.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-4">
@@ -98,9 +101,9 @@ export function AnalysisPanel({
                 onCheckedChange={setIncludesExpectedSales}
               />
               <Label htmlFor={salesSwitchId} className="text-sm">
-                Incluir média de vendas (
-                {formatCurrency(data.averageDailySales)}
-                /dia)
+                {data.averageDailySales > 0
+                  ? `Incluir média de vendas (${formatCurrency(data.averageDailySales)}/dia)`
+                  : "Incluir média de vendas (sem vendas nos últimos 28 dias)"}
               </Label>
             </div>
             <Tabs
@@ -127,7 +130,18 @@ export function AnalysisPanel({
           </div>
         </div>
 
-        {projection.firstNegativeDate && (
+        {!hasProjectionBase && (
+          <Alert>
+            <Info aria-hidden />
+            <AlertDescription>
+              Ainda não há vendas para projetar o saldo. Informe o saldo inicial
+              em Financeiro ou aguarde os primeiros dias de venda: a projeção
+              aparece assim que houver dados.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {hasProjectionBase && projection.firstNegativeDate && (
           <Alert variant="destructive">
             <TriangleAlert aria-hidden />
             <AlertDescription>
@@ -141,33 +155,33 @@ export function AnalysisPanel({
           </Alert>
         )}
 
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <StatCard
-            label="Saldo hoje"
-            value={formatCurrency(data.balanceToday)}
-            isAlert={data.balanceToday < 0}
-          />
-          <StatCard
-            label="Menor saldo previsto"
-            value={formatCurrency(projection.lowestPoint.balance)}
-            detail={formatDayLabel(projection.lowestPoint.date)}
-            isAlert={projection.lowestPoint.balance < 0}
-          />
-          <StatCard
-            label={`Saldo em ${horizon} dias`}
-            value={formatCurrency(projection.endingBalance)}
-            isAlert={projection.endingBalance < 0}
-          />
-          <StatCard
-            label="Atrasados contados hoje"
-            value={formatCurrency(data.overdue.expense - data.overdue.income)}
-            detail={`A pagar ${formatCurrency(data.overdue.expense)} · a receber ${formatCurrency(data.overdue.income)}`}
-          />
-        </div>
+        {hasProjectionBase && (
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+            <StatCard
+              label="Saldo hoje"
+              value={formatCurrency(data.balanceToday)}
+              isAlert={data.balanceToday < 0}
+            />
+            <StatCard
+              label="Menor saldo previsto"
+              value={formatCurrency(projection.lowestPoint.balance)}
+              detail={formatDayLabel(projection.lowestPoint.date)}
+              isAlert={projection.lowestPoint.balance < 0}
+            />
+            <StatCard
+              className="col-span-2 lg:col-span-1"
+              label={`Saldo em ${horizon} dias`}
+              value={formatCurrency(projection.endingBalance)}
+              isAlert={projection.endingBalance < 0}
+            />
+          </div>
+        )}
 
-        <div className="rounded-2xl border bg-card p-4">
-          <CashFlowChart points={projection.points} />
-        </div>
+        {hasProjectionBase && (
+          <div className="rounded-2xl border bg-card p-4">
+            <CashFlowChart points={projection.points} />
+          </div>
+        )}
 
         {scheduledMovementDays.length > 0 && (
           <details className="rounded-2xl border bg-card">
@@ -196,7 +210,9 @@ export function AnalysisPanel({
                     <td
                       className={cn(
                         "px-4 py-2 text-right font-medium tabular-nums",
-                        point.balance < 0 && "text-destructive",
+                        hasProjectionBase &&
+                          point.balance < 0 &&
+                          "text-destructive",
                       )}
                     >
                       {formatCurrency(point.balance)}
