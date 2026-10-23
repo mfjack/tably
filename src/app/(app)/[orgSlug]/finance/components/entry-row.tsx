@@ -53,6 +53,13 @@ const STATUS_BADGE_VARIANTS = {
   paid: "success",
 } as const satisfies Record<EntryStatus, "destructive" | "outline" | "success">;
 
+const DATE_TILE_CLASS_NAMES = {
+  overdue: "bg-destructive/10 text-destructive",
+  due_today: "bg-warning/15 text-warning",
+  open: "bg-muted text-foreground",
+  paid: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+} as const satisfies Record<EntryStatus, string>;
+
 type EntryRowProps = {
   organizationId: OrganizationId;
   entry: FinancialEntry;
@@ -83,6 +90,7 @@ export function EntryRow({
   const undoPaymentMutation =
     useUndoFinancialEntryPaymentMutation(organizationId);
   const [, month, day] = entry.dueDate.split("-");
+  const isOtherMonth = entry.dueDate.slice(0, 7) !== today.slice(0, 7);
 
   function pickFile(field: DocumentField) {
     pendingFieldRef.current = field;
@@ -125,11 +133,21 @@ export function EntryRow({
 
   return (
     <li className="grid grid-cols-[auto_minmax(0,1fr)_auto_auto] items-start gap-x-3 gap-y-2 px-4 py-3 sm:grid-cols-[auto_minmax(0,1fr)_auto_auto_auto] sm:items-center sm:gap-x-4">
-      <div className="col-start-1 row-start-1 flex w-12 flex-col leading-tight">
-        <span className="font-semibold tabular-nums">
-          {day}/{month}
+      <div
+        className={cn(
+          "col-start-1 row-start-1 flex h-12 min-w-12 flex-col items-center justify-center gap-0.5 self-center rounded-lg px-1.5 text-center",
+          DATE_TILE_CLASS_NAMES[status],
+        )}
+      >
+        <span
+          className={cn(
+            "font-semibold tabular-nums",
+            isOtherMonth ? "text-sm/none" : "text-lg/none",
+          )}
+        >
+          {isOtherMonth ? `${day}/${month}` : day}
         </span>
-        <span className="text-muted-foreground text-xs">
+        <span className="text-xs/none opacity-80">
           {getWeekdayShortLabel(getIsoWeekday(entry.dueDate))}
         </span>
       </div>
@@ -182,9 +200,11 @@ export function EntryRow({
         >
           {formatCurrency(entry.paidAmount ?? entry.amount)}
         </span>
-        <Badge variant={STATUS_BADGE_VARIANTS[status]}>
-          {getEntryStatusLabel(status, entry.kind)}
-        </Badge>
+        {status !== "open" && (
+          <Badge variant={STATUS_BADGE_VARIANTS[status]}>
+            {getEntryStatusLabel(status, entry.kind)}
+          </Badge>
+        )}
       </div>
 
       {!entry.paidAt && (
