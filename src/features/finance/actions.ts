@@ -41,6 +41,7 @@ import type {
   FinancialCategoryId,
   FinancialEntriesPage,
   FinancialEntry,
+  FinancialEntryAttachmentId,
   FinancialEntryId,
   FinancialEntryKind,
   FinancialOverview,
@@ -50,7 +51,7 @@ import type {
 const MONTH_ENTRIES_LIMIT = 300;
 
 const ENTRY_COLUMNS =
-  "id, kind, description, amount, due_date, category_id, supplier_id, account_id, paid_at, paid_amount, recurrence_id, installment_group_id, installment_number, installment_count, barcode, document_path, receipt_path, notes, created_by_name, paid_by_name, source, category:financial_categories(name), supplier:suppliers(name), account:financial_accounts(name), recurrence:financial_recurrences(frequency, end_date)";
+  "id, kind, description, amount, due_date, category_id, supplier_id, account_id, paid_at, paid_amount, recurrence_id, installment_group_id, installment_number, installment_count, barcode, notes, created_by_name, paid_by_name, source, category:financial_categories(name), supplier:suppliers(name), account:financial_accounts(name), recurrence:financial_recurrences(frequency, end_date), attachments:financial_entry_attachments(id, path, file_name, created_at)";
 
 type EntryRow = {
   id: string;
@@ -68,8 +69,6 @@ type EntryRow = {
   installment_number: number | null;
   installment_count: number | null;
   barcode: string | null;
-  document_path: string | null;
-  receipt_path: string | null;
   notes: string | null;
   created_by_name: string | null;
   paid_by_name: string | null;
@@ -81,6 +80,12 @@ type EntryRow = {
     frequency: FinancialEntry["recurrenceFrequency"];
     end_date: string | null;
   } | null;
+  attachments: {
+    id: string;
+    path: string;
+    file_name: string;
+    created_at: string;
+  }[];
 };
 
 function toFinancialEntry(row: EntryRow): FinancialEntry {
@@ -105,8 +110,15 @@ function toFinancialEntry(row: EntryRow): FinancialEntry {
     installmentNumber: row.installment_number,
     installmentCount: row.installment_count,
     digitableLine: row.barcode,
-    documentPath: row.document_path,
-    receiptPath: row.receipt_path,
+    attachments: [...row.attachments]
+      .sort((first, second) =>
+        first.created_at.localeCompare(second.created_at),
+      )
+      .map((attachment) => ({
+        id: attachment.id as FinancialEntryAttachmentId,
+        path: attachment.path,
+        fileName: attachment.file_name,
+      })),
     notes: row.notes,
     createdByName: row.created_by_name,
     paidByName: row.paid_by_name,
@@ -666,6 +678,48 @@ async function removeDocuments(paths: readonly (string | null)[]) {
   await supabase.storage.from(FINANCIAL_DOCUMENTS_BUCKET).remove(existingPaths);
 }
 
+async function deleteEntriesWithAttachments(
+  organizationId: OrganizationId,
+  entryIds: readonly string[],
+) {
+  if (entryIds.length === 0) return null;
+  const supabase = await createClient();
+  const { data: attachments } = await supabase
+    .from("financial_entry_attachments")
+    .select("path")
+    .in("entry_id", entryIds);
+  const { error } = await supabase
+    .from("financial_entries")
+    .delete()
+    .in("id", entryIds)
+    .eq("organization_id", organizationId);
+
+  if (!error) {
+    await removeDocuments(
+      (attachments ?? []).map((attachment) => attachment.path),
+    );
+  }
+  return error;
+}
+
+async function getEntryIdsToDelete(
+  organizationId: OrganizationId,
+  entryId: FinancialEntryId,
+  filter: { column: "recurrence_id" | "installment_group_id"; value: string },
+  fromDueDate?: string,
+) {
+  const supabase = await createClient();
+  let query = supabase
+    .from("financial_entries")
+    .select("id")
+    .eq("organization_id", organizationId)
+    .eq(filter.column, filter.value)
+    .or(`paid_at.is.null,id.eq.${entryId}`);
+  if (fromDueDate) query = query.gte("due_date", fromDueDate);
+  const { data, error } = await query;
+  return { ids: (data ?? []).map((entry) => entry.id), error };
+}
+
 export async function deleteFinancialEntry(
   organizationId: OrganizationId,
   entryId: FinancialEntryId,
@@ -676,9 +730,7 @@ export async function deleteFinancialEntry(
   const supabase = await createClient();
   const { data: current, error: currentError } = await supabase
     .from("financial_entries")
-    .select(
-      "recurrence_id, installment_group_id, due_date, document_path, receipt_path",
-    )
+    .select("recurrence_id, installment_group_id, due_date")
     .eq("id", entryId)
     .eq("organization_id", organizationId)
     .single();
@@ -687,13 +739,13 @@ export async function deleteFinancialEntry(
     return databaseFailure("Lançamento não encontrado.", currentError);
 
   if (scope === "all" && current.recurrence_id) {
-    const { data: removed, error } = await supabase
-      .from("financial_entries")
-      .delete()
-      .eq("recurrence_id", current.recurrence_id)
-      .or(`paid_at.is.null,id.eq.${entryId}`)
-      .select("document_path, receipt_path");
-
+    const { ids, error: idsError } = await getEntryIdsToDelete(
+      organizationId,
+      entryId,
+      { column: "recurrence_id", value: current.recurrence_id },
+    );
+    const error =
+      idsError ?? (await deleteEntriesWithAttachments(organizationId, ids));
     if (error)
       return databaseFailure("Não foi possível excluir a conta.", error);
 
@@ -708,10 +760,6 @@ export async function deleteFinancialEntry(
         recurrenceError,
       );
     }
-
-    await removeDocuments(
-      removed.flatMap((row) => [row.document_path, row.receipt_path]),
-    );
     return actionSuccess();
   }
 
@@ -722,14 +770,14 @@ export async function deleteFinancialEntry(
       .eq("id", current.recurrence_id)
       .single();
 
-    const { data: removed, error } = await supabase
-      .from("financial_entries")
-      .delete()
-      .eq("recurrence_id", current.recurrence_id)
-      .gte("due_date", current.due_date)
-      .or(`paid_at.is.null,id.eq.${entryId}`)
-      .select("document_path, receipt_path");
-
+    const { ids, error: idsError } = await getEntryIdsToDelete(
+      organizationId,
+      entryId,
+      { column: "recurrence_id", value: current.recurrence_id },
+      current.due_date,
+    );
+    const error =
+      idsError ?? (await deleteEntriesWithAttachments(organizationId, ids));
     if (error)
       return databaseFailure("Não foi possível excluir os lançamentos.", error);
 
@@ -751,77 +799,88 @@ export async function deleteFinancialEntry(
         recurrenceError,
       );
     }
-
-    await removeDocuments(
-      removed.flatMap((row) => [row.document_path, row.receipt_path]),
-    );
     return actionSuccess();
   }
 
   if (scope === "installments" && current.installment_group_id) {
-    const { data: removed, error } = await supabase
-      .from("financial_entries")
-      .delete()
-      .eq("installment_group_id", current.installment_group_id)
-      .or(`paid_at.is.null,id.eq.${entryId}`)
-      .select("document_path, receipt_path");
-
+    const { ids, error: idsError } = await getEntryIdsToDelete(
+      organizationId,
+      entryId,
+      { column: "installment_group_id", value: current.installment_group_id },
+    );
+    const error =
+      idsError ?? (await deleteEntriesWithAttachments(organizationId, ids));
     if (error)
       return databaseFailure("Não foi possível excluir as parcelas.", error);
-    await removeDocuments(
-      removed.flatMap((row) => [row.document_path, row.receipt_path]),
-    );
     return actionSuccess();
   }
 
-  const { error } = await supabase
-    .from("financial_entries")
-    .delete()
-    .eq("id", entryId)
-    .eq("organization_id", organizationId);
-
+  const error = await deleteEntriesWithAttachments(organizationId, [entryId]);
   if (error)
     return databaseFailure("Não foi possível excluir o lançamento.", error);
-  await removeDocuments([current.document_path, current.receipt_path]);
   return actionSuccess();
 }
 
-export async function setFinancialEntryDocument(
+const attachmentsInputSchema = z
+  .array(
+    z.object({
+      path: z.string().min(1),
+      fileName: z.string().trim().min(1).max(200),
+    }),
+  )
+  .min(1);
+
+export async function addFinancialEntryAttachments(
   organizationId: OrganizationId,
   entryId: FinancialEntryId,
-  field: "document" | "receipt",
-  path: string | null,
+  attachments: readonly { path: string; fileName: string }[],
 ): Promise<ActionResult> {
   if (!(await canUseFinance(organizationId))) return ACCESS_DENIED;
-  if (path !== null && !path.startsWith(`${organizationId}/`)) {
+  const parsedAttachments = attachmentsInputSchema.safeParse(attachments);
+  if (
+    !parsedAttachments.success ||
+    parsedAttachments.data.some(
+      (attachment) => !attachment.path.startsWith(`${organizationId}/`),
+    )
+  ) {
     return actionFailure("Arquivo inválido.");
   }
 
-  const column = field === "document" ? "document_path" : "receipt_path";
   const supabase = await createClient();
-  const { data: current, error: currentError } = await supabase
-    .from("financial_entries")
-    .select("document_path, receipt_path")
-    .eq("id", entryId)
+  const { error } = await supabase.from("financial_entry_attachments").insert(
+    parsedAttachments.data.map((attachment) => ({
+      organization_id: organizationId,
+      entry_id: entryId,
+      path: attachment.path,
+      file_name: attachment.fileName,
+    })),
+  );
+
+  if (error) {
+    await removeDocuments(
+      parsedAttachments.data.map((attachment) => attachment.path),
+    );
+    return databaseFailure("Não foi possível salvar o anexo.", error);
+  }
+  return actionSuccess();
+}
+
+export async function removeFinancialEntryAttachment(
+  organizationId: OrganizationId,
+  attachmentId: FinancialEntryAttachmentId,
+): Promise<ActionResult> {
+  if (!(await canUseFinance(organizationId))) return ACCESS_DENIED;
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("financial_entry_attachments")
+    .delete()
+    .eq("id", attachmentId)
     .eq("organization_id", organizationId)
+    .select("path")
     .single();
 
-  if (currentError)
-    return databaseFailure("Lançamento não encontrado.", currentError);
-
-  const { error } = await supabase
-    .from("financial_entries")
-    .update(
-      field === "document" ? { document_path: path } : { receipt_path: path },
-    )
-    .eq("id", entryId)
-    .eq("organization_id", organizationId);
-
-  if (error) return databaseFailure("Não foi possível salvar o anexo.", error);
-
-  const previousPath = current[column];
-  if (previousPath && previousPath !== path) {
-    await removeDocuments([previousPath]);
-  }
+  if (error) return databaseFailure("Não foi possível remover o anexo.", error);
+  await removeDocuments([data.path]);
   return actionSuccess();
 }

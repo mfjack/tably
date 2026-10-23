@@ -74,7 +74,8 @@ export function DocumentFormDialog({
     updateMutation.reset();
   }, [isOpen, document, form, createMutation.reset, updateMutation.reset]);
 
-  function handleFileChange(selectedFile: File | null, error: string | null) {
+  function handleFileChange(selectedFiles: File[], error: string | null) {
+    const selectedFile = selectedFiles[0] ?? null;
     setFileError(error);
     setFile(selectedFile);
     if (selectedFile && !form.getValues("name")) {
@@ -124,10 +125,10 @@ export function DocumentFormDialog({
         {!isEditing && (
           <FilePickerField
             label="Arquivo do documento"
-            file={file}
+            files={file ? [file] : []}
             error={fileError}
             maxSizeInMegabytes={MAX_DOCUMENT_SIZE_IN_MEGABYTES}
-            onFileChange={handleFileChange}
+            onFilesChange={handleFileChange}
           />
         )}
         <div className="grid gap-5 sm:grid-cols-2">

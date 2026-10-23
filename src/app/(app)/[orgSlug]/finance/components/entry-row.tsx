@@ -2,17 +2,15 @@
 
 import {
   Copy,
-  FileText,
   MoreHorizontal,
   PackageOpen,
   Paperclip,
   Pencil,
-  Receipt,
   Repeat,
   Trash2,
   Undo2,
 } from "lucide-react";
-import { useRef } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,10 +21,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useOpenFinancialDocumentMutation } from "@/features/finance/hooks/use-open-financial-document-mutation";
-import { useRemoveFinancialEntryDocumentMutation } from "@/features/finance/hooks/use-remove-financial-entry-document-mutation";
+import { useOpenFinancialAttachment } from "@/features/finance/hooks/use-open-financial-attachment";
 import { useUndoFinancialEntryPaymentMutation } from "@/features/finance/hooks/use-undo-financial-entry-payment-mutation";
-import { useUploadFinancialDocumentMutation } from "@/features/finance/hooks/use-upload-financial-document-mutation";
 import {
   ENTRY_SOURCE_LABELS,
   getEntryStatus,
@@ -38,13 +34,10 @@ import type { EntryStatus, FinancialEntry } from "@/features/finance/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import { getIsoWeekday } from "@/features/time-clock/time-utils";
 import { copyToClipboard } from "@/lib/copy-to-clipboard";
-import { ACCEPTED_DOCUMENT_TYPES } from "@/lib/document-files";
 import { formatCurrency, formatDateKey } from "@/lib/format";
-import { openPendingTab } from "@/lib/open-in-new-tab";
 import { cn } from "@/lib/utils";
 import { getWeekdayShortLabel } from "@/lib/weekdays";
-
-type DocumentField = "document" | "receipt";
+import { EntryAttachmentsDialog } from "./entry-attachments-dialog";
 
 const STATUS_BADGE_VARIANTS = {
   overdue: "destructive",
@@ -81,43 +74,14 @@ export function EntryRow({
   const isExpense = entry.kind === "expense";
   const isAutomatic = entry.source !== "manual";
   const isEditable = isEditableEntrySource(entry.source);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const pendingFieldRef = useRef<DocumentField>("document");
-  const uploadMutation = useUploadFinancialDocumentMutation(organizationId);
-  const openMutation = useOpenFinancialDocumentMutation(organizationId);
-  const removeDocumentMutation =
-    useRemoveFinancialEntryDocumentMutation(organizationId);
+  const [isAttachmentsOpen, setIsAttachmentsOpen] = useState(false);
+  const attachmentCount = entry.attachments.length;
+  const firstAttachment = entry.attachments[0];
+  const openAttachment = useOpenFinancialAttachment(organizationId);
   const undoPaymentMutation =
     useUndoFinancialEntryPaymentMutation(organizationId);
   const [, month, day] = entry.dueDate.split("-");
   const isOtherMonth = entry.dueDate.slice(0, 7) !== today.slice(0, 7);
-
-  function pickFile(field: DocumentField) {
-    pendingFieldRef.current = field;
-    fileInputRef.current?.click();
-  }
-
-  function uploadFile(file: File | undefined) {
-    if (!file) return;
-    uploadMutation.mutate(
-      { entryId: entry.id, field: pendingFieldRef.current, file },
-      {
-        onSuccess: () => toast.success("Arquivo anexado."),
-        onError: (error) => toast.error(error.message),
-      },
-    );
-  }
-
-  function openDocument(path: string) {
-    const pendingTab = openPendingTab();
-    openMutation.mutate(path, {
-      onSuccess: pendingTab.navigate,
-      onError: (error) => {
-        pendingTab.close();
-        toast.error(error.message);
-      },
-    });
-  }
 
   function payEntry() {
     onPay(entry);
@@ -175,12 +139,6 @@ export function EntryRow({
           {[entry.categoryName, entry.supplierName]
             .filter((detail) => detail !== null)
             .join(" · ")}
-          {entry.documentPath && (
-            <FileText aria-label="Boleto anexado" className="size-3.5" />
-          )}
-          {entry.receiptPath && (
-            <Receipt aria-label="Comprovante anexado" className="size-3.5" />
-          )}
         </div>
         {entry.paidAt && (
           <span className="text-muted-foreground text-xs">
@@ -207,14 +165,30 @@ export function EntryRow({
         )}
       </div>
 
-      {!entry.paidAt && (
-        <Button
-          variant="outline"
-          className="col-span-3 col-start-2 row-start-2 h-9 justify-self-end sm:col-span-1 sm:col-start-4 sm:row-start-1"
-          onClick={payEntry}
-        >
-          {isExpense ? "Pagar" : "Receber"}
-        </Button>
+      {(!entry.paidAt || firstAttachment) && (
+        <div className="col-span-3 col-start-2 row-start-2 flex justify-end gap-2 sm:col-span-1 sm:col-start-4 sm:row-start-1">
+          {firstAttachment && (
+            <Button
+              variant="secondary"
+              className="h-9"
+              onClick={() =>
+                attachmentCount === 1
+                  ? openAttachment(firstAttachment.path)
+                  : setIsAttachmentsOpen(true)
+              }
+            >
+              <Paperclip aria-hidden />
+              {attachmentCount === 1
+                ? `Ver ${isExpense ? "boleto" : "documento"}`
+                : `${attachmentCount} anexos`}
+            </Button>
+          )}
+          {!entry.paidAt && (
+            <Button variant="outline" className="h-9" onClick={payEntry}>
+              {isExpense ? "Pagar" : "Receber"}
+            </Button>
+          )}
+        </div>
       )}
 
       <div className="col-start-4 row-start-1 sm:col-start-5">
@@ -225,7 +199,6 @@ export function EntryRow({
                 variant="ghost"
                 size="icon-sm"
                 aria-label={`Opções de ${entry.description}`}
-                disabled={uploadMutation.isPending}
               />
             }
           >
@@ -257,63 +230,10 @@ export function EntryRow({
                 Desfazer {isExpense ? "pagamento" : "recebimento"}
               </DropdownMenuItem>
             )}
-            <DropdownMenuSeparator />
-            {entry.documentPath ? (
-              <>
-                <DropdownMenuItem
-                  onClick={() =>
-                    entry.documentPath && openDocument(entry.documentPath)
-                  }
-                >
-                  <FileText aria-hidden />
-                  Ver {isExpense ? "boleto" : "documento"}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() =>
-                    removeDocumentMutation.mutate(
-                      { entryId: entry.id, field: "document" },
-                      { onError: (error) => toast.error(error.message) },
-                    )
-                  }
-                >
-                  <Trash2 aria-hidden />
-                  Remover {isExpense ? "boleto" : "documento"}
-                </DropdownMenuItem>
-              </>
-            ) : (
-              <DropdownMenuItem onClick={() => pickFile("document")}>
-                <Paperclip aria-hidden />
-                Anexar {isExpense ? "boleto ou nota" : "documento"}
-              </DropdownMenuItem>
-            )}
-            {entry.receiptPath ? (
-              <>
-                <DropdownMenuItem
-                  onClick={() =>
-                    entry.receiptPath && openDocument(entry.receiptPath)
-                  }
-                >
-                  <Receipt aria-hidden />
-                  Ver comprovante
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() =>
-                    removeDocumentMutation.mutate(
-                      { entryId: entry.id, field: "receipt" },
-                      { onError: (error) => toast.error(error.message) },
-                    )
-                  }
-                >
-                  <Trash2 aria-hidden />
-                  Remover comprovante
-                </DropdownMenuItem>
-              </>
-            ) : (
-              <DropdownMenuItem onClick={() => pickFile("receipt")}>
-                <Receipt aria-hidden />
-                Anexar comprovante
-              </DropdownMenuItem>
-            )}
+            <DropdownMenuItem onClick={() => setIsAttachmentsOpen(true)}>
+              <Paperclip aria-hidden />
+              Anexos{attachmentCount > 0 ? ` (${attachmentCount})` : ""}
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               variant="destructive"
@@ -324,15 +244,11 @@ export function EntryRow({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept={ACCEPTED_DOCUMENT_TYPES}
-          className="hidden"
-          onChange={(event) => {
-            uploadFile(event.target.files?.[0]);
-            event.target.value = "";
-          }}
+        <EntryAttachmentsDialog
+          organizationId={organizationId}
+          entry={entry}
+          isOpen={isAttachmentsOpen}
+          onClose={() => setIsAttachmentsOpen(false)}
         />
       </div>
     </li>

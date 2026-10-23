@@ -1,38 +1,32 @@
 import { useMutation } from "@tanstack/react-query";
 import type { OrganizationId } from "@/features/organizations/types";
 import { unwrapActionResult } from "@/lib/action-result";
-import { setFinancialEntryDocument } from "../actions";
-import type { FinancialEntryId } from "../types";
+import { removeFinancialEntryAttachment } from "../actions";
+import type { FinancialEntryAttachmentId } from "../types";
 import { useInvalidateFinance } from "./use-invalidate-finance";
 
-export function getRemoveFinancialEntryDocumentMutationKey(
+export function getRemoveFinancialEntryAttachmentMutationKey(
   organizationId: OrganizationId,
 ) {
   return [
     "organizations",
     organizationId,
     "finance",
-    "entries",
-    "remove-document",
+    "attachments",
+    "remove",
   ] as const;
 }
 
-export function useRemoveFinancialEntryDocumentMutation(
+export function useRemoveFinancialEntryAttachmentMutation(
   organizationId: OrganizationId,
 ) {
   const invalidateFinance = useInvalidateFinance(organizationId);
 
   return useMutation({
-    mutationKey: getRemoveFinancialEntryDocumentMutationKey(organizationId),
-    mutationFn: async ({
-      entryId,
-      field,
-    }: {
-      entryId: FinancialEntryId;
-      field: "document" | "receipt";
-    }) =>
+    mutationKey: getRemoveFinancialEntryAttachmentMutationKey(organizationId),
+    mutationFn: async (attachmentId: FinancialEntryAttachmentId) =>
       unwrapActionResult(
-        await setFinancialEntryDocument(organizationId, entryId, field, null),
+        await removeFinancialEntryAttachment(organizationId, attachmentId),
       ),
     onSuccess: invalidateFinance,
   });

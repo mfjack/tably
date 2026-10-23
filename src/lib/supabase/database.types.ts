@@ -596,7 +596,6 @@ export type Database = {
           created_at: string
           created_by_name: string | null
           description: string
-          document_path: string | null
           due_date: string
           id: string
           installment_count: number | null
@@ -608,7 +607,6 @@ export type Database = {
           paid_amount: number | null
           paid_at: string | null
           paid_by_name: string | null
-          receipt_path: string | null
           recurrence_id: string | null
           source: Database["public"]["Enums"]["financial_entry_source"]
           source_date: string | null
@@ -625,7 +623,6 @@ export type Database = {
           created_at?: string
           created_by_name?: string | null
           description: string
-          document_path?: string | null
           due_date: string
           id?: string
           installment_count?: number | null
@@ -637,7 +634,6 @@ export type Database = {
           paid_amount?: number | null
           paid_at?: string | null
           paid_by_name?: string | null
-          receipt_path?: string | null
           recurrence_id?: string | null
           source?: Database["public"]["Enums"]["financial_entry_source"]
           source_date?: string | null
@@ -654,7 +650,6 @@ export type Database = {
           created_at?: string
           created_by_name?: string | null
           description?: string
-          document_path?: string | null
           due_date?: string
           id?: string
           installment_count?: number | null
@@ -666,7 +661,6 @@ export type Database = {
           paid_amount?: number | null
           paid_at?: string | null
           paid_by_name?: string | null
-          receipt_path?: string | null
           recurrence_id?: string | null
           source?: Database["public"]["Enums"]["financial_entry_source"]
           source_date?: string | null
@@ -716,6 +710,48 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "suppliers"
             referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      financial_entry_attachments: {
+        Row: {
+          created_at: string
+          entry_id: string
+          file_name: string
+          id: string
+          organization_id: string
+          path: string
+        }
+        Insert: {
+          created_at?: string
+          entry_id: string
+          file_name: string
+          id?: string
+          organization_id: string
+          path: string
+        }
+        Update: {
+          created_at?: string
+          entry_id?: string
+          file_name?: string
+          id?: string
+          organization_id?: string
+          path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_entry_attachments_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "financial_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_entry_attachments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
           },
         ]
       }

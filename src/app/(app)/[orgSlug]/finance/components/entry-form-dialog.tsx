@@ -18,9 +18,9 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { parseBoleto } from "@/features/finance/boleto";
 import { MAX_FINANCIAL_DOCUMENT_SIZE_IN_MEGABYTES } from "@/features/finance/documents";
+import { useAddFinancialEntryAttachmentsMutation } from "@/features/finance/hooks/use-add-financial-entry-attachments-mutation";
 import { useCreateFinancialEntryMutation } from "@/features/finance/hooks/use-create-financial-entry-mutation";
 import { useUpdateFinancialEntryMutation } from "@/features/finance/hooks/use-update-financial-entry-mutation";
-import { useUploadFinancialDocumentMutation } from "@/features/finance/hooks/use-upload-financial-document-mutation";
 import {
   ENTRY_KIND_LABELS,
   RECURRENCE_FREQUENCY_LABELS,
@@ -130,8 +130,9 @@ export function EntryFormDialog({
   const [scope, setScope] = useState<EntryEditScope>("single");
   const createMutation = useCreateFinancialEntryMutation(organizationId);
   const updateMutation = useUpdateFinancialEntryMutation(organizationId);
-  const uploadMutation = useUploadFinancialDocumentMutation(organizationId);
-  const [file, setFile] = useState<File | null>(null);
+  const uploadMutation =
+    useAddFinancialEntryAttachmentsMutation(organizationId);
+  const [files, setFiles] = useState<File[]>([]);
   const [fileError, setFileError] = useState<string | null>(null);
   const { supplierOptions, hasSuppliers } = useSupplierOptions(
     organizationId,
@@ -171,7 +172,7 @@ export function EntryFormDialog({
     lastParsedLineRef.current =
       state.mode === "edit" ? (state.entry.digitableLine ?? "") : "";
     setScope("single");
-    setFile(null);
+    setFiles([]);
     setFileError(null);
     createMutation.reset();
     updateMutation.reset();
@@ -244,24 +245,24 @@ export function EntryFormDialog({
         ? { ...values, repeat: "none", isPaid: true, paidAt: values.dueDate }
         : values,
       {
-        onSuccess: (entryId) => attachFile(entryId, callbacks.onSuccess),
+        onSuccess: (entryId) => attachFiles(entryId, callbacks.onSuccess),
         onError: callbacks.onError,
       },
     );
   });
 
-  function attachFile(entryId: FinancialEntryId | null, onDone: () => void) {
-    if (!file || !entryId) {
+  function attachFiles(entryId: FinancialEntryId | null, onDone: () => void) {
+    if (files.length === 0 || !entryId) {
       onDone();
       return;
     }
     uploadMutation.mutate(
-      { entryId, field: "document", file },
+      { entryId, files },
       {
         onSuccess: onDone,
         onError: (error) => {
           toast.error(
-            `Lançamento criado, mas o anexo não foi enviado: ${error.message} Anexe pelo menu da conta.`,
+            `Lançamento criado, mas os anexos não foram enviados: ${error.message} Anexe pelo menu da conta.`,
           );
           onClose();
         },
@@ -273,15 +274,16 @@ export function EntryFormDialog({
     <FilePickerField
       label={
         kind === "expense"
-          ? "Boleto ou nota (opcional)"
-          : "Documento (opcional)"
+          ? "Boleto, nota ou comprovante (opcional)"
+          : "Documentos (opcional)"
       }
-      file={file}
+      files={files}
       error={fileError}
       maxSizeInMegabytes={MAX_FINANCIAL_DOCUMENT_SIZE_IN_MEGABYTES}
       isLabelVisible
-      onFileChange={(selectedFile, error) => {
-        setFile(selectedFile);
+      isMultiple
+      onFilesChange={(selectedFiles, error) => {
+        setFiles(selectedFiles);
         setFileError(error);
       }}
     />

@@ -1,7 +1,8 @@
 "use client";
 
-import { FileUp } from "lucide-react";
+import { FileUp, X } from "lucide-react";
 import { type ChangeEvent, useId, useRef } from "react";
+import { Button } from "@/components/ui/button";
 import {
   ACCEPTED_DOCUMENT_TYPES,
   formatFileSize,
@@ -11,31 +12,58 @@ import { cn } from "@/lib/utils";
 
 type FilePickerFieldProps = {
   label: string;
-  file: File | null;
+  files: readonly File[];
   error: string | null;
   maxSizeInMegabytes: number;
   isLabelVisible?: boolean;
-  onFileChange: (file: File | null, error: string | null) => void;
+  isMultiple?: boolean;
+  onFilesChange: (files: File[], error: string | null) => void;
 };
+
+function getPickerTitle(files: readonly File[], isMultiple: boolean): string {
+  if (files.length === 0) {
+    return isMultiple ? "Escolher arquivos" : "Escolher arquivo";
+  }
+  if (isMultiple) return "Adicionar mais arquivos";
+  return files[0]?.name ?? "";
+}
 
 export function FilePickerField({
   label,
-  file,
+  files,
   error,
   maxSizeInMegabytes,
   isLabelVisible = false,
-  onFileChange,
+  isMultiple = false,
+  onFilesChange,
 }: FilePickerFieldProps) {
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
+  const singleFile = !isMultiple ? files[0] : undefined;
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
-    const selectedFile = event.target.files?.[0];
+    const selectedFiles = Array.from(event.target.files ?? []);
     event.target.value = "";
-    if (!selectedFile) return;
+    if (selectedFiles.length === 0) return;
 
-    const fileError = getDocumentFileError(selectedFile, maxSizeInMegabytes);
-    onFileChange(fileError ? null : selectedFile, fileError);
+    const fileError =
+      selectedFiles
+        .map((file) => getDocumentFileError(file, maxSizeInMegabytes))
+        .find((message) => message !== null) ?? null;
+    const validFiles = selectedFiles.filter(
+      (file) => getDocumentFileError(file, maxSizeInMegabytes) === null,
+    );
+    onFilesChange(
+      isMultiple ? [...files, ...validFiles] : validFiles.slice(0, 1),
+      fileError,
+    );
+  }
+
+  function removeFile(index: number) {
+    onFilesChange(
+      files.filter((_, fileIndex) => fileIndex !== index),
+      null,
+    );
   }
 
   return (
@@ -51,6 +79,7 @@ export function FilePickerField({
         ref={inputRef}
         type="file"
         accept={ACCEPTED_DOCUMENT_TYPES}
+        multiple={isMultiple}
         className="sr-only"
         onChange={handleChange}
       />
@@ -65,15 +94,39 @@ export function FilePickerField({
         <FileUp className="size-6 shrink-0 text-muted-foreground" aria-hidden />
         <span className="flex min-w-0 flex-col">
           <span className="truncate font-medium text-sm">
-            {file ? file.name : "Escolher arquivo"}
+            {getPickerTitle(files, isMultiple)}
           </span>
           <span className="text-muted-foreground text-xs">
-            {file
-              ? `${formatFileSize(file.size)} · toque para trocar`
+            {singleFile
+              ? `${formatFileSize(singleFile.size)} · toque para trocar`
               : `PDF, JPG, PNG ou WEBP de até ${maxSizeInMegabytes} MB. No celular, dá para tirar a foto na hora.`}
           </span>
         </span>
       </button>
+      {isMultiple && files.length > 0 && (
+        <ul className="flex flex-col gap-1">
+          {files.map((file, index) => (
+            <li
+              key={`${file.name}-${file.lastModified}-${index.toString()}`}
+              className="flex items-center gap-2 rounded-lg bg-muted px-3 py-1.5 text-sm"
+            >
+              <span className="min-w-0 flex-1 truncate">{file.name}</span>
+              <span className="shrink-0 text-muted-foreground text-xs">
+                {formatFileSize(file.size)}
+              </span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                aria-label={`Remover ${file.name}`}
+                onClick={() => removeFile(index)}
+              >
+                <X aria-hidden />
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
       {error && (
         <p className="text-destructive text-sm" role="alert">
           {error}

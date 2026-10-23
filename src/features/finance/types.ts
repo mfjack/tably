@@ -5,6 +5,10 @@ import type { Database } from "@/lib/supabase/database.types";
 export type FinancialAccountId = Brand<string, "FinancialAccountId">;
 export type FinancialCategoryId = Brand<string, "FinancialCategoryId">;
 export type FinancialEntryId = Brand<string, "FinancialEntryId">;
+export type FinancialEntryAttachmentId = Brand<
+  string,
+  "FinancialEntryAttachmentId"
+>;
 export type FinancialRecurrenceId = Brand<string, "FinancialRecurrenceId">;
 export type FinancialTransferId = Brand<string, "FinancialTransferId">;
 
@@ -67,12 +71,17 @@ export type FinancialEntry = {
   installmentNumber: number | null;
   installmentCount: number | null;
   digitableLine: string | null;
-  documentPath: string | null;
-  receiptPath: string | null;
+  attachments: FinancialEntryAttachment[];
   notes: string | null;
   createdByName: string | null;
   paidByName: string | null;
   source: FinancialEntrySource;
+};
+
+export type FinancialEntryAttachment = {
+  id: FinancialEntryAttachmentId;
+  path: string;
+  fileName: string;
 };
 
 export type FinancialEntriesPage = {
