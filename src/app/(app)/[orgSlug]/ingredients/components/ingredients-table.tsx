@@ -5,10 +5,7 @@ import { DataTable } from "@/components/data-table/data-table";
 import { createDataTableColumnHelper } from "@/components/data-table/data-table-features";
 import { useDataTable } from "@/components/data-table/use-data-table";
 import { Badge } from "@/components/ui/badge";
-import {
-  getDisplayUnitCost,
-  getUnitSymbol,
-} from "@/features/ingredients/measure-units";
+import { getUnitSymbol } from "@/features/ingredients/measure-units";
 import type { Ingredient } from "@/features/ingredients/types";
 import { formatCurrency, formatQuantity } from "@/lib/format";
 import { ExpiryCell } from "./expiry-cell";
@@ -78,23 +75,22 @@ export function IngredientsTable({
           ),
         }),
         columnHelper.accessor("unitCost", {
-          header: "Custo",
+          header: "Valor em estoque",
           enableGlobalFilter: false,
           cell: ({ row }) => {
-            const { unitCost, unit, currentStock } = row.original;
-            const displayCost = getDisplayUnitCost(unitCost, unit);
+            const { unitCost, currentStock } = row.original;
+            if (unitCost <= 0) {
+              return (
+                <span className="font-medium text-warning text-sm">
+                  Sem custo
+                </span>
+              );
+            }
             const stockValue = Math.max(currentStock, 0) * unitCost;
             return (
-              <div className="flex flex-col tabular-nums">
-                <span>
-                  {formatCurrency(displayCost.amount)} / {displayCost.symbol}
-                </span>
-                {stockValue > 0 && (
-                  <span className="text-muted-foreground text-xs">
-                    {formatCurrency(stockValue)} em estoque
-                  </span>
-                )}
-              </div>
+              <span className="tabular-nums">
+                {stockValue > 0 ? formatCurrency(stockValue) : "—"}
+              </span>
             );
           },
         }),
