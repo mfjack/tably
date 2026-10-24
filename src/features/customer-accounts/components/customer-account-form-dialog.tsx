@@ -16,7 +16,10 @@ import {
   type CustomerAccountInput,
   customerAccountSchema,
 } from "@/features/customer-accounts/schemas";
-import type { CustomerAccount } from "@/features/customer-accounts/types";
+import type {
+  CustomerAccount,
+  CustomerAccountId,
+} from "@/features/customer-accounts/types";
 import type { OrganizationId } from "@/features/organizations/types";
 
 const EMPTY_ACCOUNT_FORM: DefaultValues<CustomerAccountInput> = {
@@ -30,7 +33,9 @@ type CustomerAccountFormDialogProps = {
   organizationId: OrganizationId;
   isOpen: boolean;
   account?: CustomerAccount;
+  initialName?: string;
   onClose: () => void;
+  onSaved?: (accountId: CustomerAccountId) => void;
 };
 
 function toFormValues(
@@ -49,7 +54,9 @@ export function CustomerAccountFormDialog({
   organizationId,
   isOpen,
   account,
+  initialName = "",
   onClose,
+  onSaved,
 }: CustomerAccountFormDialogProps) {
   const saveAccountMutation = useSaveCustomerAccountMutation(organizationId);
   const form = useForm<CustomerAccountInput>({
@@ -60,16 +67,21 @@ export function CustomerAccountFormDialog({
 
   useEffect(() => {
     if (!isOpen) return;
-    form.reset(account ? toFormValues(account) : EMPTY_ACCOUNT_FORM);
+    form.reset(
+      account
+        ? toFormValues(account)
+        : { ...EMPTY_ACCOUNT_FORM, name: initialName },
+    );
     saveAccountMutation.reset();
-  }, [isOpen, account, form, saveAccountMutation.reset]);
+  }, [isOpen, account, initialName, form, saveAccountMutation.reset]);
 
   const handleSubmit = form.handleSubmit((values) =>
     saveAccountMutation.mutate(
       { accountId: account?.id ?? null, input: values },
       {
-        onSuccess: () => {
+        onSuccess: (savedAccountId) => {
           toast.success(isEditing ? "Conta atualizada." : "Conta criada.");
+          onSaved?.(savedAccountId);
           onClose();
         },
         onError: (error) => toast.error(error.message),

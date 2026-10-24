@@ -8,7 +8,7 @@ import {
   parseOrderItemAddons,
 } from "@/features/product-addons/item-addons";
 import {
-  hasModuleAccess,
+  hasAnyModuleAccess,
   hasModuleAccessToRow,
   MODULE_ACCESS_DENIED_MESSAGE,
 } from "@/features/team/module-access";
@@ -142,8 +142,11 @@ export async function saveCustomerAccount(
   organizationId: OrganizationId,
   accountId: CustomerAccountId | null,
   input: CustomerAccountInput,
-): Promise<ActionResult> {
-  if (!(await hasModuleAccess(organizationId, "customer_accounts"))) {
+): Promise<ActionResult<CustomerAccountId>> {
+  const allowedModules = accountId
+    ? (["customer_accounts"] as const)
+    : (["customer_accounts", "pos", "order_tabs"] as const);
+  if (!(await hasAnyModuleAccess(organizationId, allowedModules))) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }
   const parsedInput = customerAccountSchema.safeParse(input);
@@ -153,22 +156,25 @@ export async function saveCustomerAccount(
 
   const { name, phone, creditLimit, note, isActive } = parsedInput.data;
   const supabase = await createClient();
-  const { error } = await supabase.rpc("save_customer_account", {
-    p_organization_id: organizationId,
-    p_account_id: accountId ?? undefined,
-    p_name: name,
-    p_phone: phone || undefined,
-    p_credit_limit: creditLimit,
-    p_note: note || undefined,
-    p_is_active: isActive,
-  });
+  const { data: savedAccountId, error } = await supabase.rpc(
+    "save_customer_account",
+    {
+      p_organization_id: organizationId,
+      p_account_id: accountId ?? undefined,
+      p_name: name,
+      p_phone: phone || undefined,
+      p_credit_limit: creditLimit,
+      p_note: note || undefined,
+      p_is_active: isActive,
+    },
+  );
 
   if (error) {
     return actionFailure(
       getAccountErrorMessage(error, "Não foi possível salvar a conta."),
     );
   }
-  return actionSuccess();
+  return actionSuccess(savedAccountId as CustomerAccountId);
 }
 
 export async function registerAccountPayment(

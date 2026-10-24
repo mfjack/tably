@@ -1,6 +1,6 @@
 "use client";
 
-import { X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { type Control, useWatch } from "react-hook-form";
 import { NumberField } from "@/components/form/number-field";
 import { SelectField } from "@/components/form/select-field";
@@ -33,6 +33,7 @@ type PaymentLineFieldsProps = {
   onRemove?: () => void;
   methods?: readonly PaymentMethod[];
   paymentFees: OrganizationPaymentFees;
+  onCreateAccount?: (index: number) => void;
 };
 
 function getAccountDescription(account: CustomerAccount | undefined) {
@@ -54,6 +55,7 @@ export function PaymentLineFields({
   onRemove,
   methods = PAYMENT_METHOD_VALUES,
   paymentFees,
+  onCreateAccount,
 }: PaymentLineFieldsProps) {
   const [method, customerAccountId, typedAmount] = useWatch({
     control,
@@ -85,6 +87,20 @@ export function PaymentLineFields({
       control={control}
       name={`payments.${index}.customerAccountId`}
       label="Conta do cliente"
+      labelAction={
+        onCreateAccount && (
+          <Button
+            type="button"
+            variant="link"
+            size="xs"
+            className="h-auto px-0"
+            onClick={() => onCreateAccount(index)}
+          >
+            <Plus aria-hidden />
+            Nova conta
+          </Button>
+        )
+      }
       placeholder={
         accounts.length > 0 ? "Selecione o cliente" : "Nenhuma conta cadastrada"
       }
@@ -95,7 +111,7 @@ export function PaymentLineFields({
       description={
         getAccountDescription(selectedAccount) ??
         (accounts.length === 0
-          ? "Cadastre clientes na página Contas."
+          ? "Nenhum cliente ainda. Use Nova conta para criar."
           : undefined)
       }
       isDisabled={accounts.length === 0}

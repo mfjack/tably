@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { FieldError, FieldGroup } from "@/components/ui/field";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useOpenCashSessionQuery } from "@/features/cash-register/hooks/use-open-cash-session-query";
+import { CustomerAccountFormDialog } from "@/features/customer-accounts/components/customer-account-form-dialog";
 import { useCustomerAccountsQuery } from "@/features/customer-accounts/hooks/use-customer-accounts-query";
 import {
   EMPTY_LOYALTY_CHECKOUT,
@@ -248,6 +249,9 @@ export function PaymentDialog({
   const [splitMode, setSplitMode] = useState<SplitMode>("equal");
   const [assignments, setAssignments] = useState<UnitAssignments>({});
   const [assignmentError, setAssignmentError] = useState<string | null>(null);
+  const [accountFormLineIndex, setAccountFormLineIndex] = useState<
+    number | null
+  >(null);
   const customerAccountsQuery = useCustomerAccountsQuery(organizationId);
   const cashSessionQuery = useOpenCashSessionQuery(organizationId);
   const activeAccounts = useMemo(
@@ -428,153 +432,171 @@ export function PaymentDialog({
   }
 
   return (
-    <FormDialog
-      isOpen={isOpen}
-      onOpenChange={(isDialogOpen) => !isDialogOpen && onClose()}
-      title={title}
-      submitLabel={submitLabel}
-      isSubmitting={isSubmitting}
-      onSubmit={handleSubmit}
-      secondaryAction={secondaryAction}
-    >
-      <FieldGroup>
-        <OrderSummary summary={adjustedSummary} />
-        <OrderAdjustmentsFields
-          control={adjustmentsForm.control}
-          serviceFeePercent={serviceFeePercent}
-          canChargeServiceFee={canChargeServiceFee}
-          isDiscountEnabled={checkoutSettings.isDiscountEnabled}
-          totals={totals}
-        />
-        {loyaltyProgram && (
-          <LoyaltyCheckoutFields
-            organizationId={organizationId}
-            program={loyaltyProgram}
-            control={loyaltyForm.control}
-            orderTotal={orderTotal}
-            rewardOptions={rewardOptions}
-            rewardProductId={selectedRewardProductId}
-            isRewardAvailable={isRewardAvailable && !isSplit}
-            onRewardProductChange={setSelectedRewardProductId}
+    <>
+      <FormDialog
+        isOpen={isOpen}
+        onOpenChange={(isDialogOpen) => !isDialogOpen && onClose()}
+        title={title}
+        submitLabel={submitLabel}
+        isSubmitting={isSubmitting}
+        onSubmit={handleSubmit}
+        secondaryAction={secondaryAction}
+      >
+        <FieldGroup>
+          <OrderSummary summary={adjustedSummary} />
+          <OrderAdjustmentsFields
+            control={adjustmentsForm.control}
+            serviceFeePercent={serviceFeePercent}
+            canChargeServiceFee={canChargeServiceFee}
+            isDiscountEnabled={checkoutSettings.isDiscountEnabled}
+            totals={totals}
           />
-        )}
-        {isSplit && (
-          <Tabs
-            value={splitMode}
-            onValueChange={(value: string) => {
-              if (isSplitMode(value)) changeSplitMode(value);
-            }}
-          >
-            <TabsList className="w-full group-data-horizontal/tabs:h-10">
-              {SPLIT_MODES.map((mode) => (
-                <TabsTrigger key={mode} value={mode}>
-                  {SPLIT_MODE_LABELS[mode]}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
-        )}
-        {isSplit && splitMode === "items" && (
-          <BillItemsAssignment
-            units={billUnits}
-            assignments={assignments}
-            peopleCount={peopleCount}
-            onAssign={assignUnit}
-          />
-        )}
-        {!isPaidByReward &&
-          fields.map((field, index) => (
-            <PaymentLineFields
-              key={field.id}
-              control={form.control}
-              index={index}
-              isSplit={isSplit}
+          {loyaltyProgram && (
+            <LoyaltyCheckoutFields
+              organizationId={organizationId}
+              program={loyaltyProgram}
+              control={loyaltyForm.control}
               orderTotal={orderTotal}
-              remainingAmount={Math.max(remainingCents, 0) / 100}
-              accounts={activeAccounts}
-              computedAmount={computedAmounts?.[index]}
-              onRemove={isSplit ? () => removePerson(index) : undefined}
-              methods={paymentMethods}
-              paymentFees={checkoutSettings.paymentFees}
+              rewardOptions={rewardOptions}
+              rewardProductId={selectedRewardProductId}
+              isRewardAvailable={isRewardAvailable && !isSplit}
+              onRewardProductChange={setSelectedRewardProductId}
             />
-          ))}
-        {isPaidByReward && (
-          <p className="rounded-lg bg-primary/10 px-4 py-3 font-medium text-primary text-sm">
-            O prêmio cobre o pedido. Não precisa escolher forma de pagamento.
-          </p>
-        )}
-        {!isPaidByReward && change > 0 && (
-          <div
-            className={cn(
-              "flex flex-col gap-1 rounded-lg px-4 py-3",
-              isChangeShort ? "bg-destructive/10" : "bg-muted",
-            )}
-          >
-            <div className="flex items-baseline justify-between">
-              <span className="text-muted-foreground text-sm">Troco</span>
-              <span
-                aria-live="polite"
-                className={cn(
-                  "font-bold text-lg tabular-nums",
-                  isChangeShort && "text-destructive",
-                )}
-              >
-                {formatCurrency(change)}
-              </span>
+          )}
+          {isSplit && (
+            <Tabs
+              value={splitMode}
+              onValueChange={(value: string) => {
+                if (isSplitMode(value)) changeSplitMode(value);
+              }}
+            >
+              <TabsList className="w-full group-data-horizontal/tabs:h-10">
+                {SPLIT_MODES.map((mode) => (
+                  <TabsTrigger key={mode} value={mode}>
+                    {SPLIT_MODE_LABELS[mode]}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          )}
+          {isSplit && splitMode === "items" && (
+            <BillItemsAssignment
+              units={billUnits}
+              assignments={assignments}
+              peopleCount={peopleCount}
+              onAssign={assignUnit}
+            />
+          )}
+          {!isPaidByReward &&
+            fields.map((field, index) => (
+              <PaymentLineFields
+                key={field.id}
+                control={form.control}
+                index={index}
+                isSplit={isSplit}
+                orderTotal={orderTotal}
+                remainingAmount={Math.max(remainingCents, 0) / 100}
+                accounts={activeAccounts}
+                computedAmount={computedAmounts?.[index]}
+                onRemove={isSplit ? () => removePerson(index) : undefined}
+                methods={paymentMethods}
+                paymentFees={checkoutSettings.paymentFees}
+                onCreateAccount={setAccountFormLineIndex}
+              />
+            ))}
+          {isPaidByReward && (
+            <p className="rounded-lg bg-primary/10 px-4 py-3 font-medium text-primary text-sm">
+              O prêmio cobre o pedido. Não precisa escolher forma de pagamento.
+            </p>
+          )}
+          {!isPaidByReward && change > 0 && (
+            <div
+              className={cn(
+                "flex flex-col gap-1 rounded-lg px-4 py-3",
+                isChangeShort ? "bg-destructive/10" : "bg-muted",
+              )}
+            >
+              <div className="flex items-baseline justify-between">
+                <span className="text-muted-foreground text-sm">Troco</span>
+                <span
+                  aria-live="polite"
+                  className={cn(
+                    "font-bold text-lg tabular-nums",
+                    isChangeShort && "text-destructive",
+                  )}
+                >
+                  {formatCurrency(change)}
+                </span>
+              </div>
+              {isChangeShort && cashInDrawer !== undefined && (
+                <p role="alert" className="text-destructive text-xs">
+                  Não tem troco suficiente: há{" "}
+                  {formatCurrency(Math.max(cashInDrawer, 0))} em dinheiro no
+                  caixa
+                </p>
+              )}
             </div>
-            {isChangeShort && cashInDrawer !== undefined && (
-              <p role="alert" className="text-destructive text-xs">
-                Não tem troco suficiente: há{" "}
-                {formatCurrency(Math.max(cashInDrawer, 0))} em dinheiro no caixa
-              </p>
-            )}
-          </div>
-        )}
-        {!isSplit && !rewardOption && checkoutSettings.isSplitBillEnabled && (
-          <Button
-            type="button"
-            variant="outline"
-            className="h-11"
-            onClick={startSplit}
-          >
-            <Split aria-hidden />
-            Dividir conta
-          </Button>
-        )}
-        {isSplit && peopleCount < MAX_PEOPLE && (
-          <Button
-            type="button"
-            variant="outline"
-            className="h-11"
-            onClick={addPerson}
-          >
-            <UserPlus aria-hidden />
-            Adicionar pessoa
-          </Button>
-        )}
-        {isSplit && splitMode === "custom" && (
-          <div
-            aria-live="polite"
-            className={cn(
-              "rounded-lg px-4 py-3 font-medium text-sm",
-              remainingCents === 0
-                ? "bg-primary/10 text-primary"
-                : "bg-muted text-muted-foreground",
-            )}
-          >
-            {getBalanceMessage(remainingCents)}
-          </div>
-        )}
-        {unassignedCount > 0 && (
-          <p
-            aria-live="polite"
-            className="rounded-lg bg-muted px-4 py-3 font-medium text-muted-foreground text-sm"
-          >
-            {formatUnassignedCount(unassignedCount)}
-          </p>
-        )}
-        {paymentsError && <FieldError>{paymentsError}</FieldError>}
-      </FieldGroup>
-    </FormDialog>
+          )}
+          {!isSplit && !rewardOption && checkoutSettings.isSplitBillEnabled && (
+            <Button
+              type="button"
+              variant="outline"
+              className="h-11"
+              onClick={startSplit}
+            >
+              <Split aria-hidden />
+              Dividir conta
+            </Button>
+          )}
+          {isSplit && peopleCount < MAX_PEOPLE && (
+            <Button
+              type="button"
+              variant="outline"
+              className="h-11"
+              onClick={addPerson}
+            >
+              <UserPlus aria-hidden />
+              Adicionar pessoa
+            </Button>
+          )}
+          {isSplit && splitMode === "custom" && (
+            <div
+              aria-live="polite"
+              className={cn(
+                "rounded-lg px-4 py-3 font-medium text-sm",
+                remainingCents === 0
+                  ? "bg-primary/10 text-primary"
+                  : "bg-muted text-muted-foreground",
+              )}
+            >
+              {getBalanceMessage(remainingCents)}
+            </div>
+          )}
+          {unassignedCount > 0 && (
+            <p
+              aria-live="polite"
+              className="rounded-lg bg-muted px-4 py-3 font-medium text-muted-foreground text-sm"
+            >
+              {formatUnassignedCount(unassignedCount)}
+            </p>
+          )}
+          {paymentsError && <FieldError>{paymentsError}</FieldError>}
+        </FieldGroup>
+      </FormDialog>
+      <CustomerAccountFormDialog
+        organizationId={organizationId}
+        isOpen={accountFormLineIndex !== null}
+        initialName={summary.customerName ?? ""}
+        onClose={() => setAccountFormLineIndex(null)}
+        onSaved={(accountId) => {
+          if (accountFormLineIndex === null) return;
+          form.setValue(
+            `payments.${accountFormLineIndex}.customerAccountId`,
+            accountId,
+            { shouldValidate: true },
+          );
+        }}
+      />
+    </>
   );
 }

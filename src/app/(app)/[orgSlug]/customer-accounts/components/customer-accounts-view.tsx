@@ -8,6 +8,7 @@ import {
   IRREVERSIBLE_ACTION_MESSAGE,
 } from "@/components/dialog/confirm-dialog";
 import { Button } from "@/components/ui/button";
+import { CustomerAccountFormDialog } from "@/features/customer-accounts/components/customer-account-form-dialog";
 import { useCustomerAccountsQuery } from "@/features/customer-accounts/hooks/use-customer-accounts-query";
 import { useDeleteCustomerAccountMutation } from "@/features/customer-accounts/hooks/use-delete-customer-account-mutation";
 import type {
@@ -25,7 +26,6 @@ import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
 import { AccountPaymentDialog } from "./account-payment-dialog";
 import { AccountStatementDialog } from "./account-statement-dialog";
-import { CustomerAccountFormDialog } from "./customer-account-form-dialog";
 import { CustomerAccountsTable } from "./customer-accounts-table";
 
 type AccountFormState =
