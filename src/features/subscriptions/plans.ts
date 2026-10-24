@@ -27,7 +27,6 @@ export const SUBSCRIPTION_PLANS = [
 ] as const satisfies readonly SubscriptionPlan[];
 
 const ESSENTIAL_MODULES = [
-  "dashboard",
   "pos",
   "order_tabs",
   "kitchen",

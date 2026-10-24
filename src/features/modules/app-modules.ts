@@ -7,7 +7,6 @@ import {
   Clock,
   FolderOpen,
   Gift,
-  House,
   LayoutGrid,
   ListChecks,
   type LucideIcon,
@@ -39,13 +38,6 @@ const APP_MODULE_GROUPS = [
   {
     label: "Operação",
     modules: [
-      {
-        id: "dashboard",
-        label: "Início",
-        description: "Pendências do dia: contas, compras, validade e tarefas.",
-        path: "home",
-        icon: House,
-      },
       {
         id: "pos",
         label: "PDV",
@@ -187,7 +179,7 @@ export const SETTINGS_PAGE = {
   icon: Settings,
 } as const;
 
-export const DEFAULT_MODULE_PATH = "home";
+export const DEFAULT_MODULE_PATH = "pos";
 
 export const APP_MODULES = APP_MODULE_GROUPS.flatMap(
   (group): readonly AppModule[] => group.modules,
