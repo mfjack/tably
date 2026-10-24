@@ -15,6 +15,7 @@ import { StockEntryDialog } from "@/features/ingredients/components/stock-entry-
 import { useIngredientsMap } from "@/features/ingredients/hooks/use-ingredients-map";
 import type { IngredientId } from "@/features/ingredients/types";
 import { PaymentDialog } from "@/features/orders/components/payment-dialog";
+import { useOpenOrderTabsQuery } from "@/features/orders/hooks/use-open-order-tabs-query";
 import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
 import type {
   OrganizationCheckoutSettings,
@@ -330,6 +331,8 @@ export function PosView({
     />
   ) : null;
 
+  const openTabsCount =
+    useOpenOrderTabsQuery(organizationId, canOpenOrderTabs).data?.length ?? 0;
   const cartPanelProps = {
     header: cartTabsBar,
     cartLines: isCartHydrated ? cartLines : [],
@@ -373,7 +376,7 @@ export function PosView({
                   isKitchenEnabled={isKitchenEnabled}
                 />
               )}
-              {canOpenOrderTabs && (
+              {canOpenOrderTabs && openTabsCount > 0 && (
                 <ModuleLinkButton
                   href={orderTabsHref}
                   label="Comandas"

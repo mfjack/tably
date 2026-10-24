@@ -11,9 +11,13 @@ export function getOpenOrderTabsQueryKey(organizationId: OrganizationId) {
   return ["organizations", organizationId, "orders", "open-tabs"] as const;
 }
 
-export function useOpenOrderTabsQuery(organizationId: OrganizationId) {
+export function useOpenOrderTabsQuery(
+  organizationId: OrganizationId,
+  isEnabled = true,
+) {
   return useQuery({
     queryKey: getOpenOrderTabsQueryKey(organizationId),
+    enabled: isEnabled,
     queryFn: async () =>
       fetchActionResult<ActionData<typeof listOpenOrderTabs>>(
         organizationApiPath(organizationId, "orders/open-tabs"),

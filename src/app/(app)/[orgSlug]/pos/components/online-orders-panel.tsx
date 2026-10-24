@@ -107,23 +107,19 @@ export function OnlineOrdersPanel({
 
   return (
     <>
-      <Button
-        variant={pendingCount > 0 ? "default" : "outline"}
-        className="relative h-9 px-3 sm:px-4"
-        aria-label={`Pedidos pelo cardápio (${pendingCount})`}
-        onClick={() => setIsOpen(true)}
-      >
-        <BellRing
-          aria-hidden
-          className={cn(pendingCount > 0 && "animate-pulse")}
-        />
-        <span className="hidden sm:inline">Pedidos</span>
-        {pendingCount > 0 && (
+      {pendingCount > 0 && (
+        <Button
+          className="relative h-9 px-3 sm:px-4"
+          aria-label={`Pedidos pelo cardápio (${pendingCount})`}
+          onClick={() => setIsOpen(true)}
+        >
+          <BellRing aria-hidden className="animate-pulse" />
+          <span className="hidden sm:inline">Pedidos</span>
           <span className="flex size-5 items-center justify-center rounded-full bg-destructive font-semibold text-white text-xs tabular-nums">
             {pendingCount}
           </span>
-        )}
-      </Button>
+        </Button>
+      )}
 
       <DetailsDialog
         isOpen={isOpen}
