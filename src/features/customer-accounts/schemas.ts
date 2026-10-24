@@ -1,12 +1,14 @@
 import * as z from "zod";
 import { RECEIVABLE_PAYMENT_METHOD_VALUES } from "@/features/orders/payment-methods";
+import { toTitleCase } from "@/lib/title-case";
 
 export const customerAccountSchema = z.object({
   name: z
     .string()
     .trim()
     .min(1, "Informe o nome do cliente.")
-    .max(80, "Nome muito longo."),
+    .max(80, "Nome muito longo.")
+    .transform(toTitleCase),
   phone: z
     .string()
     .refine(

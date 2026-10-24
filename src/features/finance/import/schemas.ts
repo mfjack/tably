@@ -1,5 +1,6 @@
 import * as z from "zod";
 import { Constants } from "@/lib/supabase/database.types";
+import { toTitleCase } from "@/lib/title-case";
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -11,7 +12,8 @@ export const financeImportRowSchema = z.object({
     .string()
     .trim()
     .min(1, "Sem descrição.")
-    .max(120, "Descrição muito longa."),
+    .max(120, "Descrição muito longa.")
+    .transform(toTitleCase),
   amount: z.number({ error: "Valor inválido." }).positive("Valor inválido."),
   dueDate: z.string().regex(DATE_PATTERN, "Vencimento inválido."),
   categoryName: z.string().trim().max(60),

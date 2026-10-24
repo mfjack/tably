@@ -1,6 +1,7 @@
 import * as z from "zod";
 import { isValidCpf, isValidPis } from "@/lib/masks";
 import { Constants } from "@/lib/supabase/database.types";
+import { toTitleCase } from "@/lib/title-case";
 
 export const EMPLOYEE_PIN_LENGTH = 4;
 
@@ -32,7 +33,8 @@ export const employeeSchema = z
       .string()
       .trim()
       .min(1, "Informe o nome.")
-      .max(100, "Nome muito longo."),
+      .max(100, "Nome muito longo.")
+      .transform(toTitleCase),
     cpf: z.string().refine(isValidCpf, "CPF inválido."),
     pis: z
       .string()
@@ -118,7 +120,8 @@ export const workScheduleSchema = z.object({
     .string()
     .trim()
     .min(1, "Informe o nome da jornada.")
-    .max(60, "Nome muito longo."),
+    .max(60, "Nome muito longo.")
+    .transform(toTitleCase),
   markToleranceMinutes: z
     .number()
     .int()
@@ -147,7 +150,8 @@ export const holidaySchema = z.object({
     .string()
     .trim()
     .min(1, "Informe o nome do feriado.")
-    .max(60, "Nome muito longo."),
+    .max(60, "Nome muito longo.")
+    .transform(toTitleCase),
 });
 
 export type HolidayInput = z.infer<typeof holidaySchema>;

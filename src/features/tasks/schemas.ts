@@ -1,11 +1,13 @@
 import * as z from "zod";
 import { Constants } from "@/lib/supabase/database.types";
+import { toTitleCase } from "@/lib/title-case";
 
 const taskTitleSchema = z
   .string()
   .trim()
   .min(1, "Descreva a tarefa.")
-  .max(120, "Tarefa muito longa.");
+  .max(120, "Tarefa muito longa.")
+  .transform(toTitleCase);
 
 const temperatureSchema = z
   .number()
@@ -17,7 +19,8 @@ export const taskListSchema = z.object({
     .string()
     .trim()
     .min(1, "Informe o nome do processo.")
-    .max(60, "Nome muito longo."),
+    .max(60, "Nome muito longo.")
+    .transform(toTitleCase),
   period: z.string().optional(),
 });
 

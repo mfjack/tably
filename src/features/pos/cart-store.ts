@@ -17,6 +17,8 @@ export {
   getCartItemKey,
 } from "./cart-items";
 
+import { toTitleCase } from "@/lib/title-case";
+
 export type Cart = {
   items: CartItem[];
   note: string;
@@ -89,7 +91,7 @@ function createCartTabId(): CartTabId {
 }
 
 function normalizeTabName(name: string) {
-  return name.trim().slice(0, CART_TAB_NAME_MAX_LENGTH);
+  return toTitleCase(name).slice(0, CART_TAB_NAME_MAX_LENGTH);
 }
 
 function createCartTab(number: number, name = ""): CartTab {

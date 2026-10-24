@@ -1,5 +1,6 @@
 import * as z from "zod";
 import { fromSelectFieldValue } from "@/lib/optional-select-value";
+import { toTitleCase } from "@/lib/title-case";
 
 export const productAddonFormSchema = z
   .object({
@@ -7,7 +8,8 @@ export const productAddonFormSchema = z
       .string()
       .trim()
       .min(1, "Informe o nome do adicional.")
-      .max(60, "Nome muito longo."),
+      .max(60, "Nome muito longo.")
+      .transform(toTitleCase),
     price: z
       .number({ error: "Informe o preço." })
       .min(0, "Não pode ser negativo."),

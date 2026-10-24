@@ -1,5 +1,6 @@
 import * as z from "zod";
 import { Constants } from "@/lib/supabase/database.types";
+import { toTitleCase } from "@/lib/title-case";
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const MAX_INSTALLMENTS = 120;
@@ -40,7 +41,8 @@ export const entrySchema = z
       .string()
       .trim()
       .min(1, "Descreva o lançamento.")
-      .max(120, "Descrição muito longa."),
+      .max(120, "Descrição muito longa.")
+      .transform(toTitleCase),
     amount: moneySchema,
     dueDate: dateSchema("Informe o vencimento."),
     categoryId: z.string().optional(),

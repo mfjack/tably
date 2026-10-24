@@ -1,4 +1,5 @@
 import * as z from "zod";
+import { toTitleCase } from "@/lib/title-case";
 
 export const recipeItemSchema = z.object({
   ingredientId: z
@@ -15,7 +16,8 @@ export const productFormSchema = z
       .string()
       .trim()
       .min(1, "Informe o nome do produto.")
-      .max(80, "Nome muito longo."),
+      .max(80, "Nome muito longo.")
+      .transform(toTitleCase),
     categoryId: z.string().optional(),
     price: z
       .number({ error: "Informe o preço de venda." })

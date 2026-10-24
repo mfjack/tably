@@ -1,4 +1,5 @@
 import * as z from "zod";
+import { toTitleCase } from "@/lib/title-case";
 import { SHELF_LIFE_UNITS, STORAGE_CONDITIONS } from "./labels";
 
 const MAX_LABEL_COPIES = 20;
@@ -9,7 +10,8 @@ export const foodLabelFormSchema = z.object({
     .string()
     .trim()
     .min(1, "Informe o nome do item.")
-    .max(40, "Nome muito longo."),
+    .max(40, "Nome muito longo.")
+    .transform(toTitleCase),
   storage: z.enum(STORAGE_CONDITIONS, { error: "Escolha a conservação." }),
   shelfLifeAmount: z
     .number({ error: "Informe a validade." })

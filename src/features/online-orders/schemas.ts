@@ -1,6 +1,7 @@
 import * as z from "zod";
 import { LOYALTY_PHONE_PATTERN } from "@/features/loyalty/schemas";
 import { ORDER_ITEM_NOTE_MAX_LENGTH } from "@/features/orders/schemas";
+import { toTitleCase } from "@/lib/title-case";
 
 const ONLINE_ORDER_MAX_ITEM_QUANTITY = 50;
 
@@ -21,7 +22,8 @@ export const onlineOrderCustomerSchema = z.object({
     .string()
     .trim()
     .min(1, "Informe seu nome.")
-    .max(60, "Nome muito longo."),
+    .max(60, "Nome muito longo.")
+    .transform(toTitleCase),
   customerPhone: z
     .string()
     .refine(

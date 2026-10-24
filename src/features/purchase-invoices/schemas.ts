@@ -1,5 +1,6 @@
 import * as z from "zod";
 import { MEASURE_UNIT_VALUES } from "@/features/ingredients/measure-units";
+import { toTitleCase } from "@/lib/title-case";
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -14,14 +15,14 @@ export const purchaseInvoiceSchema = z.object({
   totalAmount: z.number().min(0),
   supplier: z.object({
     taxId: z.string().regex(/^(\d{11}|\d{14})$/),
-    name: z.string().trim().min(1).max(100),
+    name: z.string().trim().min(1).max(100).transform(toTitleCase),
     phone: z.string().max(20).nullable(),
   }),
   items: z
     .array(
       z.object({
         productCode: z.string().trim().min(1).max(60),
-        description: z.string().trim().min(1).max(200),
+        description: z.string().trim().min(1).max(200).transform(toTitleCase),
         unit: z.string().max(10),
         packages: z.number().positive(),
         totalCost: z.number().min(0),
@@ -39,7 +40,11 @@ export const purchaseInvoiceSchema = z.object({
 const invoiceItemDecisionSchema = z
   .object({
     target: z.string().min(1, "Escolha o insumo."),
-    newName: z.string().trim().max(80, "Nome muito longo."),
+    newName: z
+      .string()
+      .trim()
+      .max(80, "Nome muito longo.")
+      .transform(toTitleCase),
     newUnit: z.enum(MEASURE_UNIT_VALUES).optional(),
     unitsPerPackage: z
       .number()

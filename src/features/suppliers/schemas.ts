@@ -1,12 +1,18 @@
 import * as z from "zod";
+import { toTitleCase } from "@/lib/title-case";
 
 export const supplierSchema = z.object({
   name: z
     .string()
     .trim()
     .min(1, "Informe o nome do fornecedor.")
-    .max(100, "Nome muito longo."),
-  contactName: z.string().trim().max(80, "Nome muito longo."),
+    .max(100, "Nome muito longo.")
+    .transform(toTitleCase),
+  contactName: z
+    .string()
+    .trim()
+    .max(80, "Nome muito longo.")
+    .transform(toTitleCase),
   phone: z
     .string()
     .refine(

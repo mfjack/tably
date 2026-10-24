@@ -1,4 +1,5 @@
 import * as z from "zod";
+import { toTitleCase } from "@/lib/title-case";
 import { MEASURE_UNIT_VALUES } from "./measure-units";
 import { getPurchaseCost } from "./stock-cost";
 
@@ -18,7 +19,8 @@ export const ingredientFormSchema = z
       .string()
       .trim()
       .min(1, "Informe o nome do insumo.")
-      .max(80, "Nome muito longo."),
+      .max(80, "Nome muito longo.")
+      .transform(toTitleCase),
     unit: z.enum(MEASURE_UNIT_VALUES, { error: "Escolha a unidade." }),
     quantity: optionalAmountSchema,
     totalCost: optionalAmountSchema,

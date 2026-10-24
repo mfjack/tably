@@ -1,4 +1,5 @@
 import * as z from "zod";
+import { toTitleCase } from "@/lib/title-case";
 import { DOCUMENT_KIND_VALUES } from "./document-kinds";
 
 export const documentFormSchema = z.object({
@@ -6,7 +7,8 @@ export const documentFormSchema = z.object({
     .string()
     .trim()
     .min(1, "Informe o nome do documento.")
-    .max(120, "Nome muito longo."),
+    .max(120, "Nome muito longo.")
+    .transform(toTitleCase),
   kind: z.enum(DOCUMENT_KIND_VALUES, { error: "Escolha o tipo." }),
   expiresOn: z
     .string()

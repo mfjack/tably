@@ -1,4 +1,5 @@
 import * as z from "zod";
+import { toTitleCase } from "@/lib/title-case";
 import {
   type OrderAdjustmentsInput,
   orderAdjustmentsSchema,
@@ -28,7 +29,8 @@ export const orderCustomerSchema = z.object({
     .string()
     .trim()
     .min(1, "Informe o nome do cliente.")
-    .max(60, "Nome muito longo."),
+    .max(60, "Nome muito longo.")
+    .transform(toTitleCase),
   isTakeaway: z.boolean(),
 });
 

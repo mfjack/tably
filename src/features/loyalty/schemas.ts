@@ -1,4 +1,5 @@
 import * as z from "zod";
+import { toTitleCase } from "@/lib/title-case";
 
 export const LOYALTY_PHONE_PATTERN = /^\d{10,11}$/;
 const MIN_STAMPS_REQUIRED = 2;
@@ -34,7 +35,12 @@ export const loyaltySettingsSchema = z
 
 export const loyaltyCheckoutSchema = z.object({
   phone: phoneSchema,
-  name: z.string().trim().max(80, "Nome muito longo.").optional(),
+  name: z
+    .string()
+    .trim()
+    .max(80, "Nome muito longo.")
+    .transform(toTitleCase)
+    .optional(),
   rewardProductId: z.uuid().optional(),
 });
 

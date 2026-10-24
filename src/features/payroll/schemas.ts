@@ -1,5 +1,6 @@
 import * as z from "zod";
 import { Constants } from "@/lib/supabase/database.types";
+import { toTitleCase } from "@/lib/title-case";
 import type {
   InssBracket,
   IrrfBracket,
@@ -157,7 +158,8 @@ export const manualPayslipItemSchema = z.object({
     .string()
     .trim()
     .min(1, "Descreva o lançamento.")
-    .max(60, "Descrição muito longa."),
+    .max(60, "Descrição muito longa.")
+    .transform(toTitleCase),
   kind: z.enum(["earning", "deduction"]),
   amount: z.number({ error: "Informe o valor." }).positive("Informe o valor."),
   isTaxable: z.boolean(),
