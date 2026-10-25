@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { addHours } from "date-fns";
+import { addDays, parseISO, set } from "date-fns";
 import { useEffect, useMemo, useRef } from "react";
 import {
   type DefaultValues,
@@ -10,6 +10,7 @@ import {
   useWatch,
 } from "react-hook-form";
 import { FormDialog } from "@/components/dialog/form-dialog";
+import { DateField } from "@/components/form/date-field";
 import { NumberField } from "@/components/form/number-field";
 import { SelectField } from "@/components/form/select-field";
 import { TextField } from "@/components/form/text-field";
@@ -22,11 +23,12 @@ import {
 } from "@/components/ui/field";
 import { useSaveLabelDefaultsMutation } from "@/features/food-labels/hooks/use-save-label-defaults-mutation";
 import {
-  fromShelfLifeHours,
-  SHELF_LIFE_UNIT_LABELS,
-  SHELF_LIFE_UNITS,
+  SHELF_LIFE_MODE_LABELS,
+  SHELF_LIFE_MODES,
+  type ShelfLifeMode,
   STORAGE_CONDITION_LABELS,
   STORAGE_CONDITIONS,
+  toShelfLifeDays,
   toShelfLifeHours,
 } from "@/features/food-labels/labels";
 import {
@@ -56,17 +58,36 @@ function getIngredientLabelValues(
   ingredient: Ingredient,
 ): Pick<
   DefaultValues<FoodLabelFormInput>,
-  "name" | "storage" | "shelfLifeAmount" | "shelfLifeUnit"
+  "name" | "storage" | "shelfLifeDays" | "shelfLifeMode" | "expiresOn"
 > {
-  const shelfLife = ingredient.labelShelfLifeHours
-    ? fromShelfLifeHours(ingredient.labelShelfLifeHours)
-    : null;
   return {
     name: ingredient.name,
     storage: ingredient.labelStorage ?? undefined,
-    shelfLifeAmount: shelfLife?.amount,
-    shelfLifeUnit: shelfLife?.unit ?? "days",
+    shelfLifeMode: "days",
+    shelfLifeDays: ingredient.labelShelfLifeHours
+      ? toShelfLifeDays(ingredient.labelShelfLifeHours)
+      : undefined,
+    expiresOn: "",
   };
+}
+
+function getExpiresAt(
+  values: Pick<
+    FoodLabelFormInput,
+    "shelfLifeMode" | "shelfLifeDays" | "expiresOn"
+  >,
+  preparedAt: Date,
+): Date | null {
+  if (values.shelfLifeMode === "days") {
+    return values.shelfLifeDays
+      ? addDays(preparedAt, values.shelfLifeDays)
+      : null;
+  }
+  if (!values.expiresOn) return null;
+  return set(parseISO(values.expiresOn), {
+    hours: preparedAt.getHours(),
+    minutes: preparedAt.getMinutes(),
+  });
 }
 
 export function FoodLabelDialog({
@@ -84,20 +105,20 @@ export function FoodLabelDialog({
       responsibleName: defaultResponsibleName,
       ...(initialIngredient
         ? getIngredientLabelValues(initialIngredient)
-        : { name: "", shelfLifeUnit: "days" }),
+        : { name: "", shelfLifeMode: "days", expiresOn: "" }),
     },
   });
   const storageField = useController({
     control: form.control,
     name: "storage",
   });
-  const unitField = useController({
+  const modeField = useController({
     control: form.control,
-    name: "shelfLifeUnit",
+    name: "shelfLifeMode",
   });
-  const [ingredientId, shelfLifeAmount, shelfLifeUnit] = useWatch({
+  const [ingredientId, shelfLifeMode, shelfLifeDays, expiresOn] = useWatch({
     control: form.control,
-    name: ["ingredientId", "shelfLifeAmount", "shelfLifeUnit"],
+    name: ["ingredientId", "shelfLifeMode", "shelfLifeDays", "expiresOn"],
   });
   const previousIngredientIdRef = useRef(ingredientId);
 
@@ -123,32 +144,40 @@ export function FoodLabelDialog({
     [ingredients],
   );
 
-  const expiresPreview =
-    shelfLifeAmount && shelfLifeAmount > 0 && shelfLifeUnit
-      ? `Vence em ${formatLabelDate(addHours(new Date(), toShelfLifeHours(shelfLifeAmount, shelfLifeUnit)))}`
-      : undefined;
+  const previewDate = getExpiresAt(
+    { shelfLifeMode, shelfLifeDays, expiresOn },
+    new Date(),
+  );
+  const expiresPreview = previewDate
+    ? `Vence em ${formatLabelDate(previewDate)}`
+    : undefined;
 
   const handleSubmit = form.handleSubmit((values) => {
-    const shelfLifeHours = toShelfLifeHours(
-      values.shelfLifeAmount,
-      values.shelfLifeUnit,
-    );
     const preparedAt = new Date();
+    const expiresAt = getExpiresAt(values, preparedAt);
+    if (!expiresAt) return;
     printFoodLabel({
       name: values.name,
       storage: values.storage,
       preparedAt,
-      expiresAt: addHours(preparedAt, shelfLifeHours),
+      expiresAt,
       responsibleName: values.responsibleName,
       copies: values.copies ?? 1,
     });
     const selectedIngredientId = fromSelectFieldValue<IngredientId>(
       values.ingredientId,
     );
-    if (selectedIngredientId) {
+    if (
+      selectedIngredientId &&
+      values.shelfLifeMode === "days" &&
+      values.shelfLifeDays
+    ) {
       saveDefaultsMutation.mutate({
         ingredientId: selectedIngredientId,
-        values: { shelfLifeHours, storage: values.storage },
+        values: {
+          shelfLifeHours: toShelfLifeHours(values.shelfLifeDays),
+          storage: values.storage,
+        },
       });
     }
     onClose();
@@ -196,28 +225,39 @@ export function FoodLabelDialog({
           )}
         </FieldSet>
         <div className="grid items-start gap-4 sm:grid-cols-2">
-          <NumberField
-            control={form.control}
-            name="shelfLifeAmount"
-            label="Validade"
-            format="integer"
-            placeholder="Ex.: 3"
-            description={expiresPreview}
-          />
           <FieldSet>
-            <FieldLegend variant="label">Em</FieldLegend>
+            <FieldLegend variant="label">Validade por</FieldLegend>
             <div className="grid grid-cols-2 gap-2">
-              {SHELF_LIFE_UNITS.map((unit) => (
+              {SHELF_LIFE_MODES.map((mode: ShelfLifeMode) => (
                 <ToggleChip
-                  key={unit}
-                  label={SHELF_LIFE_UNIT_LABELS[unit]}
-                  isSelected={unitField.field.value === unit}
-                  onToggle={() => unitField.field.onChange(unit)}
+                  key={mode}
+                  label={SHELF_LIFE_MODE_LABELS[mode]}
+                  isSelected={modeField.field.value === mode}
+                  onToggle={() => modeField.field.onChange(mode)}
                   className="h-12 w-full justify-center"
                 />
               ))}
             </div>
           </FieldSet>
+          {shelfLifeMode === "date" ? (
+            <DateField
+              control={form.control}
+              name="expiresOn"
+              label="Data de validade"
+              placeholder="Escolha a data"
+              description={expiresPreview}
+            />
+          ) : (
+            <NumberField
+              control={form.control}
+              name="shelfLifeDays"
+              label="Vence em"
+              format="integer"
+              suffix="dias"
+              placeholder="Ex.: 3"
+              description={expiresPreview}
+            />
+          )}
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <TextField

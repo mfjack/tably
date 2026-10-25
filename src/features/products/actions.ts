@@ -1,9 +1,11 @@
 "use server";
 
 import type { CategoryId } from "@/features/categories/types";
+import { getPurchaseCost } from "@/features/ingredients/stock-cost";
 import type { IngredientId } from "@/features/ingredients/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import type { ProductAddonId } from "@/features/product-addons/types";
+import type { SupplierId } from "@/features/suppliers/types";
 import {
   hasModuleAccess,
   hasModuleAccessToRow,
@@ -18,7 +20,12 @@ import {
 import { isUniqueViolation } from "@/lib/database-errors";
 import { fromSelectFieldValue } from "@/lib/optional-select-value";
 import { createClient } from "@/lib/supabase/server";
-import { type ProductFormInput, productFormSchema } from "./schemas";
+import {
+  type ProductFormInput,
+  type ProductStockEntryInput,
+  productFormSchema,
+  productStockEntrySchema,
+} from "./schemas";
 import type { Product, ProductId } from "./types";
 
 const PRODUCT_COLUMNS =
@@ -186,19 +193,32 @@ export async function deleteProduct(
 export async function addProductStock(
   organizationId: OrganizationId,
   productId: ProductId,
-  quantity: number,
+  input: ProductStockEntryInput,
 ): Promise<ActionResult<number>> {
   if (!(await hasModuleAccess(organizationId, "pos"))) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }
-  if (!Number.isInteger(quantity) || quantity <= 0) {
-    return actionFailure("Informe uma quantidade maior que zero.");
+  const parsedInput = productStockEntrySchema.safeParse(input);
+  if (!parsedInput.success) {
+    return actionFailure("Confira os campos e tente novamente.");
   }
 
+  const {
+    quantity,
+    totalCost,
+    freightCost,
+    paymentDate,
+    minimumStock,
+    supplierId,
+  } = parsedInput.data;
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("add_product_stock", {
     p_product_id: productId,
     p_quantity: quantity,
+    p_total_cost: getPurchaseCost(totalCost, freightCost),
+    p_payment_date: paymentDate,
+    p_minimum_stock: minimumStock,
+    p_supplier_id: fromSelectFieldValue<SupplierId>(supplierId),
   });
 
   if (error)

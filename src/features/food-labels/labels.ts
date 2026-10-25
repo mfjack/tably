@@ -16,26 +16,21 @@ export const STORAGE_CONDITION_DETAILS = {
   frozen: "Congelado a -18 °C ou menos",
 } as const satisfies Record<StorageCondition, string>;
 
-export const SHELF_LIFE_UNITS = ["hours", "days"] as const;
+export const SHELF_LIFE_MODES = ["days", "date"] as const;
 
-export type ShelfLifeUnit = (typeof SHELF_LIFE_UNITS)[number];
+export type ShelfLifeMode = (typeof SHELF_LIFE_MODES)[number];
 
-export const SHELF_LIFE_UNIT_LABELS = {
-  hours: "Horas",
+export const SHELF_LIFE_MODE_LABELS = {
   days: "Dias",
-} as const satisfies Record<ShelfLifeUnit, string>;
+  date: "Data",
+} as const satisfies Record<ShelfLifeMode, string>;
 
 const HOURS_PER_DAY = 24;
 
-export function toShelfLifeHours(amount: number, unit: ShelfLifeUnit): number {
-  return unit === "days" ? amount * HOURS_PER_DAY : amount;
+export function toShelfLifeHours(days: number): number {
+  return days * HOURS_PER_DAY;
 }
 
-export function fromShelfLifeHours(hours: number): {
-  amount: number;
-  unit: ShelfLifeUnit;
-} {
-  return hours % HOURS_PER_DAY === 0
-    ? { amount: hours / HOURS_PER_DAY, unit: "days" }
-    : { amount: hours, unit: "hours" };
+export function toShelfLifeDays(hours: number): number {
+  return Math.max(1, Math.round(hours / HOURS_PER_DAY));
 }

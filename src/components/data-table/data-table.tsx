@@ -31,6 +31,7 @@ type DataTableProps<TData extends RowData> = {
   errorMessage?: string;
   emptyState: ReactNode;
   toolbarActions?: ReactNode;
+  getRowClassName?: (row: TData) => string | undefined;
 };
 
 export function DataTable<TData extends RowData>({
@@ -39,6 +40,7 @@ export function DataTable<TData extends RowData>({
   isLoading = false,
   errorMessage,
   emptyState,
+  getRowClassName,
   toolbarActions,
 }: DataTableProps<TData>) {
   const rows = table.getRowModel().rows;
@@ -176,7 +178,10 @@ export function DataTable<TData extends RowData>({
                   </TableRow>
                 ))
               : rows.map((row) => (
-                  <TableRow key={row.id}>
+                  <TableRow
+                    key={row.id}
+                    className={getRowClassName?.(row.original)}
+                  >
                     {row.getAllCells().map((cell) => (
                       <TableCell key={cell.id} className="px-4 py-3">
                         <table.FlexRender cell={cell} />

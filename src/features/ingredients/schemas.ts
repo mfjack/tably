@@ -3,6 +3,10 @@ import { toTitleCase } from "@/lib/title-case";
 import { MEASURE_UNIT_VALUES } from "./measure-units";
 import { getPurchaseCost } from "./stock-cost";
 
+const requiredPaymentDateSchema = z
+  .string({ error: "Informe a data de pagamento." })
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Informe a data de pagamento.");
+
 const optionalDateSchema = z
   .string()
   .regex(/^(\d{4}-\d{2}-\d{2})?$/, "Data inválida.")
@@ -44,17 +48,36 @@ export const ingredientFormSchema = z
     { message: "Informe o estoque atual.", path: ["currentStock"] },
   );
 
+const alwaysCheck = { when: () => true };
+
+export const ingredientCreateFormSchema = ingredientFormSchema
+  .refine((values) => Boolean(values.quantity), {
+    message: "Informe a quantidade comprada.",
+    path: ["quantity"],
+    ...alwaysCheck,
+  })
+  .refine((values) => Boolean(values.totalCost), {
+    message: "Informe o valor total pago.",
+    path: ["totalCost"],
+    ...alwaysCheck,
+  })
+  .refine((values) => Boolean(values.paymentDueDate), {
+    message: "Informe a data de pagamento.",
+    path: ["paymentDueDate"],
+    ...alwaysCheck,
+  });
+
 export const stockEntryFormSchema = z.object({
   quantity: z
     .number({ error: "Informe a quantidade." })
     .positive("A quantidade precisa ser maior que zero."),
   totalCost: z
-    .number({ error: "Informe o valor pago." })
-    .min(0, "Não pode ser negativo."),
+    .number({ error: "Informe o valor total pago." })
+    .positive("Informe o valor total pago."),
   freightCost: optionalAmountSchema,
   supplierId: z.string().optional(),
   expiresAt: optionalDateSchema,
-  paymentDueDate: optionalDateSchema,
+  paymentDueDate: requiredPaymentDateSchema,
 });
 
 export type IngredientFormInput = z.infer<typeof ingredientFormSchema>;

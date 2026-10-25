@@ -16,6 +16,7 @@ import {
   getProductAvailability,
   type ProductAvailability,
 } from "@/features/products/availability";
+import { getExpiredIngredientNames } from "@/features/products/expired-ingredients";
 import { useProductsQuery } from "@/features/products/hooks/use-products-query";
 import type { Product, ProductId } from "@/features/products/types";
 
@@ -24,6 +25,7 @@ const EMPTY_PRODUCTS: Product[] = [];
 export type PosProduct = Product & {
   availability: ProductAvailability;
   cartQuantity: number;
+  expiredIngredientNames: string[];
 };
 
 export type CartLine = {
@@ -141,16 +143,31 @@ export function usePosCatalog(organizationId: OrganizationId, cart: Cart) {
       );
     }
 
-    return activeProducts.map((product) => ({
-      ...product,
-      availability: getProductAvailability(
+    return activeProducts.map((product) => {
+      const expiredIngredientNames = getExpiredIngredientNames(
         product,
         ingredientsById,
-        reservedQuantities,
-        cartQuantities.get(product.id) ?? 0,
-      ),
-      cartQuantity: cartQuantities.get(product.id) ?? 0,
-    }));
+      );
+      return {
+        ...product,
+        availability:
+          expiredIngredientNames.length > 0
+            ? {
+                status: "out",
+                outOfStockIngredientNames: expiredIngredientNames,
+                runningLowIngredientNames: [],
+                stockLevels: [],
+              }
+            : getProductAvailability(
+                product,
+                ingredientsById,
+                reservedQuantities,
+                cartQuantities.get(product.id) ?? 0,
+              ),
+        cartQuantity: cartQuantities.get(product.id) ?? 0,
+        expiredIngredientNames,
+      };
+    });
   }, [activeProducts, cart.items, ingredientsById, reservedQuantities]);
 
   return {

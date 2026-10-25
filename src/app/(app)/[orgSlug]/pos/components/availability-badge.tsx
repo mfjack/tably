@@ -57,8 +57,10 @@ export function AvailabilityBadge({
         side="top"
         className="flex w-auto max-w-72 flex-col gap-1"
       >
-        <div className="flex items-start justify-between gap-4">
-          <p className="font-semibold text-sm">Restam {label}</p>
+        <div className="flex items-center justify-between gap-4">
+          <p className="font-semibold text-sm">
+            {isOut ? label : `Restam ${label}`}
+          </p>
           {onAddProductStock && (
             <StockEntryButton
               itemName={productName}

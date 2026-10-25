@@ -3,10 +3,12 @@
 import { type ReactNode, useMemo } from "react";
 import { DataTable } from "@/components/data-table/data-table";
 import { createDataTableColumnHelper } from "@/components/data-table/data-table-features";
+import { ALERT_ROW_CLASS_NAME } from "@/components/data-table/data-table-row-styles";
 import { useDataTable } from "@/components/data-table/use-data-table";
 import { Badge } from "@/components/ui/badge";
 import { getUnitSymbol } from "@/features/ingredients/measure-units";
 import type { Ingredient } from "@/features/ingredients/types";
+import { getExpiryStatus } from "@/lib/expiry";
 import { formatCurrency, formatQuantity } from "@/lib/format";
 import { ExpiryCell } from "./expiry-cell";
 import {
@@ -29,6 +31,12 @@ type IngredientsTableProps = IngredientRowActionHandlers & {
 
 function getIngredientRowId(ingredient: Ingredient) {
   return ingredient.id;
+}
+
+function getExpiredRowClassName(ingredient: Ingredient) {
+  return getExpiryStatus(ingredient.expiresAt).status === "expired"
+    ? ALERT_ROW_CLASS_NAME
+    : undefined;
 }
 
 export function IngredientsTable({
@@ -137,6 +145,7 @@ export function IngredientsTable({
 
   return (
     <DataTable
+      getRowClassName={getExpiredRowClassName}
       table={table}
       isLoading={isLoading}
       errorMessage={errorMessage}

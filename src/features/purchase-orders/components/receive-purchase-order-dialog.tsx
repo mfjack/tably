@@ -172,8 +172,7 @@ export function ReceivePurchaseOrderDialog({
         <DateField
           control={form.control}
           name="paymentDueDate"
-          label="Vencimento da conta (opcional)"
-          description="Preencha para lançar o total em Contas a pagar."
+          label="Data de pagamento"
           placeholder="Escolha a data"
         />
       </FieldGroup>

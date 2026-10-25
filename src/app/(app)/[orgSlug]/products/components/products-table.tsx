@@ -1,9 +1,11 @@
 "use client";
 
+import { TriangleAlert } from "lucide-react";
 import { type ReactNode, useMemo } from "react";
 import { DataTable } from "@/components/data-table/data-table";
 import { createDataTableColumnHelper } from "@/components/data-table/data-table-features";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
+import { ALERT_ROW_CLASS_NAME } from "@/components/data-table/data-table-row-styles";
 import { useDataTable } from "@/components/data-table/use-data-table";
 import { Badge } from "@/components/ui/badge";
 import type { Ingredient } from "@/features/ingredients/types";
@@ -15,6 +17,7 @@ import {
 import { CostValue } from "@/features/products/components/cost-value";
 import { MarginValue } from "@/features/products/components/margin-value";
 import { ProductThumbnail } from "@/features/products/components/product-thumbnail";
+import { getExpiredIngredientNames } from "@/features/products/expired-ingredients";
 import {
   calculateProductPricing,
   type ProductPricing,
@@ -29,6 +32,7 @@ type ProductRow = Product &
   Pick<ProductPricing, "costRatio" | "margin"> & {
     availability: ProductAvailability;
     availableQuantity: number;
+    expiredIngredientNames: string[];
   };
 
 const columnHelper = createDataTableColumnHelper<ProductRow>();
@@ -50,6 +54,12 @@ function getProductRowId(product: ProductRow) {
 
 function getProductSearchText(product: ProductRow) {
   return [product.name, product.categoryName].filter(Boolean).join(" ");
+}
+
+function getExpiredRowClassName(product: ProductRow) {
+  return product.expiredIngredientNames.length > 0
+    ? ALERT_ROW_CLASS_NAME
+    : undefined;
 }
 
 export function ProductsTable({
@@ -76,6 +86,10 @@ export function ProductsTable({
           margin,
           availability,
           availableQuantity: getAvailableQuantity(availability),
+          expiredIngredientNames: getExpiredIngredientNames(
+            product,
+            ingredientsById,
+          ),
         };
       }),
     [products, ingredientsById],
@@ -94,9 +108,22 @@ export function ProductsTable({
                 productName={row.original.name}
               />
               <div className="flex flex-col">
-                <span className="font-medium">{row.original.name}</span>
+                <span className="flex items-center gap-2 font-medium">
+                  {row.original.name}
+                  {row.original.expiredIngredientNames.length > 0 && (
+                    <Badge
+                      variant="destructive"
+                      title={`Insumo vencido: ${row.original.expiredIngredientNames.join(", ")}`}
+                    >
+                      <TriangleAlert aria-hidden />
+                      Insumo vencido
+                    </Badge>
+                  )}
+                </span>
                 <span className="text-muted-foreground text-xs">
-                  {row.original.categoryName ?? "Sem categoria"}
+                  {row.original.expiredIngredientNames.length > 0
+                    ? `Vencido: ${row.original.expiredIngredientNames.join(", ")}`
+                    : (row.original.categoryName ?? "Sem categoria")}
                 </span>
               </div>
             </div>
@@ -168,6 +195,7 @@ export function ProductsTable({
 
   return (
     <DataTable
+      getRowClassName={getExpiredRowClassName}
       table={table}
       isLoading={isLoading}
       errorMessage={errorMessage}

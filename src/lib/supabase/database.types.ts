@@ -3487,7 +3487,14 @@ export type Database = {
         Returns: number
       }
       add_product_stock: {
-        Args: { p_product_id: string; p_quantity: number }
+        Args: {
+          p_minimum_stock?: number
+          p_payment_date: string
+          p_product_id: string
+          p_quantity: number
+          p_supplier_id?: string
+          p_total_cost: number
+        }
         Returns: number
       }
       adjust_ingredient_stock: {

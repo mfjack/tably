@@ -67,3 +67,25 @@ export const productFormSchema = z
 
 export type RecipeItemInput = z.infer<typeof recipeItemSchema>;
 export type ProductFormInput = z.infer<typeof productFormSchema>;
+
+export const productStockEntrySchema = z.object({
+  quantity: z
+    .number({ error: "Informe a quantidade." })
+    .int("Use um número inteiro.")
+    .positive("A quantidade precisa ser maior que zero."),
+  totalCost: z
+    .number({ error: "Informe o valor total pago." })
+    .positive("Informe o valor total pago."),
+  freightCost: z.number().min(0, "Não pode ser negativo.").optional(),
+  paymentDate: z
+    .string({ error: "Informe a data de pagamento." })
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Informe a data de pagamento."),
+  minimumStock: z
+    .number()
+    .int("Use um número inteiro.")
+    .min(0, "Não pode ser negativo.")
+    .optional(),
+  supplierId: z.string().optional(),
+});
+
+export type ProductStockEntryInput = z.infer<typeof productStockEntrySchema>;

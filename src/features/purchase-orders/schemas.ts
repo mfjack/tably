@@ -27,9 +27,8 @@ export const receivePurchaseOrderFormSchema = z.object({
     }),
   ),
   paymentDueDate: z
-    .string()
-    .regex(/^(\d{4}-\d{2}-\d{2})?$/, "Data inválida.")
-    .optional(),
+    .string({ error: "Informe a data de pagamento." })
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Informe a data de pagamento."),
 });
 
 export type ReceivePurchaseOrderFormInput = z.infer<

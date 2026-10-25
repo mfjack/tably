@@ -23,6 +23,7 @@ import { createClient } from "@/lib/supabase/server";
 import { canChangeMeasureUnit } from "./measure-units";
 import {
   type IngredientFormInput,
+  ingredientCreateFormSchema,
   ingredientFormSchema,
   type StockEntryFormInput,
   stockEntryFormSchema,
@@ -85,7 +86,7 @@ export async function createIngredient(
   if (!(await hasModuleAccess(organizationId, "ingredients"))) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }
-  const parsedInput = ingredientFormSchema.safeParse(input);
+  const parsedInput = ingredientCreateFormSchema.safeParse(input);
   if (!parsedInput.success) return actionFailure(INVALID_FORM_MESSAGE);
 
   const {

@@ -127,7 +127,6 @@ export function StockEntryDialog({
           control={form.control}
           name="paymentDueDate"
           label="Data de pagamento"
-          description="Com data, a compra entra como conta a pagar no financeiro. Deixe em branco se já pagou."
         />
         <DateField
           control={form.control}

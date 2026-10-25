@@ -3,6 +3,7 @@
 import { ClipboardList } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { ItemNoteDialog } from "@/components/item-note-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useOpenCashSessionQuery } from "@/features/cash-register/hooks/use-open-cash-session-query";
@@ -219,6 +220,12 @@ export function PosView({
   const handleAddProduct = useCallback(
     (productId: ProductId) => {
       const product = posProducts.find(({ id }) => id === productId);
+      if (product && product.expiredIngredientNames.length > 0) {
+        toast.error(`${product.name} usa insumo vencido.`, {
+          description: product.expiredIngredientNames.join(", "),
+        });
+        return;
+      }
       if (
         checkoutSettings.isProductAddonsEnabled &&
         product?.addons.some((addon) => addon.isActive)

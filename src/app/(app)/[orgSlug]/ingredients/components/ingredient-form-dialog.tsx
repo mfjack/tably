@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { type DefaultValues, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { FormDialog } from "@/components/dialog/form-dialog";
@@ -20,6 +20,7 @@ import {
 } from "@/features/ingredients/measure-units";
 import {
   type IngredientFormInput,
+  ingredientCreateFormSchema,
   ingredientFormSchema,
 } from "@/features/ingredients/schemas";
 import type { Ingredient } from "@/features/ingredients/types";
@@ -69,8 +70,15 @@ export function IngredientFormDialog({
     organizationId,
     isOpen,
   );
+  const isEditingRef = useRef(Boolean(ingredient));
+  isEditingRef.current = Boolean(ingredient);
   const form = useForm<IngredientFormInput>({
-    resolver: zodResolver(ingredientFormSchema),
+    resolver: (values, context, options) =>
+      zodResolver(
+        isEditingRef.current
+          ? ingredientFormSchema
+          : ingredientCreateFormSchema,
+      )(values, context, options),
     defaultValues: EMPTY_INGREDIENT_FORM,
   });
   const selectedUnit = useWatch({ control: form.control, name: "unit" });
@@ -193,7 +201,6 @@ export function IngredientFormDialog({
               control={form.control}
               name="paymentDueDate"
               label="Data de pagamento"
-              description="Com data, a compra entra como conta a pagar no financeiro. Deixe em branco se já pagou."
             />
           )}
           <SelectField
