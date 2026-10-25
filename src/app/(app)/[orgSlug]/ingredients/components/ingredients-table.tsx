@@ -3,10 +3,13 @@
 import { type ReactNode, useMemo, useState } from "react";
 import { DataTable } from "@/components/data-table/data-table";
 import { createDataTableColumnHelper } from "@/components/data-table/data-table-features";
+import {
+  DataTableFilterTabs,
+  getCountedFilterOptions,
+} from "@/components/data-table/data-table-filter-tabs";
 import { ALERT_ROW_CLASS_NAME } from "@/components/data-table/data-table-row-styles";
 import { useDataTable } from "@/components/data-table/use-data-table";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getUnitSymbol } from "@/features/ingredients/measure-units";
 import type { Ingredient } from "@/features/ingredients/types";
 import { getExpiryStatus } from "@/lib/expiry";
@@ -27,10 +30,6 @@ const EXPIRY_FILTERS = [
 ] as const;
 
 type ExpiryFilter = (typeof EXPIRY_FILTERS)[number]["value"];
-
-function isExpiryFilter(value: string): value is ExpiryFilter {
-  return EXPIRY_FILTERS.some((filter) => filter.value === value);
-}
 
 function matchesExpiryFilter(ingredient: Ingredient, filter: ExpiryFilter) {
   return (
@@ -197,34 +196,16 @@ export function IngredientsTable({
       emptyState={emptyState}
       toolbarActions={
         hasExpiryAlerts && (
-          <Tabs
+          <DataTableFilterTabs
+            label="Filtrar por validade"
+            options={getCountedFilterOptions(
+              EXPIRY_FILTERS,
+              expiryCounts,
+              "all",
+            )}
             value={activeExpiryFilter}
-            onValueChange={(value: string) => {
-              if (isExpiryFilter(value)) setExpiryFilter(value);
-            }}
-          >
-            <TabsList
-              aria-label="Filtrar por validade"
-              className="group-data-horizontal/tabs:h-10"
-            >
-              {EXPIRY_FILTERS.filter(
-                (filter) => expiryCounts[filter.value] > 0,
-              ).map((filter) => (
-                <TabsTrigger
-                  key={filter.value}
-                  value={filter.value}
-                  className="px-4"
-                >
-                  {filter.label}
-                  {filter.value !== "all" && (
-                    <span className="text-muted-foreground tabular-nums">
-                      {expiryCounts[filter.value]}
-                    </span>
-                  )}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
+            onValueChange={setExpiryFilter}
+          />
         )
       }
     />
