@@ -77,7 +77,7 @@ export function getPurchasableItems(
             unit: "unit",
             currentStock: product.stockQuantity,
             minimumStock: product.minimumStock,
-            supplierId: null,
+            supplierId: product.supplierId,
           },
         ],
   );

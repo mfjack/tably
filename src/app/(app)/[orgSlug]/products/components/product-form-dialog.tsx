@@ -26,6 +26,11 @@ import {
   productFormSchema,
 } from "@/features/products/schemas";
 import type { Product } from "@/features/products/types";
+import { useSupplierOptions } from "@/features/suppliers/hooks/use-supplier-options";
+import {
+  NONE_SELECT_VALUE,
+  toSelectFieldValue,
+} from "@/lib/optional-select-value";
 import { ProductAddonsField } from "./product-addons-field";
 import { ProductImagePicker } from "./product-image-picker";
 import { ProductPricingSummary } from "./product-pricing-summary";
@@ -40,6 +45,7 @@ const EMPTY_PRODUCT_FORM: DefaultValues<ProductFormInput> = {
   recipe: [],
   addonIds: [],
   isStockTracked: false,
+  supplierId: NONE_SELECT_VALUE,
 };
 
 function toFormValues(product: Product): DefaultValues<ProductFormInput> {
@@ -56,6 +62,7 @@ function toFormValues(product: Product): DefaultValues<ProductFormInput> {
     isStockTracked: product.stockQuantity !== null,
     stockQuantity: product.stockQuantity ?? undefined,
     minimumStock: product.minimumStock || undefined,
+    supplierId: toSelectFieldValue(product.supplierId),
   };
 }
 
@@ -77,6 +84,10 @@ export function ProductFormDialog({
   const saveProductMutation = useSaveProductMutation(organizationId);
   const categoriesQuery = useCategoriesQuery(organizationId);
   const { ingredients, ingredientsById } = useIngredientsMap(organizationId);
+  const { supplierOptions, hasSuppliers } = useSupplierOptions(
+    organizationId,
+    isOpen,
+  );
   const form = useForm<ProductFormInput>({
     resolver: zodResolver(productFormSchema),
     defaultValues: EMPTY_PRODUCT_FORM,
@@ -196,7 +207,17 @@ export function ProductFormDialog({
               format="integer"
               suffix="un"
               placeholder="Ex.: 3"
-              description="Abaixo disso, aparece como estoque baixo."
+            />
+            <SelectField
+              control={form.control}
+              name="supplierId"
+              label="Fornecedor"
+              options={supplierOptions}
+              description={
+                hasSuppliers
+                  ? undefined
+                  : "Cadastre fornecedores no módulo Fornecedores para vinculá-los."
+              }
             />
           </div>
         )}

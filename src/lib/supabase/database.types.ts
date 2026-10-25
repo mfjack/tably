@@ -2376,6 +2376,7 @@ export type Database = {
           organization_id: string
           price: number
           stock_quantity: number | null
+          supplier_id: string | null
           updated_at: string
         }
         Insert: {
@@ -2391,6 +2392,7 @@ export type Database = {
           organization_id: string
           price: number
           stock_quantity?: number | null
+          supplier_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -2406,6 +2408,7 @@ export type Database = {
           organization_id?: string
           price?: number
           stock_quantity?: number | null
+          supplier_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -2422,6 +2425,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_supplier_id_organization_id_fkey"
+            columns: ["supplier_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_purchase_summaries"
+            referencedColumns: ["supplier_id", "organization_id"]
+          },
+          {
+            foreignKeyName: "products_supplier_id_organization_id_fkey"
+            columns: ["supplier_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id", "organization_id"]
           },
         ]
       }

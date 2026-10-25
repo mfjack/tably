@@ -13,7 +13,7 @@ import { FreightCostField } from "@/features/ingredients/components/freight-cost
 import type { OrganizationId } from "@/features/organizations/types";
 import { useSupplierOptions } from "@/features/suppliers/hooks/use-supplier-options";
 import { formatQuantity } from "@/lib/format";
-import { NONE_SELECT_VALUE } from "@/lib/optional-select-value";
+import { toSelectFieldValue } from "@/lib/optional-select-value";
 import { useAddProductStockMutation } from "../hooks/use-add-product-stock-mutation";
 import {
   type ProductStockEntryInput,
@@ -25,7 +25,7 @@ type ProductStockEntryDialogProps = {
   organizationId: OrganizationId;
   product: Pick<
     Product,
-    "id" | "name" | "stockQuantity" | "minimumStock"
+    "id" | "name" | "stockQuantity" | "minimumStock" | "supplierId"
   > | null;
   onClose: () => void;
 };
@@ -51,7 +51,7 @@ export function ProductStockEntryDialog({
     form.reset({
       paymentDate: "",
       minimumStock: product.minimumStock || undefined,
-      supplierId: NONE_SELECT_VALUE,
+      supplierId: toSelectFieldValue(product.supplierId),
     } satisfies DefaultValues<ProductStockEntryInput>);
     addStockMutation.reset();
   }, [product, form, addStockMutation.reset]);

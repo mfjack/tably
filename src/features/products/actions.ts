@@ -29,7 +29,7 @@ import {
 import type { Product, ProductId } from "./types";
 
 const PRODUCT_COLUMNS =
-  "id, name, price, image_url, is_active, is_on_menu, menu_detail, stock_quantity, minimum_stock, category_id, categories(name), product_ingredients(ingredient_id, quantity), product_addon_links(product_addons(id, name, price, is_active, ingredient_id, ingredient_quantity))";
+  "id, name, price, image_url, is_active, is_on_menu, menu_detail, stock_quantity, minimum_stock, supplier_id, category_id, categories(name), product_ingredients(ingredient_id, quantity), product_addon_links(product_addons(id, name, price, is_active, ingredient_id, ingredient_quantity))";
 
 export async function listProducts(
   organizationId: OrganizationId,
@@ -72,6 +72,7 @@ export async function listProducts(
       menuDetail: product.menu_detail,
       stockQuantity: product.stock_quantity,
       minimumStock: product.minimum_stock,
+      supplierId: product.supplier_id as SupplierId | null,
       recipe: product.product_ingredients.map((recipeItem) => ({
         ingredientId: recipeItem.ingredient_id as IngredientId,
         quantity: recipeItem.quantity,
@@ -119,6 +120,7 @@ export async function saveProduct(
     isStockTracked,
     stockQuantity,
     minimumStock,
+    supplierId,
   } = parsedInput.data;
   const supabase = await createClient();
   const { data: savedProductId, error } = await supabase.rpc("save_product", {
@@ -159,6 +161,9 @@ export async function saveProduct(
       menu_detail: menuDetail || null,
       stock_quantity: isStockTracked ? (stockQuantity ?? 0) : null,
       minimum_stock: isStockTracked ? (minimumStock ?? 0) : 0,
+      supplier_id: isStockTracked
+        ? (fromSelectFieldValue<SupplierId>(supplierId) ?? null)
+        : null,
     })
     .eq("id", savedProductId)
     .eq("organization_id", organizationId);
