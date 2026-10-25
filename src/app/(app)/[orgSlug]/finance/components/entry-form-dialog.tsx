@@ -1,13 +1,12 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { type DefaultValues, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { FormDialog } from "@/components/dialog/form-dialog";
 import { DateField } from "@/components/form/date-field";
 import { FilePickerField } from "@/components/form/file-picker-field";
-import { MaskedField } from "@/components/form/masked-field";
 import { NumberField } from "@/components/form/number-field";
 import { SelectField } from "@/components/form/select-field";
 import { SwitchField } from "@/components/form/switch-field";
@@ -16,7 +15,6 @@ import { TextareaField } from "@/components/form/textarea-field";
 import { FieldGroup, FieldSeparator } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { parseBoleto } from "@/features/finance/boleto";
 import { MAX_FINANCIAL_DOCUMENT_SIZE_IN_MEGABYTES } from "@/features/finance/documents";
 import { useAddFinancialEntryAttachmentsMutation } from "@/features/finance/hooks/use-add-financial-entry-attachments-mutation";
 import { useCreateFinancialEntryMutation } from "@/features/finance/hooks/use-create-financial-entry-mutation";
@@ -39,11 +37,12 @@ import type {
 } from "@/features/finance/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import { useSupplierOptions } from "@/features/suppliers/hooks/use-supplier-options";
-import { formatCurrency, formatDateKey } from "@/lib/format";
+import { formatCurrency } from "@/lib/format";
 import {
   NONE_SELECT_VALUE,
   toSelectFieldValue,
 } from "@/lib/optional-select-value";
+import { cn } from "@/lib/utils";
 
 const REPEAT_OPTIONS = [
   { value: "none", label: "Não repete" },
@@ -54,8 +53,6 @@ const REPEAT_OPTIONS = [
 const FREQUENCY_OPTIONS = Object.entries(RECURRENCE_FREQUENCY_LABELS).map(
   ([value, label]) => ({ value, label }),
 );
-
-const BOLETO_LENGTHS = new Set([47, 48]);
 
 export type EntryFormState =
   | { mode: "closed" }
@@ -81,7 +78,6 @@ function getEmptyValues(
     dueDate: kind === "income" ? today : "",
     categoryId: NONE_SELECT_VALUE,
     supplierId: NONE_SELECT_VALUE,
-    digitableLine: "",
     notes: "",
     repeat: "none",
     installmentCount: undefined,
@@ -100,7 +96,6 @@ function toFormValues(entry: FinancialEntry): DefaultValues<EntryInput> {
     dueDate: entry.dueDate,
     categoryId: toSelectFieldValue(entry.categoryId),
     supplierId: toSelectFieldValue(entry.supplierId),
-    digitableLine: entry.digitableLine ?? "",
     notes: entry.notes ?? "",
     repeat: "none",
     installmentCount: entry.installmentCount ?? undefined,
@@ -142,11 +137,10 @@ export function EntryFormDialog({
     resolver: zodResolver(entrySchema),
     defaultValues: getEmptyValues("expense", today),
   });
-  const [repeat, isPaid, digitableLine, amount, installmentCount] = useWatch({
+  const [repeat, isPaid, amount, installmentCount] = useWatch({
     control: form.control,
-    name: ["repeat", "isPaid", "digitableLine", "amount", "installmentCount"],
+    name: ["repeat", "isPaid", "amount", "installmentCount"],
   });
-  const lastParsedLineRef = useRef("");
 
   const categoryOptions = useMemo(
     () => [
@@ -169,8 +163,6 @@ export function EntryFormDialog({
         ? toFormValues(state.entry)
         : getEmptyValues(state.kind, today),
     );
-    lastParsedLineRef.current =
-      state.mode === "edit" ? (state.entry.digitableLine ?? "") : "";
     setScope("single");
     setFiles([]);
     setFileError(null);
@@ -185,33 +177,6 @@ export function EntryFormDialog({
     updateMutation.reset,
     uploadMutation.reset,
   ]);
-
-  useEffect(() => {
-    if (!digitableLine || !BOLETO_LENGTHS.has(digitableLine.length)) return;
-    if (digitableLine === lastParsedLineRef.current) return;
-    lastParsedLineRef.current = digitableLine;
-
-    const result = parseBoleto(digitableLine, today);
-    if (result.status === "invalid") {
-      form.setError("digitableLine", { message: result.message });
-      return;
-    }
-    form.clearErrors("digitableLine");
-    const { amount: boletoAmount, dueDate } = result.boleto;
-    if (boletoAmount !== null) {
-      form.setValue("amount", boletoAmount, { shouldValidate: true });
-    }
-    if (dueDate !== null) {
-      form.setValue("dueDate", dueDate, { shouldValidate: true });
-    }
-    const filled = [
-      boletoAmount !== null ? formatCurrency(boletoAmount) : null,
-      dueDate !== null ? `vencimento ${formatDateKey(dueDate)}` : null,
-    ].filter((detail) => detail !== null);
-    if (filled.length > 0) {
-      toast.success(`Lido do código: ${filled.join(", ")}.`);
-    }
-  }, [digitableLine, today, form]);
 
   const isSubmitting =
     createMutation.isPending ||
@@ -282,6 +247,7 @@ export function EntryFormDialog({
       maxSizeInMegabytes={MAX_FINANCIAL_DOCUMENT_SIZE_IN_MEGABYTES}
       isLabelVisible
       isMultiple
+      isCompact
       onFilesChange={(selectedFiles, error) => {
         setFiles(selectedFiles);
         setFileError(error);
@@ -305,32 +271,22 @@ export function EntryFormDialog({
       size="large"
     >
       <FieldGroup>
-        {kind === "expense" && (
-          <>
-            <MaskedField
+        <div className="grid items-start gap-5 sm:grid-cols-2">
+          <div className={cn(editingEntry && "sm:col-span-2")}>
+            <TextField
               control={form.control}
-              name="digitableLine"
-              label="Código do boleto (opcional)"
-              mask="boleto"
-              placeholder="Cole ou digite os números"
+              name="description"
+              label="Descrição"
+              placeholder={
+                kind === "expense"
+                  ? "Ex.: Aluguel da loja"
+                  : "Ex.: Evento particular"
+              }
               autoComplete="off"
             />
-            {filePicker}
-            <FieldSeparator />
-          </>
-        )}
-
-        <TextField
-          control={form.control}
-          name="description"
-          label="Descrição"
-          placeholder={
-            kind === "expense"
-              ? "Ex.: Aluguel da loja"
-              : "Ex.: Evento particular"
-          }
-          autoComplete="off"
-        />
+          </div>
+          {filePicker}
+        </div>
         <div className="grid gap-5 sm:grid-cols-2">
           <NumberField
             control={form.control}
@@ -367,7 +323,6 @@ export function EntryFormDialog({
             />
           )}
         </div>
-        {kind === "income" && filePicker}
 
         {!editingEntry && kind === "expense" && (
           <>
@@ -389,39 +344,43 @@ export function EntryFormDialog({
                     : "Marca só o primeiro vencimento."
                 }
               />
-              {repeat === "installments" && (
-                <NumberField
-                  control={form.control}
-                  name="installmentCount"
-                  label="Número de parcelas"
-                  format="integer"
-                  placeholder="Ex.: 10"
-                />
-              )}
-              {repeat === "recurring" && (
-                <SelectField
-                  control={form.control}
-                  name="frequency"
-                  label="Frequência"
-                  options={FREQUENCY_OPTIONS}
-                />
-              )}
-              {repeat === "recurring" && (
-                <DateField
-                  control={form.control}
-                  name="endDate"
-                  label="Até (opcional)"
-                  description="Vazio: repete sem data para acabar."
-                />
-              )}
-              {isPaid && (
-                <DateField
-                  control={form.control}
-                  name="paidAt"
-                  label="Data do pagamento"
-                />
-              )}
             </div>
+            {(repeat !== "none" || isPaid) && (
+              <div className="grid items-start gap-5 sm:grid-cols-2">
+                {repeat === "installments" && (
+                  <NumberField
+                    control={form.control}
+                    name="installmentCount"
+                    label="Número de parcelas"
+                    format="integer"
+                    placeholder="Ex.: 10"
+                  />
+                )}
+                {repeat === "recurring" && (
+                  <SelectField
+                    control={form.control}
+                    name="frequency"
+                    label="Frequência"
+                    options={FREQUENCY_OPTIONS}
+                  />
+                )}
+                {repeat === "recurring" && (
+                  <DateField
+                    control={form.control}
+                    name="endDate"
+                    label="Até (opcional)"
+                    description="Vazio: repete sem data para acabar."
+                  />
+                )}
+                {isPaid && (
+                  <DateField
+                    control={form.control}
+                    name="paidAt"
+                    label="Data do pagamento"
+                  />
+                )}
+              </div>
+            )}
             {repeat === "installments" && amount && installmentCount ? (
               <p className="text-muted-foreground text-sm">
                 Total: {formatCurrency(amount * installmentCount)}

@@ -72,18 +72,6 @@ export function getEntryStatusLabel(
   }
 }
 
-export const ENTRY_SOURCE_LABELS = {
-  manual: "Manual",
-  sales: "Vendas",
-  sales_fee: "Taxa de vendas",
-  customer_payments: "Fiado recebido",
-  customer_payments_fee: "Taxa do fiado",
-  stock_purchase: "Compra de insumo",
-  payroll_salary: "Folha",
-  payroll_fgts: "Folha",
-  payroll_taxes: "Folha",
-} as const satisfies Record<FinancialEntrySource, string>;
-
 const EDITABLE_ENTRY_SOURCES: readonly FinancialEntrySource[] = [
   "manual",
   "stock_purchase",

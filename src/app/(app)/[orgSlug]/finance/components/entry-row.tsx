@@ -2,8 +2,8 @@
 
 import {
   Copy,
+  MessageSquareText,
   MoreHorizontal,
-  PackageOpen,
   Paperclip,
   Pencil,
   Repeat,
@@ -24,7 +24,6 @@ import {
 import { useOpenFinancialAttachment } from "@/features/finance/hooks/use-open-financial-attachment";
 import { useUndoFinancialEntryPaymentMutation } from "@/features/finance/hooks/use-undo-financial-entry-payment-mutation";
 import {
-  ENTRY_SOURCE_LABELS,
   getEntryStatus,
   getEntryStatusLabel,
   isEditableEntrySource,
@@ -72,7 +71,6 @@ export function EntryRow({
 }: EntryRowProps) {
   const status = getEntryStatus(entry, today);
   const isExpense = entry.kind === "expense";
-  const isAutomatic = entry.source !== "manual";
   const isEditable = isEditableEntrySource(entry.source);
   const [isAttachmentsOpen, setIsAttachmentsOpen] = useState(false);
   const attachmentCount = entry.attachments.length;
@@ -96,7 +94,20 @@ export function EntryRow({
   }
 
   return (
-    <li className="grid grid-cols-[auto_minmax(0,1fr)_auto_auto] items-start gap-x-3 gap-y-2 px-4 py-3 sm:grid-cols-[auto_minmax(0,1fr)_auto_auto_auto] sm:items-center sm:gap-x-4">
+    <li
+      className={cn(
+        "relative grid grid-cols-[auto_minmax(0,1fr)_auto_auto] items-start gap-x-3 gap-y-2 px-4 py-3 sm:grid-cols-[auto_minmax(0,1fr)_auto_auto_auto] sm:items-center sm:gap-x-4",
+        isEditable && "transition-colors hover:bg-muted/40",
+      )}
+    >
+      {isEditable && (
+        <button
+          type="button"
+          aria-label={`Editar ${entry.description}`}
+          className="absolute inset-0 outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-inset"
+          onClick={() => onEdit(entry)}
+        />
+      )}
       <div
         className={cn(
           "col-start-1 row-start-1 flex h-12 min-w-12 flex-col items-center justify-center gap-0.5 self-center rounded-lg px-1.5 text-center",
@@ -119,12 +130,6 @@ export function EntryRow({
       <div className="col-start-2 row-start-1 flex min-w-0 flex-col gap-1">
         <span className="truncate font-medium">{entry.description}</span>
         <div className="flex flex-wrap items-center gap-1.5 text-muted-foreground text-xs">
-          {isAutomatic && (
-            <Badge variant="secondary">
-              <PackageOpen aria-hidden />
-              {ENTRY_SOURCE_LABELS[entry.source]}
-            </Badge>
-          )}
           {entry.installmentNumber && entry.installmentCount && (
             <Badge variant="outline">
               Parcela {entry.installmentNumber}/{entry.installmentCount}
@@ -140,6 +145,17 @@ export function EntryRow({
             .filter((detail) => detail !== null)
             .join(" · ")}
         </div>
+        {entry.notes && (
+          <p className="relative flex items-start gap-1 text-muted-foreground text-xs">
+            <MessageSquareText
+              aria-hidden
+              className="mt-px size-3.5 shrink-0"
+            />
+            <span className="line-clamp-2 select-text whitespace-pre-line">
+              {entry.notes}
+            </span>
+          </p>
+        )}
         {entry.paidAt && (
           <span className="text-muted-foreground text-xs">
             {isExpense ? "Paga" : "Recebida"} em {formatDateKey(entry.paidAt)}
@@ -166,7 +182,7 @@ export function EntryRow({
       </div>
 
       {(!entry.paidAt || firstAttachment) && (
-        <div className="col-span-3 col-start-2 row-start-2 flex justify-end gap-2 sm:col-span-1 sm:col-start-4 sm:row-start-1">
+        <div className="relative col-span-3 col-start-2 row-start-2 flex justify-end gap-2 sm:col-span-1 sm:col-start-4 sm:row-start-1">
           {firstAttachment && (
             <Button
               variant="secondary"
@@ -191,7 +207,7 @@ export function EntryRow({
         </div>
       )}
 
-      <div className="col-start-4 row-start-1 sm:col-start-5">
+      <div className="relative col-start-4 row-start-1 sm:col-start-5">
         <DropdownMenu>
           <DropdownMenuTrigger
             render={

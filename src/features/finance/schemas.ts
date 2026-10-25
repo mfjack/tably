@@ -47,12 +47,6 @@ export const entrySchema = z
     dueDate: dateSchema("Informe o vencimento."),
     categoryId: z.string().optional(),
     supplierId: z.string().optional(),
-    digitableLine: z
-      .string()
-      .refine(
-        (line) => line === "" || /^\d{47,48}$/.test(line),
-        "Código incompleto.",
-      ),
     notes: z.string().trim().max(300, "Observação muito longa."),
     repeat: z.enum(ENTRY_REPEAT_OPTIONS),
     installmentCount: z

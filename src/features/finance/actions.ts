@@ -295,7 +295,6 @@ export async function createFinancialEntry(
           installment_group_id: installmentGroupId,
           installment_number: index + 1,
           installment_count: entry.installmentCount,
-          barcode: index === 0 ? entry.digitableLine || null : null,
         })),
       )
       .select("id, installment_number");
@@ -317,7 +316,6 @@ export async function createFinancialEntry(
       ...payment,
       organization_id: organizationId,
       due_date: entry.dueDate,
-      barcode: entry.digitableLine || null,
     })
     .select("id")
     .single();
@@ -373,7 +371,6 @@ export async function updateFinancialEntry(
     .update({
       ...values,
       due_date: entry.dueDate,
-      barcode: entry.digitableLine || null,
     })
     .eq("id", entryId)
     .eq("organization_id", organizationId);

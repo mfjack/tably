@@ -17,6 +17,7 @@ type FilePickerFieldProps = {
   maxSizeInMegabytes: number;
   isLabelVisible?: boolean;
   isMultiple?: boolean;
+  isCompact?: boolean;
   onFilesChange: (files: File[], error: string | null) => void;
 };
 
@@ -35,6 +36,7 @@ export function FilePickerField({
   maxSizeInMegabytes,
   isLabelVisible = false,
   isMultiple = false,
+  isCompact = false,
   onFilesChange,
 }: FilePickerFieldProps) {
   const inputId = useId();
@@ -67,10 +69,14 @@ export function FilePickerField({
   }
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className={cn("flex flex-col", isCompact ? "gap-2" : "gap-1.5")}>
       <label
         htmlFor={inputId}
-        className={cn("font-medium text-sm", !isLabelVisible && "sr-only")}
+        className={cn(
+          "font-medium text-sm",
+          isCompact && "flex h-5 items-center",
+          !isLabelVisible && "sr-only",
+        )}
       >
         {label}
       </label>
@@ -86,21 +92,31 @@ export function FilePickerField({
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
+        title={`PDF, JPG, PNG ou WEBP de até ${maxSizeInMegabytes} MB`}
         className={cn(
-          "flex items-center gap-3 rounded-xl border border-dashed p-4 text-left transition-colors hover:bg-muted/50",
+          "flex items-center gap-3 border border-dashed text-left transition-colors hover:bg-muted/50",
+          isCompact ? "h-12 rounded-lg px-4" : "rounded-xl p-4",
           error && "border-destructive",
         )}
       >
-        <FileUp className="size-6 shrink-0 text-muted-foreground" aria-hidden />
+        <FileUp
+          className={cn(
+            "shrink-0 text-muted-foreground",
+            isCompact ? "size-5" : "size-6",
+          )}
+          aria-hidden
+        />
         <span className="flex min-w-0 flex-col">
           <span className="truncate font-medium text-sm">
             {getPickerTitle(files, isMultiple)}
           </span>
-          <span className="text-muted-foreground text-xs">
-            {singleFile
-              ? `${formatFileSize(singleFile.size)} · toque para trocar`
-              : `PDF, JPG, PNG ou WEBP de até ${maxSizeInMegabytes} MB. No celular, dá para tirar a foto na hora.`}
-          </span>
+          {!isCompact && (
+            <span className="text-muted-foreground text-xs">
+              {singleFile
+                ? `${formatFileSize(singleFile.size)} · toque para trocar`
+                : `PDF, JPG, PNG ou WEBP de até ${maxSizeInMegabytes} MB. No celular, dá para tirar a foto na hora.`}
+            </span>
+          )}
         </span>
       </button>
       {isMultiple && files.length > 0 && (

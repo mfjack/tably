@@ -8,7 +8,6 @@ import {
   CBO_PATTERN,
   CNPJ_PATTERN,
   CPF_PATTERN,
-  getBoletoPattern,
   getPhonePattern,
   onlyDigits,
   PIS_PATTERN,
@@ -25,7 +24,6 @@ const MASK_PRESETS = {
   phone: { getPattern: getPhonePattern, maxDigits: 11, inputMode: "tel" },
   pin: { getPattern: () => "####", maxDigits: 4, inputMode: "numeric" },
   cbo: { getPattern: () => CBO_PATTERN, maxDigits: 6, inputMode: "numeric" },
-  boleto: { getPattern: getBoletoPattern, maxDigits: 48, inputMode: "numeric" },
 } as const;
 
 type MaskedFieldProps<TFieldValues extends FieldValues> =

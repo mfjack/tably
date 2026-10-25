@@ -2,11 +2,6 @@ export const CNPJ_PATTERN = "##.###.###/####-##";
 export const CPF_PATTERN = "###.###.###-##";
 export const PIS_PATTERN = "###.#####.##-#";
 export const CBO_PATTERN = "####-##";
-const BANK_SLIP_PATTERN =
-  "#####.##### #####.###### #####.###### # ##############";
-const UTILITY_BILL_PATTERN =
-  "###########-# ###########-# ###########-# ###########-#";
-const UTILITY_BILL_PREFIX = "8";
 
 const LANDLINE_PHONE_PATTERN = "## ####-####";
 const MOBILE_PHONE_PATTERN = "## #####-####";
@@ -79,12 +74,6 @@ export function isValidCnpj(digits: string): boolean {
 
 export function formatCpf(digits: string): string {
   return applyDigitPattern(digits, CPF_PATTERN);
-}
-
-export function getBoletoPattern(digits: string): string {
-  return digits.startsWith(UTILITY_BILL_PREFIX)
-    ? UTILITY_BILL_PATTERN
-    : BANK_SLIP_PATTERN;
 }
 
 export function formatCbo(digits: string): string {
