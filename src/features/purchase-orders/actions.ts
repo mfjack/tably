@@ -2,6 +2,7 @@
 
 import type { IngredientId } from "@/features/ingredients/types";
 import type { OrganizationId } from "@/features/organizations/types";
+import type { ProductId } from "@/features/products/types";
 import type { SupplierId } from "@/features/suppliers/types";
 import {
   hasModuleAccess,
@@ -16,11 +17,19 @@ import {
 } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
 import {
+  getPurchasableItemKey,
+  toItemReferenceColumns,
+} from "./item-reference";
+import {
   type CreatePurchaseOrderInput,
   createPurchaseOrderSchema,
   type ReceivePurchaseOrderInput,
 } from "./schemas";
-import type { PurchaseOrder, PurchaseOrderId } from "./types";
+import type {
+  PurchaseOrder,
+  PurchaseOrderId,
+  PurchaseOrderItem,
+} from "./types";
 
 const PENDING_ORDERS_LIMIT = 100;
 
@@ -34,7 +43,7 @@ export async function listPendingPurchaseOrders(
   const { data, error } = await supabase
     .from("purchase_orders")
     .select(
-      "id, supplier_id, created_at, created_by_name, supplier:suppliers(name), purchase_order_items(ingredient_id, quantity, ingredient:ingredients(name, unit, unit_cost))",
+      "id, supplier_id, created_at, created_by_name, supplier:suppliers(name), purchase_order_items(ingredient_id, product_id, quantity, ingredient:ingredients(name, unit, unit_cost), product:products(name))",
     )
     .eq("organization_id", organizationId)
     .eq("status", "pending")
@@ -52,21 +61,37 @@ export async function listPendingPurchaseOrders(
       createdAt: order.created_at,
       createdByName: order.created_by_name,
       items: order.purchase_order_items
-        .flatMap((item) =>
-          item.ingredient
-            ? [
-                {
-                  ingredientId: item.ingredient_id as IngredientId,
-                  ingredientName: item.ingredient.name,
-                  unit: item.ingredient.unit,
-                  quantity: item.quantity,
-                  unitCost: item.ingredient.unit_cost,
-                },
-              ]
-            : [],
-        )
+        .flatMap((item): PurchaseOrderItem[] => {
+          if (item.ingredient_id && item.ingredient) {
+            return [
+              {
+                kind: "ingredient",
+                id: item.ingredient_id as IngredientId,
+                key: getPurchasableItemKey("ingredient", item.ingredient_id),
+                name: item.ingredient.name,
+                unit: item.ingredient.unit,
+                quantity: item.quantity,
+                unitCost: item.ingredient.unit_cost,
+              },
+            ];
+          }
+          if (item.product_id && item.product) {
+            return [
+              {
+                kind: "product",
+                id: item.product_id as ProductId,
+                key: getPurchasableItemKey("product", item.product_id),
+                name: item.product.name,
+                unit: "unit",
+                quantity: item.quantity,
+                unitCost: 0,
+              },
+            ];
+          }
+          return [];
+        })
         .sort((first, second) =>
-          first.ingredientName.localeCompare(second.ingredientName, "pt-BR"),
+          first.name.localeCompare(second.name, "pt-BR"),
         ),
     })),
   );
@@ -81,14 +106,14 @@ export async function createPurchaseOrder(
   }
   const parsedInput = createPurchaseOrderSchema.safeParse(input);
   if (!parsedInput.success) {
-    return actionFailure("Informe a quantidade de pelo menos um insumo.");
+    return actionFailure("Informe a quantidade de pelo menos um item.");
   }
 
   const supabase = await createClient();
   const { error } = await supabase.rpc("create_purchase_order", {
     p_organization_id: organizationId,
     p_items: parsedInput.data.items.map((item) => ({
-      ingredient_id: item.ingredientId,
+      ...toItemReferenceColumns(item.kind, item.id),
       quantity: item.quantity,
     })),
     p_supplier_id: parsedInput.data.supplierId ?? undefined,
@@ -109,14 +134,14 @@ export async function receivePurchaseOrder(
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }
   if (input.items.every((item) => item.quantity <= 0)) {
-    return actionFailure("Informe o que chegou de pelo menos um insumo.");
+    return actionFailure("Informe o que chegou de pelo menos um item.");
   }
 
   const supabase = await createClient();
   const { error } = await supabase.rpc("receive_purchase_order", {
     p_order_id: orderId,
     p_items: input.items.map((item) => ({
-      ingredient_id: item.ingredientId,
+      ...toItemReferenceColumns(item.kind, item.id),
       quantity: item.quantity,
       total_cost: item.totalCost,
     })),

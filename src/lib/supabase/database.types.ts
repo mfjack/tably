@@ -2509,25 +2509,31 @@ export type Database = {
       }
       purchase_order_items: {
         Row: {
-          ingredient_id: string
+          id: string
+          ingredient_id: string | null
           order_id: string
           organization_id: string
+          product_id: string | null
           quantity: number
           received_cost: number | null
           received_quantity: number | null
         }
         Insert: {
-          ingredient_id: string
+          id?: string
+          ingredient_id?: string | null
           order_id: string
           organization_id: string
+          product_id?: string | null
           quantity: number
           received_cost?: number | null
           received_quantity?: number | null
         }
         Update: {
-          ingredient_id?: string
+          id?: string
+          ingredient_id?: string | null
           order_id?: string
           organization_id?: string
+          product_id?: string | null
           quantity?: number
           received_cost?: number | null
           received_quantity?: number | null
@@ -2553,6 +2559,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_order_items_product_id_organization_id_fkey"
+            columns: ["product_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "product_costs"
+            referencedColumns: ["product_id", "organization_id"]
+          },
+          {
+            foreignKeyName: "purchase_order_items_product_id_organization_id_fkey"
+            columns: ["product_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id", "organization_id"]
           },
         ]
       }

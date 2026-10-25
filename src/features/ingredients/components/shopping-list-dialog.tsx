@@ -29,11 +29,12 @@ import {
   getInitialShoppingLines,
   getShoppingGroupKey,
   type OrderedItem,
+  type PurchasableItem,
   printShoppingList,
   type ShoppingLine,
   type ShoppingListGroup,
+  toShoppingLine,
 } from "@/features/ingredients/shopping-list";
-import type { Ingredient, IngredientId } from "@/features/ingredients/types";
 import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
 import type { OrganizationId } from "@/features/organizations/types";
 import { ReceivePurchaseOrderDialog } from "@/features/purchase-orders/components/receive-purchase-order-dialog";
@@ -60,7 +61,7 @@ type ShoppingListDialogProps = {
   organizationId: OrganizationId;
   isOpen: boolean;
   canManage: boolean;
-  ingredients: readonly Ingredient[];
+  items: readonly PurchasableItem[];
   suppliers: readonly Supplier[];
   business: OrderTicketBusiness;
   onClose: () => void;
@@ -75,7 +76,7 @@ function getOrderedItems(
   quantities: ShoppingListInput["quantities"],
 ): OrderedItem[] {
   return group.items.flatMap((item) => {
-    const quantity = quantities[item.ingredientId];
+    const quantity = quantities[item.key];
     return quantity && quantity > 0 ? [{ ...item, quantity }] : [];
   });
 }
@@ -90,7 +91,7 @@ function describeOrderItems(order: PurchaseOrder): string {
   return order.items
     .map(
       (item) =>
-        `${formatItemQuantity(item.quantity, item.unit)} de ${item.ingredientName}`,
+        `${formatItemQuantity(item.quantity, item.unit)} de ${item.name}`,
     )
     .join(" · ");
 }
@@ -99,7 +100,7 @@ export function ShoppingListDialog({
   organizationId,
   isOpen,
   canManage,
-  ingredients,
+  items,
   suppliers,
   business,
   onClose,
@@ -125,15 +126,15 @@ export function ShoppingListDialog({
     wasOpenRef.current = isOpen;
     if (!isOpening) return;
     setTab("buy");
-    setLines(getInitialShoppingLines(ingredients));
+    setLines(getInitialShoppingLines(items));
     form.reset({ quantities: {} });
-  }, [isOpen, ingredients, form]);
+  }, [isOpen, items, form]);
 
-  const pendingIngredientIds = useMemo(
+  const pendingItemKeys = useMemo(
     () =>
       new Set(
         (ordersQuery.data ?? []).flatMap((order) =>
-          order.items.map((item) => item.ingredientId),
+          order.items.map((item) => item.key),
         ),
       ),
     [ordersQuery.data],
@@ -141,11 +142,11 @@ export function ShoppingListDialog({
   const groups = useMemo(
     () =>
       buildShoppingList(
-        lines.filter((line) => !pendingIngredientIds.has(line.ingredientId)),
-        ingredients,
+        lines.filter((line) => !pendingItemKeys.has(line.itemKey)),
+        items,
         suppliers,
       ),
-    [lines, ingredients, suppliers, pendingIngredientIds],
+    [lines, items, suppliers, pendingItemKeys],
   );
   const orderedGroups = groups.map((group) => ({
     group,
@@ -155,17 +156,14 @@ export function ShoppingListDialog({
   const hasOrderedItems = orderedGroups.some(({ items }) => items.length > 0);
   const pendingOrders = ordersQuery.data ?? [];
 
-  const addableIngredientOptions = useMemo(() => {
-    const listedIds = new Set(lines.map((line) => line.ingredientId));
-    return ingredients
+  const addableItemOptions = useMemo(() => {
+    const listedKeys = new Set(lines.map((line) => line.itemKey));
+    return items
       .filter(
-        (ingredient) =>
-          !ingredient.isPrepared &&
-          !listedIds.has(ingredient.id) &&
-          !pendingIngredientIds.has(ingredient.id),
+        (item) => !listedKeys.has(item.key) && !pendingItemKeys.has(item.key),
       )
-      .map((ingredient) => ({ value: ingredient.id, label: ingredient.name }));
-  }, [ingredients, lines, pendingIngredientIds]);
+      .map((item) => ({ value: item.key, label: item.name }));
+  }, [items, lines, pendingItemKeys]);
 
   const supplierOptions = useMemo(
     () =>
@@ -176,26 +174,23 @@ export function ShoppingListDialog({
     [suppliers],
   );
 
-  function addIngredient(ingredientId: string) {
-    const ingredient = ingredients.find(({ id }) => id === ingredientId);
-    if (!ingredient) return;
-    setLines((currentLines) => [
-      ...currentLines,
-      { ingredientId: ingredient.id, supplierId: ingredient.supplierId },
-    ]);
+  function addItem(itemKey: string) {
+    const item = items.find(({ key }) => key === itemKey);
+    if (!item) return;
+    setLines((currentLines) => [...currentLines, toShoppingLine(item)]);
   }
 
-  function removeIngredient(ingredientId: IngredientId) {
+  function removeItem(itemKey: string) {
     setLines((currentLines) =>
-      currentLines.filter((line) => line.ingredientId !== ingredientId),
+      currentLines.filter((line) => line.itemKey !== itemKey),
     );
-    form.setValue(`quantities.${ingredientId}`, undefined);
+    form.setValue(`quantities.${itemKey}`, undefined);
   }
 
-  function assignSupplier(ingredientId: IngredientId, supplierId: string) {
+  function assignSupplier(itemKey: string, supplierId: string) {
     setLines((currentLines) =>
       currentLines.map((line) =>
-        line.ingredientId === ingredientId
+        line.itemKey === itemKey
           ? { ...line, supplierId: supplierId as SupplierId }
           : line,
       ),
@@ -204,14 +199,15 @@ export function ShoppingListDialog({
 
   function markAsOrdered(
     supplierId: SupplierId | null,
-    items: readonly OrderedItem[],
+    orderedItems: readonly OrderedItem[],
   ) {
-    if (items.length === 0) return;
+    if (orderedItems.length === 0) return;
     createOrderMutation.mutate(
       {
         supplierId,
-        items: items.map((item) => ({
-          ingredientId: item.ingredientId,
+        items: orderedItems.map((item) => ({
+          kind: item.kind,
+          id: item.id,
           quantity: item.quantity,
         })),
       },
@@ -303,23 +299,23 @@ export function ShoppingListDialog({
         {tab === "buy" ? (
           <>
             <p className="text-muted-foreground text-sm">
-              Já vêm os insumos no estoque mínimo ou abaixo dele. Digite quanto
-              pedir de cada um ou adicione outros insumos. Depois de pedir,
-              toque em Pedido feito: os itens saem daqui e vão para Aguardando
-              entrega.
+              Já vêm os insumos e produtos no estoque mínimo ou abaixo dele.
+              Digite quanto pedir de cada um ou adicione outros. Depois de
+              pedir, toque em Pedido feito: os itens saem daqui e vão para
+              Aguardando entrega.
             </p>
-            {addableIngredientOptions.length > 0 && (
+            {addableItemOptions.length > 0 && (
               <OptionSelect
-                label="Adicionar insumo ao pedido"
-                placeholder="Adicionar outro insumo"
-                options={addableIngredientOptions}
+                label="Adicionar item ao pedido"
+                placeholder="Adicionar outro insumo ou produto"
+                options={addableItemOptions}
                 value={null}
-                onValueChange={addIngredient}
+                onValueChange={addItem}
               />
             )}
             {groups.length === 0 ? (
               <p className="py-6 text-center text-muted-foreground text-sm">
-                Nenhum insumo abaixo do estoque mínimo. Adicione acima o que
+                Nenhum item abaixo do estoque mínimo. Adicione acima o que
                 quiser pedir.
               </p>
             ) : (
@@ -400,73 +396,78 @@ export function ShoppingListDialog({
                           item.currentStock <= item.minimumStock;
                         return (
                           <li
-                            key={item.ingredientId}
-                            className="grid grid-cols-[minmax(0,1fr)_7rem_auto] items-center gap-3 px-4 py-2.5"
+                            key={item.key}
+                            className="flex flex-col gap-2 px-4 py-2.5"
                           >
-                            <div className="flex min-w-0 flex-col gap-0.5">
-                              <span className="truncate font-medium text-sm">
-                                {item.name}
-                              </span>
-                              <span className="text-xs tabular-nums">
-                                <span
-                                  className={
-                                    isBelowMinimum
-                                      ? "font-medium text-destructive"
-                                      : "text-muted-foreground"
-                                  }
-                                >
-                                  {formatItemQuantity(
-                                    item.currentStock,
-                                    item.unit,
-                                  )}
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex min-w-0 flex-col gap-0.5">
+                                <span className="truncate font-medium text-sm">
+                                  {item.name}
                                 </span>
-                                <span className="text-muted-foreground">
-                                  {" "}
-                                  / mín.{" "}
-                                  {formatItemQuantity(
-                                    item.minimumStock,
-                                    item.unit,
-                                  )}
+                                <span className="text-xs tabular-nums">
+                                  <span
+                                    className={
+                                      isBelowMinimum
+                                        ? "font-medium text-destructive"
+                                        : "text-muted-foreground"
+                                    }
+                                  >
+                                    {formatItemQuantity(
+                                      item.currentStock,
+                                      item.unit,
+                                    )}
+                                  </span>
+                                  <span className="text-muted-foreground">
+                                    {" "}
+                                    / mín.{" "}
+                                    {formatItemQuantity(
+                                      item.minimumStock,
+                                      item.unit,
+                                    )}
+                                  </span>
                                 </span>
-                              </span>
+                              </div>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon-sm"
+                                className="shrink-0 text-muted-foreground hover:text-destructive"
+                                aria-label={`Tirar ${item.name} da lista`}
+                                onClick={() => removeItem(item.key)}
+                              >
+                                <X aria-hidden />
+                              </Button>
+                            </div>
+                            <div className="flex items-center gap-2">
                               {supplierOptions.length > 0 && (
                                 <OptionSelect
                                   label={`Fornecedor de ${item.name}`}
                                   placeholder="Escolher fornecedor"
                                   options={supplierOptions}
                                   value={group.supplier?.id ?? null}
-                                  className="mt-1 sm:max-w-xs"
+                                  className="h-9 min-w-0 flex-1 data-[size=default]:h-9"
                                   onValueChange={(supplierId) =>
-                                    assignSupplier(
-                                      item.ingredientId,
-                                      supplierId,
-                                    )
+                                    assignSupplier(item.key, supplierId)
                                   }
                                 />
                               )}
+                              <div className="ml-auto w-28 shrink-0">
+                                <NumberField
+                                  control={form.control}
+                                  name={`quantities.${item.key}`}
+                                  label={`Quantidade de ${item.name}`}
+                                  isLabelHidden
+                                  format={
+                                    item.kind === "product"
+                                      ? "integer"
+                                      : "quantity"
+                                  }
+                                  suffix={getUnitSymbol(item.unit)}
+                                  placeholder="Qtd."
+                                  size="dense"
+                                />
+                              </div>
                             </div>
-                            <NumberField
-                              control={form.control}
-                              name={`quantities.${item.ingredientId as IngredientId}`}
-                              label={`Quantidade de ${item.name}`}
-                              isLabelHidden
-                              format="quantity"
-                              suffix={getUnitSymbol(item.unit)}
-                              placeholder="Qtd."
-                              size="dense"
-                            />
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon-sm"
-                              className="text-muted-foreground hover:text-destructive"
-                              aria-label={`Tirar ${item.name} da lista`}
-                              onClick={() =>
-                                removeIngredient(item.ingredientId)
-                              }
-                            >
-                              <X aria-hidden />
-                            </Button>
                           </li>
                         );
                       })}

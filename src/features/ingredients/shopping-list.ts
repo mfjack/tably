@@ -5,18 +5,22 @@ import {
   type OrderTicketBusiness,
   TICKET_STYLES,
 } from "@/features/orders/print-order-ticket";
+import type { Product } from "@/features/products/types";
+import { getPurchasableItemKey } from "@/features/purchase-orders/item-reference";
+import type { PurchasableItemReference } from "@/features/purchase-orders/types";
 import type { SupplierId } from "@/features/suppliers/types";
 import { formatQuantity } from "@/lib/format";
 import { escapeHtml, printHtml } from "@/lib/print-html";
 import { getStockStatus, getUnitSymbol } from "./measure-units";
-import type { Ingredient, IngredientId, MeasureUnit } from "./types";
+import type { Ingredient, MeasureUnit } from "./types";
 
-export type ShoppingListItem = {
-  ingredientId: IngredientId;
+export type PurchasableItem = PurchasableItemReference & {
+  key: string;
   name: string;
   unit: MeasureUnit;
   currentStock: number;
   minimumStock: number;
+  supplierId: SupplierId | null;
 };
 
 export type ShoppingListSupplier = {
@@ -28,25 +32,60 @@ export type ShoppingListSupplier = {
 
 export type ShoppingListGroup = {
   supplier: ShoppingListSupplier | null;
-  items: ShoppingListItem[];
+  items: PurchasableItem[];
 };
 
-export type OrderedItem = ShoppingListItem & { quantity: number };
+export type OrderedItem = PurchasableItem & { quantity: number };
 
-export function isRunningLow(ingredient: Ingredient): boolean {
-  return getStockStatus(ingredient) !== "ok";
+export function isRunningLow(
+  item: Pick<Ingredient, "currentStock" | "minimumStock">,
+): boolean {
+  return getStockStatus(item) !== "ok";
 }
 
-export function needsPurchase(ingredient: Ingredient): boolean {
-  return (
-    !ingredient.isPrepared &&
-    ingredient.minimumStock > 0 &&
-    isRunningLow(ingredient)
+export function needsPurchase(item: PurchasableItem): boolean {
+  return item.minimumStock > 0 && isRunningLow(item);
+}
+
+export function getPurchasableItems(
+  ingredients: readonly Ingredient[],
+  products: readonly Product[],
+): PurchasableItem[] {
+  const purchasableIngredients = ingredients
+    .filter((ingredient) => !ingredient.isPrepared)
+    .map(
+      (ingredient): PurchasableItem => ({
+        kind: "ingredient",
+        id: ingredient.id,
+        key: getPurchasableItemKey("ingredient", ingredient.id),
+        name: ingredient.name,
+        unit: ingredient.unit,
+        currentStock: ingredient.currentStock,
+        minimumStock: ingredient.minimumStock,
+        supplierId: ingredient.supplierId,
+      }),
+    );
+  const purchasableProducts = products.flatMap((product): PurchasableItem[] =>
+    product.stockQuantity === null
+      ? []
+      : [
+          {
+            kind: "product",
+            id: product.id,
+            key: getPurchasableItemKey("product", product.id),
+            name: product.name,
+            unit: "unit",
+            currentStock: product.stockQuantity,
+            minimumStock: product.minimumStock,
+            supplierId: null,
+          },
+        ],
   );
+  return [...purchasableIngredients, ...purchasableProducts];
 }
 
 export type ShoppingLine = {
-  ingredientId: IngredientId;
+  itemKey: string;
   supplierId: SupplierId | null;
 };
 
@@ -56,43 +95,36 @@ export function getShoppingGroupKey(supplierId: SupplierId | null): string {
   return supplierId ?? NO_SUPPLIER_GROUP_KEY;
 }
 
+export function toShoppingLine(item: PurchasableItem): ShoppingLine {
+  return { itemKey: item.key, supplierId: item.supplierId };
+}
+
 export function getInitialShoppingLines(
-  ingredients: readonly Ingredient[],
+  items: readonly PurchasableItem[],
 ): ShoppingLine[] {
-  return ingredients.filter(needsPurchase).map((ingredient) => ({
-    ingredientId: ingredient.id,
-    supplierId: ingredient.supplierId,
-  }));
+  return items.filter(needsPurchase).map(toShoppingLine);
 }
 
 export function buildShoppingList(
   lines: readonly ShoppingLine[],
-  ingredients: readonly Ingredient[],
+  items: readonly PurchasableItem[],
   suppliers: readonly ShoppingListSupplier[],
 ): ShoppingListGroup[] {
-  const ingredientsById = new Map(
-    ingredients.map((ingredient) => [ingredient.id, ingredient]),
-  );
+  const itemsByKey = new Map(items.map((item) => [item.key, item]));
   const suppliersById = new Map(
     suppliers.map((supplier) => [supplier.id, supplier]),
   );
   const groups = new Map<string, ShoppingListGroup>();
 
   for (const line of lines) {
-    const ingredient = ingredientsById.get(line.ingredientId);
-    if (!ingredient) continue;
+    const item = itemsByKey.get(line.itemKey);
+    if (!item) continue;
     const supplier = line.supplierId
       ? (suppliersById.get(line.supplierId) ?? null)
       : null;
     const groupKey = getShoppingGroupKey(supplier?.id ?? null);
     const group = groups.get(groupKey) ?? { supplier, items: [] };
-    group.items.push({
-      ingredientId: ingredient.id,
-      name: ingredient.name,
-      unit: ingredient.unit,
-      currentStock: ingredient.currentStock,
-      minimumStock: ingredient.minimumStock,
-    });
+    group.items.push(item);
     groups.set(groupKey, group);
   }
 

@@ -50,11 +50,12 @@ type ReceiveItemFieldsProps = {
 function ReceiveItemFields({ control, index, item }: ReceiveItemFieldsProps) {
   const quantity = useWatch({ control, name: `items.${index}.quantity` });
   const unitSymbol = getUnitSymbol(item.unit);
+  const isProduct = item.kind === "product";
 
   return (
     <li className="flex flex-col gap-3 px-4 py-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <span className="font-medium text-sm">{item.ingredientName}</span>
+        <span className="font-medium text-sm">{item.name}</span>
         <span className="text-muted-foreground text-xs tabular-nums">
           Pedido: {formatItemQuantity(item.quantity, item.unit)}
         </span>
@@ -64,7 +65,7 @@ function ReceiveItemFields({ control, index, item }: ReceiveItemFieldsProps) {
           control={control}
           name={`items.${index}.quantity`}
           label="Chegou"
-          format="quantity"
+          format={isProduct ? "integer" : "quantity"}
           suffix={unitSymbol}
           placeholder="0 se não veio"
           size="compact"
@@ -74,7 +75,11 @@ function ReceiveItemFields({ control, index, item }: ReceiveItemFieldsProps) {
           name={`items.${index}.totalCost`}
           label="Valor pago"
           format="currency"
-          placeholder={`Estimado: ${formatCurrency(estimateCost(item, quantity ?? 0))}`}
+          placeholder={
+            isProduct
+              ? "Informe o valor"
+              : `Estimado: ${formatCurrency(estimateCost(item, quantity ?? 0))}`
+          }
           size="compact"
         />
       </div>
@@ -92,7 +97,7 @@ export function ReceivePurchaseOrderDialog({
     resolver: zodResolver(receivePurchaseOrderFormSchema),
     defaultValues: {
       items: order.items.map((item) => ({
-        ingredientId: item.ingredientId,
+        kind: item.kind,
         quantity: item.quantity,
         totalCost: undefined,
       })),
@@ -115,7 +120,8 @@ export function ReceivePurchaseOrderDialog({
           items: order.items.map((item, index) => {
             const quantity = values.items[index]?.quantity ?? 0;
             return {
-              ingredientId: item.ingredientId,
+              kind: item.kind,
+              id: item.id,
               quantity,
               totalCost: getItemCost(
                 item,
@@ -146,7 +152,7 @@ export function ReceivePurchaseOrderDialog({
       isOpen
       onOpenChange={(isDialogOpen) => !isDialogOpen && onClose()}
       title={`Receber pedido${order.supplierName ? ` · ${order.supplierName}` : ""}`}
-      description="Confira o que chegou. As quantidades já vêm do pedido; ajuste o que veio diferente. Sem valor pago, usamos o custo atual do insumo."
+      description="Confira o que chegou. As quantidades já vêm do pedido; ajuste o que veio diferente. Sem valor pago, usamos o custo atual do insumo; para produtos, o valor pago é obrigatório."
       submitLabel="Dar entrada"
       isSubmitting={receiveMutation.isPending}
       onSubmit={handleSubmit}
@@ -156,7 +162,7 @@ export function ReceivePurchaseOrderDialog({
         <ul className="flex flex-col divide-y rounded-xl border">
           {order.items.map((item, index) => (
             <ReceiveItemFields
-              key={item.ingredientId}
+              key={item.key}
               control={form.control}
               index={index}
               item={item}

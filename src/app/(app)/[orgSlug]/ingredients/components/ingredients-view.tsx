@@ -19,10 +19,15 @@ import {
 import { ShoppingListDialog } from "@/features/ingredients/components/shopping-list-dialog";
 import { StockEntryDialog } from "@/features/ingredients/components/stock-entry-dialog";
 import { useIngredientsQuery } from "@/features/ingredients/hooks/use-ingredients-query";
-import { needsPurchase } from "@/features/ingredients/shopping-list";
+import {
+  getPurchasableItems,
+  needsPurchase,
+} from "@/features/ingredients/shopping-list";
 import type { Ingredient } from "@/features/ingredients/types";
 import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
 import type { OrganizationId } from "@/features/organizations/types";
+import { useProductsQuery } from "@/features/products/hooks/use-products-query";
+import type { Product } from "@/features/products/types";
 import { useHasStockLossesQuery } from "@/features/stock-losses/hooks/use-has-stock-losses-query";
 import { useSuppliersQuery } from "@/features/suppliers/hooks/use-suppliers-query";
 import { ListEmptyState } from "../../components/list-empty-state";
@@ -39,6 +44,7 @@ import { StockLossFormDialog } from "./stock-loss-form-dialog";
 import { StockLossesDialog } from "./stock-losses-dialog";
 
 const EMPTY_INGREDIENTS: Ingredient[] = [];
+const EMPTY_PRODUCTS: Product[] = [];
 
 type IngredientFormState =
   | { mode: "closed" }
@@ -64,6 +70,7 @@ export function IngredientsView({
 }: IngredientsViewProps) {
   const ingredientsQuery = useIngredientsQuery(organizationId);
   const suppliersQuery = useSuppliersQuery(organizationId);
+  const productsQuery = useProductsQuery(organizationId);
   const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
   const [isInvoiceImportOpen, setIsInvoiceImportOpen] = useState(false);
   const [isLossesOpen, setIsLossesOpen] = useState(false);
@@ -87,9 +94,17 @@ export function IngredientsView({
   );
   const [ingredientForLabel, setIngredientForLabel] =
     useState<Ingredient | null>(null);
+  const purchasableItems = useMemo(
+    () =>
+      getPurchasableItems(
+        ingredientsQuery.data ?? EMPTY_INGREDIENTS,
+        productsQuery.data ?? EMPTY_PRODUCTS,
+      ),
+    [ingredientsQuery.data, productsQuery.data],
+  );
   const lowStockCount = useMemo(
-    () => (ingredientsQuery.data ?? []).filter(needsPurchase).length,
-    [ingredientsQuery.data],
+    () => purchasableItems.filter(needsPurchase).length,
+    [purchasableItems],
   );
   const [formState, setFormState] = useState<IngredientFormState>({
     mode: "closed",
@@ -253,7 +268,7 @@ export function IngredientsView({
         organizationId={organizationId}
         isOpen={isShoppingListOpen}
         canManage={canManage}
-        ingredients={ingredientsQuery.data ?? []}
+        items={purchasableItems}
         suppliers={suppliersQuery.data ?? []}
         business={business}
         onClose={() => setIsShoppingListOpen(false)}
