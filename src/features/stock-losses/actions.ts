@@ -114,7 +114,7 @@ export async function registerStockLoss(
     return actionFailure("Confira os campos e tente novamente.");
   }
 
-  const { ingredientId, quantity, reason, note } = parsedInput.data;
+  const { ingredientId, quantity, reason, note, totalValue } = parsedInput.data;
   const supabase = await createClient();
   const { error } = await supabase.rpc("register_stock_loss", {
     p_organization_id: organizationId,
@@ -122,6 +122,7 @@ export async function registerStockLoss(
     p_quantity: quantity,
     p_reason: reason,
     p_note: note || undefined,
+    p_total_value: totalValue,
   });
 
   if (error?.code === "P0002") {
@@ -130,5 +131,32 @@ export async function registerStockLoss(
   if (error)
     return databaseFailure("Não foi possível registrar a perda.", error);
 
+  return actionSuccess();
+}
+
+export async function updateStockLoss(
+  organizationId: OrganizationId,
+  lossId: StockLossId,
+  input: StockLossFormInput,
+): Promise<ActionResult> {
+  if (!(await hasModuleAccess(organizationId, "ingredients"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
+  const parsedInput = stockLossFormSchema.safeParse(input);
+  if (!parsedInput.success) {
+    return actionFailure("Confira os campos e tente novamente.");
+  }
+
+  const { quantity, reason, note, totalValue } = parsedInput.data;
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("update_stock_loss", {
+    p_loss_id: lossId,
+    p_quantity: quantity,
+    p_reason: reason,
+    p_note: note || undefined,
+    p_total_value: totalValue,
+  });
+
+  if (error) return databaseFailure("Não foi possível salvar a perda.", error);
   return actionSuccess();
 }

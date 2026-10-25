@@ -20,6 +20,7 @@ import { formatItemQuantity } from "@/features/ingredients/shopping-list";
 import type { Ingredient } from "@/features/ingredients/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import { useRegisterStockLossMutation } from "@/features/stock-losses/hooks/use-register-stock-loss-mutation";
+import { useUpdateStockLossMutation } from "@/features/stock-losses/hooks/use-update-stock-loss-mutation";
 import {
   STOCK_LOSS_REASON_LABELS,
   STOCK_LOSS_REASONS,
@@ -28,11 +29,27 @@ import {
   type StockLossFormInput,
   stockLossFormSchema,
 } from "@/features/stock-losses/schemas";
+import type { StockLoss } from "@/features/stock-losses/types";
+
+function toFormValues(
+  loss: StockLoss | undefined,
+  initialIngredient: Ingredient | undefined,
+): DefaultValues<StockLossFormInput> {
+  if (!loss) return { ingredientId: initialIngredient?.id ?? "", note: "" };
+  return {
+    ingredientId: loss.ingredientId,
+    quantity: loss.quantity,
+    reason: loss.reason,
+    note: loss.note ?? "",
+    totalValue: loss.value > 0 ? loss.value : undefined,
+  };
+}
 
 type StockLossFormDialogProps = {
   organizationId: OrganizationId;
   ingredients: readonly Ingredient[];
   initialIngredient?: Ingredient;
+  loss?: StockLoss;
   onClose: () => void;
 };
 
@@ -40,15 +57,15 @@ export function StockLossFormDialog({
   organizationId,
   ingredients,
   initialIngredient,
+  loss,
   onClose,
 }: StockLossFormDialogProps) {
   const registerMutation = useRegisterStockLossMutation(organizationId);
+  const updateMutation = useUpdateStockLossMutation(organizationId);
+  const isEditing = loss !== undefined;
   const form = useForm<StockLossFormInput>({
     resolver: zodResolver(stockLossFormSchema),
-    defaultValues: {
-      ingredientId: initialIngredient?.id ?? "",
-      note: "",
-    } satisfies DefaultValues<StockLossFormInput>,
+    defaultValues: toFormValues(loss, initialIngredient),
   });
   const ingredientField = useController({
     control: form.control,
@@ -68,7 +85,20 @@ export function StockLossFormDialog({
     [ingredients],
   );
 
-  const handleSubmit = form.handleSubmit((values) =>
+  const handleSubmit = form.handleSubmit((values) => {
+    if (loss) {
+      updateMutation.mutate(
+        { lossId: loss.id, values },
+        {
+          onSuccess: () => {
+            toast.success("Perda atualizada.");
+            onClose();
+          },
+          onError: (error) => toast.error(error.message),
+        },
+      );
+      return;
+    }
     registerMutation.mutate(values, {
       onSuccess: () => {
         toast.success("Perda registrada.", {
@@ -79,17 +109,21 @@ export function StockLossFormDialog({
         onClose();
       },
       onError: (error) => toast.error(error.message),
-    }),
-  );
+    });
+  });
 
   return (
     <FormDialog
       isOpen
       onOpenChange={(isDialogOpen) => !isDialogOpen && onClose()}
-      title="Registrar perda"
-      description="O que foi jogado fora sai do estoque e entra no total de perdas do mês."
-      submitLabel="Registrar perda"
-      isSubmitting={registerMutation.isPending}
+      title={isEditing ? "Editar perda" : "Registrar perda"}
+      description={
+        isEditing
+          ? "Se mudar a quantidade, o estoque é ajustado pela diferença."
+          : "O que foi jogado fora sai do estoque e entra no total de perdas do mês."
+      }
+      submitLabel={isEditing ? "Salvar" : "Registrar perda"}
+      isSubmitting={registerMutation.isPending || updateMutation.isPending}
       onSubmit={handleSubmit}
     >
       <FieldGroup>
@@ -99,6 +133,7 @@ export function StockLossFormDialog({
           label="Insumo"
           placeholder="Escolha o insumo"
           options={ingredientOptions}
+          isDisabled={isEditing}
         />
         <NumberField
           control={form.control}
@@ -116,6 +151,14 @@ export function StockLossFormDialog({
               ? `No estoque: ${formatItemQuantity(selectedIngredient.currentStock, selectedIngredient.unit)}`
               : undefined
           }
+        />
+        <NumberField
+          control={form.control}
+          name="totalValue"
+          label="Valor da perda (opcional)"
+          format="currency"
+          placeholder="Ex.: $ 28,00"
+          description="Vazio: calcula pelo custo do insumo."
         />
         <FieldSet>
           <FieldLegend variant="label">Motivo</FieldLegend>

@@ -17,11 +17,17 @@ import {
   STOCK_LOSS_REASON_LABELS,
   STOCK_LOSS_REASONS,
 } from "@/features/stock-losses/labels";
+import type { StockLoss } from "@/features/stock-losses/types";
 import { formatCurrency, formatDateKey } from "@/lib/format";
 import { MonthNavigator } from "../../components/month-navigator";
 import { StockLossFormDialog } from "./stock-loss-form-dialog";
 
 const LOADING_ROW_COUNT = 3;
+
+type LossFormState =
+  | { mode: "closed" }
+  | { mode: "create" }
+  | { mode: "edit"; loss: StockLoss };
 
 type StockLossesDialogProps = {
   organizationId: OrganizationId;
@@ -37,15 +43,18 @@ export function StockLossesDialog({
   onClose,
 }: StockLossesDialogProps) {
   const [monthKey, setMonthKey] = useState(() => format(new Date(), "yyyy-MM"));
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [formState, setFormState] = useState<LossFormState>({
+    mode: "closed",
+  });
   const lossesQuery = useStockLossesQuery(organizationId, monthKey);
 
-  if (isOpen && isFormOpen) {
+  if (isOpen && formState.mode !== "closed") {
     return (
       <StockLossFormDialog
         organizationId={organizationId}
         ingredients={ingredients}
-        onClose={() => setIsFormOpen(false)}
+        loss={formState.mode === "edit" ? formState.loss : undefined}
+        onClose={() => setFormState({ mode: "closed" })}
       />
     );
   }
@@ -75,7 +84,7 @@ export function StockLossesDialog({
             type="button"
             className={DIALOG_ACTION_BUTTON_CLASS_NAME}
             disabled={ingredients.length === 0}
-            onClick={() => setIsFormOpen(true)}
+            onClick={() => setFormState({ mode: "create" })}
           >
             <PackageMinus aria-hidden />
             Registrar perda
@@ -133,25 +142,29 @@ export function StockLossesDialog({
             ) : (
               <ul className="flex flex-col divide-y rounded-xl border">
                 {month.losses.map((loss) => (
-                  <li
-                    key={loss.id}
-                    className="flex items-center justify-between gap-3 px-4 py-3"
-                  >
-                    <div className="flex min-w-0 flex-col">
-                      <span className="truncate font-medium text-sm">
-                        {formatItemQuantity(loss.quantity, loss.unit)} de{" "}
-                        {loss.ingredientName}
+                  <li key={loss.id}>
+                    <button
+                      type="button"
+                      aria-label={`Editar perda de ${loss.ingredientName}`}
+                      className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/40"
+                      onClick={() => setFormState({ mode: "edit", loss })}
+                    >
+                      <div className="flex min-w-0 flex-col">
+                        <span className="truncate font-medium text-sm">
+                          {formatItemQuantity(loss.quantity, loss.unit)} de{" "}
+                          {loss.ingredientName}
+                        </span>
+                        <span className="truncate text-muted-foreground text-xs">
+                          {formatDateKey(loss.lossDate)} ·{" "}
+                          {STOCK_LOSS_REASON_LABELS[loss.reason]}
+                          {loss.note && ` · ${loss.note}`}
+                          {loss.createdByName && ` · ${loss.createdByName}`}
+                        </span>
+                      </div>
+                      <span className="shrink-0 font-medium text-sm tabular-nums">
+                        {formatCurrency(loss.value)}
                       </span>
-                      <span className="truncate text-muted-foreground text-xs">
-                        {formatDateKey(loss.lossDate)} ·{" "}
-                        {STOCK_LOSS_REASON_LABELS[loss.reason]}
-                        {loss.note && ` · ${loss.note}`}
-                        {loss.createdByName && ` · ${loss.createdByName}`}
-                      </span>
-                    </div>
-                    <span className="shrink-0 font-medium text-sm tabular-nums">
-                      {formatCurrency(loss.value)}
-                    </span>
+                    </button>
                   </li>
                 ))}
               </ul>

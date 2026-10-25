@@ -10,6 +10,7 @@ export const stockLossFormSchema = z.object({
     .positive("A quantidade precisa ser maior que zero."),
   reason: z.enum(STOCK_LOSS_REASONS, { error: "Escolha o motivo." }),
   note: z.string().trim().max(200, "Observação muito longa.").optional(),
+  totalValue: z.number().min(0, "Não pode ser negativo.").optional(),
 });
 
 export type StockLossFormInput = z.infer<typeof stockLossFormSchema>;

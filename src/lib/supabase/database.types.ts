@@ -4039,6 +4039,7 @@ export type Database = {
           p_organization_id: string
           p_quantity: number
           p_reason: Database["public"]["Enums"]["stock_loss_reason"]
+          p_total_value?: number
         }
         Returns: string
       }
@@ -4174,6 +4175,16 @@ export type Database = {
           p_can_access_settings: boolean
           p_organization_id: string
           p_user_id: string
+        }
+        Returns: undefined
+      }
+      update_stock_loss: {
+        Args: {
+          p_loss_id: string
+          p_note?: string
+          p_quantity: number
+          p_reason: Database["public"]["Enums"]["stock_loss_reason"]
+          p_total_value?: number
         }
         Returns: undefined
       }
