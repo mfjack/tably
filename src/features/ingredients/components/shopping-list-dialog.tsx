@@ -42,6 +42,7 @@ import { useCreatePurchaseOrderMutation } from "@/features/purchase-orders/hooks
 import { usePendingPurchaseOrdersQuery } from "@/features/purchase-orders/hooks/use-pending-purchase-orders-query";
 import type { PurchaseOrder } from "@/features/purchase-orders/types";
 import type { Supplier, SupplierId } from "@/features/suppliers/types";
+import { cn } from "@/lib/utils";
 
 const NO_SUPPLIER_LABEL = "Sem fornecedor definido";
 
@@ -191,10 +192,10 @@ export function ShoppingListDialog({
     form.setValue(`quantities.${ingredientId}`, undefined);
   }
 
-  function assignSupplier(supplierId: string) {
+  function assignSupplier(ingredientId: IngredientId, supplierId: string) {
     setLines((currentLines) =>
       currentLines.map((line) =>
-        line.supplierId === null
+        line.ingredientId === ingredientId
           ? { ...line, supplierId: supplierId as SupplierId }
           : line,
       ),
@@ -257,20 +258,25 @@ export function ShoppingListDialog({
             render={
               <Button
                 variant="outline"
-                className={DIALOG_ACTION_BUTTON_CLASS_NAME}
+                className={cn(
+                  DIALOG_ACTION_BUTTON_CLASS_NAME,
+                  tab !== "buy" && "col-span-2",
+                )}
               />
             }
           >
             Fechar
           </DialogClose>
-          <Button
-            className={DIALOG_ACTION_BUTTON_CLASS_NAME}
-            disabled={tab !== "buy" || !hasOrderedItems}
-            onClick={printList}
-          >
-            <Printer aria-hidden />
-            Imprimir lista
-          </Button>
+          {tab === "buy" && (
+            <Button
+              className={DIALOG_ACTION_BUTTON_CLASS_NAME}
+              disabled={!hasOrderedItems}
+              onClick={printList}
+            >
+              <Printer aria-hidden />
+              Imprimir lista
+            </Button>
+          )}
         </>
       }
     >
@@ -336,21 +342,7 @@ export function ShoppingListDialog({
                             {group.supplier.name}
                           </h3>
                         ) : (
-                          <>
-                            <h3 className="font-semibold">
-                              {NO_SUPPLIER_LABEL}
-                            </h3>
-                            {supplierOptions.length > 0 && (
-                              <OptionSelect
-                                label="Escolher fornecedor"
-                                placeholder="Escolher fornecedor"
-                                options={supplierOptions}
-                                value={null}
-                                className="sm:max-w-xs"
-                                onValueChange={assignSupplier}
-                              />
-                            )}
-                          </>
+                          <h3 className="font-semibold">{NO_SUPPLIER_LABEL}</h3>
                         )}
                         <p className="text-muted-foreground text-xs">
                           {describeGroupProgress(
@@ -437,6 +429,21 @@ export function ShoppingListDialog({
                                   )}
                                 </span>
                               </span>
+                              {supplierOptions.length > 0 && (
+                                <OptionSelect
+                                  label={`Fornecedor de ${item.name}`}
+                                  placeholder="Escolher fornecedor"
+                                  options={supplierOptions}
+                                  value={group.supplier?.id ?? null}
+                                  className="mt-1 sm:max-w-xs"
+                                  onValueChange={(supplierId) =>
+                                    assignSupplier(
+                                      item.ingredientId,
+                                      supplierId,
+                                    )
+                                  }
+                                />
+                              )}
                             </div>
                             <NumberField
                               control={form.control}
