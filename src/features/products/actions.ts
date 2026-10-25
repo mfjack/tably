@@ -22,7 +22,7 @@ import { type ProductFormInput, productFormSchema } from "./schemas";
 import type { Product, ProductId } from "./types";
 
 const PRODUCT_COLUMNS =
-  "id, name, price, image_url, is_active, is_on_menu, menu_detail, stock_quantity, category_id, categories(name), product_ingredients(ingredient_id, quantity), product_addon_links(product_addons(id, name, price, is_active, ingredient_id, ingredient_quantity))";
+  "id, name, price, image_url, is_active, is_on_menu, menu_detail, stock_quantity, minimum_stock, category_id, categories(name), product_ingredients(ingredient_id, quantity), product_addon_links(product_addons(id, name, price, is_active, ingredient_id, ingredient_quantity))";
 
 export async function listProducts(
   organizationId: OrganizationId,
@@ -64,6 +64,7 @@ export async function listProducts(
       isOnMenu: product.is_on_menu,
       menuDetail: product.menu_detail,
       stockQuantity: product.stock_quantity,
+      minimumStock: product.minimum_stock,
       recipe: product.product_ingredients.map((recipeItem) => ({
         ingredientId: recipeItem.ingredient_id as IngredientId,
         quantity: recipeItem.quantity,
@@ -110,6 +111,7 @@ export async function saveProduct(
     addonIds,
     isStockTracked,
     stockQuantity,
+    minimumStock,
   } = parsedInput.data;
   const supabase = await createClient();
   const { data: savedProductId, error } = await supabase.rpc("save_product", {
@@ -149,6 +151,7 @@ export async function saveProduct(
       is_on_menu: isOnMenu,
       menu_detail: menuDetail || null,
       stock_quantity: isStockTracked ? (stockQuantity ?? 0) : null,
+      minimum_stock: isStockTracked ? (minimumStock ?? 0) : 0,
     })
     .eq("id", savedProductId)
     .eq("organization_id", organizationId);
@@ -178,4 +181,27 @@ export async function deleteProduct(
     return databaseFailure("Não foi possível excluir o produto.", error);
 
   return actionSuccess();
+}
+
+export async function addProductStock(
+  organizationId: OrganizationId,
+  productId: ProductId,
+  quantity: number,
+): Promise<ActionResult<number>> {
+  if (!(await hasModuleAccess(organizationId, "pos"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
+  if (!Number.isInteger(quantity) || quantity <= 0) {
+    return actionFailure("Informe uma quantidade maior que zero.");
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("add_product_stock", {
+    p_product_id: productId,
+    p_quantity: quantity,
+  });
+
+  if (error)
+    return databaseFailure("Não foi possível registrar a entrada.", error);
+  return actionSuccess(data);
 }

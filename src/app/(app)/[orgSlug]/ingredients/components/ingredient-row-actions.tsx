@@ -76,7 +76,7 @@ export function IngredientRowActions({
       )}
       {!isPrepared && canManage && (
         <StockEntryButton
-          ingredientName={ingredient.name}
+          itemName={ingredient.name}
           onClick={() => onStockEntry(ingredient)}
         />
       )}

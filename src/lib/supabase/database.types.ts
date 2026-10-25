@@ -2368,6 +2368,7 @@ export type Database = {
           is_active: boolean
           is_on_menu: boolean
           menu_detail: string | null
+          minimum_stock: number
           name: string
           organization_id: string
           price: number
@@ -2382,6 +2383,7 @@ export type Database = {
           is_active?: boolean
           is_on_menu?: boolean
           menu_detail?: string | null
+          minimum_stock?: number
           name: string
           organization_id: string
           price: number
@@ -2396,6 +2398,7 @@ export type Database = {
           is_active?: boolean
           is_on_menu?: boolean
           menu_detail?: string | null
+          minimum_stock?: number
           name?: string
           organization_id?: string
           price?: number
@@ -3481,6 +3484,10 @@ export type Database = {
           p_placed_at?: string
           p_request_id?: string
         }
+        Returns: number
+      }
+      add_product_stock: {
+        Args: { p_product_id: string; p_quantity: number }
         Returns: number
       }
       adjust_ingredient_stock: {

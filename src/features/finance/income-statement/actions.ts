@@ -29,6 +29,7 @@ const incomeStatementSchema = z.object({
   cardFees: numberSchema,
   orderCount: numberSchema,
   recipeCost: numberSchema,
+  stockLosses: numberSchema,
   itemsWithoutCost: numberSchema,
   categories: z.array(
     z.object({

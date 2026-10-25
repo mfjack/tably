@@ -55,6 +55,7 @@ function toFormValues(product: Product): DefaultValues<ProductFormInput> {
     addonIds: product.addons.map((addon) => addon.id),
     isStockTracked: product.stockQuantity !== null,
     stockQuantity: product.stockQuantity ?? undefined,
+    minimumStock: product.minimumStock || undefined,
   };
 }
 
@@ -172,14 +173,14 @@ export function ProductFormDialog({
           description="Produtos inativos continuam cadastrados, mas não aparecem para venda."
         />
 
-        <div className="grid items-end gap-5 sm:grid-cols-2">
-          <SwitchField
-            control={form.control}
-            name="isStockTracked"
-            label="Controlar quantidade"
-            description="O PDV desconta a cada venda e esgota em 0."
-          />
-          {isStockTracked && (
+        <SwitchField
+          control={form.control}
+          name="isStockTracked"
+          label="Controlar quantidade"
+          description="O PDV desconta a cada venda e esgota em 0."
+        />
+        {isStockTracked && (
+          <div className="grid items-start gap-5 sm:grid-cols-2">
             <NumberField
               control={form.control}
               name="stockQuantity"
@@ -188,8 +189,17 @@ export function ProductFormDialog({
               suffix="un"
               placeholder="Ex.: 12"
             />
-          )}
-        </div>
+            <NumberField
+              control={form.control}
+              name="minimumStock"
+              label="Estoque mínimo (alerta)"
+              format="integer"
+              suffix="un"
+              placeholder="Ex.: 3"
+              description="Abaixo disso, aparece como estoque baixo."
+            />
+          </div>
+        )}
 
         <div className="grid gap-5 sm:grid-cols-2">
           <SwitchField

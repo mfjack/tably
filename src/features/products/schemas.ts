@@ -36,6 +36,11 @@ export const productFormSchema = z
       .int("Use um número inteiro.")
       .min(0, "Não pode ser negativo.")
       .optional(),
+    minimumStock: z
+      .number()
+      .int("Use um número inteiro.")
+      .min(0, "Não pode ser negativo.")
+      .optional(),
   })
   .superRefine((values, context) => {
     if (values.isStockTracked && values.stockQuantity === undefined) {

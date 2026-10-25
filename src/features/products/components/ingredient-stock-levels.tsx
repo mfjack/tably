@@ -63,7 +63,7 @@ export function IngredientStockLevels({
               {stockSummary}
             </span>
             <StockEntryButton
-              ingredientName={level.name}
+              itemName={level.name}
               onClick={() => onAddStock(level.ingredientId)}
             />
           </li>

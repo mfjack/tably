@@ -13,6 +13,7 @@ type ProductCardProps = {
   product: PosProduct;
   onAdd: (productId: ProductId) => void;
   onAddStock?: (ingredientId: IngredientId) => void;
+  onAddProductStock?: (productId: ProductId) => void;
 };
 
 function getAvailabilityLabel(
@@ -41,6 +42,7 @@ function ProductCardComponent({
   product,
   onAdd,
   onAddStock,
+  onAddProductStock,
 }: ProductCardProps) {
   const { availability, cartQuantity } = product;
   const isOut = availability.status === "out";
@@ -108,6 +110,11 @@ function ProductCardComponent({
               label={availabilityLabel}
               availability={availability}
               onAddStock={onAddStock}
+              onAddProductStock={
+                onAddProductStock && product.stockQuantity !== null
+                  ? () => onAddProductStock(product.id)
+                  : undefined
+              }
             />
           )}
         </div>

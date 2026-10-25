@@ -23,5 +23,6 @@ export type Product = {
   isOnMenu: boolean;
   menuDetail: string | null;
   stockQuantity: number | null;
+  minimumStock: number;
   addons: ProductAddon[];
 };

@@ -12,6 +12,7 @@ export type IncomeStatementData = {
   cardFees: number;
   orderCount: number;
   recipeCost: number;
+  stockLosses: number;
   itemsWithoutCost: number;
   categories: IncomeStatementCategory[];
 };

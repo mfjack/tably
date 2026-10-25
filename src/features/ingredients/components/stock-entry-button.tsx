@@ -2,20 +2,17 @@ import { PackagePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type StockEntryButtonProps = {
-  ingredientName: string;
+  itemName: string;
   onClick: () => void;
 };
 
-export function StockEntryButton({
-  ingredientName,
-  onClick,
-}: StockEntryButtonProps) {
+export function StockEntryButton({ itemName, onClick }: StockEntryButtonProps) {
   return (
     <Button
       type="button"
       variant="outline"
       size="sm"
-      aria-label={`Registrar entrada de ${ingredientName}`}
+      aria-label={`Registrar entrada de ${itemName}`}
       onClick={onClick}
     >
       <PackagePlus aria-hidden />

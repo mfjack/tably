@@ -32,6 +32,7 @@ import {
   useTabTarget,
 } from "@/features/pos/cart-store";
 import { AddonPickerDialog } from "@/features/product-addons/components/addon-picker-dialog";
+import { ProductStockEntryDialog } from "@/features/products/components/product-stock-entry-dialog";
 import type { Product, ProductId } from "@/features/products/types";
 import { useIsOnline } from "@/hooks/use-is-online";
 import { ModuleLinkButton } from "../../components/module-link-button";
@@ -210,6 +211,10 @@ export function PosView({
   const stockEntryIngredient = stockEntryIngredientId
     ? (ingredientsById.get(stockEntryIngredientId) ?? null)
     : null;
+  const [stockEntryProductId, setStockEntryProductId] =
+    useState<ProductId | null>(null);
+  const stockEntryProduct =
+    posProducts.find((product) => product.id === stockEntryProductId) ?? null;
 
   const handleAddProduct = useCallback(
     (productId: ProductId) => {
@@ -418,6 +423,7 @@ export function PosView({
                   onAddStock={
                     canAddStock ? setStockEntryIngredientId : undefined
                   }
+                  onAddProductStock={setStockEntryProductId}
                 />
               )}
             </div>
@@ -555,6 +561,11 @@ export function PosView({
         defaultCustomerName={activeCartTab?.name}
         onClose={checkout.startQuickPayment}
         onConfirm={checkout.createTab}
+      />
+      <ProductStockEntryDialog
+        organizationId={organizationId}
+        product={stockEntryProduct}
+        onClose={() => setStockEntryProductId(null)}
       />
       {canAddStock && (
         <StockEntryDialog

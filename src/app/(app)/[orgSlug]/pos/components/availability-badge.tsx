@@ -15,6 +15,7 @@ type AvailabilityBadgeProps = {
   label: string;
   availability: ProductAvailability;
   onAddStock?: (ingredientId: IngredientId) => void;
+  onAddProductStock?: () => void;
 };
 
 export function AvailabilityBadge({
@@ -22,6 +23,7 @@ export function AvailabilityBadge({
   label,
   availability,
   onAddStock,
+  onAddProductStock,
 }: AvailabilityBadgeProps) {
   if (availability.status === "unlimited") return null;
   const isOut = availability.status === "out";
@@ -57,9 +59,15 @@ export function AvailabilityBadge({
       >
         <div className="flex items-start justify-between gap-4">
           <p className="font-semibold text-sm">Restam {label}</p>
-          {onAddStock && singleStockLevel && (
+          {onAddProductStock && (
             <StockEntryButton
-              ingredientName={singleStockLevel.name}
+              itemName={productName}
+              onClick={onAddProductStock}
+            />
+          )}
+          {!onAddProductStock && onAddStock && singleStockLevel && (
+            <StockEntryButton
+              itemName={singleStockLevel.name}
               onClick={() => onAddStock(singleStockLevel.ingredientId)}
             />
           )}

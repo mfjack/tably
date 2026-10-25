@@ -22,6 +22,7 @@ type ProductGridProps = {
   isLoading: boolean;
   onAdd: (productId: ProductId) => void;
   onAddStock?: (ingredientId: IngredientId) => void;
+  onAddProductStock?: (productId: ProductId) => void;
 };
 
 export function ProductGrid({
@@ -29,6 +30,7 @@ export function ProductGrid({
   isLoading,
   onAdd,
   onAddStock,
+  onAddProductStock,
 }: ProductGridProps) {
   if (isLoading) {
     return (
@@ -68,6 +70,7 @@ export function ProductGrid({
           product={product}
           onAdd={onAdd}
           onAddStock={onAddStock}
+          onAddProductStock={onAddProductStock}
         />
       ))}
     </div>

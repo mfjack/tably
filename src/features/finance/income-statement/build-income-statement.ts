@@ -12,6 +12,7 @@ import type {
 
 const CARD_FEES_LABEL = "Taxas de cartão e Pix (calculadas das vendas)";
 const PDV_SALES_LABEL = "Vendas do PDV e comandas";
+const STOCK_LOSSES_LABEL = "Perdas de estoque";
 
 const FIXED_COST_GROUPS = [
   "personnel",
@@ -96,6 +97,7 @@ function toFigures(data: IncomeStatementData): PeriodFigures {
     investment: sumGroup(data, "investment"),
   } satisfies Record<DreGroup, GroupTotals>;
   const usesRecipeCost = data.recipeCost > 0;
+  const stockLosses = usesRecipeCost ? data.stockLosses : 0;
 
   return {
     grossRevenue: data.grossSales + groups.revenue.amount,
@@ -105,12 +107,15 @@ function toFigures(data: IncomeStatementData): PeriodFigures {
     salesTaxes: groups.sales_deductions,
     goodsCost: usesRecipeCost
       ? {
-          amount: data.recipeCost,
+          amount: data.recipeCost + stockLosses,
           details: [
             {
               label: "Custo dos produtos vendidos (fichas técnicas)",
               amount: data.recipeCost,
             },
+            ...(stockLosses > 0
+              ? [{ label: STOCK_LOSSES_LABEL, amount: stockLosses }]
+              : []),
           ],
         }
       : groups.cost_of_goods,
