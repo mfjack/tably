@@ -42,12 +42,17 @@ export const productFormSchema = z
       .min(0, "Não pode ser negativo.")
       .optional(),
     supplierId: z.string().optional(),
+    totalCost: z.number().min(0, "Não pode ser negativo.").optional(),
+    paymentDate: z
+      .string()
+      .regex(/^(\d{4}-\d{2}-\d{2})?$/, "Data inválida.")
+      .optional(),
   })
   .superRefine((values, context) => {
     if (values.isStockTracked && values.stockQuantity === undefined) {
       context.addIssue({
         code: "custom",
-        message: "Informe a quantidade em estoque.",
+        message: "Informe a quantidade.",
         path: ["stockQuantity"],
       });
     }
@@ -64,6 +69,28 @@ export const productFormSchema = z
       }
       seenIngredientIds.add(recipeItem.ingredientId);
     });
+  });
+
+const alwaysCheck = { when: () => true };
+
+export const productCreateFormSchema = productFormSchema
+  .refine(
+    (values) => !values.isStockTracked || (values.stockQuantity ?? 0) > 0,
+    {
+      message: "Informe a quantidade comprada.",
+      path: ["stockQuantity"],
+      ...alwaysCheck,
+    },
+  )
+  .refine((values) => !values.isStockTracked || Boolean(values.totalCost), {
+    message: "Informe o valor total pago.",
+    path: ["totalCost"],
+    ...alwaysCheck,
+  })
+  .refine((values) => !values.isStockTracked || Boolean(values.paymentDate), {
+    message: "Informe a data de pagamento.",
+    path: ["paymentDate"],
+    ...alwaysCheck,
   });
 
 export type RecipeItemInput = z.infer<typeof recipeItemSchema>;

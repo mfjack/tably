@@ -23,6 +23,7 @@ import { createClient } from "@/lib/supabase/server";
 import {
   type ProductFormInput,
   type ProductStockEntryInput,
+  productCreateFormSchema,
   productFormSchema,
   productStockEntrySchema,
 } from "./schemas";
@@ -102,7 +103,9 @@ export async function saveProduct(
   if (!(await hasModuleAccess(organizationId, "products"))) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }
-  const parsedInput = productFormSchema.safeParse(input);
+  const parsedInput = (
+    productId ? productFormSchema : productCreateFormSchema
+  ).safeParse(input);
   if (!parsedInput.success) {
     return actionFailure("Confira os campos e tente novamente.");
   }
@@ -121,7 +124,10 @@ export async function saveProduct(
     stockQuantity,
     minimumStock,
     supplierId,
+    totalCost,
+    paymentDate,
   } = parsedInput.data;
+  const isPurchasingInitialStock = !productId && isStockTracked;
   const supabase = await createClient();
   const { data: savedProductId, error } = await supabase.rpc("save_product", {
     p_organization_id: organizationId,
@@ -159,7 +165,11 @@ export async function saveProduct(
     .update({
       is_on_menu: isOnMenu,
       menu_detail: menuDetail || null,
-      stock_quantity: isStockTracked ? (stockQuantity ?? 0) : null,
+      stock_quantity: isStockTracked
+        ? isPurchasingInitialStock
+          ? 0
+          : (stockQuantity ?? 0)
+        : null,
       minimum_stock: isStockTracked ? (minimumStock ?? 0) : 0,
       supplier_id: isStockTracked
         ? (fromSelectFieldValue<SupplierId>(supplierId) ?? null)
@@ -172,6 +182,22 @@ export async function saveProduct(
       "O produto foi salvo, mas o cardápio não foi atualizado.",
       menuError,
     );
+  }
+
+  if (isPurchasingInitialStock) {
+    const { error: stockError } = await supabase.rpc("add_product_stock", {
+      p_product_id: savedProductId,
+      p_quantity: stockQuantity ?? 0,
+      p_total_cost: totalCost ?? 0,
+      p_payment_date: paymentDate ?? "",
+      p_supplier_id: fromSelectFieldValue<SupplierId>(supplierId),
+    });
+    if (stockError) {
+      return databaseFailure(
+        "O produto foi salvo, mas a entrada de estoque não foi registrada.",
+        stockError,
+      );
+    }
   }
 
   return actionSuccess();
