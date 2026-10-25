@@ -349,7 +349,12 @@ export function PosView({
       onRename={(tab) =>
         setTabNameDialogState({ mode: "rename", currentName: tab.name })
       }
-      onAdd={startNextPersonOrder}
+      onAdd={
+        checkoutSettings.isMultipleCartsEnabled &&
+        (activeCartTab?.items.length ?? 0) > 0
+          ? startNextPersonOrder
+          : undefined
+      }
       onRemove={(tabId) => finishCartTab(organizationId, tabId)}
     />
   ) : null;

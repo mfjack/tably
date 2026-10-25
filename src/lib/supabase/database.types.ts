@@ -1812,6 +1812,7 @@ export type Database = {
           is_customer_account_payment_enabled: boolean
           is_discount_enabled: boolean
           is_menu_published: boolean
+          is_multiple_carts_enabled: boolean
           is_online_ordering_enabled: boolean
           is_order_tabs_enabled: boolean
           is_product_addons_enabled: boolean
@@ -1850,6 +1851,7 @@ export type Database = {
           is_customer_account_payment_enabled?: boolean
           is_discount_enabled?: boolean
           is_menu_published?: boolean
+          is_multiple_carts_enabled?: boolean
           is_online_ordering_enabled?: boolean
           is_order_tabs_enabled?: boolean
           is_product_addons_enabled?: boolean
@@ -1888,6 +1890,7 @@ export type Database = {
           is_customer_account_payment_enabled?: boolean
           is_discount_enabled?: boolean
           is_menu_published?: boolean
+          is_multiple_carts_enabled?: boolean
           is_online_ordering_enabled?: boolean
           is_order_tabs_enabled?: boolean
           is_product_addons_enabled?: boolean
@@ -3682,6 +3685,7 @@ export type Database = {
           is_customer_account_payment_enabled: boolean
           is_discount_enabled: boolean
           is_menu_published: boolean
+          is_multiple_carts_enabled: boolean
           is_online_ordering_enabled: boolean
           is_order_tabs_enabled: boolean
           is_product_addons_enabled: boolean

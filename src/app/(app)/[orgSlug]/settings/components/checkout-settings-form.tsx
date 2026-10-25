@@ -36,6 +36,7 @@ function toFormValues({
     isSplitBillEnabled: checkout.isSplitBillEnabled,
     isOrderTabsEnabled: checkout.isOrderTabsEnabled,
     isProductAddonsEnabled: checkout.isProductAddonsEnabled,
+    isMultipleCartsEnabled: checkout.isMultipleCartsEnabled,
     kitchenLateMinutes,
     isCustomerAccountPaymentEnabled: checkout.isCustomerAccountPaymentEnabled,
     acceptedPaymentMethods: checkout.acceptedPaymentMethods.filter(
@@ -133,6 +134,12 @@ export function CheckoutSettingsForm({
           name="isProductAddonsEnabled"
           label="Adicionais"
           description="Extras cobrados à parte, como granola ou leite em pó, escolhidos ao vender o produto no PDV."
+        />
+        <SwitchField
+          control={form.control}
+          name="isMultipleCartsEnabled"
+          label="Pedidos juntos"
+          description="Mostra o botão Junto com no PDV para montar o pedido de cada pessoa na sua aba."
         />
         {isKitchenEnabled && (
           <NumberField

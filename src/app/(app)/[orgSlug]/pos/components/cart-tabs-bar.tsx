@@ -18,7 +18,7 @@ type CartTabsBarProps = {
   activeTabId: CartTabId | null;
   onSelect: (tabId: CartTabId) => void;
   onRename: (tab: CartTab) => void;
-  onAdd: () => void;
+  onAdd?: () => void;
   onRemove: (tabId: CartTabId) => void;
 };
 
@@ -72,6 +72,8 @@ export function CartTabsBar({
     }
     onSelect(tab.id);
   }
+
+  if (!hasNamedOrders && !onAdd) return null;
 
   return (
     <>
@@ -137,17 +139,19 @@ export function CartTabsBar({
             })}
           </div>
         )}
-        <Button
-          type="button"
-          variant="outline"
-          size="icon-sm"
-          className="size-9 shrink-0 rounded-lg"
-          aria-label="Novo pedido"
-          disabled={tabs.length >= MAX_CART_TABS}
-          onClick={onAdd}
-        >
-          <Users aria-hidden />
-        </Button>
+        {onAdd && (
+          <Button
+            type="button"
+            variant="outline"
+            size="icon-sm"
+            className="size-9 shrink-0 rounded-lg"
+            aria-label="Junto com: pedido de outra pessoa"
+            disabled={tabs.length >= MAX_CART_TABS}
+            onClick={onAdd}
+          >
+            <Users aria-hidden />
+          </Button>
+        )}
       </div>
       <ConfirmDialog
         isOpen={tabToRemove !== null}

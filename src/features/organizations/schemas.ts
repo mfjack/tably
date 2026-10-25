@@ -60,6 +60,7 @@ export const checkoutSettingsSchema = z
     isSplitBillEnabled: z.boolean(),
     isOrderTabsEnabled: z.boolean(),
     isProductAddonsEnabled: z.boolean(),
+    isMultipleCartsEnabled: z.boolean(),
     kitchenLateMinutes: z
       .number({ error: "Informe os minutos." })
       .int("Use minutos inteiros.")
