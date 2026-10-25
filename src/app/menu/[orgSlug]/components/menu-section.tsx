@@ -49,7 +49,7 @@ export function MenuSection({
               </span>
             ) : (
               <Badge variant="secondary" className="shrink-0">
-                Esgotado
+                Tem, mas acabou
               </Badge>
             )}
             {acceptsOrders && item.isAvailable && (
