@@ -28,6 +28,8 @@ const ORDER_ERROR_MESSAGES: Readonly<Record<string, string>> = {
   TB032: "Um adicional do pedido não está mais disponível para esse produto.",
   TB033: "Os adicionais estão desligados nas configurações.",
   TB042: "Só dá para reabrir comandas pagas que têm nome de cliente.",
+  TB044:
+    "A quantidade de algum produto acabou. Atualize o estoque no cadastro do produto.",
   TB043:
     "O caixa em que essa comanda foi paga já foi fechado. Não dá para reabrir.",
   "22023": "Confira o pedido e o valor recebido.",

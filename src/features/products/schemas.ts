@@ -18,18 +18,34 @@ export const productFormSchema = z
       .min(1, "Informe o nome do produto.")
       .max(80, "Nome muito longo.")
       .transform(toTitleCase),
-    categoryId: z.string().optional(),
+    categoryId: z
+      .string({ error: "Escolha a categoria." })
+      .min(1, "Escolha a categoria."),
     price: z
       .number({ error: "Informe o preço de venda." })
-      .min(0, "Não pode ser negativo."),
+      .positive("O preço precisa ser maior que zero."),
     isActive: z.boolean(),
     isOnMenu: z.boolean(),
     menuDetail: z.string().trim().max(40, "Detalhe muito longo.").optional(),
     imageUrl: z.string().optional(),
     recipe: z.array(recipeItemSchema),
     addonIds: z.array(z.string()),
+    isStockTracked: z.boolean(),
+    stockQuantity: z
+      .number()
+      .int("Use um número inteiro.")
+      .min(0, "Não pode ser negativo.")
+      .optional(),
   })
   .superRefine((values, context) => {
+    if (values.isStockTracked && values.stockQuantity === undefined) {
+      context.addIssue({
+        code: "custom",
+        message: "Informe a quantidade em estoque.",
+        path: ["stockQuantity"],
+      });
+    }
+
     const seenIngredientIds = new Set<string>();
 
     values.recipe.forEach((recipeItem, index) => {

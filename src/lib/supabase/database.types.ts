@@ -2249,6 +2249,62 @@ export type Database = {
           },
         ]
       }
+      product_stock_movements: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string | null
+          organization_id: string
+          product_id: string
+          quantity: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          organization_id: string
+          product_id: string
+          quantity: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          organization_id?: string
+          product_id?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_stock_movements_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_stock_movements_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_stock_movements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_costs"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_stock_movements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       production_batches: {
         Row: {
           batches: number
@@ -2315,6 +2371,7 @@ export type Database = {
           name: string
           organization_id: string
           price: number
+          stock_quantity: number | null
           updated_at: string
         }
         Insert: {
@@ -2328,6 +2385,7 @@ export type Database = {
           name: string
           organization_id: string
           price: number
+          stock_quantity?: number | null
           updated_at?: string
         }
         Update: {
@@ -2341,6 +2399,7 @@ export type Database = {
           name?: string
           organization_id?: string
           price?: number
+          stock_quantity?: number | null
           updated_at?: string
         }
         Relationships: [

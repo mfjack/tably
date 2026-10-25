@@ -7,6 +7,12 @@ import type { Product } from "./types";
 
 const NO_RESERVED_QUANTITIES: ReadonlyMap<string, number> = new Map();
 
+const NO_SHORTAGES: IngredientShortages = {
+  outOfStockIngredientNames: [],
+  runningLowIngredientNames: [],
+  stockLevels: [],
+};
+
 export type IngredientStockLevel = {
   ingredientId: IngredientId;
   name: string;
@@ -128,8 +134,18 @@ export function getProductAvailability(
   product: Product,
   ingredientsById: ReadonlyMap<string, Ingredient>,
   reservedQuantities: ReadonlyMap<string, number> = NO_RESERVED_QUANTITIES,
+  reservedProductQuantity = 0,
 ): ProductAvailability {
-  if (product.recipe.length === 0) return { status: "unlimited" };
+  const manualRemaining =
+    product.stockQuantity === null
+      ? Number.POSITIVE_INFINITY
+      : Math.max(product.stockQuantity - reservedProductQuantity, 0);
+
+  if (product.recipe.length === 0) {
+    if (product.stockQuantity === null) return { status: "unlimited" };
+    if (manualRemaining === 0) return { status: "out", ...NO_SHORTAGES };
+    return { status: "available", remaining: manualRemaining, ...NO_SHORTAGES };
+  }
 
   const capacities = calculateIngredientCapacities(
     product,
@@ -137,6 +153,7 @@ export function getProductAvailability(
     reservedQuantities,
   );
   const remaining = Math.min(
+    manualRemaining,
     ...capacities.map((capacity) => capacity.producibleQuantity),
   );
   const shortages = getIngredientShortages(capacities);

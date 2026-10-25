@@ -22,7 +22,7 @@ import { type ProductFormInput, productFormSchema } from "./schemas";
 import type { Product, ProductId } from "./types";
 
 const PRODUCT_COLUMNS =
-  "id, name, price, image_url, is_active, is_on_menu, menu_detail, category_id, categories(name), product_ingredients(ingredient_id, quantity), product_addon_links(product_addons(id, name, price, is_active, ingredient_id, ingredient_quantity))";
+  "id, name, price, image_url, is_active, is_on_menu, menu_detail, stock_quantity, category_id, categories(name), product_ingredients(ingredient_id, quantity), product_addon_links(product_addons(id, name, price, is_active, ingredient_id, ingredient_quantity))";
 
 export async function listProducts(
   organizationId: OrganizationId,
@@ -63,6 +63,7 @@ export async function listProducts(
       unitCost: costsByProductId.get(product.id) ?? 0,
       isOnMenu: product.is_on_menu,
       menuDetail: product.menu_detail,
+      stockQuantity: product.stock_quantity,
       recipe: product.product_ingredients.map((recipeItem) => ({
         ingredientId: recipeItem.ingredient_id as IngredientId,
         quantity: recipeItem.quantity,
@@ -107,6 +108,8 @@ export async function saveProduct(
     imageUrl,
     recipe,
     addonIds,
+    isStockTracked,
+    stockQuantity,
   } = parsedInput.data;
   const supabase = await createClient();
   const { data: savedProductId, error } = await supabase.rpc("save_product", {
@@ -142,7 +145,11 @@ export async function saveProduct(
 
   const { error: menuError } = await supabase
     .from("products")
-    .update({ is_on_menu: isOnMenu, menu_detail: menuDetail || null })
+    .update({
+      is_on_menu: isOnMenu,
+      menu_detail: menuDetail || null,
+      stock_quantity: isStockTracked ? (stockQuantity ?? 0) : null,
+    })
     .eq("id", savedProductId)
     .eq("organization_id", organizationId);
   if (menuError) {

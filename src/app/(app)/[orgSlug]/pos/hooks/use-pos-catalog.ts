@@ -147,6 +147,7 @@ export function usePosCatalog(organizationId: OrganizationId, cart: Cart) {
         product,
         ingredientsById,
         reservedQuantities,
+        cartQuantities.get(product.id) ?? 0,
       ),
       cartQuantity: cartQuantities.get(product.id) ?? 0,
     }));

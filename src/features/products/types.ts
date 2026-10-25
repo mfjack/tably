@@ -22,5 +22,6 @@ export type Product = {
   recipe: RecipeItem[];
   isOnMenu: boolean;
   menuDetail: string | null;
+  stockQuantity: number | null;
   addons: ProductAddon[];
 };

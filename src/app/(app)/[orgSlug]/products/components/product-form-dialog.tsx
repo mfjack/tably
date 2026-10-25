@@ -26,10 +26,6 @@ import {
   productFormSchema,
 } from "@/features/products/schemas";
 import type { Product } from "@/features/products/types";
-import {
-  NONE_SELECT_VALUE,
-  toSelectFieldValue,
-} from "@/lib/optional-select-value";
 import { ProductAddonsField } from "./product-addons-field";
 import { ProductImagePicker } from "./product-image-picker";
 import { ProductPricingSummary } from "./product-pricing-summary";
@@ -37,19 +33,19 @@ import { RecipeEditor } from "./recipe-editor";
 
 const EMPTY_PRODUCT_FORM: DefaultValues<ProductFormInput> = {
   name: "",
-  categoryId: NONE_SELECT_VALUE,
   isActive: true,
   isOnMenu: true,
   menuDetail: "",
   imageUrl: "",
   recipe: [],
   addonIds: [],
+  isStockTracked: false,
 };
 
 function toFormValues(product: Product): DefaultValues<ProductFormInput> {
   return {
     name: product.name,
-    categoryId: toSelectFieldValue(product.categoryId),
+    categoryId: product.categoryId ?? undefined,
     price: product.price,
     isActive: product.isActive,
     isOnMenu: product.isOnMenu,
@@ -57,6 +53,8 @@ function toFormValues(product: Product): DefaultValues<ProductFormInput> {
     imageUrl: product.imageUrl ?? "",
     recipe: product.recipe,
     addonIds: product.addons.map((addon) => addon.id),
+    isStockTracked: product.stockQuantity !== null,
+    stockQuantity: product.stockQuantity ?? undefined,
   };
 }
 
@@ -82,9 +80,9 @@ export function ProductFormDialog({
     resolver: zodResolver(productFormSchema),
     defaultValues: EMPTY_PRODUCT_FORM,
   });
-  const [productName, price, recipe] = useWatch({
+  const [productName, price, recipe, isStockTracked] = useWatch({
     control: form.control,
-    name: ["name", "price", "recipe"],
+    name: ["name", "price", "recipe", "isStockTracked"],
   });
   const isEditing = Boolean(product);
 
@@ -146,6 +144,7 @@ export function ProductFormDialog({
                 control={form.control}
                 name="categoryId"
                 label="Categoria"
+                placeholder="Escolha a categoria"
                 options={categoryOptions}
               />
               <NumberField
@@ -172,6 +171,25 @@ export function ProductFormDialog({
           label="Disponível no PDV"
           description="Produtos inativos continuam cadastrados, mas não aparecem para venda."
         />
+
+        <div className="grid items-end gap-5 sm:grid-cols-2">
+          <SwitchField
+            control={form.control}
+            name="isStockTracked"
+            label="Controlar quantidade"
+            description="O PDV desconta a cada venda e esgota em 0."
+          />
+          {isStockTracked && (
+            <NumberField
+              control={form.control}
+              name="stockQuantity"
+              label="Quantidade em estoque"
+              format="integer"
+              suffix="un"
+              placeholder="Ex.: 12"
+            />
+          )}
+        </div>
 
         <div className="grid gap-5 sm:grid-cols-2">
           <SwitchField
