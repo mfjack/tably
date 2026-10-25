@@ -4224,14 +4224,22 @@ export type Database = {
       }
       save_product: {
         Args: {
+          p_addon_ids: string[]
           p_category_id?: string
           p_image_url?: string
+          p_initial_payment_date?: string
+          p_initial_total_cost?: number
           p_is_active: boolean
+          p_is_on_menu: boolean
+          p_menu_detail?: string
+          p_minimum_stock?: number
           p_name: string
           p_organization_id: string
           p_price: number
           p_product_id?: string
           p_recipe: Json
+          p_stock_quantity?: number
+          p_supplier_id?: string
         }
         Returns: string
       }

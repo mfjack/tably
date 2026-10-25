@@ -129,7 +129,7 @@ export async function saveProduct(
   } = parsedInput.data;
   const isPurchasingInitialStock = !productId && isStockTracked;
   const supabase = await createClient();
-  const { data: savedProductId, error } = await supabase.rpc("save_product", {
+  const { error } = await supabase.rpc("save_product", {
     p_organization_id: organizationId,
     p_product_id: productId,
     p_name: name,
@@ -141,6 +141,18 @@ export async function saveProduct(
       ingredient_id: recipeItem.ingredientId,
       quantity: recipeItem.quantity,
     })),
+    p_addon_ids: addonIds,
+    p_is_on_menu: isOnMenu,
+    p_menu_detail: menuDetail || undefined,
+    ...(isStockTracked && {
+      p_stock_quantity: stockQuantity ?? 0,
+      p_minimum_stock: minimumStock ?? 0,
+      p_supplier_id: fromSelectFieldValue<SupplierId>(supplierId),
+    }),
+    ...(isPurchasingInitialStock && {
+      p_initial_total_cost: totalCost,
+      p_initial_payment_date: paymentDate,
+    }),
   });
 
   if (isUniqueViolation(error)) {
@@ -148,57 +160,6 @@ export async function saveProduct(
   }
   if (error)
     return databaseFailure("Não foi possível salvar o produto.", error);
-
-  const { error: addonsError } = await supabase.rpc("set_product_addons", {
-    p_product_id: savedProductId,
-    p_addon_ids: addonIds,
-  });
-  if (addonsError) {
-    return databaseFailure(
-      "O produto foi salvo, mas os adicionais não foram atualizados.",
-      addonsError,
-    );
-  }
-
-  const { error: menuError } = await supabase
-    .from("products")
-    .update({
-      is_on_menu: isOnMenu,
-      menu_detail: menuDetail || null,
-      stock_quantity: isStockTracked
-        ? isPurchasingInitialStock
-          ? 0
-          : (stockQuantity ?? 0)
-        : null,
-      minimum_stock: isStockTracked ? (minimumStock ?? 0) : 0,
-      supplier_id: isStockTracked
-        ? (fromSelectFieldValue<SupplierId>(supplierId) ?? null)
-        : null,
-    })
-    .eq("id", savedProductId)
-    .eq("organization_id", organizationId);
-  if (menuError) {
-    return databaseFailure(
-      "O produto foi salvo, mas o cardápio não foi atualizado.",
-      menuError,
-    );
-  }
-
-  if (isPurchasingInitialStock) {
-    const { error: stockError } = await supabase.rpc("add_product_stock", {
-      p_product_id: savedProductId,
-      p_quantity: stockQuantity ?? 0,
-      p_total_cost: totalCost ?? 0,
-      p_payment_date: paymentDate ?? "",
-      p_supplier_id: fromSelectFieldValue<SupplierId>(supplierId),
-    });
-    if (stockError) {
-      return databaseFailure(
-        "O produto foi salvo, mas a entrada de estoque não foi registrada.",
-        stockError,
-      );
-    }
-  }
 
   return actionSuccess();
 }
