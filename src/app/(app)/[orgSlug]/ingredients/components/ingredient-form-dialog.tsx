@@ -184,7 +184,6 @@ export function IngredientFormDialog({
             format="quantity"
             suffix={unitSymbol}
             placeholder="Ex.: 4"
-            description="Abaixo disso, o Tably avisa que é hora de comprar."
           />
           {isEditing && !ingredient?.isPrepared && (
             <NumberField
