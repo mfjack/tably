@@ -270,11 +270,22 @@ export function PosView({
   }
 
   function submitTabName(name: string) {
-    if (tabNameDialogState.mode === "create") {
-      addCartTab(organizationId, name);
+    if (activeCartTabId) renameCartTab(organizationId, activeCartTabId, name);
+    if (tabNameDialogState.mode === "nameBeforeNext") {
+      addCartTab(organizationId, "");
+    }
+  }
+
+  function startNextPersonOrder() {
+    if (
+      activeCartTab &&
+      activeCartTab.items.length > 0 &&
+      !activeCartTab.name
+    ) {
+      setTabNameDialogState({ mode: "nameBeforeNext" });
       return;
     }
-    if (activeCartTabId) renameCartTab(organizationId, activeCartTabId, name);
+    addCartTab(organizationId, "");
   }
 
   const hasItemsInAnyTab = cartTabs.some((tab) => tab.items.length > 0);
@@ -338,7 +349,7 @@ export function PosView({
       onRename={(tab) =>
         setTabNameDialogState({ mode: "rename", currentName: tab.name })
       }
-      onAdd={() => setTabNameDialogState({ mode: "create" })}
+      onAdd={startNextPersonOrder}
       onRemove={(tabId) => finishCartTab(organizationId, tabId)}
     />
   ) : null;
@@ -553,7 +564,8 @@ export function PosView({
         otherTabNames={cartTabs
           .filter(
             (tab) =>
-              tabNameDialogState.mode !== "rename" ||
+              (tabNameDialogState.mode !== "rename" &&
+                tabNameDialogState.mode !== "nameBeforeNext") ||
               tab.id !== activeCartTabId,
           )
           .map((tab) => tab.name)

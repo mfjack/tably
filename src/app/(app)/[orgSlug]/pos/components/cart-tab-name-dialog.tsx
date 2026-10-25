@@ -20,8 +20,8 @@ type CartTabNameInput = z.infer<typeof cartTabNameSchema>;
 
 export type CartTabNameDialogState =
   | { mode: "closed" }
-  | { mode: "create" }
-  | { mode: "rename"; currentName: string };
+  | { mode: "rename"; currentName: string }
+  | { mode: "nameBeforeNext" };
 
 type CartTabNameDialogProps = {
   state: CartTabNameDialogState;
@@ -50,7 +50,7 @@ export function CartTabNameDialog({
     resolver: zodResolver(cartTabNameSchema),
     defaultValues: { name: "" },
   });
-  const isRenaming = state.mode === "rename";
+  const isNamingBeforeNext = state.mode === "nameBeforeNext";
 
   useEffect(() => {
     if (state.mode === "closed") return;
@@ -101,9 +101,13 @@ export function CartTabNameDialog({
     <FormDialog
       isOpen={state.mode !== "closed"}
       onOpenChange={(isDialogOpen) => !isDialogOpen && onClose()}
-      title={isRenaming ? "Nome do pedido" : "Novo pedido"}
-      description="O nome aparece na aba e já vem preenchido na hora de imprimir ou criar a comanda."
-      submitLabel={isRenaming ? "Salvar" : "Criar pedido"}
+      title={isNamingBeforeNext ? "De quem é este pedido?" : "Nome do pedido"}
+      description={
+        isNamingBeforeNext
+          ? "O nome fica na aba deste pedido. Depois abre um carrinho vazio para a próxima pessoa."
+          : "O nome aparece na aba e já vem preenchido na hora de imprimir ou criar a comanda."
+      }
+      submitLabel={isNamingBeforeNext ? "Próxima pessoa" : "Salvar"}
       isSubmitting={checkCustomerNameMutation.isPending}
       onSubmit={handleSubmit}
     >
