@@ -1,13 +1,11 @@
 "use client";
 
-import { type ReactNode, useMemo, useState } from "react";
+import { type ReactNode, useMemo } from "react";
 import { DataTable } from "@/components/data-table/data-table";
 import { createDataTableColumnHelper } from "@/components/data-table/data-table-features";
-import {
-  DataTableFilterTabs,
-  getCountedFilterOptions,
-} from "@/components/data-table/data-table-filter-tabs";
+import { DataTableFilterTabs } from "@/components/data-table/data-table-filter-tabs";
 import { ALERT_ROW_CLASS_NAME } from "@/components/data-table/data-table-row-styles";
+import { useCountedRowFilter } from "@/components/data-table/use-counted-row-filter";
 import { useDataTable } from "@/components/data-table/use-data-table";
 import { Badge } from "@/components/ui/badge";
 import { getUnitSymbol } from "@/features/ingredients/measure-units";
@@ -31,10 +29,9 @@ const EXPIRY_FILTERS = [
 
 type ExpiryFilter = (typeof EXPIRY_FILTERS)[number]["value"];
 
-function matchesExpiryFilter(ingredient: Ingredient, filter: ExpiryFilter) {
-  return (
-    filter === "all" || getExpiryStatus(ingredient.expiresAt).status === filter
-  );
+function getExpiryFilter(ingredient: Ingredient): ExpiryFilter {
+  const { status } = getExpiryStatus(ingredient.expiresAt);
+  return status === "expired" || status === "expiring" ? status : "all";
 }
 
 const columnHelper = createDataTableColumnHelper<Ingredient>();
@@ -71,29 +68,13 @@ export function IngredientsTable({
   onEdit,
   onDelete,
 }: IngredientsTableProps) {
-  const [expiryFilter, setExpiryFilter] = useState<ExpiryFilter>("all");
-  const allIngredients = ingredients ?? EMPTY_INGREDIENTS;
-  const expiryCounts = useMemo(() => {
-    const counts: Record<ExpiryFilter, number> = {
-      all: allIngredients.length,
-      expired: 0,
-      expiring: 0,
-    };
-    for (const ingredient of allIngredients) {
-      const { status } = getExpiryStatus(ingredient.expiresAt);
-      if (status === "expired" || status === "expiring") counts[status] += 1;
-    }
-    return counts;
-  }, [allIngredients]);
-  const activeExpiryFilter =
-    expiryCounts[expiryFilter] > 0 ? expiryFilter : "all";
-  const hasExpiryAlerts = expiryCounts.expired + expiryCounts.expiring > 0;
-  const filteredIngredients = useMemo(
-    () =>
-      allIngredients.filter((ingredient) =>
-        matchesExpiryFilter(ingredient, activeExpiryFilter),
-      ),
-    [allIngredients, activeExpiryFilter],
+  const { filteredRows: filteredIngredients, filterTabs } = useCountedRowFilter(
+    {
+      rows: ingredients ?? EMPTY_INGREDIENTS,
+      filters: EXPIRY_FILTERS,
+      allValue: "all",
+      classify: getExpiryFilter,
+    },
   );
 
   const columns = useMemo(
@@ -195,17 +176,8 @@ export function IngredientsTable({
       searchPlaceholder="Buscar insumo"
       emptyState={emptyState}
       toolbarActions={
-        hasExpiryAlerts && (
-          <DataTableFilterTabs
-            label="Filtrar por validade"
-            options={getCountedFilterOptions(
-              EXPIRY_FILTERS,
-              expiryCounts,
-              "all",
-            )}
-            value={activeExpiryFilter}
-            onValueChange={setExpiryFilter}
-          />
+        filterTabs && (
+          <DataTableFilterTabs label="Filtrar por validade" {...filterTabs} />
         )
       }
     />

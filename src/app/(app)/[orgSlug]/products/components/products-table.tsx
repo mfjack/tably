@@ -1,15 +1,13 @@
 "use client";
 
 import { TriangleAlert } from "lucide-react";
-import { type ReactNode, useMemo, useState } from "react";
+import { type ReactNode, useMemo } from "react";
 import { DataTable } from "@/components/data-table/data-table";
 import { createDataTableColumnHelper } from "@/components/data-table/data-table-features";
-import {
-  DataTableFilterTabs,
-  getCountedFilterOptions,
-} from "@/components/data-table/data-table-filter-tabs";
+import { DataTableFilterTabs } from "@/components/data-table/data-table-filter-tabs";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { ALERT_ROW_CLASS_NAME } from "@/components/data-table/data-table-row-styles";
+import { useCountedRowFilter } from "@/components/data-table/use-counted-row-filter";
 import { useDataTable } from "@/components/data-table/use-data-table";
 import { Badge } from "@/components/ui/badge";
 import type { Ingredient } from "@/features/ingredients/types";
@@ -116,29 +114,13 @@ export function ProductsTable({
       }),
     [products, ingredientsById],
   );
-  const [stockFilter, setStockFilter] = useState<StockFilter>("all");
-  const stockCounts = useMemo(() => {
-    const counts: Record<StockFilter, number> = {
-      all: productRows.length,
-      low: 0,
-      out: 0,
-    };
-    for (const product of productRows) {
-      const filter = getStockFilter(product);
-      if (filter !== "all") counts[filter] += 1;
-    }
-    return counts;
-  }, [productRows]);
-  const activeStockFilter = stockCounts[stockFilter] > 0 ? stockFilter : "all";
-  const hasStockAlerts = stockCounts.low + stockCounts.out > 0;
-  const filteredProductRows = useMemo(
-    () =>
-      activeStockFilter === "all"
-        ? productRows
-        : productRows.filter(
-            (product) => getStockFilter(product) === activeStockFilter,
-          ),
-    [productRows, activeStockFilter],
+  const { filteredRows: filteredProductRows, filterTabs } = useCountedRowFilter(
+    {
+      rows: productRows,
+      filters: STOCK_FILTERS,
+      allValue: "all",
+      classify: getStockFilter,
+    },
   );
 
   const columns = useMemo(
@@ -248,13 +230,8 @@ export function ProductsTable({
       searchPlaceholder="Buscar produto ou categoria"
       emptyState={emptyState}
       toolbarActions={
-        hasStockAlerts && (
-          <DataTableFilterTabs
-            label="Filtrar por estoque"
-            options={getCountedFilterOptions(STOCK_FILTERS, stockCounts, "all")}
-            value={activeStockFilter}
-            onValueChange={setStockFilter}
-          />
+        filterTabs && (
+          <DataTableFilterTabs label="Filtrar por estoque" {...filterTabs} />
         )
       }
     />

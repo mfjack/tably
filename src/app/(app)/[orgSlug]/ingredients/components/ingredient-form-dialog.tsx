@@ -1,7 +1,6 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { type DefaultValues, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { FormDialog } from "@/components/dialog/form-dialog";
@@ -9,6 +8,7 @@ import { DateField } from "@/components/form/date-field";
 import { NumberField } from "@/components/form/number-field";
 import { SelectField } from "@/components/form/select-field";
 import { TextField } from "@/components/form/text-field";
+import { useCreateOrEditResolver } from "@/components/form/use-create-or-edit-resolver";
 import { FieldGroup } from "@/components/ui/field";
 import { FreightCostField } from "@/features/ingredients/components/freight-cost-field";
 import { useSaveIngredientMutation } from "@/features/ingredients/hooks/use-save-ingredient-mutation";
@@ -70,15 +70,15 @@ export function IngredientFormDialog({
     organizationId,
     isOpen,
   );
-  const isEditingRef = useRef(Boolean(ingredient));
-  isEditingRef.current = Boolean(ingredient);
+  const resolver = useCreateOrEditResolver<IngredientFormInput>(
+    Boolean(ingredient),
+    {
+      create: ingredientCreateFormSchema,
+      edit: ingredientFormSchema,
+    },
+  );
   const form = useForm<IngredientFormInput>({
-    resolver: (values, context, options) =>
-      zodResolver(
-        isEditingRef.current
-          ? ingredientFormSchema
-          : ingredientCreateFormSchema,
-      )(values, context, options),
+    resolver,
     defaultValues: EMPTY_INGREDIENT_FORM,
   });
   const selectedUnit = useWatch({ control: form.control, name: "unit" });

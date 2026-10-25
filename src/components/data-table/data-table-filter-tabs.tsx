@@ -8,19 +8,6 @@ export type DataTableFilterOption<TValue extends string> = {
   count?: number;
 };
 
-export function getCountedFilterOptions<TValue extends string>(
-  filters: readonly { value: TValue; label: string }[],
-  counts: Readonly<Record<TValue, number>>,
-  allValue: TValue,
-): DataTableFilterOption<TValue>[] {
-  return filters
-    .filter((filter) => counts[filter.value] > 0)
-    .map((filter) => ({
-      ...filter,
-      count: filter.value === allValue ? undefined : counts[filter.value],
-    }));
-}
-
 type DataTableFilterTabsProps<TValue extends string> = {
   label: string;
   options: readonly DataTableFilterOption<TValue>[];

@@ -1,7 +1,6 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo } from "react";
 import { type DefaultValues, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { FormDialog } from "@/components/dialog/form-dialog";
@@ -10,6 +9,7 @@ import { NumberField } from "@/components/form/number-field";
 import { SelectField } from "@/components/form/select-field";
 import { SwitchField } from "@/components/form/switch-field";
 import { TextField } from "@/components/form/text-field";
+import { useCreateOrEditResolver } from "@/components/form/use-create-or-edit-resolver";
 import {
   FieldDescription,
   FieldGroup,
@@ -92,13 +92,12 @@ export function ProductFormDialog({
     organizationId,
     isOpen,
   );
-  const isEditingRef = useRef(Boolean(product));
-  isEditingRef.current = Boolean(product);
+  const resolver = useCreateOrEditResolver<ProductFormInput>(Boolean(product), {
+    create: productCreateFormSchema,
+    edit: productFormSchema,
+  });
   const form = useForm<ProductFormInput>({
-    resolver: (values, context, options) =>
-      zodResolver(
-        isEditingRef.current ? productFormSchema : productCreateFormSchema,
-      )(values, context, options),
+    resolver,
     defaultValues: EMPTY_PRODUCT_FORM,
   });
   const [productName, price, recipe, isStockTracked, isOnMenu] = useWatch({
