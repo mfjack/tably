@@ -1,11 +1,12 @@
 "use client";
 
-import { type ReactNode, useMemo } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import { DataTable } from "@/components/data-table/data-table";
 import { createDataTableColumnHelper } from "@/components/data-table/data-table-features";
 import { ALERT_ROW_CLASS_NAME } from "@/components/data-table/data-table-row-styles";
 import { useDataTable } from "@/components/data-table/use-data-table";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getUnitSymbol } from "@/features/ingredients/measure-units";
 import type { Ingredient } from "@/features/ingredients/types";
 import { getExpiryStatus } from "@/lib/expiry";
@@ -18,6 +19,24 @@ import {
 import { StockStatusBadge } from "./stock-status-badge";
 
 const EMPTY_INGREDIENTS: Ingredient[] = [];
+
+const EXPIRY_FILTERS = [
+  { value: "all", label: "Todos" },
+  { value: "expired", label: "Vencidos" },
+  { value: "expiring", label: "A vencer" },
+] as const;
+
+type ExpiryFilter = (typeof EXPIRY_FILTERS)[number]["value"];
+
+function isExpiryFilter(value: string): value is ExpiryFilter {
+  return EXPIRY_FILTERS.some((filter) => filter.value === value);
+}
+
+function matchesExpiryFilter(ingredient: Ingredient, filter: ExpiryFilter) {
+  return (
+    filter === "all" || getExpiryStatus(ingredient.expiresAt).status === filter
+  );
+}
 
 const columnHelper = createDataTableColumnHelper<Ingredient>();
 
@@ -53,6 +72,31 @@ export function IngredientsTable({
   onEdit,
   onDelete,
 }: IngredientsTableProps) {
+  const [expiryFilter, setExpiryFilter] = useState<ExpiryFilter>("all");
+  const allIngredients = ingredients ?? EMPTY_INGREDIENTS;
+  const expiryCounts = useMemo(() => {
+    const counts: Record<ExpiryFilter, number> = {
+      all: allIngredients.length,
+      expired: 0,
+      expiring: 0,
+    };
+    for (const ingredient of allIngredients) {
+      const { status } = getExpiryStatus(ingredient.expiresAt);
+      if (status === "expired" || status === "expiring") counts[status] += 1;
+    }
+    return counts;
+  }, [allIngredients]);
+  const activeExpiryFilter =
+    expiryCounts[expiryFilter] > 0 ? expiryFilter : "all";
+  const hasExpiryAlerts = expiryCounts.expired + expiryCounts.expiring > 0;
+  const filteredIngredients = useMemo(
+    () =>
+      allIngredients.filter((ingredient) =>
+        matchesExpiryFilter(ingredient, activeExpiryFilter),
+      ),
+    [allIngredients, activeExpiryFilter],
+  );
+
   const columns = useMemo(
     () =>
       columnHelper.columns([
@@ -138,7 +182,7 @@ export function IngredientsTable({
   );
 
   const table = useDataTable({
-    data: ingredients ?? EMPTY_INGREDIENTS,
+    data: filteredIngredients,
     columns,
     getRowId: getIngredientRowId,
   });
@@ -151,6 +195,38 @@ export function IngredientsTable({
       errorMessage={errorMessage}
       searchPlaceholder="Buscar insumo"
       emptyState={emptyState}
+      toolbarActions={
+        hasExpiryAlerts && (
+          <Tabs
+            value={activeExpiryFilter}
+            onValueChange={(value: string) => {
+              if (isExpiryFilter(value)) setExpiryFilter(value);
+            }}
+          >
+            <TabsList
+              aria-label="Filtrar por validade"
+              className="group-data-horizontal/tabs:h-10"
+            >
+              {EXPIRY_FILTERS.filter(
+                (filter) => expiryCounts[filter.value] > 0,
+              ).map((filter) => (
+                <TabsTrigger
+                  key={filter.value}
+                  value={filter.value}
+                  className="px-4"
+                >
+                  {filter.label}
+                  {filter.value !== "all" && (
+                    <span className="text-muted-foreground tabular-nums">
+                      {expiryCounts[filter.value]}
+                    </span>
+                  )}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        )
+      }
     />
   );
 }
