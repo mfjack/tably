@@ -1,0 +1,1 @@
+drop index public.suppliers_organization_name_idx;

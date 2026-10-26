@@ -22,7 +22,6 @@ import type {
 } from "./types";
 
 const SUPPLIER_PURCHASES_LIMIT = 200;
-const UNIQUE_VIOLATION_CODE = "23505";
 
 export async function listSupplierSummaries(
   organizationId: OrganizationId,
@@ -161,13 +160,7 @@ export async function saveSupplier(
         .from("suppliers")
         .insert({ ...values, organization_id: organizationId });
 
-  if (error) {
-    return actionFailure(
-      error.code === UNIQUE_VIOLATION_CODE
-        ? "Já existe um fornecedor com esse nome."
-        : "Não foi possível salvar o fornecedor.",
-    );
-  }
+  if (error) return actionFailure("Não foi possível salvar o fornecedor.");
   return actionSuccess();
 }
 
