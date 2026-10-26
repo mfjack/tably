@@ -3,7 +3,7 @@
 import { differenceInMinutes } from "date-fns";
 import { BellRing, ChefHat } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { DetailsDialog } from "@/components/dialog/details-dialog";
 import { DIALOG_ACTION_BUTTON_CLASS_NAME } from "@/components/dialog/dialog-styles";
@@ -51,6 +51,14 @@ export function OnlineOrdersPanel({
   const acceptMutation = useAcceptOnlineOrderMutation(organizationId);
   const rejectMutation = useRejectOnlineOrderMutation(organizationId);
   const pendingCount = pendingOrders.length;
+  const previousPendingCountRef = useRef(pendingCount);
+
+  useEffect(() => {
+    const hasClearedQueue =
+      previousPendingCountRef.current > 0 && pendingCount === 0;
+    previousPendingCountRef.current = pendingCount;
+    if (hasClearedQueue) setIsOpen(false);
+  }, [pendingCount]);
 
   useOnlineOrdersRealtime(organizationId, (customerName) => {
     playNewTicketSound();
