@@ -17,13 +17,16 @@ import {
   databaseFailure,
 } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
+import { toOpeningHours } from "./opening-hours";
 import {
   type CheckoutSettingsInput,
   type CreateOrganizationInput,
   checkoutSettingsSchema,
   createOrganizationSchema,
+  type OpeningHoursFormInput,
   type OrganizationModulesInput,
   type OrganizationSettingsInput,
+  openingHoursFormSchema,
   organizationModulesSchema,
   organizationSettingsSchema,
   type PaymentFeesInput,
@@ -126,6 +129,34 @@ export async function updateOrganizationSettings(
 
   if (error)
     return databaseFailure("Não foi possível salvar as alterações.", error);
+  if (data.length === 0) return actionFailure(FORBIDDEN_MESSAGE);
+
+  return actionSuccess();
+}
+
+export async function updateOpeningHours(
+  organizationId: OrganizationId,
+  input: OpeningHoursFormInput,
+): Promise<ActionResult> {
+  if (!(await isOrganizationOwner(organizationId))) {
+    return actionFailure(OWNER_ONLY_MESSAGE);
+  }
+
+  const parsedInput = openingHoursFormSchema.safeParse(input);
+  if (!parsedInput.success) {
+    return actionFailure("Confira os horários e tente novamente.");
+  }
+
+  const openingHours = toOpeningHours(parsedInput.data.days);
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("organizations")
+    .update({ opening_hours: openingHours })
+    .eq("id", organizationId)
+    .select("id");
+
+  if (error)
+    return databaseFailure("Não foi possível salvar os horários.", error);
   if (data.length === 0) return actionFailure(FORBIDDEN_MESSAGE);
 
   return actionSuccess();

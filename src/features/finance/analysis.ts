@@ -1,4 +1,4 @@
-import { addDays, format, parseISO } from "date-fns";
+import { addDays, format, getISODay, parseISO } from "date-fns";
 
 export const PROJECTION_HORIZONS = [30, 60, 90] as const;
 
@@ -13,6 +13,7 @@ export type DailySchedule = {
 export type FinancialAnalysisData = {
   today: string;
   averageDailySales: number;
+  openWeekdays: number[];
   balanceToday: number;
   scheduled: DailySchedule[];
 };
@@ -45,10 +46,16 @@ export function buildCashFlowProjection(
   let balance = data.balanceToday;
 
   const points = Array.from({ length: horizonDays + 1 }, (_, index) => {
-    const date = toDateKey(addDays(today, index));
+    const day = addDays(today, index);
+    const date = toDateKey(day);
     const scheduled = scheduledByDate.get(date);
+    const isOpenDay =
+      data.openWeekdays.length === 0 ||
+      data.openWeekdays.includes(getISODay(day));
     const expectedSales =
-      includesExpectedSales && index > 0 ? data.averageDailySales : 0;
+      includesExpectedSales && index > 0 && isOpenDay
+        ? data.averageDailySales
+        : 0;
     const inflow = (scheduled?.income ?? 0) + expectedSales;
     const outflow = scheduled?.expense ?? 0;
     balance += inflow - outflow;

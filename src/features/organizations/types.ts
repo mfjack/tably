@@ -3,6 +3,7 @@ import type { PaymentMethod } from "@/features/orders/types";
 import type { Subscription } from "@/features/subscriptions/subscription-state";
 import type { Brand } from "@/lib/brand";
 import type { Database } from "@/lib/supabase/database.types";
+import type { OpeningHour } from "./opening-hours";
 
 export type OrganizationId = Brand<string, "OrganizationId">;
 
@@ -30,6 +31,7 @@ export type UserOrganization = {
   taxId: string | null;
   phone: string | null;
   address: string | null;
+  openingHours: OpeningHour[];
   menu: OrganizationMenuSettings;
   checkout: OrganizationCheckoutSettings;
   paymentFees: OrganizationPaymentFees;

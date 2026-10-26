@@ -1,4 +1,5 @@
 import type { CategoryId } from "@/features/categories/types";
+import type { OpeningStatus } from "@/features/organizations/opening-hours";
 import type { ProductAddonId } from "@/features/product-addons/types";
 import type { ProductId } from "@/features/products/types";
 
@@ -31,6 +32,7 @@ export type PublicMenu = {
   instagram: string | null;
   note: string | null;
   acceptsOrders: boolean;
+  openingStatus: OpeningStatus;
   sections: PublicMenuSection[];
 };
 

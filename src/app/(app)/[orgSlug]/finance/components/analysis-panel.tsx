@@ -102,7 +102,7 @@ export function AnalysisPanel({
               />
               <Label htmlFor={salesSwitchId} className="text-sm">
                 {data.averageDailySales > 0
-                  ? `Incluir média de vendas (${formatCurrency(data.averageDailySales)}/dia)`
+                  ? `Incluir média de vendas (${formatCurrency(data.averageDailySales)}/${data.openWeekdays.length > 0 ? "dia aberto" : "dia"})`
                   : "Incluir média de vendas (sem vendas nos últimos 28 dias)"}
               </Label>
             </div>

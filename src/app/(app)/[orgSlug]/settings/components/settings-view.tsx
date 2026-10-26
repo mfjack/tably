@@ -10,6 +10,7 @@ import { DeleteAccountSection } from "./delete-account-section";
 import { LoyaltySettingsForm } from "./loyalty-settings-form";
 import { MenuSettings } from "./menu-settings";
 import { ModuleVisibilityForm } from "./module-visibility-form";
+import { OpeningHoursForm } from "./opening-hours-form";
 import { OrganizationSettingsForm } from "./organization-settings-form";
 import { PaymentFeesForm } from "./payment-fees-form";
 import { ProfileForm } from "./profile-form";
@@ -111,10 +112,14 @@ export function SettingsView({
             <>
               <TabsContent
                 value="organization"
-                className="min-h-0 overflow-y-auto"
+                className="flex min-h-0 flex-col gap-6 overflow-y-auto *:shrink-0"
               >
                 <OrganizationSettingsForm
                   key={organization.id}
+                  organization={organization}
+                />
+                <OpeningHoursForm
+                  key={`${organization.id}-opening-hours`}
                   organization={organization}
                 />
               </TabsContent>

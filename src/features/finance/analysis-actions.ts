@@ -31,6 +31,7 @@ const numberSchema = z.coerce.number();
 const analysisSchema = z.object({
   today: z.string(),
   averageDailySales: numberSchema,
+  openWeekdays: z.array(z.number()).default([]),
   balanceToday: numberSchema,
   scheduled: z.array(
     z.object({

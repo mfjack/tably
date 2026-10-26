@@ -5,6 +5,7 @@ import {
   getPublicLoyaltyProgram,
   getPublicMenu,
 } from "@/features/menu/queries";
+import { describeOpeningStatus } from "@/features/organizations/opening-hours";
 import { MenuCategoryNav } from "./components/menu-category-nav";
 import { MenuLoyaltyDialog } from "./components/menu-loyalty-dialog";
 import { MenuOrderBar } from "./components/menu-order-bar";
@@ -30,6 +31,7 @@ export default async function PublicMenuPage({
 
   const instagramHandle = menu.instagram?.replace(/^@/, "");
   const menuItems = menu.sections.flatMap((section) => section.items);
+  const openingStatusLabel = describeOpeningStatus(menu.openingStatus);
 
   return (
     <main className="min-h-svh bg-background text-foreground">
@@ -38,6 +40,9 @@ export default async function PublicMenuPage({
           <h1 className="font-bold text-3xl tracking-tight">{menu.title}</h1>
           {menu.tagline && (
             <p className="text-muted-foreground">{menu.tagline}</p>
+          )}
+          {openingStatusLabel && (
+            <p className="font-medium text-sm">{openingStatusLabel}</p>
           )}
           {loyaltyProgram && (
             <div className="pt-3">

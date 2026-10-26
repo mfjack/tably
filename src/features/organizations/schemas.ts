@@ -7,6 +7,7 @@ import {
 } from "@/features/subscriptions/plans";
 import { isValidCnpj } from "@/lib/masks";
 import { Constants } from "@/lib/supabase/database.types";
+import { TIME_OF_DAY_PATTERN } from "@/lib/time-of-day";
 
 const organizationNameSchema = z
   .string()
@@ -36,6 +37,56 @@ export const organizationSettingsSchema = z.object({
     ),
   address: z.string().trim().max(200, "Endereço muito longo."),
 });
+
+const OPENING_DAY_TIME_FIELDS = [
+  { name: "opensAt", label: "Informe quando abre.", isRequired: true },
+  { name: "breakStartsAt", label: "Informe quando fecha.", isRequired: false },
+  { name: "breakEndsAt", label: "Informe quando reabre.", isRequired: false },
+  { name: "closesAt", label: "Informe quando fecha.", isRequired: true },
+] as const;
+
+export const openingHoursFormSchema = z.object({
+  days: z.array(
+    z
+      .object({
+        weekday: z.number().int().min(1).max(7),
+        isOpen: z.boolean(),
+        opensAt: z.string(),
+        breakStartsAt: z.string(),
+        breakEndsAt: z.string(),
+        closesAt: z.string(),
+      })
+      .superRefine((day, context) => {
+        if (!day.isOpen) return;
+        const hasBreak = Boolean(day.breakStartsAt || day.breakEndsAt);
+        const filledTimes: string[] = [];
+        for (const field of OPENING_DAY_TIME_FIELDS) {
+          const time = day[field.name];
+          if (!field.isRequired && !hasBreak) continue;
+          if (!TIME_OF_DAY_PATTERN.test(time)) {
+            context.addIssue({
+              code: "custom",
+              path: [field.name],
+              message: field.label,
+            });
+            return;
+          }
+          const previousTime = filledTimes.at(-1);
+          if (previousTime !== undefined && time <= previousTime) {
+            context.addIssue({
+              code: "custom",
+              path: [field.name],
+              message: "Precisa ser depois do horário anterior.",
+            });
+            return;
+          }
+          filledTimes.push(time);
+        }
+      }),
+  ),
+});
+
+export type OpeningHoursFormInput = z.infer<typeof openingHoursFormSchema>;
 
 export type CreateOrganizationInput = z.infer<typeof createOrganizationSchema>;
 export type OrganizationSettingsInput = z.infer<

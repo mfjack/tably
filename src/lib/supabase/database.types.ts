@@ -1826,6 +1826,7 @@ export type Database = {
           menu_tagline: string | null
           menu_title: string | null
           name: string
+          opening_hours: Json
           phone: string | null
           pix_fee_percent: number
           service_fee_percent: number
@@ -1865,6 +1866,7 @@ export type Database = {
           menu_tagline?: string | null
           menu_title?: string | null
           name: string
+          opening_hours?: Json
           phone?: string | null
           pix_fee_percent?: number
           service_fee_percent?: number
@@ -1904,6 +1906,7 @@ export type Database = {
           menu_tagline?: string | null
           menu_title?: string | null
           name?: string
+          opening_hours?: Json
           phone?: string | null
           pix_fee_percent?: number
           service_fee_percent?: number
@@ -3736,6 +3739,7 @@ export type Database = {
           menu_tagline: string | null
           menu_title: string | null
           name: string
+          opening_hours: Json
           phone: string | null
           pix_fee_percent: number
           service_fee_percent: number
@@ -3848,6 +3852,16 @@ export type Database = {
       }
       get_open_cash_session: {
         Args: { p_organization_id: string }
+        Returns: Json
+      }
+      get_open_weekdays: {
+        Args: { p_organization_id: string }
+        Returns: number[]
+      }
+      get_opening_status: {
+        Args: {
+          p_organization: Database["public"]["Tables"]["organizations"]["Row"]
+        }
         Returns: Json
       }
       get_payment_fee_percent: {
