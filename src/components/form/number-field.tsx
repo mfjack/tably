@@ -7,14 +7,12 @@ import { CURRENCY_SYMBOL } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { ControlledFormField } from "./controlled-form-field";
 import { getFieldDescriptionId } from "./form-field-shell";
-import { FORM_INPUT_CLASS_NAME } from "./form-field-styles";
+import {
+  FORM_INPUT_CLASS_NAME,
+  FORM_INPUT_SIZE_CLASS_NAMES,
+  type FormInputSize,
+} from "./form-field-styles";
 import type { FormFieldProps } from "./form-field-types";
-
-const INPUT_SIZE_CLASS_NAMES = {
-  default: "",
-  compact: "h-9 px-3 text-sm md:text-sm",
-  dense: "h-9 px-3 text-sm placeholder:text-xs md:text-sm",
-} as const;
 
 const NUMBER_FORMAT_PRESETS = {
   currency: {
@@ -41,7 +39,7 @@ type NumberFieldProps<TFieldValues extends FieldValues> = Omit<
   suffix?: string;
   isDisabled?: boolean;
   allowsNegative?: boolean;
-  size?: keyof typeof INPUT_SIZE_CLASS_NAMES;
+  size?: FormInputSize;
 };
 
 export function NumberField<TFieldValues extends FieldValues>({
@@ -79,7 +77,10 @@ export function NumberField<TFieldValues extends FieldValues>({
           placeholder={placeholder}
           aria-invalid={fieldState.invalid}
           aria-describedby={getFieldDescriptionId(inputId)}
-          className={cn(FORM_INPUT_CLASS_NAME, INPUT_SIZE_CLASS_NAMES[size])}
+          className={cn(
+            FORM_INPUT_CLASS_NAME,
+            FORM_INPUT_SIZE_CLASS_NAMES[size],
+          )}
         />
       )}
     />
