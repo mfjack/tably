@@ -30,6 +30,10 @@ function getSupplierRowId(supplier: Supplier) {
   return supplier.id;
 }
 
+function getSupplierSearchText(supplier: Supplier) {
+  return [supplier.name, supplier.suppliedItems].filter(Boolean).join(" ");
+}
+
 export function SuppliersTable({
   suppliers,
   isLoading,
@@ -43,7 +47,8 @@ export function SuppliersTable({
   const columns = useMemo(
     () =>
       columnHelper.columns([
-        columnHelper.accessor("name", {
+        columnHelper.accessor(getSupplierSearchText, {
+          id: "name",
           header: "Fornecedor",
           cell: ({ row }) => (
             <div className="flex min-w-0 flex-col">
@@ -141,7 +146,7 @@ export function SuppliersTable({
   return (
     <DataTable
       table={table}
-      searchPlaceholder="Buscar fornecedor"
+      searchPlaceholder="Buscar fornecedor ou o que fornece"
       isLoading={isLoading}
       errorMessage={errorMessage}
       emptyState={emptyState}
