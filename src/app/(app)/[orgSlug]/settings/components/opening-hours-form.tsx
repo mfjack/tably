@@ -17,6 +17,7 @@ import {
   openingHoursFormSchema,
 } from "@/features/organizations/schemas";
 import type { UserOrganization } from "@/features/organizations/types";
+import { cn } from "@/lib/utils";
 import { getWeekdayLabel, ISO_WEEKDAYS } from "@/lib/weekdays";
 import { SettingsFormSection } from "./settings-form-section";
 
@@ -27,6 +28,16 @@ type OpeningHoursFormProps = {
 function toFormValues(organization: UserOrganization): OpeningHoursFormInput {
   return { days: toOpeningDays(organization.openingHours) };
 }
+
+const DAYS_GRID_CLASS_NAME =
+  "md:grid-cols-[9rem_repeat(4,minmax(0,1fr))] md:gap-3";
+
+const OPENING_TIME_FIELDS = [
+  { key: "opensAt", label: "Abre" },
+  { key: "breakStartsAt", label: "Almoço" },
+  { key: "breakEndsAt", label: "Volta" },
+  { key: "closesAt", label: "Fecha" },
+] as const;
 
 export function OpeningHoursForm({ organization }: OpeningHoursFormProps) {
   const router = useRouter();
@@ -79,7 +90,7 @@ export function OpeningHoursForm({ organization }: OpeningHoursFormProps) {
   return (
     <SettingsFormSection
       title="Funcionamento"
-      description="Dias e horários em que o café abre. Se fecha para o almoço, preencha a pausa; se não, deixe em branco. O cardápio digital mostra se está aberto e só aceita pedidos nesse horário."
+      description="Dias e horários em que o café abre. Se não fecha para o almoço, deixe Almoço e Volta em branco. O cardápio digital mostra se está aberto e só aceita pedidos nesse horário."
       isDirty={form.formState.isDirty}
       isSubmitting={updateHoursMutation.isPending}
       onSubmit={handleSubmit}
@@ -96,67 +107,79 @@ export function OpeningHoursForm({ organization }: OpeningHoursFormProps) {
             Copiar para os outros dias
           </Button>
         </div>
-        <ul className="flex flex-col gap-2">
-          {ISO_WEEKDAYS.map((weekday, index) => {
-            const isOpen = days[index]?.isOpen ?? false;
-            const switchId = `${switchIdPrefix}-${weekday}`;
-            return (
-              <li
-                key={weekday}
-                className="grid gap-2 rounded-lg border p-3 md:grid-cols-[8rem_1fr] md:items-end"
-              >
-                <Controller
-                  control={form.control}
-                  name={`days.${index}.isOpen`}
-                  render={({ field }) => (
-                    <div className="flex h-12 items-center gap-2">
-                      <Switch
-                        id={switchId}
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                      <Label htmlFor={switchId}>
-                        {getWeekdayLabel(weekday)}
-                      </Label>
-                    </div>
+        <div className="overflow-hidden rounded-xl border">
+          <div
+            aria-hidden
+            className={cn(
+              "hidden border-b bg-muted/40 px-4 py-2 font-medium text-muted-foreground text-xs md:grid",
+              DAYS_GRID_CLASS_NAME,
+            )}
+          >
+            <span>Dia</span>
+            {OPENING_TIME_FIELDS.map((timeField) => (
+              <span key={timeField.key} className="text-center">
+                {timeField.label}
+              </span>
+            ))}
+          </div>
+          <ul className="flex flex-col divide-y">
+            {ISO_WEEKDAYS.map((weekday, index) => {
+              const isOpen = days[index]?.isOpen ?? false;
+              const switchId = `${switchIdPrefix}-${weekday}`;
+              const dayLabel = getWeekdayLabel(weekday);
+              return (
+                <li
+                  key={weekday}
+                  className={cn(
+                    "grid gap-3 px-4 py-3 md:items-start",
+                    DAYS_GRID_CLASS_NAME,
                   )}
-                />
-                {isOpen ? (
-                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                    <TextField
-                      control={form.control}
-                      name={`days.${index}.opensAt`}
-                      label="Abre"
-                      type="time"
-                    />
-                    <TextField
-                      control={form.control}
-                      name={`days.${index}.breakStartsAt`}
-                      label="Fecha p/ almoço"
-                      type="time"
-                    />
-                    <TextField
-                      control={form.control}
-                      name={`days.${index}.breakEndsAt`}
-                      label="Reabre"
-                      type="time"
-                    />
-                    <TextField
-                      control={form.control}
-                      name={`days.${index}.closesAt`}
-                      label="Fecha"
-                      type="time"
-                    />
-                  </div>
-                ) : (
-                  <p className="flex h-12 items-center text-muted-foreground text-sm">
-                    Fechado
-                  </p>
-                )}
-              </li>
-            );
-          })}
-        </ul>
+                >
+                  <Controller
+                    control={form.control}
+                    name={`days.${index}.isOpen`}
+                    render={({ field }) => (
+                      <div className="flex h-9 items-center gap-2">
+                        <Switch
+                          id={switchId}
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                        <Label htmlFor={switchId}>{dayLabel}</Label>
+                      </div>
+                    )}
+                  />
+                  {isOpen ? (
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 md:col-span-4 md:grid-cols-subgrid md:gap-3">
+                      {OPENING_TIME_FIELDS.map((timeField) => (
+                        <div
+                          key={timeField.key}
+                          className="flex flex-col gap-1"
+                        >
+                          <span className="text-muted-foreground text-xs md:hidden">
+                            {timeField.label}
+                          </span>
+                          <TextField
+                            control={form.control}
+                            name={`days.${index}.${timeField.key}`}
+                            label={`${dayLabel}: ${timeField.label}`}
+                            isLabelHidden
+                            type="time"
+                            size="compact"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="flex h-9 items-center text-muted-foreground text-sm md:col-span-4">
+                      Fechado
+                    </p>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       </div>
     </SettingsFormSection>
   );
