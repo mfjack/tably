@@ -8,6 +8,7 @@ export type OnlineOrderDeviceId = Brand<string, "OnlineOrderDeviceId">;
 
 export const ONLINE_ORDER_STAGES = [
   "pending",
+  "accepted",
   "waiting",
   "preparing",
   "ready",
@@ -48,6 +49,7 @@ export type PublicOnlineOrder = {
   total: number;
   createdAt: string;
   stage: OnlineOrderStage;
+  isKitchenEnabled: boolean;
   items: OnlineOrderItem[];
 };
 

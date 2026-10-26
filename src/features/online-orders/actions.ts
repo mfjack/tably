@@ -46,6 +46,7 @@ const publicOnlineOrderSchema = z.object({
   total: z.number(),
   createdAt: z.string(),
   stage: z.enum(ONLINE_ORDER_STAGES),
+  isKitchenEnabled: z.boolean().default(true),
   items: z.array(onlineOrderItemRowSchema),
 });
 

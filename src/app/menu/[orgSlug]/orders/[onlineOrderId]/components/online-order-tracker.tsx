@@ -17,25 +17,34 @@ type OnlineOrderTrackerProps = {
   initialOrder: PublicOnlineOrder;
 };
 
-const PROGRESS_STEPS = [
+type ProgressStep = { stage: OnlineOrderStage; label: string };
+
+const KITCHEN_PROGRESS_STEPS = [
   { stage: "pending", label: "Pedido enviado" },
   { stage: "waiting", label: "Confirmado" },
   { stage: "preparing", label: "Preparando" },
   { stage: "ready", label: "Pronto" },
-] as const satisfies ReadonlyArray<{ stage: OnlineOrderStage; label: string }>;
+] as const satisfies readonly ProgressStep[];
 
-const STAGE_POSITIONS = {
-  pending: 0,
-  waiting: 1,
-  preparing: 2,
-  ready: 3,
-  delivered: 4,
-  rejected: -1,
-} as const satisfies Record<OnlineOrderStage, number>;
+const COUNTER_PROGRESS_STEPS = [
+  { stage: "pending", label: "Pedido enviado" },
+  { stage: "accepted", label: "Pedido aceito" },
+] as const satisfies readonly ProgressStep[];
+
+const FINISHED_STAGES: readonly OnlineOrderStage[] = ["accepted", "delivered"];
+
+function getStagePosition(
+  steps: readonly ProgressStep[],
+  stage: OnlineOrderStage,
+): number {
+  if (FINISHED_STAGES.includes(stage)) return steps.length;
+  return steps.findIndex((step) => step.stage === stage);
+}
 
 const STAGE_MESSAGES = {
   pending:
     "Recebemos seu pedido! Assim que o balcão confirmar, ele vai pra cozinha.",
+  accepted: "Pedido aceito! Em breve te chamamos quando estiver pronto.",
   waiting: "Pedido confirmado! Ele já está na fila da cozinha.",
   preparing: "Estamos preparando seu pedido.",
   ready: "Seu pedido está pronto! Pode retirar no balcão.",
@@ -54,8 +63,15 @@ export function OnlineOrderTracker({
     initialOrder,
   );
   const previousStageRef = useRef(order.stage);
-  const stagePosition = STAGE_POSITIONS[order.stage];
+  const progressSteps = order.isKitchenEnabled
+    ? KITCHEN_PROGRESS_STEPS
+    : COUNTER_PROGRESS_STEPS;
+  const stagePosition = getStagePosition(progressSteps, order.stage);
   const isRejected = order.stage === "rejected";
+  const stageMessage =
+    order.stage === "pending" && !order.isKitchenEnabled
+      ? "Recebemos seu pedido! Assim que o balcão confirmar, a gente te avisa aqui."
+      : STAGE_MESSAGES[order.stage];
 
   useEffect(() => {
     if (order.stage === "ready" && previousStageRef.current !== "ready") {
@@ -78,12 +94,10 @@ export function OnlineOrderTracker({
           aria-live="polite"
           className="flex flex-col gap-5 rounded-xl border bg-card p-5 shadow-xs"
         >
-          <p className="text-center font-semibold text-lg">
-            {STAGE_MESSAGES[order.stage]}
-          </p>
+          <p className="text-center font-semibold text-lg">{stageMessage}</p>
           {!isRejected && (
             <ol className="flex flex-col gap-3">
-              {PROGRESS_STEPS.map((step, index) => {
+              {progressSteps.map((step, index) => {
                 const isDone = stagePosition > index;
                 const isCurrent = stagePosition === index;
                 return (
