@@ -1,8 +1,8 @@
 import * as z from "zod";
+import { TIME_OF_DAY_PATTERN } from "@/lib/time-of-day";
 import { SELECTABLE_TIME_OFF_KINDS } from "./labels";
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 const reasonSchema = z
   .string()
@@ -15,7 +15,7 @@ export const dayPunchesSchema = z.object({
   punches: z
     .array(
       z.object({
-        time: z.string().regex(TIME_PATTERN, "Horário inválido."),
+        time: z.string().regex(TIME_OF_DAY_PATTERN, "Horário inválido."),
         isNextDay: z.boolean(),
       }),
     )
@@ -32,7 +32,7 @@ export const dayAdjustmentFormSchema = z.object({
         value: z
           .string()
           .refine(
-            (time) => time === "" || TIME_PATTERN.test(time),
+            (time) => time === "" || TIME_OF_DAY_PATTERN.test(time),
             "Horário inválido.",
           ),
       }),

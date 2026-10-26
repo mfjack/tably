@@ -1,12 +1,12 @@
 import * as z from "zod";
 import { isValidCpf, isValidPis } from "@/lib/masks";
 import { Constants } from "@/lib/supabase/database.types";
+import { TIME_OF_DAY_PATTERN } from "@/lib/time-of-day";
 import { toTitleCase } from "@/lib/title-case";
 
 export const EMPLOYEE_PIN_LENGTH = 4;
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
 const MAX_TOLERANCE_PER_MARK = 30;
 const MAX_DAILY_TOLERANCE = 60;
 const MAX_DEPENDENTS = 20;
@@ -24,7 +24,7 @@ const optionalDateSchema = z.union([
 
 const optionalTimeSchema = z.union([
   z.literal(""),
-  z.string().regex(TIME_PATTERN, "Horário inválido."),
+  z.string().regex(TIME_OF_DAY_PATTERN, "Horário inválido."),
 ]);
 
 export const employeeSchema = z

@@ -21,14 +21,12 @@ import {
 } from "@/features/employees/schemas";
 import type { WorkSchedule } from "@/features/employees/types";
 import type { OrganizationId } from "@/features/organizations/types";
-import { getWeekdayLabel } from "@/lib/weekdays";
-
-const WEEKDAYS = [1, 2, 3, 4, 5, 6, 7] as const;
+import { getWeekdayLabel, ISO_WEEKDAYS } from "@/lib/weekdays";
 
 type WorkScheduleDayInput = WorkScheduleInput["days"][number];
 
 function createEmptyDays(): WorkScheduleDayInput[] {
-  return WEEKDAYS.map((weekday) => ({
+  return ISO_WEEKDAYS.map((weekday) => ({
     weekday,
     isWorkday: false,
     startTime: "",
@@ -52,7 +50,7 @@ function toFormValues(schedule: WorkSchedule | undefined): WorkScheduleInput {
     name: schedule.name,
     markToleranceMinutes: schedule.markToleranceMinutes,
     dailyToleranceMinutes: schedule.dailyToleranceMinutes,
-    days: WEEKDAYS.map((weekday) => {
+    days: ISO_WEEKDAYS.map((weekday) => {
       const day = daysByWeekday.get(weekday);
       return {
         weekday,
@@ -187,7 +185,7 @@ export function WorkScheduleFormDialog({
             </Button>
           </div>
           <ul className="flex flex-col gap-2">
-            {WEEKDAYS.map((weekday, index) => {
+            {ISO_WEEKDAYS.map((weekday, index) => {
               const isWorkday = days[index]?.isWorkday ?? false;
               const switchId = `${switchIdPrefix}-${weekday}`;
               return (
