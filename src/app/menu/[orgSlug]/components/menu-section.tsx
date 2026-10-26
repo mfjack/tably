@@ -1,19 +1,15 @@
 import { Badge } from "@/components/ui/badge";
-import type { CategoryId } from "@/features/categories/types";
 import { formatMenuPrice } from "@/features/menu/format-menu-price";
 import type { PublicMenuSection } from "@/features/menu/types";
 import { cn } from "@/lib/utils";
 import { MenuItemOrderControl } from "./menu-item-order-control";
+import { buildMenuSectionAnchor } from "./menu-section-anchor";
 
 type MenuSectionProps = {
   menuSlug: string;
   acceptsOrders: boolean;
   section: PublicMenuSection;
 };
-
-export function buildMenuSectionAnchor(categoryId: CategoryId) {
-  return `category-${categoryId}`;
-}
 
 export function MenuSection({
   menuSlug,
@@ -25,17 +21,17 @@ export function MenuSection({
       id={buildMenuSectionAnchor(section.id)}
       className="flex scroll-mt-20 flex-col gap-3"
     >
-      <h2 className="font-semibold text-xl">{section.name}</h2>
-      <ul className="flex flex-col gap-2">
+      <h2 className="font-semibold text-xl tracking-tight">{section.name}</h2>
+      <ul className="flex flex-col divide-y overflow-hidden rounded-2xl border bg-card shadow-xs">
         {section.items.map((item) => (
           <li
             key={item.id}
             className={cn(
-              "flex min-h-16 items-center gap-3 rounded-xl border bg-card px-4 py-3 shadow-xs",
-              !item.isAvailable && "opacity-60",
+              "flex min-h-16 items-center gap-3 px-4 py-3",
+              !item.isAvailable && "text-muted-foreground",
             )}
           >
-            <div className="flex min-w-0 flex-1 flex-col">
+            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
               <span className="font-medium">{item.name}</span>
               {item.detail && (
                 <span className="text-muted-foreground text-sm">

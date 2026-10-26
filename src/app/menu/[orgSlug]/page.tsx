@@ -1,3 +1,4 @@
+import { AtSign, Info } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -5,9 +6,9 @@ import {
   getPublicLoyaltyProgram,
   getPublicMenu,
 } from "@/features/menu/queries";
-import { describeOpeningStatus } from "@/features/organizations/opening-hours";
 import { MenuCategoryNav } from "./components/menu-category-nav";
 import { MenuLoyaltyDialog } from "./components/menu-loyalty-dialog";
+import { MenuOpeningStatus } from "./components/menu-opening-status";
 import { MenuOrderBar } from "./components/menu-order-bar";
 import { MenuSection } from "./components/menu-section";
 
@@ -31,19 +32,31 @@ export default async function PublicMenuPage({
 
   const instagramHandle = menu.instagram?.replace(/^@/, "");
   const menuItems = menu.sections.flatMap((section) => section.items);
-  const openingStatusLabel = describeOpeningStatus(menu.openingStatus);
 
   return (
     <main className="min-h-svh bg-background text-foreground">
       <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 pt-10 pb-32 sm:px-6">
-        <header className="flex flex-col items-center gap-1 text-center">
-          <h1 className="font-bold text-3xl tracking-tight">{menu.title}</h1>
+        <header className="flex flex-col items-center gap-2 text-center">
+          <h1 className="font-bold text-4xl tracking-tight">{menu.title}</h1>
           {menu.tagline && (
-            <p className="text-muted-foreground">{menu.tagline}</p>
+            <p className="max-w-md text-balance text-muted-foreground">
+              {menu.tagline}
+            </p>
           )}
-          {openingStatusLabel && (
-            <p className="font-medium text-sm">{openingStatusLabel}</p>
-          )}
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+            <MenuOpeningStatus status={menu.openingStatus} />
+            {instagramHandle && (
+              <Link
+                href={`https://instagram.com/${instagramHandle}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex h-8 items-center gap-1.5 rounded-full border px-3 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
+              >
+                <AtSign className="size-4" aria-hidden />
+                {instagramHandle}
+              </Link>
+            )}
+          </div>
           {loyaltyProgram && (
             <div className="pt-3">
               <MenuLoyaltyDialog menuSlug={orgSlug} program={loyaltyProgram} />
@@ -73,22 +86,10 @@ export default async function PublicMenuPage({
         )}
 
         {menu.note && (
-          <p className="rounded-xl bg-muted px-4 py-3 text-muted-foreground text-sm">
+          <p className="flex gap-3 rounded-2xl bg-muted px-4 py-3 text-muted-foreground text-sm">
+            <Info className="mt-0.5 size-4 shrink-0" aria-hidden />
             {menu.note}
           </p>
-        )}
-
-        {instagramHandle && (
-          <footer className="flex justify-center pt-2">
-            <Link
-              href={`https://instagram.com/${instagramHandle}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-muted-foreground text-sm underline-offset-4 hover:underline"
-            >
-              @{instagramHandle}
-            </Link>
-          </footer>
         )}
       </div>
       <MenuOrderBar
