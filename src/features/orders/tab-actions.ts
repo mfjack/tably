@@ -49,7 +49,7 @@ import type {
 const ORDER_DETAILS_COLUMNS = `
   id, customer_name, is_takeaway, note, subtotal, takeaway_fee,
   service_fee_amount, discount_amount, loyalty_reward_amount, total,
-  created_at, paid_at,
+  created_at, paid_at, status,
   created_by_operator_name, paid_by_operator_name,
   attendant:profiles!orders_created_by_profile_fkey(full_name),
   cashier:profiles!orders_paid_by_profile_fkey(full_name),
@@ -67,6 +67,7 @@ const PAID_ORDERS_LIMIT = 200;
 
 type OrderDetailsRow = {
   id: string;
+  status: string;
   customer_name: string | null;
   is_takeaway: boolean;
   note: string | null;
@@ -144,6 +145,7 @@ function toOrderDetails(row: OrderDetailsRow): OrderDetails {
     total: row.total,
     createdAt: row.created_at,
     paidAt: row.paid_at,
+    isCanceled: row.status === "canceled",
     isFromMenu: row.online_orders.length > 0,
     payments: row.order_payments
       .map((payment) => ({
@@ -332,6 +334,23 @@ export async function reopenOrder(orderId: OrderId): Promise<ActionResult> {
   if (error) {
     return actionFailure(
       getOrderErrorMessage(error, "Não foi possível reabrir a comanda."),
+    );
+  }
+  return actionSuccess();
+}
+
+export async function cancelPaidOrder(orderId: OrderId): Promise<ActionResult> {
+  const supabase = await createClient();
+  if (!(await hasModuleAccessToRow("orders", orderId, "order_tabs"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
+  const { error } = await supabase.rpc("cancel_paid_order", {
+    p_order_id: orderId,
+  });
+
+  if (error) {
+    return actionFailure(
+      getOrderErrorMessage(error, "Não foi possível cancelar a venda."),
     );
   }
   return actionSuccess();

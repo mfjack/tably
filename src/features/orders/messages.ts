@@ -32,7 +32,8 @@ const ORDER_ERROR_MESSAGES: Readonly<Record<string, string>> = {
   TB044:
     "A quantidade de algum produto acabou. Atualize o estoque no cadastro do produto.",
   TB043:
-    "O caixa em que essa comanda foi paga já foi fechado. Não dá para reabrir.",
+    "O caixa em que essa venda foi paga já foi fechado. Não dá para reabrir nem cancelar.",
+  TB046: "Essa venda já foi cancelada.",
   "22023": "Confira o pedido e o valor recebido.",
   "42501": "Você não tem permissão para vender neste estabelecimento.",
 };

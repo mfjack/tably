@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { Printer, RotateCcw } from "lucide-react";
+import { Ban, Printer, RotateCcw } from "lucide-react";
 import { DetailsDialog } from "@/components/dialog/details-dialog";
 import { DIALOG_ACTION_BUTTON_CLASS_NAME } from "@/components/dialog/dialog-styles";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ type PaidOrderDialogProps = {
   onClose: () => void;
   onPrint: (order: OrderDetails) => void;
   onReopen: (order: OrderDetails) => void;
+  onCancel: (order: OrderDetails) => void;
 };
 
 export function PaidOrderDialog({
@@ -27,8 +28,10 @@ export function PaidOrderDialog({
   onClose,
   onPrint,
   onReopen,
+  onCancel,
 }: PaidOrderDialogProps) {
-  const canReopen = Boolean(order?.customerName);
+  const isCanceled = order?.isCanceled ?? false;
+  const canReopen = Boolean(order?.customerName) && !isCanceled;
   const change = order ? getOrderPaymentChange(order) : 0;
   const paymentLineCount = order
     ? order.payments.length + (order.loyaltyReward > 0 ? 1 : 0)
@@ -38,9 +41,24 @@ export function PaidOrderDialog({
     <DetailsDialog
       isOpen={order !== null}
       onOpenChange={(isDialogOpen) => !isDialogOpen && onClose()}
-      title="Detalhes da comanda"
+      title={isCanceled ? "Venda cancelada" : "Detalhes da comanda"}
       footer={
         <>
+          {!isCanceled && (
+            <Button
+              type="button"
+              variant="outline"
+              className={cn(
+                DIALOG_ACTION_BUTTON_CLASS_NAME,
+                "text-destructive hover:text-destructive",
+                !canReopen && "col-span-2",
+              )}
+              onClick={() => order && onCancel(order)}
+            >
+              <Ban aria-hidden />
+              Cancelar venda
+            </Button>
+          )}
           {canReopen && (
             <Button
               type="button"
@@ -54,10 +72,7 @@ export function PaidOrderDialog({
           )}
           <Button
             type="button"
-            className={cn(
-              DIALOG_ACTION_BUTTON_CLASS_NAME,
-              !canReopen && "col-span-2",
-            )}
+            className={cn(DIALOG_ACTION_BUTTON_CLASS_NAME, "col-span-2")}
             onClick={() => order && onPrint(order)}
           >
             <Printer aria-hidden />

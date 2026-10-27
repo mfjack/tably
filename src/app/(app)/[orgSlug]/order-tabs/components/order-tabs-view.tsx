@@ -11,6 +11,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PaymentDialog } from "@/features/orders/components/payment-dialog";
 import { useCancelOrderMutation } from "@/features/orders/hooks/use-cancel-order-mutation";
+import { useCancelPaidOrderMutation } from "@/features/orders/hooks/use-cancel-paid-order-mutation";
 import { useOpenOrderTabsQuery } from "@/features/orders/hooks/use-open-order-tabs-query";
 import { usePaidOrdersQuery } from "@/features/orders/hooks/use-paid-orders-query";
 import { usePayOrderMutation } from "@/features/orders/hooks/use-pay-order-mutation";
@@ -33,6 +34,7 @@ import type {
   OrganizationId,
 } from "@/features/organizations/types";
 import { useCartStore } from "@/features/pos/cart-store";
+import { formatCurrency } from "@/lib/format";
 import { ModuleLinkButton } from "../../components/module-link-button";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
@@ -49,7 +51,7 @@ type OpenTabState =
 
 type PaidOrderState =
   | { step: "closed" }
-  | { step: "details" | "reopen"; order: OrderDetails };
+  | { step: "details" | "reopen" | "cancel"; order: OrderDetails };
 
 type OrderTabsSection = "open" | "history";
 
@@ -80,6 +82,7 @@ export function OrderTabsView({
   const payOrderMutation = usePayOrderMutation(organizationId);
   const cancelOrderMutation = useCancelOrderMutation(organizationId);
   const reopenOrderMutation = useReopenOrderMutation(organizationId);
+  const cancelPaidOrderMutation = useCancelPaidOrderMutation(organizationId);
 
   const [openTabState, setOpenTabState] = useState<OpenTabState>({
     step: "closed",
@@ -186,6 +189,28 @@ export function OrderTabsView({
       },
       onError: (error) => toast.error(error.message),
     });
+  }
+
+  function confirmPaidOrderCancel() {
+    if (paidOrderState.step !== "cancel") return;
+    const canceledOrder = paidOrderState.order;
+
+    cancelPaidOrderMutation.mutate(canceledOrder.id, {
+      onSuccess: () => {
+        setPaidOrderState({ step: "closed" });
+        toast.success("Venda cancelada.");
+      },
+      onError: (error) => toast.error(error.message),
+    });
+  }
+
+  function backToPaidOrderDetails(isDialogOpen: boolean) {
+    if (isDialogOpen) return;
+    setPaidOrderState((currentState) =>
+      currentState.step === "closed"
+        ? currentState
+        : { step: "details", order: currentState.order },
+    );
   }
 
   const openTabCount = openOrderTabsQuery.data?.length ?? 0;
@@ -309,17 +334,20 @@ export function OrderTabsView({
         onClose={() => setPaidOrderState({ step: "closed" })}
         onPrint={printOrder}
         onReopen={(order) => setPaidOrderState({ step: "reopen", order })}
+        onCancel={(order) => setPaidOrderState({ step: "cancel", order })}
+      />
+      <ConfirmDialog
+        isOpen={paidOrderState.step === "cancel"}
+        onOpenChange={backToPaidOrderDetails}
+        title="Cancelar venda?"
+        description={`A venda de ${paidOrderState.step === "closed" ? "" : formatCurrency(paidOrderState.order.total)} é desfeita: os produtos voltam para o estoque e o pagamento sai do caixa, do financeiro, da conta do cliente e da fidelidade. Devolva o dinheiro ao cliente ou estorne na maquininha. ${IRREVERSIBLE_ACTION_MESSAGE}`}
+        confirmLabel="Cancelar venda"
+        isConfirming={cancelPaidOrderMutation.isPending}
+        onConfirm={confirmPaidOrderCancel}
       />
       <ConfirmDialog
         isOpen={paidOrderState.step === "reopen"}
-        onOpenChange={(isOpen) =>
-          !isOpen &&
-          setPaidOrderState((currentState) =>
-            currentState.step === "reopen"
-              ? { step: "details", order: currentState.order }
-              : currentState,
-          )
-        }
+        onOpenChange={backToPaidOrderDetails}
         title="Reabrir comanda?"
         description={`A comanda de ${paidOrderState.step === "closed" ? "" : (paidOrderState.order.customerName ?? "")} volta para as abertas e o pagamento é desfeito: sai do caixa, do financeiro, da conta do cliente e da fidelidade. Depois é só cobrar de novo.`}
         confirmLabel="Reabrir comanda"

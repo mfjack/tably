@@ -46,6 +46,7 @@ export type OrderDetails = {
   total: number;
   createdAt: string;
   paidAt: string | null;
+  isCanceled: boolean;
   isFromMenu: boolean;
   payments: OrderPayment[];
   attendantName: string | null;
