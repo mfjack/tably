@@ -6,7 +6,7 @@ type PageContentProps = {
 
 export function PageContent({ children }: PageContentProps) {
   return (
-    <main className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 py-6 md:px-6">
+    <main className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pt-4 pb-6 md:px-6">
       {children}
     </main>
   );

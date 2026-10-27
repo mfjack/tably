@@ -176,10 +176,7 @@ export function TimeClockView({
 
   return (
     <>
-      <PageHeader
-        title={title}
-        description="Escolha seu nome e digite o PIN. O horário salvo é o do servidor."
-      />
+      <PageHeader title={title} />
       <PageContent>
         <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-10 py-4">
           <LiveClock />
@@ -269,6 +266,10 @@ export function TimeClockView({
             </div>
           ) : (
             <div className="flex min-h-0 w-full max-w-3xl flex-col items-center gap-6">
+              <p className="text-center text-muted-foreground text-sm">
+                Escolha seu nome e digite o PIN. O horário salvo é o do
+                servidor.
+              </p>
               {(employees?.length ?? 0) > SEARCH_THRESHOLD && (
                 <InputGroup className="h-11 w-full max-w-xs shrink-0 rounded-lg">
                   <InputGroupAddon>
