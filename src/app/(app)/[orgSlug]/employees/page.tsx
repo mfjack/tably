@@ -34,7 +34,6 @@ export default async function EmployeesPage({
       organizationId={organization.id}
       organizationSlug={organization.slug}
       title={employeesModule.label}
-      description={employeesModule.description}
       today={clock.today}
       employeesHref={buildOrganizationPath(organization.slug, "employees")}
       payrollHref={

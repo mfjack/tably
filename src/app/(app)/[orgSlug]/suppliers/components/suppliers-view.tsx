@@ -24,14 +24,12 @@ type SupplierFormState =
 type SuppliersViewProps = {
   organizationId: OrganizationId;
   title: string;
-  description: string;
   canManage: boolean;
 };
 
 export function SuppliersView({
   organizationId,
   title,
-  description,
   canManage,
 }: SuppliersViewProps) {
   const suppliersQuery = useSuppliersQuery(organizationId);
@@ -69,7 +67,6 @@ export function SuppliersView({
     <>
       <PageHeader
         title={title}
-        description={description}
         actions={
           canManage && (
             <Button className="h-10" onClick={openCreateForm}>

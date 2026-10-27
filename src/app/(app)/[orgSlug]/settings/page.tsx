@@ -26,7 +26,6 @@ export default async function SettingsPage({
     <SettingsView
       initialTab={typeof tab === "string" ? tab : undefined}
       title={SETTINGS_PAGE.label}
-      description={SETTINGS_PAGE.description}
       organization={organization}
       currentUser={currentUser}
       canManageEstablishment={

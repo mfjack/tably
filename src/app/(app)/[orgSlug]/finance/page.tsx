@@ -62,7 +62,6 @@ export default async function FinancePage({
         organizationId={organization.id}
         organizationName={organization.name}
         title={financeModule.label}
-        description={financeModule.description}
         today={clock.today}
         initialMonthKey={initialMonthKey}
       />

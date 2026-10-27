@@ -44,7 +44,6 @@ function getDeleteDescription(account: CustomerAccount) {
 type CustomerAccountsViewProps = {
   organizationId: OrganizationId;
   title: string;
-  description: string;
   paymentFees: OrganizationPaymentFees;
   acceptedPaymentMethods: readonly PaymentMethod[];
 };
@@ -52,7 +51,6 @@ type CustomerAccountsViewProps = {
 export function CustomerAccountsView({
   organizationId,
   title,
-  description,
   paymentFees,
   acceptedPaymentMethods,
 }: CustomerAccountsViewProps) {
@@ -116,7 +114,7 @@ export function CustomerAccountsView({
         description={
           accounts && debtors.length > 0
             ? `${formatCurrency(totalReceivable)} a receber de ${debtors.length} ${debtors.length === 1 ? "cliente" : "clientes"}`
-            : description
+            : undefined
         }
         actions={
           <Button className="h-10" onClick={openCreateForm}>

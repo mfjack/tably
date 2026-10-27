@@ -38,7 +38,6 @@ type EmployeesViewProps = {
   organizationId: OrganizationId;
   organizationSlug: string;
   title: string;
-  description: string;
   today: string;
   employeesHref: string;
   payrollHref: string | null;
@@ -48,7 +47,6 @@ export function EmployeesView({
   organizationId,
   organizationSlug,
   title,
-  description,
   today,
   employeesHref,
   payrollHref,
@@ -108,7 +106,6 @@ export function EmployeesView({
     <>
       <PageHeader
         title={title}
-        description={description}
         actions={
           <>
             <Button

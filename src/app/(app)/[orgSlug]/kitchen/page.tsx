@@ -20,7 +20,6 @@ export default async function KitchenPage({
       ticketBusiness={toOrderTicketBusiness(organization)}
       lateMinutes={organization.kitchenLateMinutes}
       title={kitchenModule.label}
-      description="Pedidos enviados pelo PDV, em tempo real."
     />
   );
 }

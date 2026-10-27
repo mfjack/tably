@@ -54,7 +54,6 @@ type IngredientFormState =
 type IngredientsViewProps = {
   organizationId: OrganizationId;
   title: string;
-  description: string;
   canManage: boolean;
   currentPersonName: string;
   business: OrderTicketBusiness;
@@ -63,7 +62,6 @@ type IngredientsViewProps = {
 export function IngredientsView({
   organizationId,
   title,
-  description,
   canManage,
   currentPersonName,
   business,
@@ -126,7 +124,6 @@ export function IngredientsView({
     <>
       <PageHeader
         title={title}
-        description={description}
         actions={
           <>
             <DropdownMenu>

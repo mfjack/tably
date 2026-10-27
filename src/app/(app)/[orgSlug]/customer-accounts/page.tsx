@@ -17,7 +17,6 @@ export default async function CustomerAccountsPage({
     <CustomerAccountsView
       organizationId={organization.id}
       title={customerAccountsModule.label}
-      description={customerAccountsModule.description}
       paymentFees={organization.paymentFees}
       acceptedPaymentMethods={organization.checkout.acceptedPaymentMethods}
     />

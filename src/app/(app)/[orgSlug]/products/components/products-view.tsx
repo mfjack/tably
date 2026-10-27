@@ -23,7 +23,6 @@ type ProductFormState =
 type ProductsViewProps = {
   organizationId: OrganizationId;
   title: string;
-  description: string;
   canManage: boolean;
   isAddonsEnabled: boolean;
 };
@@ -31,7 +30,6 @@ type ProductsViewProps = {
 export function ProductsView({
   organizationId,
   title,
-  description,
   canManage,
   isAddonsEnabled,
 }: ProductsViewProps) {
@@ -59,7 +57,6 @@ export function ProductsView({
     <>
       <PageHeader
         title={title}
-        description={description}
         actions={
           canManage && (
             <>

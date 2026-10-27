@@ -21,14 +21,12 @@ type CategoryFormState =
 type CategoriesViewProps = {
   organizationId: OrganizationId;
   title: string;
-  description: string;
   canManage: boolean;
 };
 
 export function CategoriesView({
   organizationId,
   title,
-  description,
   canManage,
 }: CategoriesViewProps) {
   const categoriesQuery = useCategoriesQuery(organizationId);
@@ -51,7 +49,6 @@ export function CategoriesView({
     <>
       <PageHeader
         title={title}
-        description={description}
         actions={
           canManage && (
             <Button className="h-10" onClick={openCreateForm}>

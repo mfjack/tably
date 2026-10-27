@@ -20,7 +20,6 @@ export default async function IngredientsPage({
     <IngredientsView
       organizationId={organization.id}
       title={ingredientsModule.label}
-      description={ingredientsModule.description}
       canManage={canManageCatalog(organization.role)}
       currentPersonName={currentUser?.fullName ?? ""}
       business={{

@@ -18,7 +18,6 @@ export default async function ProductsPage({
     <ProductsView
       organizationId={organization.id}
       title={productsModule.label}
-      description={productsModule.description}
       canManage={canManageCatalog(organization.role)}
       isAddonsEnabled={organization.checkout.isProductAddonsEnabled}
     />

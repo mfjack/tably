@@ -46,7 +46,6 @@ import { VacationsPanel } from "./vacations-panel";
 type PayrollViewProps = {
   organizationId: OrganizationId;
   title: string;
-  description: string;
   business: OrderTicketBusiness;
   initialMonthKey: string;
   employeesHref: string;
@@ -66,7 +65,6 @@ function getRowStatus(row: PayrollRow) {
 export function PayrollView({
   organizationId,
   title,
-  description,
   business,
   initialMonthKey,
   employeesHref,
@@ -149,7 +147,6 @@ export function PayrollView({
     <>
       <PageHeader
         title={title}
-        description={description}
         actions={
           <>
             <Button

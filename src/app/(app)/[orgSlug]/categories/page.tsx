@@ -18,7 +18,6 @@ export default async function CategoriesPage({
     <CategoriesView
       organizationId={organization.id}
       title={categoriesModule.label}
-      description={categoriesModule.description}
       canManage={canManageCatalog(organization.role)}
     />
   );

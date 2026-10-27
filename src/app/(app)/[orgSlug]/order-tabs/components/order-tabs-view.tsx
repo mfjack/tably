@@ -60,7 +60,6 @@ type OrderTabsViewProps = {
   ticketBusiness: OrderTicketBusiness;
   checkoutSettings: OrganizationCheckoutSettings;
   title: string;
-  description: string;
   posHref: string;
   canOpenPos: boolean;
 };
@@ -70,7 +69,6 @@ export function OrderTabsView({
   ticketBusiness,
   checkoutSettings,
   title,
-  description,
   posHref,
   canOpenPos,
 }: OrderTabsViewProps) {
@@ -219,7 +217,6 @@ export function OrderTabsView({
     <>
       <PageHeader
         title={title}
-        description={description}
         actions={
           canOpenPos && (
             <ModuleLinkButton

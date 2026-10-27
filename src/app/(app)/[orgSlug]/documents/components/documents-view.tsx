@@ -25,14 +25,12 @@ type DocumentFormState =
 type DocumentsViewProps = {
   organizationId: OrganizationId;
   title: string;
-  description: string;
   canManage: boolean;
 };
 
 export function DocumentsView({
   organizationId,
   title,
-  description,
   canManage,
 }: DocumentsViewProps) {
   const documentsQuery = useDocumentsQuery(organizationId);
@@ -82,7 +80,6 @@ export function DocumentsView({
     <>
       <PageHeader
         title={title}
-        description={description}
         actions={
           canManage && (
             <Button className="h-10" onClick={openCreateForm}>

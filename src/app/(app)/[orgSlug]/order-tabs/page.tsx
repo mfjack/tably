@@ -27,7 +27,6 @@ export default async function OrderTabsPage({
       ticketBusiness={toOrderTicketBusiness(organization)}
       checkoutSettings={organization.checkout}
       title={orderTabsModule.label}
-      description={orderTabsModule.description}
       canOpenPos={accessibleModuleIds.includes("pos")}
       posHref={buildOrganizationPath(
         organization.slug,

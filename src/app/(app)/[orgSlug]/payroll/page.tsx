@@ -67,7 +67,6 @@ export default async function PayrollPage({
       <PayrollView
         organizationId={organization.id}
         title={employeesModule.label}
-        description={payrollModule.description}
         business={{
           name: organization.name,
           taxId: organization.taxId,

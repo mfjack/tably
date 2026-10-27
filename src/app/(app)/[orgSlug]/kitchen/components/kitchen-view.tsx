@@ -40,7 +40,6 @@ type KitchenViewProps = {
   ticketBusiness: OrderTicketBusiness;
   lateMinutes: number;
   title: string;
-  description: string;
 };
 
 export function KitchenView({
@@ -48,7 +47,6 @@ export function KitchenView({
   ticketBusiness,
   lateMinutes,
   title,
-  description,
 }: KitchenViewProps) {
   const now = useNow(ELAPSED_TIME_REFRESH_IN_MS);
   const [mobileColumn, setMobileColumn] = useState<KitchenColumnId>("waiting");
@@ -96,7 +94,6 @@ export function KitchenView({
     <div className="flex h-svh min-h-0 flex-col">
       <PageHeader
         title={title}
-        description={description}
         actions={
           lateTicketCount > 0 && (
             <Badge

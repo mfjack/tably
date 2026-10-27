@@ -57,7 +57,6 @@ type FinanceViewProps = {
   organizationId: OrganizationId;
   organizationName: string;
   title: string;
-  description: string;
   today: string;
   initialMonthKey: string;
 };
@@ -66,7 +65,6 @@ export function FinanceView({
   organizationId,
   organizationName,
   title,
-  description,
   today,
   initialMonthKey,
 }: FinanceViewProps) {
@@ -143,7 +141,6 @@ export function FinanceView({
     <>
       <PageHeader
         title={title}
-        description={description}
         actions={
           <>
             <Button

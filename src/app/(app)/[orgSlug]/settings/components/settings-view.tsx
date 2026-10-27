@@ -26,7 +26,6 @@ const PERSONAL_TABS = ["printer", "profile"] as const;
 
 type SettingsViewProps = {
   title: string;
-  description: string;
   organization: UserOrganization;
   currentUser: CurrentUser;
   canManageEstablishment: boolean;
@@ -36,7 +35,6 @@ type SettingsViewProps = {
 
 export function SettingsView({
   title,
-  description,
   organization,
   currentUser,
   canManageEstablishment,
@@ -55,7 +53,7 @@ export function SettingsView({
   ];
   return (
     <>
-      <PageHeader title={title} description={description} />
+      <PageHeader title={title} />
       <PageContent>
         <Tabs
           defaultValue={

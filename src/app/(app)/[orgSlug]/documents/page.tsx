@@ -18,7 +18,6 @@ export default async function DocumentsPage({
     <DocumentsView
       organizationId={organization.id}
       title={documentsModule.label}
-      description={documentsModule.description}
       canManage={canManageCatalog(organization.role)}
     />
   );

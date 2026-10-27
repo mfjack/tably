@@ -18,7 +18,6 @@ export default async function SuppliersPage({
     <SuppliersView
       organizationId={organization.id}
       title={suppliersModule.label}
-      description={suppliersModule.description}
       canManage={canManageCatalog(organization.role)}
     />
   );
