@@ -48,15 +48,11 @@ export async function saveOpeningBalance(
     return actionFailure("Confira o valor e tente novamente.");
   }
 
-  const accountId = await getDefaultAccountId(organizationId);
-  if (!accountId) return actionFailure(SAVE_FAILED_MESSAGE);
-
   const supabase = await createClient();
-  const { error } = await supabase
-    .from("financial_accounts")
-    .update({ opening_balance: parsedInput.data.openingBalance ?? 0 })
-    .eq("id", accountId)
-    .eq("organization_id", organizationId);
+  const { error } = await supabase.rpc("set_opening_balance", {
+    p_organization_id: organizationId,
+    p_amount: parsedInput.data.openingBalance ?? 0,
+  });
 
   if (error) return databaseFailure(SAVE_FAILED_MESSAGE, error);
   return actionSuccess();

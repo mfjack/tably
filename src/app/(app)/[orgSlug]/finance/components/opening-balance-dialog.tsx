@@ -58,7 +58,7 @@ export function OpeningBalanceDialog({
       isOpen={isOpen}
       onOpenChange={closeDialog}
       title="Saldo inicial"
-      description="Quanto você tinha em caixa quando começou a usar o financeiro. Ele entra no cálculo do saldo de hoje."
+      description="Quanto tem no banco agora. O saldo passa a partir desse valor e só soma as vendas e desconta as contas pagas daqui pra frente. O que já foi pago continua no DRE."
       submitLabel="Salvar"
       isSubmitting={saveMutation.isPending}
       onSubmit={handleSubmit}

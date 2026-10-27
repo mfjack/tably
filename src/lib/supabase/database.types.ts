@@ -1802,6 +1802,7 @@ export type Database = {
         Row: {
           accepted_payment_methods: Database["public"]["Enums"]["payment_method"][]
           address: string | null
+          balance_started_at: string | null
           created_at: string
           created_by: string | null
           credit_card_fee_percent: number
@@ -1844,6 +1845,7 @@ export type Database = {
         Insert: {
           accepted_payment_methods?: Database["public"]["Enums"]["payment_method"][]
           address?: string | null
+          balance_started_at?: string | null
           created_at?: string
           created_by?: string | null
           credit_card_fee_percent?: number
@@ -1886,6 +1888,7 @@ export type Database = {
         Update: {
           accepted_payment_methods?: Database["public"]["Enums"]["payment_method"][]
           address?: string | null
+          balance_started_at?: string | null
           created_at?: string
           created_by?: string | null
           credit_card_fee_percent?: number
@@ -3773,6 +3776,7 @@ export type Database = {
         Returns: {
           accepted_payment_methods: Database["public"]["Enums"]["payment_method"][]
           address: string | null
+          balance_started_at: string | null
           created_at: string
           created_by: string | null
           credit_card_fee_percent: number
@@ -3880,6 +3884,14 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      get_balance_sales_receipts: {
+        Args: { p_organization_id: string; p_today: string }
+        Returns: number
+      }
+      get_financial_account_balance: {
+        Args: { p_account_id: string; p_today: string }
+        Returns: number
+      }
       get_financial_analysis: {
         Args: {
           p_from: string
@@ -3942,6 +3954,10 @@ export type Database = {
           p_organization_id: string
         }
         Returns: number
+      }
+      get_pending_receivables: {
+        Args: { p_organization_id: string; p_today: string }
+        Returns: Json
       }
       get_public_loyalty_program: { Args: { p_slug: string }; Returns: Json }
       get_public_loyalty_status: {
@@ -4342,6 +4358,10 @@ export type Database = {
           p_online_order_id: string
           p_phone: string
         }
+        Returns: undefined
+      }
+      set_opening_balance: {
+        Args: { p_amount: number; p_organization_id: string }
         Returns: undefined
       }
       set_product_addons: {
