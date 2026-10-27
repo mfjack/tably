@@ -58,6 +58,8 @@ export type OrganizationPaymentFees = {
   debitCardFeePercent: number;
   pixFeePercent: number;
   isPassedOnToCustomer: boolean;
+  creditCardSettlementDays: number;
+  debitCardSettlementDays: number;
 };
 
 export type OrganizationMenuSettings = {

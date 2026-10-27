@@ -1,13 +1,23 @@
 "use client";
 
+import { Landmark } from "lucide-react";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { usePaymentReceivablesQuery } from "@/features/finance/hooks/use-payment-receivables-query";
+import {
+  type ReceivablesSummary,
+  summarizeReceivables,
+} from "@/features/finance/receivables";
 import {
   PAYMENT_METHOD_VALUES,
   PAYMENT_METHODS,
 } from "@/features/orders/payment-methods";
 import type { PaymentMethod } from "@/features/orders/types";
 import { getPaymentMethodFeePercent } from "@/features/organizations/payment-fees";
-import type { OrganizationPaymentFees } from "@/features/organizations/types";
+import type {
+  OrganizationId,
+  OrganizationPaymentFees,
+} from "@/features/organizations/types";
 import {
   getOperatorNames,
   getOperatorPayments,
@@ -22,12 +32,15 @@ import {
   formatPercent,
   formatPrecisePercent,
 } from "@/lib/format";
+import { ReceivableBadge } from "./receivable-badge";
+import { ReceivablesDialog } from "./receivables-dialog";
 import { ReportFilterSelect } from "./report-filter-select";
 import { ReportSection } from "./report-section";
 
 const ALL_OPERATORS_VALUE = "all";
 
 type PaymentMethodsSectionProps = {
+  organizationId: OrganizationId;
   report: SalesReport;
   paymentFees: OrganizationPaymentFees;
 };
@@ -45,6 +58,7 @@ type PaymentMethodTileProps = {
   fee: number;
   surcharge: number;
   feePercent: number;
+  receivablesSummary: ReceivablesSummary | null;
 };
 
 function PaymentMethodTile({
@@ -56,6 +70,7 @@ function PaymentMethodTile({
   fee,
   surcharge,
   feePercent,
+  receivablesSummary,
 }: PaymentMethodTileProps) {
   const { label, icon: Icon } = PAYMENT_METHODS[method];
 
@@ -93,15 +108,25 @@ function PaymentMethodTile({
           </span>
         )}
       </div>
+      {receivablesSummary && <ReceivableBadge summary={receivablesSummary} />}
     </div>
   );
 }
 
 export function PaymentMethodsSection({
+  organizationId,
   report,
   paymentFees,
 }: PaymentMethodsSectionProps) {
   const [operatorFilter, setOperatorFilter] = useState(ALL_OPERATORS_VALUE);
+  const [isReceivablesOpen, setIsReceivablesOpen] = useState(false);
+  const receivablesQuery = usePaymentReceivablesQuery(
+    organizationId,
+    report.startDate,
+    report.endDate,
+  );
+  const receivables = receivablesQuery.data?.receivables ?? [];
+  const today = receivablesQuery.data?.today ?? report.endDate;
 
   const operatorOptions = [
     { value: ALL_OPERATORS_VALUE, label: "Todos os operadores" },
@@ -115,25 +140,48 @@ export function PaymentMethodsSection({
   const payments = getOperatorPayments(report, selectedOperator);
   const receipts = getOperatorReceipts(report, selectedOperator);
   const total = sumPaymentTotals(payments);
+  const usedMethods = PAYMENT_METHOD_VALUES.filter(
+    (method) => payments[method].revenue + receipts[method].revenue > 0,
+  );
+
+  function getMethodReceivablesSummary(method: PaymentMethod) {
+    if (selectedOperator) return null;
+    return summarizeReceivables(
+      receivables.filter((receivable) => receivable.method === method),
+      today,
+    );
+  }
 
   return (
     <ReportSection
       title="Recebido por forma de pagamento"
-      description="Confira o valor recebido por operador e forma de pagamento no período."
+      description="Quanto entrou em cada forma de pagamento e se o cartão e o Pix já caíram na conta."
       actions={
-        <ReportFilterSelect
-          label="Operador"
-          placeholder="Todos os operadores"
-          options={operatorOptions}
-          value={operatorFilter}
-          onValueChange={(value) =>
-            setOperatorFilter(value ?? ALL_OPERATORS_VALUE)
-          }
-        />
+        <div className="flex flex-wrap items-center gap-2">
+          {receivables.length > 0 && (
+            <Button
+              variant="outline"
+              className="h-10"
+              onClick={() => setIsReceivablesOpen(true)}
+            >
+              <Landmark aria-hidden />
+              Conferir recebimentos
+            </Button>
+          )}
+          <ReportFilterSelect
+            label="Operador"
+            placeholder="Todos os operadores"
+            options={operatorOptions}
+            value={operatorFilter}
+            onValueChange={(value) =>
+              setOperatorFilter(value ?? ALL_OPERATORS_VALUE)
+            }
+          />
+        </div>
       }
     >
       <div className="grid items-start gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        {PAYMENT_METHOD_VALUES.map((method) => (
+        {usedMethods.map((method) => (
           <PaymentMethodTile
             key={method}
             method={method}
@@ -145,6 +193,7 @@ export function PaymentMethodsSection({
               selectedOperator ? 0 : getPaymentMethodSurcharge(report, method)
             }
             feePercent={getPaymentMethodFeePercent(paymentFees, method)}
+            receivablesSummary={getMethodReceivablesSummary(method)}
             share={
               total.revenue > 0 ? payments[method].revenue / total.revenue : 0
             }
@@ -161,6 +210,14 @@ export function PaymentMethodsSection({
           · {formatOrderCount(total.orderCount)}
         </p>
       )}
+
+      <ReceivablesDialog
+        organizationId={organizationId}
+        isOpen={isReceivablesOpen}
+        receivables={receivables}
+        today={today}
+        onClose={() => setIsReceivablesOpen(false)}
+      />
     </ReportSection>
   );
 }

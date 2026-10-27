@@ -258,6 +258,8 @@ export async function updatePaymentFees(
     debitCardFeePercent,
     pixFeePercent,
     isPassedOnToCustomer,
+    creditCardSettlementDays,
+    debitCardSettlementDays,
   } = parsedInput.data;
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -267,6 +269,8 @@ export async function updatePaymentFees(
       debit_card_fee_percent: debitCardFeePercent ?? 0,
       pix_fee_percent: pixFeePercent ?? 0,
       is_card_fee_passed_on: isPassedOnToCustomer,
+      credit_card_settlement_days: creditCardSettlementDays,
+      debit_card_settlement_days: debitCardSettlementDays,
     })
     .eq("id", organizationId)
     .select("id");

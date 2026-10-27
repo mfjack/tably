@@ -16,6 +16,7 @@ type ProductsRankingSectionProps = {
   icon: LucideIcon;
   products: readonly ProductSales[];
   emptyMessage: string;
+  note?: string;
 };
 
 export function ProductsRankingSection({
@@ -23,6 +24,7 @@ export function ProductsRankingSection({
   icon,
   products,
   emptyMessage,
+  note,
 }: ProductsRankingSectionProps) {
   return (
     <ReportSection title={title} icon={icon}>
@@ -63,6 +65,7 @@ export function ProductsRankingSection({
           </TableBody>
         </Table>
       )}
+      {note && <p className="text-muted-foreground text-sm">{note}</p>}
     </ReportSection>
   );
 }

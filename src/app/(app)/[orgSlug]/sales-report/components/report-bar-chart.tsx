@@ -45,13 +45,13 @@ export function ReportBarChart({ bars, highlightedKey }: ReportBarChartProps) {
                 <div
                   role="img"
                   aria-label={`${bar.tooltipLabel}: ${formatCurrency(bar.revenue)}, ${formatOrderCount(bar.orderCount)}`}
-                  className="flex h-full min-w-0 flex-1 items-end"
+                  className="flex h-full min-w-0 flex-1 items-end justify-center"
                 />
               }
             >
               <div
                 className={cn(
-                  "w-full rounded-t-md transition-colors",
+                  "w-full max-w-12 rounded-t-md transition-colors",
                   bar.key === highlightedKey
                     ? "bg-primary"
                     : "bg-primary/35 hover:bg-primary/60",

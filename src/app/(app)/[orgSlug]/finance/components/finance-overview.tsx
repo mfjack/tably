@@ -1,5 +1,6 @@
 "use client";
 
+import { addBusinessDays, format, parseISO } from "date-fns";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { StatCard } from "@/components/stat-card";
@@ -9,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useFinancialOverviewQuery } from "@/features/finance/hooks/use-financial-overview-query";
 import type { EntryTotals, FinancialEntry } from "@/features/finance/types";
 import type { OrganizationId } from "@/features/organizations/types";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatDateKey } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { EntryRow } from "./entry-row";
 
@@ -24,6 +25,20 @@ type FinanceOverviewProps = {
 function describeTotals(totals: EntryTotals, emptyLabel: string) {
   if (totals.count === 0) return emptyLabel;
   return `${totals.count} ${totals.count === 1 ? "conta" : "contas"}`;
+}
+
+function describePendingReceivables(
+  lastExpectedOn: string | null,
+  today: string,
+): string {
+  if (!lastExpectedOn) return "Nada para cair na conta";
+  const nextBusinessDay = format(
+    addBusinessDays(parseISO(today), 1),
+    "yyyy-MM-dd",
+  );
+  return lastExpectedOn === nextBusinessDay
+    ? "Cai na conta no próximo dia útil"
+    : `Cai na conta até ${formatDateKey(lastExpectedOn).slice(0, 5)}`;
 }
 
 export function FinanceOverview({
@@ -72,7 +87,7 @@ export function FinanceOverview({
       <div
         className={cn(
           "grid gap-3",
-          isFutureMonth ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2",
+          isFutureMonth ? "sm:grid-cols-2" : "sm:grid-cols-2 lg:grid-cols-3",
         )}
       >
         <StatCard
@@ -81,8 +96,17 @@ export function FinanceOverview({
           detail="Saldo inicial + vendas recebidas + entradas − saídas"
           isAlert={totalBalance < 0}
         />
+        <StatCard
+          label="A receber"
+          value={formatCurrency(overview.pendingReceivables.amount)}
+          detail={describePendingReceivables(
+            overview.pendingReceivables.lastExpectedOn,
+            overview.today,
+          )}
+        />
         {!isFutureMonth && (
           <StatCard
+            className="sm:col-span-2 lg:col-span-1"
             label="Resultado do mês"
             value={formatCurrency(monthResult)}
             detail={`Entrou ${formatCurrency(overview.periodIncome)} (vendas ${formatCurrency(overview.periodSales)}) · Saiu ${formatCurrency(overview.periodExpense)}`}

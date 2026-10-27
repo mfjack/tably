@@ -148,11 +148,19 @@ export type OrganizationModulesInput = z.infer<
   typeof organizationModulesSchema
 >;
 
+const settlementDaysSchema = z
+  .number({ error: "Informe em quantos dias úteis cai." })
+  .int("Use um número inteiro.")
+  .min(0, "Não pode ser negativo.")
+  .max(60, "Use até 60 dias.");
+
 export const paymentFeesSchema = z.object({
   creditCardFeePercent: feePercentSchema,
   debitCardFeePercent: feePercentSchema,
   pixFeePercent: feePercentSchema,
   isPassedOnToCustomer: z.boolean(),
+  creditCardSettlementDays: settlementDaysSchema,
+  debitCardSettlementDays: settlementDaysSchema,
 });
 
 export type PaymentFeesInput = z.infer<typeof paymentFeesSchema>;

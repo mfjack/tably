@@ -33,6 +33,7 @@ import {
   getNetRevenue,
   getTotalFees,
   getTotalSurcharge,
+  getUnsoldProductCount,
   getWorstSellers,
 } from "@/features/sales-report/report-metrics";
 import type {
@@ -65,6 +66,13 @@ type SalesReportViewProps = {
   isLoyaltyEnabled: boolean;
 };
 
+function describeUnsoldProducts(unsoldCount: number): string | undefined {
+  if (unsoldCount === 0) return undefined;
+  return unsoldCount === 1
+    ? "1 produto sem venda no período"
+    : `${unsoldCount} produtos sem venda no período`;
+}
+
 function SalesReportSkeleton() {
   return (
     <div className="flex flex-col gap-4">
@@ -82,12 +90,14 @@ function SalesReportSkeleton() {
 }
 
 type SalesReportContentProps = {
+  organizationId: OrganizationId;
   report: SalesReport;
   paymentFees: OrganizationPaymentFees;
   isLoyaltyEnabled: boolean;
 };
 
 function SalesReportContent({
+  organizationId,
   report,
   paymentFees,
   isLoyaltyEnabled,
@@ -161,7 +171,11 @@ function SalesReportContent({
       </div>
 
       <ProductLookupSection key={report.startDate} report={report} />
-      <PaymentMethodsSection report={report} paymentFees={paymentFees} />
+      <PaymentMethodsSection
+        organizationId={organizationId}
+        report={report}
+        paymentFees={paymentFees}
+      />
       {isLoyaltyEnabled && <LoyaltyReportSection loyalty={report.loyalty} />}
 
       <SalesCharts report={report} />
@@ -177,7 +191,8 @@ function SalesReportContent({
           title="Produtos menos vendidos"
           icon={TrendingDown}
           products={getWorstSellers(report)}
-          emptyMessage="Nenhum produto ativo."
+          emptyMessage="Nenhuma venda neste período."
+          note={describeUnsoldProducts(getUnsoldProductCount(report))}
         />
       </div>
     </div>
@@ -255,6 +270,7 @@ export function SalesReportView({
                 )}
               >
                 <SalesReportContent
+                  organizationId={organizationId}
                   report={report}
                   paymentFees={paymentFees}
                   isLoyaltyEnabled={isLoyaltyEnabled}

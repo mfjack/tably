@@ -25,6 +25,8 @@ function toFormValues({ paymentFees }: UserOrganization): PaymentFeesInput {
     debitCardFeePercent: paymentFees.debitCardFeePercent || undefined,
     pixFeePercent: paymentFees.pixFeePercent || undefined,
     isPassedOnToCustomer: paymentFees.isPassedOnToCustomer,
+    creditCardSettlementDays: paymentFees.creditCardSettlementDays,
+    debitCardSettlementDays: paymentFees.debitCardSettlementDays,
   };
 }
 
@@ -79,6 +81,25 @@ export function PaymentFeesForm({ organization }: PaymentFeesFormProps) {
           format="precisePercent"
           suffix="%"
           placeholder="Ex.: 0 %"
+        />
+      </FieldGroup>
+      <FieldGroup className="grid gap-5 sm:grid-cols-2">
+        <NumberField
+          control={form.control}
+          name="creditCardSettlementDays"
+          label="Crédito cai na conta em"
+          format="integer"
+          suffix="dias úteis"
+          placeholder="Ex.: 1"
+          description="Usado na aba Recebimentos do Financeiro. O Pix cai na hora."
+        />
+        <NumberField
+          control={form.control}
+          name="debitCardSettlementDays"
+          label="Débito cai na conta em"
+          format="integer"
+          suffix="dias úteis"
+          placeholder="Ex.: 1"
         />
       </FieldGroup>
       <SwitchField

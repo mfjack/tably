@@ -1805,7 +1805,9 @@ export type Database = {
           created_at: string
           created_by: string | null
           credit_card_fee_percent: number
+          credit_card_settlement_days: number
           debit_card_fee_percent: number
+          debit_card_settlement_days: number
           hidden_modules: Database["public"]["Enums"]["app_module"][]
           id: string
           is_card_fee_passed_on: boolean
@@ -1845,7 +1847,9 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           credit_card_fee_percent?: number
+          credit_card_settlement_days?: number
           debit_card_fee_percent?: number
+          debit_card_settlement_days?: number
           hidden_modules?: Database["public"]["Enums"]["app_module"][]
           id?: string
           is_card_fee_passed_on?: boolean
@@ -1885,7 +1889,9 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           credit_card_fee_percent?: number
+          credit_card_settlement_days?: number
           debit_card_fee_percent?: number
+          debit_card_settlement_days?: number
           hidden_modules?: Database["public"]["Enums"]["app_module"][]
           id?: string
           is_card_fee_passed_on?: boolean
@@ -1920,6 +1926,44 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      payment_settlements: {
+        Row: {
+          confirmed_at: string
+          confirmed_by_name: string | null
+          id: string
+          method: Database["public"]["Enums"]["payment_method"]
+          organization_id: string
+          received_amount: number
+          sale_date: string
+        }
+        Insert: {
+          confirmed_at?: string
+          confirmed_by_name?: string | null
+          id?: string
+          method: Database["public"]["Enums"]["payment_method"]
+          organization_id: string
+          received_amount: number
+          sale_date: string
+        }
+        Update: {
+          confirmed_at?: string
+          confirmed_by_name?: string | null
+          id?: string
+          method?: Database["public"]["Enums"]["payment_method"]
+          organization_id?: string
+          received_amount?: number
+          sale_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_settlements_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payroll_settings: {
         Row: {
@@ -3492,6 +3536,10 @@ export type Database = {
           order_id: string
         }[]
       }
+      add_business_days: {
+        Args: { p_date: string; p_days: number }
+        Returns: string
+      }
       add_cash_movement: {
         Args: {
           p_amount: number
@@ -3638,6 +3686,7 @@ export type Database = {
         Returns: boolean
       }
       cancel_order: { Args: { p_order_id: string }; Returns: undefined }
+      cancel_paid_order: { Args: { p_order_id: string }; Returns: undefined }
       cancel_purchase_order: {
         Args: { p_order_id: string }
         Returns: undefined
@@ -3676,6 +3725,15 @@ export type Database = {
       close_stale_orders: { Args: never; Returns: undefined }
       complete_order_if_done: {
         Args: { p_order_id: string }
+        Returns: undefined
+      }
+      confirm_payment_settlement: {
+        Args: {
+          p_method: Database["public"]["Enums"]["payment_method"]
+          p_organization_id: string
+          p_received_amount: number
+          p_sale_date: string
+        }
         Returns: undefined
       }
       count_day_punches: {
@@ -3718,7 +3776,9 @@ export type Database = {
           created_at: string
           created_by: string | null
           credit_card_fee_percent: number
+          credit_card_settlement_days: number
           debit_card_fee_percent: number
+          debit_card_settlement_days: number
           hidden_modules: Database["public"]["Enums"]["app_module"][]
           id: string
           is_card_fee_passed_on: boolean
@@ -3870,6 +3930,10 @@ export type Database = {
           p_organization_id: string
         }
         Returns: number
+      }
+      get_payment_receivables: {
+        Args: { p_from: string; p_organization_id: string; p_to: string }
+        Returns: Json
       }
       get_payment_surcharge: {
         Args: {
@@ -4206,6 +4270,10 @@ export type Database = {
         Args: { p_customer_name: string; p_organization_id: string }
         Returns: string
       }
+      return_order_stock: {
+        Args: { p_order_id: string; p_organization_id: string }
+        Returns: undefined
+      }
       save_customer_account: {
         Args: {
           p_account_id?: string
@@ -4304,6 +4372,14 @@ export type Database = {
           p_frequency: Database["public"]["Enums"]["task_frequency"]
         }
         Returns: string
+      }
+      undo_payment_settlement: {
+        Args: {
+          p_method: Database["public"]["Enums"]["payment_method"]
+          p_organization_id: string
+          p_sale_date: string
+        }
+        Returns: undefined
       }
       update_member_access: {
         Args: {

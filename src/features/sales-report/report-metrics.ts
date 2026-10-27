@@ -183,7 +183,7 @@ export function getBestSellers(report: SalesReport): ProductSales[] {
 }
 
 export function getWorstSellers(report: SalesReport): ProductSales[] {
-  return [...report.products]
+  return [...getSoldProducts(report)]
     .sort(
       (first, second) =>
         first.quantity - second.quantity ||
@@ -191,6 +191,10 @@ export function getWorstSellers(report: SalesReport): ProductSales[] {
         first.productName.localeCompare(second.productName, "pt-BR"),
     )
     .slice(0, RANKING_SIZE);
+}
+
+export function getUnsoldProductCount(report: SalesReport): number {
+  return report.products.filter((product) => product.quantity === 0).length;
 }
 
 export function formatReportPeriod(report: SalesReport): string {
