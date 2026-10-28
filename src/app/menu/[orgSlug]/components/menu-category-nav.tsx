@@ -8,6 +8,28 @@ import { cn } from "@/lib/utils";
 import { buildMenuSectionAnchor } from "./menu-section-anchor";
 
 const ACTIVE_SECTION_ROOT_MARGIN = "-30% 0px -60% 0px";
+const SCROLL_EDGE_TOLERANCE = 1;
+
+const EDGE_FADE_CLASS_NAMES = {
+  none: "",
+  start:
+    "[mask-image:linear-gradient(to_right,transparent,black_2.5rem,black)]",
+  end: "[mask-image:linear-gradient(to_left,transparent,black_2.5rem,black)]",
+  both: "[mask-image:linear-gradient(to_right,transparent,black_2.5rem,black_calc(100%-2.5rem),transparent)]",
+} as const;
+
+type EdgeFade = keyof typeof EDGE_FADE_CLASS_NAMES;
+
+function getEdgeFade(list: HTMLElement): EdgeFade {
+  const hasHiddenStart = list.scrollLeft > SCROLL_EDGE_TOLERANCE;
+  const hasHiddenEnd =
+    list.scrollLeft + list.clientWidth <
+    list.scrollWidth - SCROLL_EDGE_TOLERANCE;
+  if (hasHiddenStart && hasHiddenEnd) return "both";
+  if (hasHiddenStart) return "start";
+  if (hasHiddenEnd) return "end";
+  return "none";
+}
 
 type MenuCategoryNavProps = {
   sections: readonly PublicMenuSection[];
@@ -18,6 +40,21 @@ export function MenuCategoryNav({ sections }: MenuCategoryNavProps) {
     sections[0]?.id ?? null,
   );
   const listRef = useRef<HTMLUListElement>(null);
+  const [edgeFade, setEdgeFade] = useState<EdgeFade>("none");
+
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+    const updateEdgeFade = () => setEdgeFade(getEdgeFade(list));
+    updateEdgeFade();
+    const resizeObserver = new ResizeObserver(updateEdgeFade);
+    resizeObserver.observe(list);
+    list.addEventListener("scroll", updateEdgeFade, { passive: true });
+    return () => {
+      resizeObserver.disconnect();
+      list.removeEventListener("scroll", updateEdgeFade);
+    };
+  }, []);
 
   useEffect(() => {
     const sectionsByAnchor = new Map(
@@ -54,7 +91,13 @@ export function MenuCategoryNav({ sections }: MenuCategoryNavProps) {
       aria-label="Categorias do cardápio"
       className="sticky top-0 z-30 -mx-4 border-b bg-background/90 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6"
     >
-      <ul ref={listRef} className="flex gap-2 overflow-x-auto">
+      <ul
+        ref={listRef}
+        className={cn(
+          "-mx-4 flex scroll-px-4 gap-2 overflow-x-auto px-4 sm:-mx-6 sm:scroll-px-6 sm:px-6",
+          EDGE_FADE_CLASS_NAMES[edgeFade],
+        )}
+      >
         {sections.map((section) => {
           const isActive = section.id === activeSectionId;
           return (
