@@ -145,7 +145,6 @@ function toOrderDetails(row: OrderDetailsRow): OrderDetails {
     total: row.total,
     createdAt: row.created_at,
     paidAt: row.paid_at,
-    isCanceled: row.status === "canceled",
     isFromMenu: row.online_orders.length > 0,
     payments: row.order_payments
       .map((payment) => ({
@@ -212,6 +211,7 @@ export async function listPaidOrders(
     .select(ORDER_DETAILS_COLUMNS)
     .eq("organization_id", organizationId)
     .not("paid_at", "is", null)
+    .neq("status", "canceled")
     .order("paid_at", { ascending: false })
     .limit(PAID_ORDERS_LIMIT)
     .overrideTypes<OrderDetailsRow[], { merge: false }>();

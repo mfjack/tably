@@ -30,8 +30,7 @@ export function PaidOrderDialog({
   onReopen,
   onCancel,
 }: PaidOrderDialogProps) {
-  const isCanceled = order?.isCanceled ?? false;
-  const canReopen = Boolean(order?.customerName) && !isCanceled;
+  const canReopen = Boolean(order?.customerName);
   const change = order ? getOrderPaymentChange(order) : 0;
   const paymentLineCount = order
     ? order.payments.length + (order.loyaltyReward > 0 ? 1 : 0)
@@ -41,24 +40,22 @@ export function PaidOrderDialog({
     <DetailsDialog
       isOpen={order !== null}
       onOpenChange={(isDialogOpen) => !isDialogOpen && onClose()}
-      title={isCanceled ? "Venda cancelada" : "Detalhes da comanda"}
+      title="Detalhes da comanda"
       footer={
         <>
-          {!isCanceled && (
-            <Button
-              type="button"
-              variant="outline"
-              className={cn(
-                DIALOG_ACTION_BUTTON_CLASS_NAME,
-                "text-destructive hover:text-destructive",
-                !canReopen && "col-span-2",
-              )}
-              onClick={() => order && onCancel(order)}
-            >
-              <Ban aria-hidden />
-              Cancelar venda
-            </Button>
-          )}
+          <Button
+            type="button"
+            variant="outline"
+            className={cn(
+              DIALOG_ACTION_BUTTON_CLASS_NAME,
+              "text-destructive hover:text-destructive",
+              !canReopen && "col-span-2",
+            )}
+            onClick={() => order && onCancel(order)}
+          >
+            <Ban aria-hidden />
+            Cancelar venda
+          </Button>
           {canReopen && (
             <Button
               type="button"

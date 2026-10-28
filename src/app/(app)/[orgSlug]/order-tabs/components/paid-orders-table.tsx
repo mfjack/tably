@@ -7,7 +7,6 @@ import { DataTable } from "@/components/data-table/data-table";
 import { createDataTableColumnHelper } from "@/components/data-table/data-table-features";
 import { DataTableRowActionButton } from "@/components/data-table/data-table-row-action-button";
 import { useDataTable } from "@/components/data-table/use-data-table";
-import { Badge } from "@/components/ui/badge";
 import {
   Empty,
   EmptyDescription,
@@ -65,13 +64,8 @@ export function PaidOrdersTable({
         columnHelper.accessor(getOrderCustomerLabel, {
           id: "customer",
           header: "Cliente",
-          cell: ({ row, getValue }) => (
-            <span className="flex items-center gap-2 font-medium">
-              {getValue()}
-              {row.original.isCanceled && (
-                <Badge variant="destructive">Cancelada</Badge>
-              )}
-            </span>
+          cell: ({ getValue }) => (
+            <span className="font-medium">{getValue()}</span>
           ),
         }),
         columnHelper.accessor(getOrderPaymentLabel, {
