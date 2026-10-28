@@ -76,6 +76,7 @@ export type FinancialEntry = {
   createdByName: string | null;
   paidByName: string | null;
   source: FinancialEntrySource;
+  purchasedItemCount: number;
 };
 
 export type FinancialEntryAttachment = {

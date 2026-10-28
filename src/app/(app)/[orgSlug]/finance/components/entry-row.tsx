@@ -4,6 +4,7 @@ import {
   Copy,
   MessageSquareText,
   MoreHorizontal,
+  PackageMinus,
   Paperclip,
   Pencil,
   Repeat,
@@ -244,6 +245,12 @@ export function EntryRow({
               >
                 <Undo2 aria-hidden />
                 Desfazer {isExpense ? "pagamento" : "recebimento"}
+              </DropdownMenuItem>
+            )}
+            {entry.purchasedItemCount > 0 && (
+              <DropdownMenuItem onClick={() => onDelete(entry)}>
+                <PackageMinus aria-hidden />
+                Desfazer compra
               </DropdownMenuItem>
             )}
             <DropdownMenuItem onClick={() => setIsAttachmentsOpen(true)}>

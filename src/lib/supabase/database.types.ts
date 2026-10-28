@@ -2707,10 +2707,12 @@ export type Database = {
           created_by: string | null
           entered_at: string
           expires_at: string | null
+          financial_entry_id: string | null
           id: string
           ingredient_id: string
           organization_id: string
           payment_due_date: string | null
+          previous_unit_cost: number | null
           quantity: number
           supplier_id: string | null
           total_cost: number
@@ -2720,10 +2722,12 @@ export type Database = {
           created_by?: string | null
           entered_at?: string
           expires_at?: string | null
+          financial_entry_id?: string | null
           id?: string
           ingredient_id: string
           organization_id: string
           payment_due_date?: string | null
+          previous_unit_cost?: number | null
           quantity: number
           supplier_id?: string | null
           total_cost: number
@@ -2733,15 +2737,24 @@ export type Database = {
           created_by?: string | null
           entered_at?: string
           expires_at?: string | null
+          financial_entry_id?: string | null
           id?: string
           ingredient_id?: string
           organization_id?: string
           payment_due_date?: string | null
+          previous_unit_cost?: number | null
           quantity?: number
           supplier_id?: string | null
           total_cost?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "stock_entries_financial_entry_id_fkey"
+            columns: ["financial_entry_id"]
+            isOneToOne: false
+            referencedRelation: "financial_entries"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "stock_entries_ingredient_id_organization_id_fkey"
             columns: ["ingredient_id", "organization_id"]
@@ -4405,6 +4418,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      undo_stock_purchase: { Args: { p_entry_id: string }; Returns: number }
       update_member_access: {
         Args: {
           p_allowed_modules: Database["public"]["Enums"]["app_module"][]

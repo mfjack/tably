@@ -47,9 +47,10 @@ import type {
 } from "./types";
 
 const MONTH_ENTRIES_LIMIT = 300;
+const PURCHASE_ORDER_SOURCE_PREFIX = "purchase-order:";
 
 const ENTRY_COLUMNS =
-  "id, kind, description, amount, due_date, category_id, supplier_id, account_id, paid_at, paid_amount, recurrence_id, installment_group_id, installment_number, installment_count, barcode, notes, created_by_name, paid_by_name, source, category:financial_categories(name), supplier:suppliers(name), account:financial_accounts(name), recurrence:financial_recurrences(frequency, end_date), attachments:financial_entry_attachments(id, path, file_name, created_at)";
+  "id, kind, description, amount, due_date, category_id, supplier_id, account_id, paid_at, paid_amount, recurrence_id, installment_group_id, installment_number, installment_count, barcode, notes, created_by_name, paid_by_name, source, category:financial_categories(name), supplier:suppliers(name), account:financial_accounts(name), recurrence:financial_recurrences(frequency, end_date), attachments:financial_entry_attachments(id, path, file_name, created_at), source_key, stock_entries(count)";
 
 type EntryRow = {
   id: string;
@@ -71,6 +72,8 @@ type EntryRow = {
   created_by_name: string | null;
   paid_by_name: string | null;
   source: FinancialEntry["source"];
+  source_key: string | null;
+  stock_entries: { count: number }[];
   category: { name: string } | null;
   supplier: { name: string } | null;
   account: { name: string } | null;
@@ -121,6 +124,9 @@ function toFinancialEntry(row: EntryRow): FinancialEntry {
     createdByName: row.created_by_name,
     paidByName: row.paid_by_name,
     source: row.source,
+    purchasedItemCount: row.source_key?.startsWith(PURCHASE_ORDER_SOURCE_PREFIX)
+      ? 0
+      : (row.stock_entries[0]?.count ?? 0),
   };
 }
 
@@ -763,6 +769,41 @@ export async function deleteFinancialEntry(
   const error = await deleteEntriesWithAttachments(organizationId, [entryId]);
   if (error)
     return databaseFailure("Não foi possível excluir o lançamento.", error);
+  return actionSuccess();
+}
+
+export async function undoStockPurchase(
+  organizationId: OrganizationId,
+  entryId: FinancialEntryId,
+): Promise<ActionResult> {
+  if (!(await canUseFinance(organizationId))) return ACCESS_DENIED;
+
+  const supabase = await createClient();
+  const { data: attachments } = await supabase
+    .from("financial_entry_attachments")
+    .select("path")
+    .eq("entry_id", entryId);
+  const { error } = await supabase.rpc("undo_stock_purchase", {
+    p_entry_id: entryId,
+  });
+
+  if (error?.code === "42501") {
+    return actionFailure("Só o dono ou o gerente pode desfazer compras.");
+  }
+  if (error?.code === "TB048") {
+    return actionFailure("Essa compra não tem itens no estoque para desfazer.");
+  }
+  if (error?.code === "TB049") {
+    return actionFailure(
+      "Compras recebidas por pedido de compra não podem ser desfeitas.",
+    );
+  }
+  if (error)
+    return databaseFailure("Não foi possível desfazer a compra.", error);
+
+  await removeDocuments(
+    (attachments ?? []).map((attachment) => attachment.path),
+  );
   return actionSuccess();
 }
 
