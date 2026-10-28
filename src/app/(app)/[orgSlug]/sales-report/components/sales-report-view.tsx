@@ -133,14 +133,14 @@ function SalesReportContent({
           detail={`${summary.itemCount} ${summary.itemCount === 1 ? "item vendido" : "itens vendidos"}`}
         />
         <KpiCard
-          label="Vou receber"
+          label="Líquido"
           value={formatCurrency(getNetRevenue(report))}
           detail={
             totalFees === 0
               ? "Sem taxas de pagamento"
               : totalSurcharge > 0
-                ? `Taxas ${formatCurrency(totalFees)} · cliente pagou ${formatCurrency(totalSurcharge)}`
-                : `Taxas de pagamento ${formatCurrency(totalFees)}`
+                ? `Já sem as taxas de ${formatCurrency(totalFees)} · cliente pagou ${formatCurrency(totalSurcharge)}`
+                : `Já sem as taxas de ${formatCurrency(totalFees)}`
           }
         />
         <KpiCard

@@ -140,6 +140,12 @@ export function PaymentMethodsSection({
   const payments = getOperatorPayments(report, selectedOperator);
   const receipts = getOperatorReceipts(report, selectedOperator);
   const total = sumPaymentTotals(payments);
+  const receivedTotal = PAYMENT_METHOD_VALUES.filter(
+    (method) => method !== "customer_account",
+  ).reduce(
+    (sum, method) => sum + payments[method].revenue + receipts[method].revenue,
+    0,
+  );
   const usedMethods = PAYMENT_METHOD_VALUES.filter(
     (method) => payments[method].revenue + receipts[method].revenue > 0,
   );
@@ -195,7 +201,10 @@ export function PaymentMethodsSection({
             feePercent={getPaymentMethodFeePercent(paymentFees, method)}
             receivablesSummary={getMethodReceivablesSummary(method)}
             share={
-              total.revenue > 0 ? payments[method].revenue / total.revenue : 0
+              receivedTotal > 0
+                ? (payments[method].revenue + receipts[method].revenue) /
+                  receivedTotal
+                : 0
             }
           />
         ))}

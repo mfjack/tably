@@ -39,18 +39,22 @@ export function getGrossProfit(report: SalesReport): number {
   return report.summary.revenue - report.summary.cost;
 }
 
-export function getTotalFees(report: SalesReport): number {
-  return report.byPaymentMethod.reduce(
-    (total, payment) => total + payment.fee,
+function sumPaymentField(
+  report: SalesReport,
+  field: "fee" | "surcharge",
+): number {
+  return [...report.byPaymentMethod, ...report.accountReceipts].reduce(
+    (total, payment) => total + payment[field],
     0,
   );
 }
 
+export function getTotalFees(report: SalesReport): number {
+  return sumPaymentField(report, "fee");
+}
+
 export function getTotalSurcharge(report: SalesReport): number {
-  return report.byPaymentMethod.reduce(
-    (total, payment) => total + payment.surcharge,
-    0,
-  );
+  return sumPaymentField(report, "surcharge");
 }
 
 export function getNetRevenue(report: SalesReport): number {
