@@ -38,6 +38,7 @@ import type { OrganizationId } from "@/features/organizations/types";
 import { useSupplierOptions } from "@/features/suppliers/hooks/use-supplier-options";
 import { formatCurrency } from "@/lib/format";
 import { toSelectFieldValue } from "@/lib/optional-select-value";
+import { LastPurchaseNote } from "./last-purchase-note";
 import { StockEntryProjectionSummary } from "./stock-entry-projection-summary";
 
 type NewIngredientInput = IngredientsCreateFormInput["ingredients"][number];
@@ -184,6 +185,14 @@ function NewIngredientFields({
           placeholder="Escolha a data"
         />
       </div>
+      {existingIngredient?.lastPurchase && (
+        <LastPurchaseNote
+          lastPurchase={existingIngredient.lastPurchase}
+          unit={existingIngredient.unit}
+          quantity={toAmount(quantity)}
+          totalCost={toAmount(totalCost)}
+        />
+      )}
       {existingIngredient && (
         <StockEntryProjectionSummary
           ingredient={existingIngredient}

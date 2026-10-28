@@ -28,12 +28,30 @@ import {
   ingredientFormSchema,
   ingredientsCreateFormSchema,
 } from "./schemas";
-import type { Ingredient, IngredientId } from "./types";
+import type { Ingredient, IngredientId, IngredientLastPurchase } from "./types";
 
 const DUPLICATE_INGREDIENT_ERROR_CODE = "TB047";
 const DUPLICATE_NAME_MESSAGE = "Já existe um insumo com esse nome.";
 const INVALID_FORM_MESSAGE = "Confira os campos e tente novamente.";
 const GENERIC_ERROR_MESSAGE = "Não foi possível salvar. Tente novamente.";
+
+type StockEntryRow = {
+  quantity: number;
+  total_cost: number;
+  entered_at: string;
+  supplier: { name: string } | null;
+};
+
+function toLastPurchase(
+  stockEntry: StockEntryRow | undefined,
+): IngredientLastPurchase | null {
+  if (!stockEntry || stockEntry.quantity <= 0) return null;
+  return {
+    unitCost: stockEntry.total_cost / stockEntry.quantity,
+    purchasedAt: stockEntry.entered_at,
+    supplierName: stockEntry.supplier?.name ?? null,
+  };
+}
 
 export async function listIngredients(
   organizationId: OrganizationId,
@@ -42,10 +60,15 @@ export async function listIngredients(
   const { data, error } = await supabase
     .from("ingredients")
     .select(
-      "id, name, unit, current_stock, minimum_stock, unit_cost, supplier_id, expires_at, label_shelf_life_hours, label_storage, is_prepared, yield_quantity, preparation_instructions, product_ingredients(count), ingredient_components!ingredient_components_prepared_ingredient_id_organization__fkey(component_ingredient_id, quantity), used_as_component:ingredient_components!ingredient_components_component_ingredient_id_organization_fkey(count), product_addons(count)",
+      "id, name, unit, current_stock, minimum_stock, unit_cost, supplier_id, expires_at, label_shelf_life_hours, label_storage, is_prepared, yield_quantity, preparation_instructions, product_ingredients(count), ingredient_components!ingredient_components_prepared_ingredient_id_organization__fkey(component_ingredient_id, quantity), used_as_component:ingredient_components!ingredient_components_component_ingredient_id_organization_fkey(count), product_addons(count), last_purchase:stock_entries(quantity, total_cost, entered_at, supplier:suppliers(name))",
     )
     .eq("organization_id", organizationId)
-    .order("name");
+    .order("name")
+    .order("entered_at", {
+      referencedTable: "last_purchase",
+      ascending: false,
+    })
+    .limit(1, { referencedTable: "last_purchase" });
 
   if (error)
     return databaseFailure("Não foi possível carregar os insumos.", error);
@@ -75,6 +98,7 @@ export async function listIngredients(
         ingredientId: component.component_ingredient_id as IngredientId,
         quantity: component.quantity,
       })),
+      lastPurchase: toLastPurchase(ingredient.last_purchase[0]),
     })),
   );
 }

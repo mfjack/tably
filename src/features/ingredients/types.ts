@@ -24,6 +24,13 @@ export type Ingredient = {
   yieldQuantity: number | null;
   preparationInstructions: string | null;
   components: IngredientComponent[];
+  lastPurchase: IngredientLastPurchase | null;
+};
+
+export type IngredientLastPurchase = {
+  unitCost: number;
+  purchasedAt: string;
+  supplierName: string | null;
 };
 
 export type IngredientComponent = {
