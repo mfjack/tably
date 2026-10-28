@@ -48,6 +48,7 @@ import type {
 
 const MONTH_ENTRIES_LIMIT = 300;
 const PURCHASE_ORDER_SOURCE_PREFIX = "purchase-order:";
+const INVOICE_SOURCE_PREFIX = "nfe:";
 
 const ENTRY_COLUMNS =
   "id, kind, description, amount, due_date, category_id, supplier_id, account_id, paid_at, paid_amount, recurrence_id, installment_group_id, installment_number, installment_count, barcode, notes, created_by_name, paid_by_name, source, category:financial_categories(name), supplier:suppliers(name), account:financial_accounts(name), recurrence:financial_recurrences(frequency, end_date), attachments:financial_entry_attachments(id, path, file_name, created_at), source_key, stock_entries(count)";
@@ -772,6 +773,30 @@ export async function deleteFinancialEntry(
   return actionSuccess();
 }
 
+async function getPurchaseEntryIds(
+  organizationId: OrganizationId,
+  entryId: FinancialEntryId,
+): Promise<string[]> {
+  const supabase = await createClient();
+  const { data: entry } = await supabase
+    .from("financial_entries")
+    .select("source_key")
+    .eq("id", entryId)
+    .eq("organization_id", organizationId)
+    .maybeSingle();
+  const invoiceKey = entry?.source_key?.startsWith(INVOICE_SOURCE_PREFIX)
+    ? entry.source_key.split(":")[1]
+    : null;
+  if (!invoiceKey) return [entryId];
+
+  const { data: installments } = await supabase
+    .from("financial_entries")
+    .select("id")
+    .eq("organization_id", organizationId)
+    .like("source_key", `${INVOICE_SOURCE_PREFIX}${invoiceKey}:%`);
+  return (installments ?? []).map((installment) => installment.id);
+}
+
 export async function undoStockPurchase(
   organizationId: OrganizationId,
   entryId: FinancialEntryId,
@@ -779,10 +804,11 @@ export async function undoStockPurchase(
   if (!(await canUseFinance(organizationId))) return ACCESS_DENIED;
 
   const supabase = await createClient();
+  const entryIds = await getPurchaseEntryIds(organizationId, entryId);
   const { data: attachments } = await supabase
     .from("financial_entry_attachments")
     .select("path")
-    .eq("entry_id", entryId);
+    .in("entry_id", entryIds);
   const { error } = await supabase.rpc("undo_stock_purchase", {
     p_entry_id: entryId,
   });
