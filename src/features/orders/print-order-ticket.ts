@@ -178,6 +178,8 @@ export function printOrderTicket(ticket: OrderTicket): void {
 export type GroupedOrderTicketEntry = {
   customerName: string;
   items: readonly OrderTicketItem[];
+  isTakeaway: boolean;
+  takeawayFee: number;
   total: number;
 };
 
@@ -205,6 +207,7 @@ function buildGroupedOrderTicketHtml(ticket: GroupedOrderTicket): string {
     0,
   );
   const entryCount = ticket.entries.length;
+  const isAllTakeaway = ticket.entries.every((entry) => entry.isTakeaway);
   const entries = ticket.entries
     .map(
       (entry, index) => `<section class="person">
@@ -212,7 +215,9 @@ function buildGroupedOrderTicketHtml(ticket: GroupedOrderTicket): string {
         <span class="person-name">${escapeHtml(entry.customerName)}</span>
         <span class="person-position">${index + 1}/${entryCount}</span>
       </div>
+      ${entry.isTakeaway && !isAllTakeaway ? `<p class="takeaway">PARA LEVAR</p>` : ""}
       ${buildItemsHtml(entry.items)}
+      ${entry.takeawayFee > 0 ? buildRow("Para levar", formatCurrency(entry.takeawayFee)) : ""}
       <div class="person-subtotal">${buildRow(`Subtotal de ${entry.customerName}`, formatCurrency(entry.total))}</div>
     </section>`,
     )
@@ -222,7 +227,7 @@ function buildGroupedOrderTicketHtml(ticket: GroupedOrderTicket): string {
     ${buildBusinessHeader(ticket.business)}
     <section>
       <p>Data: ${format(ticket.createdAt, "dd/MM/yyyy, HH:mm")}</p>
-      <p>${entryCount} pedidos separados por nome</p>
+      ${isAllTakeaway ? `<p class="takeaway">PARA LEVAR</p>` : ""}
     </section>
     ${entries}
     <section class="grand-total">${buildRow("Total geral", formatCurrency(grandTotal), true)}</section>

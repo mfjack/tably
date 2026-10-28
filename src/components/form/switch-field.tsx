@@ -9,11 +9,12 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
 import type { FormFieldProps } from "./form-field-types";
 
 type SwitchFieldProps<TFieldValues extends FieldValues> = Pick<
   FormFieldProps<TFieldValues>,
-  "control" | "name" | "label" | "description"
+  "control" | "name" | "label" | "description" | "isDescriptionCompact"
 >;
 
 export function SwitchField<TFieldValues extends FieldValues>({
@@ -21,6 +22,7 @@ export function SwitchField<TFieldValues extends FieldValues>({
   name,
   label,
   description,
+  isDescriptionCompact = false,
 }: SwitchFieldProps<TFieldValues>) {
   const switchId = useId();
 
@@ -32,7 +34,13 @@ export function SwitchField<TFieldValues extends FieldValues>({
         <Field orientation="horizontal" className="rounded-lg border px-4 py-3">
           <FieldContent>
             <FieldLabel htmlFor={switchId}>{label}</FieldLabel>
-            {description && <FieldDescription>{description}</FieldDescription>}
+            {description && (
+              <FieldDescription
+                className={cn(isDescriptionCompact && "text-xs")}
+              >
+                {description}
+              </FieldDescription>
+            )}
           </FieldContent>
           <Switch
             id={switchId}

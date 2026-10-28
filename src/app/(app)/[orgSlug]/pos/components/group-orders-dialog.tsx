@@ -2,9 +2,10 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import * as z from "zod";
 import { FormDialog } from "@/components/dialog/form-dialog";
+import { SwitchField } from "@/components/form/switch-field";
 import { TextField } from "@/components/form/text-field";
 import { FieldGroup } from "@/components/ui/field";
 import { useCheckCustomerNameMutation } from "@/features/orders/hooks/use-check-customer-name-mutation";
@@ -31,8 +32,10 @@ const groupOrdersSchema = z
           .trim()
           .min(1, "Informe o nome.")
           .max(60, "Nome muito longo."),
+        isTakeaway: z.boolean(),
       }),
     ),
+    isAllTakeaway: z.boolean(),
   })
   .superRefine(({ orders }, context) => {
     const seenNames = new Set<string>();
@@ -53,6 +56,8 @@ const groupOrdersSchema = z
 
 type GroupOrdersInput = z.infer<typeof groupOrdersSchema>;
 
+export type GroupOrderConfirmation = GroupOrdersInput["orders"][number];
+
 type GroupOrdersDialogProps = {
   organizationId: OrganizationId;
   mode: GroupCheckoutMode;
@@ -60,7 +65,12 @@ type GroupOrdersDialogProps = {
   isOpen: boolean;
   isSubmitting: boolean;
   onClose: () => void;
-  onConfirm: (names: readonly string[]) => void;
+  isTakeawayEnabled: boolean;
+  takeawayFee: number;
+  onConfirm: (
+    orders: readonly GroupOrderConfirmation[],
+    isAllTakeaway: boolean,
+  ) => void;
 };
 
 const NAME_CHECK_FAILED_MESSAGE = "Não foi possível verificar os nomes.";
@@ -73,12 +83,12 @@ const GROUP_DIALOG_COPY = {
   kitchen: {
     title: "Imprimir todos os pedidos",
     description:
-      "Depois você recebe o pagamento de cada pessoa ou abre a comanda dela. O ticket sai junto no final, separado por nome.",
+      "Depois você escolhe quais pedidos recebe de cada vez, ou abre a comanda. O ticket sai junto no final, separado por nome.",
   },
   payment: {
     title: "Pagamento de todos os pedidos",
     description:
-      "Depois você recebe o pagamento de cada pessoa ou cria a comanda dela.",
+      "Depois você escolhe quais pedidos recebe de cada vez, ou cria a comanda.",
   },
 } as const satisfies Record<
   GroupCheckoutMode,
@@ -91,32 +101,56 @@ export function GroupOrdersDialog({
   entries,
   isOpen,
   isSubmitting,
+  isTakeawayEnabled,
+  takeawayFee,
   onClose,
   onConfirm,
 }: GroupOrdersDialogProps) {
   const form = useForm<GroupOrdersInput>({
     resolver: zodResolver(groupOrdersSchema),
-    defaultValues: { orders: [] },
+    defaultValues: { orders: [], isAllTakeaway: false },
   });
   const { fields } = useFieldArray({ control: form.control, name: "orders" });
   const [isCheckingNames, setIsCheckingNames] = useState(false);
   const { mutateAsync: checkCustomerName } =
     useCheckCustomerNameMutation(organizationId);
-  const grandTotal = entries.reduce((total, entry) => total + entry.total, 0);
+  const [watchedOrders, isAllTakeaway] = useWatch({
+    control: form.control,
+    name: ["orders", "isAllTakeaway"],
+  });
+  const takeawayCount = (watchedOrders ?? []).filter(
+    (order) => order?.isTakeaway,
+  ).length;
+  const grandTotal =
+    entries.reduce((total, entry) => total + entry.total, 0) +
+    (isAllTakeaway ? 1 : takeawayCount) * takeawayFee;
   const entriesKey = entries
     .map((entry) => `${entry.cartTabId}:${entry.defaultName}`)
     .join("|");
 
   useEffect(() => {
     if (!isOpen || !entriesKey) return;
+    const customerNames = entriesKey
+      .split("|")
+      .map((entryKey) => entryKey.slice(entryKey.indexOf(":") + 1));
     form.reset({
-      orders: entriesKey.split("|").map((entryKey) => ({
-        customerName: entryKey.slice(entryKey.indexOf(":") + 1),
+      orders: customerNames.map((customerName) => ({
+        customerName,
+        isTakeaway: false,
       })),
+      isAllTakeaway: false,
     });
+    const firstEmptyIndex = Math.max(
+      customerNames.findIndex((customerName) => !customerName.trim()),
+      0,
+    );
+    const frame = requestAnimationFrame(() =>
+      form.setFocus(`orders.${firstEmptyIndex}.customerName`),
+    );
+    return () => cancelAnimationFrame(frame);
   }, [isOpen, entriesKey, form]);
 
-  const handleSubmit = form.handleSubmit(async ({ orders }) => {
+  const handleSubmit = form.handleSubmit(async ({ orders, isAllTakeaway }) => {
     const names = orders.map((order) => order.customerName.trim());
     setIsCheckingNames(true);
 
@@ -134,7 +168,15 @@ export function GroupOrdersDialog({
         });
       }
 
-      if (unavailableIndexes.length === 0) onConfirm(names);
+      if (unavailableIndexes.length === 0) {
+        onConfirm(
+          orders.map((order, index) => ({
+            customerName: names[index] ?? order.customerName,
+            isTakeaway: order.isTakeaway,
+          })),
+          isAllTakeaway,
+        );
+      }
     } catch (error) {
       form.setError("orders.0.customerName", {
         message:
@@ -154,8 +196,22 @@ export function GroupOrdersDialog({
       submitLabel="Ir para pagamento"
       isSubmitting={isSubmitting || isCheckingNames}
       onSubmit={handleSubmit}
+      initialFocus={false}
     >
       <FieldGroup>
+        {isTakeawayEnabled && (
+          <SwitchField
+            control={form.control}
+            name="isAllTakeaway"
+            label="Todos para levar"
+            isDescriptionCompact
+            description={
+              takeawayFee > 0
+                ? `+ ${formatCurrency(takeawayFee)} uma vez`
+                : undefined
+            }
+          />
+        )}
         {fields.map((field, index) => {
           const entry = entries[index];
           if (!entry) return null;
@@ -178,6 +234,19 @@ export function GroupOrdersDialog({
                 placeholder="Ex.: Diego"
                 autoComplete="off"
               />
+              {isTakeawayEnabled && !isAllTakeaway && (
+                <SwitchField
+                  control={form.control}
+                  name={`orders.${index}.isTakeaway`}
+                  label="Para levar"
+                  isDescriptionCompact
+                  description={
+                    takeawayFee > 0
+                      ? `+ ${formatCurrency(takeawayFee)}`
+                      : undefined
+                  }
+                />
+              )}
             </div>
           );
         })}

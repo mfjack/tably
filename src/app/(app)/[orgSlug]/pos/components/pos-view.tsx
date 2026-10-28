@@ -15,6 +15,7 @@ import type { CategoryId } from "@/features/categories/types";
 import { PurchaseDialog } from "@/features/ingredients/components/purchase-dialog";
 import { useIngredientsMap } from "@/features/ingredients/hooks/use-ingredients-map";
 import type { Ingredient, IngredientId } from "@/features/ingredients/types";
+import type { OrderSummaryData } from "@/features/orders/components/order-summary";
 import { PaymentDialog } from "@/features/orders/components/payment-dialog";
 import { useOpenOrderTabsQuery } from "@/features/orders/hooks/use-open-order-tabs-query";
 import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
@@ -40,6 +41,7 @@ import { ModuleLinkButton } from "../../components/module-link-button";
 import { PageHeader } from "../../components/page-header";
 import {
   type GroupCheckoutMode,
+  getGroupKey,
   useGroupCheckout,
 } from "../hooks/use-group-checkout";
 import {
@@ -58,7 +60,12 @@ import { CashRegisterClosedState } from "./cash-register-closed-state";
 import { CashRegisterPanel } from "./cash-register-panel";
 import { CategoryFilter, type CategoryFilterOption } from "./category-filter";
 import { CustomerDialog } from "./customer-dialog";
-import { type GroupOrderEntry, GroupOrdersDialog } from "./group-orders-dialog";
+import { GroupOrderPicker } from "./group-order-picker";
+import {
+  type GroupOrderConfirmation,
+  type GroupOrderEntry,
+  GroupOrdersDialog,
+} from "./group-orders-dialog";
 import { MobileCartSheet } from "./mobile-cart-sheet";
 import { OfflineStatus } from "./offline-status";
 import { OnlineOrdersPanel } from "./online-orders-panel";
@@ -83,6 +90,12 @@ type PosViewProps = {
   printerSettingsHref: string;
   isKitchenEnabled: boolean;
   canAddStock: boolean;
+};
+
+const EMPTY_GROUP_SUMMARY: OrderSummaryData = {
+  lines: [],
+  takeawayFee: 0,
+  total: 0,
 };
 
 const OFFLINE_CATALOG_MESSAGE =
@@ -332,12 +345,22 @@ export function PosView({
     checkout.startKitchenCheckout();
   }
 
-  function confirmGroupOrders(names: readonly string[]) {
+  function confirmGroupOrders(
+    orders: readonly GroupOrderConfirmation[],
+    isAllTakeaway: boolean,
+  ) {
     const groups = groupOrderEntries.map((entry, index) => {
       const tab = tabsWithItems.find(({ id }) => id === entry.cartTabId);
       return {
-        cartTabId: entry.cartTabId,
-        customerName: names[index] ?? entry.label,
+        cartTabIds: [entry.cartTabId],
+        customerName: orders[index]?.customerName ?? entry.label,
+        isTakeaway: isAllTakeaway || (orders[index]?.isTakeaway ?? false),
+        isTakeawayCharged: isAllTakeaway
+          ? index === 0
+          : (orders[index]?.isTakeaway ?? false),
+        takeawayFee: (isAllTakeaway ? index === 0 : orders[index]?.isTakeaway)
+          ? takeawayFee
+          : 0,
         cartLines: sortByCategoryOrder(
           buildCartLines(tab?.items ?? []),
           (cartLine) => cartLine.product.categoryId,
@@ -532,21 +555,30 @@ export function PosView({
         mode={groupDialogMode ?? "kitchen"}
         isOpen={groupDialogMode !== null && groupOrderEntries.length > 0}
         isSubmitting={false}
+        isTakeawayEnabled={isTakeawayEnabled}
+        takeawayFee={takeawayFee}
         onClose={() => setGroupDialogMode(null)}
         onConfirm={confirmGroupOrders}
       />
-      {groupCheckout.currentGroup && groupCheckout.summary && (
+      {groupCheckout.isOpen && (
         <PaymentDialog
-          key={groupCheckout.currentGroup.cartTabId}
+          key={groupCheckout.pendingGroups.map(getGroupKey).join(",")}
           organizationId={organizationId}
           isOpen
-          title={`Pagamento · ${groupCheckout.currentGroup.customerName} (${groupCheckout.position}/${groupCheckout.groupCount})`}
+          title="Receber pagamento"
+          orderPicker={
+            <GroupOrderPicker
+              groups={groupCheckout.pendingGroups}
+              selectedKeys={groupCheckout.selectedKeys}
+              onToggle={groupCheckout.toggle}
+            />
+          }
           submitLabel={
             groupCheckout.mode === "kitchen"
               ? "Pagamento recebido"
               : "Confirmar pagamento"
           }
-          summary={groupCheckout.summary}
+          summary={groupCheckout.summary ?? EMPTY_GROUP_SUMMARY}
           checkoutSettings={checkoutSettings}
           isServiceFeeSuggested={false}
           isSubmitting={groupCheckout.isPlacing}

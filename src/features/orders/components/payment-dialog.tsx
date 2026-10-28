@@ -2,7 +2,13 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Split, UserPlus } from "lucide-react";
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import {
+  type FormEvent,
+  type ReactNode,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import {
   FormDialog,
@@ -83,6 +89,7 @@ type PaymentDialogProps = {
     total: number,
   ) => void;
   secondaryAction?: FormDialogSecondaryAction;
+  orderPicker?: ReactNode;
 };
 
 const MAX_PEOPLE = 10;
@@ -156,6 +163,7 @@ export function PaymentDialog({
   title,
   submitLabel,
   secondaryAction,
+  orderPicker,
 }: PaymentDialogProps) {
   const serviceFeePercent = checkoutSettings.isServiceFeeEnabled
     ? checkoutSettings.serviceFeePercent
@@ -443,7 +451,11 @@ export function PaymentDialog({
         secondaryAction={secondaryAction}
       >
         <FieldGroup>
-          <OrderSummary summary={adjustedSummary} />
+          {orderPicker}
+          <OrderSummary
+            summary={adjustedSummary}
+            isItemListHidden={Boolean(orderPicker)}
+          />
           <OrderAdjustmentsFields
             control={adjustmentsForm.control}
             serviceFeePercent={serviceFeePercent}

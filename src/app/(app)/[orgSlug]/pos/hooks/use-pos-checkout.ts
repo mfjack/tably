@@ -40,8 +40,11 @@ import {
 } from "./use-pos-catalog";
 
 export type TabOrderGroup = {
-  cartTabId: CartTabId;
+  cartTabIds: readonly CartTabId[];
   customerName: string;
+  isTakeaway: boolean;
+  isTakeawayCharged: boolean;
+  takeawayFee: number;
   cartLines: readonly CartLine[];
 };
 
@@ -437,10 +440,14 @@ export function usePosCheckout({
     const requestId = createOrderRequestId();
     const localTotal =
       payment?.total ??
-      group.cartLines.reduce((total, cartLine) => total + cartLine.total, 0);
+      group.cartLines.reduce((total, cartLine) => total + cartLine.total, 0) +
+        group.takeawayFee;
     const input: PlaceOrderInput = {
       items: group.cartLines.map(toOrderItemInput),
-      customer: { customerName: group.customerName, isTakeaway: false },
+      customer: {
+        customerName: group.customerName,
+        isTakeaway: group.isTakeawayCharged,
+      },
       payments: payment?.payments,
       adjustments: payment?.adjustments,
       sendToKitchen,

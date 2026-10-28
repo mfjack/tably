@@ -70,6 +70,18 @@ export function writeBusinessHeader(
   encoder.align("left");
 }
 
+function writeTakeawayBadge(encoder: ReceiptPrinterEncoder): void {
+  encoder
+    .align("center")
+    .invert(true)
+    .bold(true)
+    .text(" PARA LEVAR ")
+    .bold(false)
+    .invert(false)
+    .newline()
+    .align("left");
+}
+
 function writeItems(
   encoder: ReceiptPrinterEncoder,
   columns: ReceiptColumns,
@@ -110,17 +122,7 @@ export function encodeOrderTicket(
     .text(ticket.customerName.toUpperCase())
     .bold(false)
     .newline();
-  if (ticket.isTakeaway) {
-    encoder
-      .align("center")
-      .invert(true)
-      .bold(true)
-      .text(" PARA LEVAR ")
-      .bold(false)
-      .invert(false)
-      .newline()
-      .align("left");
-  }
+  if (ticket.isTakeaway) writeTakeawayBadge(encoder);
   if (ticket.note) {
     encoder.text("Obs: ").bold(true).text(ticket.note).bold(false).newline();
   }
@@ -176,6 +178,7 @@ export function encodeGroupedOrderTicket(
   const encoder = startReceipt(totalColumns);
   const columns = buildPriceColumns(encoder.columns);
   const entryCount = ticket.entries.length;
+  const isAllTakeaway = ticket.entries.every((entry) => entry.isTakeaway);
   const grandTotal = ticket.entries.reduce(
     (total, entry) => total + entry.total,
     0,
@@ -185,9 +188,8 @@ export function encodeGroupedOrderTicket(
   encoder
     .rule()
     .text(`Data: ${format(ticket.createdAt, "dd/MM/yyyy, HH:mm")}`)
-    .newline()
-    .text(`${entryCount} pedidos separados por nome`)
     .newline();
+  if (isAllTakeaway) writeTakeawayBadge(encoder);
 
   ticket.entries.forEach((entry, index) => {
     encoder
@@ -198,9 +200,15 @@ export function encodeGroupedOrderTicket(
       .bold(false)
       .size(1, 1)
       .text(`  ${index + 1}/${entryCount}`)
-      .newline()
-      .rule();
+      .newline();
+    if (entry.isTakeaway && !isAllTakeaway) writeTakeawayBadge(encoder);
+    encoder.rule();
     writeItems(encoder, columns, entry.items);
+    if (entry.takeawayFee > 0) {
+      encoder.table(columns, [
+        ["Para levar", formatCurrency(entry.takeawayFee)],
+      ]);
+    }
     encoder
       .rule()
       .table(columns, [

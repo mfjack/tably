@@ -8,6 +8,8 @@ import type { CartTabId } from "@/features/pos/cart-store";
 import { getCartLineAddonNames } from "./use-pos-catalog";
 import type { GroupPlacementResult, TabOrderGroup } from "./use-pos-checkout";
 
+const MAX_CUSTOMER_NAME_LENGTH = 60;
+
 const QUEUED_ORDER_MESSAGE =
   "Sem internet: a venda será enviada quando a conexão voltar.";
 
@@ -16,7 +18,7 @@ export type GroupCheckoutMode = "kitchen" | "payment";
 type GroupCheckoutFlow = {
   mode: GroupCheckoutMode;
   groups: readonly TabOrderGroup[];
-  index: number;
+  selectedKeys: ReadonlySet<string>;
 };
 
 type UseGroupCheckoutOptions = {
@@ -34,6 +36,10 @@ function sumLines(group: TabOrderGroup) {
   return group.cartLines.reduce((total, cartLine) => total + cartLine.total, 0);
 }
 
+function getGroupTotal(group: TabOrderGroup) {
+  return sumLines(group) + group.takeawayFee;
+}
+
 function toTicketEntry(group: TabOrderGroup): GroupedOrderTicketEntry {
   return {
     customerName: group.customerName,
@@ -44,7 +50,9 @@ function toTicketEntry(group: TabOrderGroup): GroupedOrderTicketEntry {
       total: cartLine.total,
       note: cartLine.note || undefined,
     })),
-    total: sumLines(group),
+    isTakeaway: group.isTakeaway,
+    takeawayFee: group.takeawayFee,
+    total: getGroupTotal(group),
   };
 }
 
@@ -65,6 +73,46 @@ function getSuccessMessage(
     : `Comanda de ${customerName} criada.`;
 }
 
+export function getGroupKey(group: TabOrderGroup): string {
+  return group.cartTabIds.join("|");
+}
+
+function mergeGroups(groups: readonly TabOrderGroup[]): TabOrderGroup {
+  return {
+    cartTabIds: groups.flatMap((group) => group.cartTabIds),
+    customerName: [...new Set(groups.map((group) => group.customerName))]
+      .join(" + ")
+      .slice(0, MAX_CUSTOMER_NAME_LENGTH),
+    cartLines: groups.flatMap((group) => group.cartLines),
+    isTakeaway: groups.some((group) => group.isTakeaway),
+    isTakeawayCharged: groups.some((group) => group.isTakeawayCharged),
+    takeawayFee: Math.max(...groups.map((group) => group.takeawayFee)),
+  };
+}
+
+function selectFirst(groups: readonly TabOrderGroup[]): ReadonlySet<string> {
+  const [firstGroup] = groups;
+  return new Set(firstGroup ? [getGroupKey(firstGroup)] : []);
+}
+
+export function toGroupSummary(group: TabOrderGroup): OrderSummaryData {
+  return {
+    customerName: group.customerName,
+    lines: group.cartLines.map((cartLine) => ({
+      productId: cartLine.product.id,
+      productName: cartLine.product.name,
+      addonNames: getCartLineAddonNames(cartLine),
+      quantity: cartLine.quantity,
+      unitPrice: cartLine.unitPrice,
+      rewardPrice: cartLine.product.price,
+      total: cartLine.total,
+    })),
+    takeawayFee: group.takeawayFee,
+    isTakeaway: group.isTakeaway,
+    total: getGroupTotal(group),
+  };
+}
+
 export function useGroupCheckout({
   placeGroupOrder,
   printGroupedOrders,
@@ -73,56 +121,48 @@ export function useGroupCheckout({
 }: UseGroupCheckoutOptions) {
   const [flow, setFlow] = useState<GroupCheckoutFlow | null>(null);
   const [isPlacing, setIsPlacing] = useState(false);
-  const currentGroup = flow ? flow.groups[flow.index] : undefined;
-
-  const summary: OrderSummaryData | null = currentGroup
-    ? {
-        customerName: currentGroup.customerName,
-        lines: currentGroup.cartLines.map((cartLine) => ({
-          productId: cartLine.product.id,
-          productName: cartLine.product.name,
-          addonNames: getCartLineAddonNames(cartLine),
-          quantity: cartLine.quantity,
-          unitPrice: cartLine.unitPrice,
-          rewardPrice: cartLine.product.price,
-          total: cartLine.total,
-        })),
-        takeawayFee: 0,
-        total: sumLines(currentGroup),
-      }
-    : null;
+  const selectedGroups = flow
+    ? flow.groups.filter((group) => flow.selectedKeys.has(getGroupKey(group)))
+    : [];
+  const currentGroup =
+    selectedGroups.length > 0 ? mergeGroups(selectedGroups) : undefined;
+  const summary = currentGroup ? toGroupSummary(currentGroup) : null;
 
   function start(groups: readonly TabOrderGroup[], mode: GroupCheckoutMode) {
     if (groups.length === 0) return;
     if (mode === "kitchen") printGroupedOrders(groups.map(toTicketEntry));
-    setFlow({ mode, groups, index: 0 });
+    setFlow({ mode, groups, selectedKeys: selectFirst(groups) });
   }
 
-  function finish() {
-    setFlow(null);
+  function toggle(groupKey: string) {
+    setFlow((currentFlow) => {
+      if (!currentFlow) return currentFlow;
+      const selectedKeys = new Set(currentFlow.selectedKeys);
+      if (selectedKeys.has(groupKey)) selectedKeys.delete(groupKey);
+      else selectedKeys.add(groupKey);
+      return { ...currentFlow, selectedKeys };
+    });
   }
 
   function cancel() {
-    finish();
+    setFlow(null);
   }
 
-  async function submit(payment: OrderPaymentConfirmation | undefined) {
-    if (!flow || !currentGroup || isPlacing) return;
-
-    setIsPlacing(true);
-    const isKitchen = flow.mode === "kitchen";
-    const result = await placeGroupOrder(currentGroup, payment, isKitchen);
-    setIsPlacing(false);
-
+  async function place(
+    group: TabOrderGroup,
+    payment: OrderPaymentConfirmation | undefined,
+    isKitchen: boolean,
+  ): Promise<boolean> {
+    const result = await placeGroupOrder(group, payment, isKitchen);
     if (result.status === "failed") {
       toast.error(result.message);
-      return;
+      return false;
     }
 
-    onTabFinished(currentGroup.cartTabId);
+    for (const cartTabId of group.cartTabIds) onTabFinished(cartTabId);
     toast.success(
       getSuccessMessage(
-        currentGroup.customerName,
+        group.customerName,
         Boolean(payment),
         isKitchen,
         isKitchenEnabled,
@@ -132,7 +172,7 @@ export function useGroupCheckout({
           [
             getChangeMessage(
               payment?.payments,
-              payment?.total ?? sumLines(currentGroup),
+              payment?.total ?? getGroupTotal(group),
             ),
             result.isQueued ? QUEUED_ORDER_MESSAGE : undefined,
           ]
@@ -140,25 +180,54 @@ export function useGroupCheckout({
             .join(" ") || undefined,
       },
     );
+    return true;
+  }
 
-    const nextIndex = flow.index + 1;
-
-    if (nextIndex >= flow.groups.length) {
-      finish();
+  async function submit(payment: OrderPaymentConfirmation | undefined) {
+    if (!flow || isPlacing) return;
+    if (!currentGroup) {
+      toast.error("Escolha pelo menos um pedido.");
       return;
     }
 
-    setFlow({ ...flow, index: nextIndex });
+    setIsPlacing(true);
+    const isKitchen = flow.mode === "kitchen";
+    const groupsToPlace = payment ? [currentGroup] : selectedGroups;
+    const placedKeys = new Set<string>();
+    for (const group of groupsToPlace) {
+      if (!(await place(group, payment, isKitchen))) break;
+      for (const cartTabId of group.cartTabIds) placedKeys.add(cartTabId);
+    }
+    setIsPlacing(false);
+
+    const remainingGroups = flow.groups.filter(
+      (group) =>
+        !group.cartTabIds.some((cartTabId) => placedKeys.has(cartTabId)),
+    );
+    if (remainingGroups.length === 0) {
+      setFlow(null);
+      return;
+    }
+    setFlow({
+      ...flow,
+      groups: remainingGroups,
+      selectedKeys:
+        remainingGroups.length === flow.groups.length
+          ? flow.selectedKeys
+          : selectFirst(remainingGroups),
+    });
   }
 
   return {
+    pendingGroups: flow?.groups ?? [],
+    selectedKeys: flow?.selectedKeys ?? new Set<string>(),
     currentGroup,
     summary,
     mode: flow?.mode ?? "kitchen",
-    position: flow ? flow.index + 1 : 0,
-    groupCount: flow?.groups.length ?? 0,
+    isOpen: flow !== null,
     isPlacing,
     start,
+    toggle,
     cancel,
     submit,
   };

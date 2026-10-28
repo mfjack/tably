@@ -1,5 +1,7 @@
+import type { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import { X } from "lucide-react";
 import type { FormEventHandler, ReactNode } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,6 +21,8 @@ import {
   DIALOG_HEADER_CLASS_NAME,
   DIALOG_TITLE_CLASS_NAME,
 } from "./dialog-styles";
+
+type DialogPopupProps = DialogPrimitive.Popup.Props;
 
 const DIALOG_SIZE_CLASS_NAMES = {
   default: "sm:max-w-md",
@@ -43,6 +47,7 @@ type FormDialogProps = {
   size?: keyof typeof DIALOG_SIZE_CLASS_NAMES;
   isTitleHidden?: boolean;
   secondaryAction?: FormDialogSecondaryAction;
+  initialFocus?: DialogPopupProps["initialFocus"];
   children: ReactNode;
 };
 
@@ -57,6 +62,7 @@ export function FormDialog({
   size = "default",
   isTitleHidden = false,
   secondaryAction,
+  initialFocus,
   children,
 }: FormDialogProps) {
   const isBusy = isSubmitting || (secondaryAction?.isPending ?? false);
@@ -65,6 +71,7 @@ export function FormDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
+        initialFocus={initialFocus}
         className={cn(
           DIALOG_CONTENT_CLASS_NAME,
           "flex flex-col",
