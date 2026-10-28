@@ -12,9 +12,9 @@ import {
   sortByCategoryOrder,
 } from "@/features/categories/category-order";
 import type { CategoryId } from "@/features/categories/types";
-import { StockEntryDialog } from "@/features/ingredients/components/stock-entry-dialog";
+import { PurchaseDialog } from "@/features/ingredients/components/purchase-dialog";
 import { useIngredientsMap } from "@/features/ingredients/hooks/use-ingredients-map";
-import type { IngredientId } from "@/features/ingredients/types";
+import type { Ingredient, IngredientId } from "@/features/ingredients/types";
 import { PaymentDialog } from "@/features/orders/components/payment-dialog";
 import { useOpenOrderTabsQuery } from "@/features/orders/hooks/use-open-order-tabs-query";
 import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
@@ -206,12 +206,14 @@ export function PosView({
     );
   }, [posProducts, searchTerm, selectedCategoryId]);
 
-  const { ingredientsById } = useIngredientsMap(organizationId);
-  const [stockEntryIngredientId, setStockEntryIngredientId] =
-    useState<IngredientId | null>(null);
-  const stockEntryIngredient = stockEntryIngredientId
-    ? (ingredientsById.get(stockEntryIngredientId) ?? null)
-    : null;
+  const { ingredients, ingredientsById } = useIngredientsMap(organizationId);
+  const [stockEntryIngredient, setStockEntryIngredient] =
+    useState<Ingredient | null>(null);
+  const openStockEntry = useCallback(
+    (ingredientId: IngredientId) =>
+      setStockEntryIngredient(ingredientsById.get(ingredientId) ?? null),
+    [ingredientsById],
+  );
   const [stockEntryProductId, setStockEntryProductId] =
     useState<ProductId | null>(null);
   const stockEntryProduct =
@@ -443,9 +445,7 @@ export function PosView({
                   products={visibleProducts}
                   isLoading={isLoading || !isCartHydrated}
                   onAdd={handleAddProduct}
-                  onAddStock={
-                    canAddStock ? setStockEntryIngredientId : undefined
-                  }
+                  onAddStock={canAddStock ? openStockEntry : undefined}
                   onAddProductStock={setStockEntryProductId}
                 />
               )}
@@ -592,10 +592,12 @@ export function PosView({
         onClose={() => setStockEntryProductId(null)}
       />
       {canAddStock && (
-        <StockEntryDialog
+        <PurchaseDialog
           organizationId={organizationId}
-          ingredient={stockEntryIngredient}
-          onClose={() => setStockEntryIngredientId(null)}
+          isOpen={stockEntryIngredient !== null}
+          ingredients={ingredients}
+          initialIngredient={stockEntryIngredient}
+          onClose={() => setStockEntryIngredient(null)}
         />
       )}
     </div>

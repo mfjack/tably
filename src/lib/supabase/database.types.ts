@@ -3680,6 +3680,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      blend_unit_cost: {
+        Args: {
+          p_added_cost: number
+          p_added_quantity: number
+          p_stock: number
+          p_unit_cost: number
+        }
+        Returns: number
+      }
       build_cash_session_summary: {
         Args: { p_session_id: string }
         Returns: Json
@@ -3747,17 +3756,12 @@ export type Database = {
         Args: { p_employee_id: string; p_pin: string }
         Returns: undefined
       }
-      create_ingredient: {
+      create_ingredients: {
         Args: {
-          p_expires_at?: string
-          p_minimum_stock: number
-          p_name: string
+          p_ingredients: Json
           p_organization_id: string
-          p_payment_due_date?: string
-          p_quantity: number
+          p_payment_date: string
           p_supplier_id?: string
-          p_total_cost: number
-          p_unit: Database["public"]["Enums"]["measure_unit"]
         }
         Returns: string
       }

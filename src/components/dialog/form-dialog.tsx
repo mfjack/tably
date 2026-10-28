@@ -23,6 +23,7 @@ import {
 const DIALOG_SIZE_CLASS_NAMES = {
   default: "sm:max-w-md",
   large: "sm:max-w-2xl",
+  extraLarge: "sm:max-w-4xl",
 } as const;
 
 export type FormDialogSecondaryAction = {

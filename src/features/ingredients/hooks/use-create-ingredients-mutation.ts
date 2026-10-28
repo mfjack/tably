@@ -4,30 +4,24 @@ import { useInvalidateFinance } from "@/features/finance/hooks/use-invalidate-fi
 import type { OrganizationId } from "@/features/organizations/types";
 import { useInvalidateSuppliers } from "@/features/suppliers/hooks/use-invalidate-suppliers";
 import { unwrapActionResult } from "@/lib/action-result";
-import { createStockEntry } from "../actions";
-import type { StockEntryFormInput } from "../schemas";
-import type { IngredientId } from "../types";
+import { createIngredients } from "../actions";
+import type { IngredientsCreateFormInput } from "../schemas";
 
-export type CreateStockEntryVariables = {
-  ingredientId: IngredientId;
-  values: StockEntryFormInput;
-};
-
-export function getCreateStockEntryMutationKey(organizationId: OrganizationId) {
-  return ["organizations", organizationId, "stock-entries", "create"] as const;
+export function getCreateIngredientsMutationKey(
+  organizationId: OrganizationId,
+) {
+  return ["organizations", organizationId, "ingredients", "create"] as const;
 }
 
-export function useCreateStockEntryMutation(organizationId: OrganizationId) {
+export function useCreateIngredientsMutation(organizationId: OrganizationId) {
   const invalidateCatalog = useInvalidateCatalog(organizationId);
   const invalidateSuppliers = useInvalidateSuppliers(organizationId);
   const invalidateFinance = useInvalidateFinance(organizationId);
 
   return useMutation({
-    mutationKey: getCreateStockEntryMutationKey(organizationId),
-    mutationFn: async ({ ingredientId, values }: CreateStockEntryVariables) =>
-      unwrapActionResult(
-        await createStockEntry(organizationId, ingredientId, values),
-      ),
+    mutationKey: getCreateIngredientsMutationKey(organizationId),
+    mutationFn: async (values: IngredientsCreateFormInput) =>
+      unwrapActionResult(await createIngredients(organizationId, values)),
     onSuccess: () =>
       Promise.all([
         invalidateCatalog(),

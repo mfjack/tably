@@ -1,5 +1,6 @@
 "use server";
 
+import type { FinancialEntryId } from "@/features/finance/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import type { SupplierId } from "@/features/suppliers/types";
 import {
@@ -23,14 +24,13 @@ import { createClient } from "@/lib/supabase/server";
 import { canChangeMeasureUnit } from "./measure-units";
 import {
   type IngredientFormInput,
-  ingredientCreateFormSchema,
+  type IngredientsCreateFormInput,
   ingredientFormSchema,
-  type StockEntryFormInput,
-  stockEntryFormSchema,
+  ingredientsCreateFormSchema,
 } from "./schemas";
-import { getPurchaseCost } from "./stock-cost";
 import type { Ingredient, IngredientId } from "./types";
 
+const DUPLICATE_INGREDIENT_ERROR_CODE = "TB047";
 const DUPLICATE_NAME_MESSAGE = "Já existe um insumo com esse nome.";
 const INVALID_FORM_MESSAGE = "Confira os campos e tente novamente.";
 const GENERIC_ERROR_MESSAGE = "Não foi possível salvar. Tente novamente.";
@@ -79,46 +79,45 @@ export async function listIngredients(
   );
 }
 
-export async function createIngredient(
+export async function createIngredients(
   organizationId: OrganizationId,
-  input: IngredientFormInput,
-): Promise<ActionResult> {
+  input: IngredientsCreateFormInput,
+): Promise<ActionResult<FinancialEntryId>> {
   if (!(await hasModuleAccess(organizationId, "ingredients"))) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }
-  const parsedInput = ingredientCreateFormSchema.safeParse(input);
+  const parsedInput = ingredientsCreateFormSchema.safeParse(input);
   if (!parsedInput.success) return actionFailure(INVALID_FORM_MESSAGE);
 
-  const {
-    name,
-    unit,
-    quantity,
-    totalCost,
-    freightCost,
-    minimumStock,
-    supplierId,
-    expiresAt,
-    paymentDueDate,
-  } = parsedInput.data;
-  const purchaseCost = getPurchaseCost(totalCost, freightCost);
+  const { supplierId, paymentDueDate, ingredients } = parsedInput.data;
   const supabase = await createClient();
-  const { error } = await supabase.rpc("create_ingredient", {
+  const { data, error } = await supabase.rpc("create_ingredients", {
     p_organization_id: organizationId,
-    p_name: name,
-    p_unit: unit,
-    p_quantity: quantity ?? 0,
-    p_total_cost: purchaseCost,
-    p_minimum_stock: minimumStock ?? 0,
+    p_ingredients: ingredients.map((ingredient) => ({
+      ingredient_id: ingredient.ingredientId || null,
+      name: ingredient.name,
+      unit: ingredient.unit,
+      quantity: ingredient.quantity,
+      total_cost: ingredient.totalCost,
+      minimum_stock: ingredient.minimumStock ?? 0,
+      expires_at: ingredient.expiresAt || null,
+    })),
+    p_payment_date: paymentDueDate,
     p_supplier_id: fromSelectFieldValue<SupplierId>(supplierId),
-    p_expires_at: expiresAt || undefined,
-    p_payment_due_date:
-      purchaseCost > 0 ? paymentDueDate || undefined : undefined,
   });
 
+  if (error?.code === "P0002") {
+    return actionFailure(
+      "Algum insumo ou fornecedor não existe mais. Atualize a página.",
+    );
+  }
+  if (error?.code === DUPLICATE_INGREDIENT_ERROR_CODE) {
+    return actionFailure(`Já existe um insumo chamado "${error.message}".`);
+  }
   if (isUniqueViolation(error)) return actionFailure(DUPLICATE_NAME_MESSAGE);
   if (error) return databaseFailure(GENERIC_ERROR_MESSAGE, error);
 
-  return actionSuccess();
+  return actionSuccess(data as FinancialEntryId);
 }
 
 async function isIngredientInUse(ingredientId: IngredientId) {
@@ -242,43 +241,6 @@ export async function deleteIngredient(
   }
   if (error)
     return databaseFailure("Não foi possível excluir o insumo.", error);
-
-  return actionSuccess();
-}
-
-export async function createStockEntry(
-  organizationId: OrganizationId,
-  ingredientId: IngredientId,
-  input: StockEntryFormInput,
-): Promise<ActionResult> {
-  if (!(await hasModuleAccess(organizationId, "ingredients"))) {
-    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
-  }
-  const parsedInput = stockEntryFormSchema.safeParse(input);
-  if (!parsedInput.success) return actionFailure(INVALID_FORM_MESSAGE);
-
-  const {
-    quantity,
-    totalCost,
-    freightCost,
-    supplierId,
-    expiresAt,
-    paymentDueDate,
-  } = parsedInput.data;
-  const purchaseCost = getPurchaseCost(totalCost, freightCost);
-  const supabase = await createClient();
-  const { error } = await supabase.from("stock_entries").insert({
-    organization_id: organizationId,
-    ingredient_id: ingredientId,
-    supplier_id: fromSelectFieldValue<SupplierId>(supplierId) ?? null,
-    quantity,
-    total_cost: purchaseCost,
-    expires_at: expiresAt || null,
-    payment_due_date: purchaseCost > 0 ? paymentDueDate || null : null,
-  });
-
-  if (error)
-    return databaseFailure("Não foi possível registrar a entrada.", error);
 
   return actionSuccess();
 }

@@ -16,8 +16,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { PurchaseDialog } from "@/features/ingredients/components/purchase-dialog";
 import { ShoppingListDialog } from "@/features/ingredients/components/shopping-list-dialog";
-import { StockEntryDialog } from "@/features/ingredients/components/stock-entry-dialog";
 import { useIngredientsQuery } from "@/features/ingredients/hooks/use-ingredients-query";
 import {
   getPurchasableItems,
@@ -46,10 +46,10 @@ import { StockLossesDialog } from "./stock-losses-dialog";
 const EMPTY_INGREDIENTS: Ingredient[] = [];
 const EMPTY_PRODUCTS: Product[] = [];
 
-type IngredientFormState =
-  | { mode: "closed" }
-  | { mode: "create" }
-  | { mode: "edit"; ingredient: Ingredient };
+type PurchaseState = {
+  isOpen: boolean;
+  initialIngredient: Ingredient | null;
+};
 
 type IngredientsViewProps = {
   organizationId: OrganizationId;
@@ -104,21 +104,25 @@ export function IngredientsView({
     () => purchasableItems.filter(needsPurchase).length,
     [purchasableItems],
   );
-  const [formState, setFormState] = useState<IngredientFormState>({
-    mode: "closed",
+  const [purchaseState, setPurchaseState] = useState<PurchaseState>({
+    isOpen: false,
+    initialIngredient: null,
   });
-  const [ingredientForStockEntry, setIngredientForStockEntry] =
-    useState<Ingredient | null>(null);
+  const [ingredientToEdit, setIngredientToEdit] = useState<Ingredient | null>(
+    null,
+  );
   const [ingredientToDelete, setIngredientToDelete] =
     useState<Ingredient | null>(null);
 
-  const openCreateForm = useCallback(() => {
-    setFormState({ mode: "create" });
-  }, []);
-
-  const openEditForm = useCallback((ingredient: Ingredient) => {
-    setFormState({ mode: "edit", ingredient });
-  }, []);
+  const openCreateForm = useCallback(
+    () => setPurchaseState({ isOpen: true, initialIngredient: null }),
+    [],
+  );
+  const openStockEntry = useCallback(
+    (ingredient: Ingredient) =>
+      setPurchaseState({ isOpen: true, initialIngredient: ingredient }),
+    [],
+  );
 
   return (
     <>
@@ -195,23 +199,32 @@ export function IngredientsView({
               onCreate={openCreateForm}
             />
           }
-          onStockEntry={setIngredientForStockEntry}
+          onStockEntry={openStockEntry}
           onLoss={setIngredientForLoss}
           onPrintLabel={setIngredientForLabel}
           onProduce={setIngredientForProduction}
           onEditRecipe={setIngredientForRecipe}
-          onEdit={openEditForm}
+          onEdit={setIngredientToEdit}
           onDelete={setIngredientToDelete}
         />
       </PageContent>
 
+      <PurchaseDialog
+        organizationId={organizationId}
+        isOpen={purchaseState.isOpen}
+        ingredients={ingredientsQuery.data ?? EMPTY_INGREDIENTS}
+        initialIngredient={purchaseState.initialIngredient}
+        onClose={() =>
+          setPurchaseState((previousState) => ({
+            ...previousState,
+            isOpen: false,
+          }))
+        }
+      />
       <IngredientFormDialog
         organizationId={organizationId}
-        isOpen={formState.mode !== "closed"}
-        ingredient={
-          formState.mode === "edit" ? formState.ingredient : undefined
-        }
-        onClose={() => setFormState({ mode: "closed" })}
+        ingredient={ingredientToEdit}
+        onClose={() => setIngredientToEdit(null)}
       />
       {ingredientForLabel && (
         <FoodLabelDialog
@@ -256,11 +269,6 @@ export function IngredientsView({
           onClose={() => setIngredientForLoss(null)}
         />
       )}
-      <StockEntryDialog
-        organizationId={organizationId}
-        ingredient={ingredientForStockEntry}
-        onClose={() => setIngredientForStockEntry(null)}
-      />
       <ShoppingListDialog
         organizationId={organizationId}
         isOpen={isShoppingListOpen}

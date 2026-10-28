@@ -1,7 +1,6 @@
 import * as z from "zod";
 import { toTitleCase } from "@/lib/title-case";
 import { MEASURE_UNIT_VALUES } from "./measure-units";
-import { getPurchaseCost } from "./stock-cost";
 
 const requiredPaymentDateSchema = z
   .string({ error: "Informe a data de pagamento." })
@@ -17,68 +16,71 @@ const optionalAmountSchema = z
   .min(0, "Não pode ser negativo.")
   .optional();
 
+const ingredientNameSchema = z
+  .string()
+  .trim()
+  .min(1, "Informe o nome do insumo.")
+  .max(80, "Nome muito longo.")
+  .transform(toTitleCase);
+
+const measureUnitSchema = z.enum(MEASURE_UNIT_VALUES, {
+  error: "Escolha a unidade.",
+});
+
 export const ingredientFormSchema = z
   .object({
-    name: z
-      .string()
-      .trim()
-      .min(1, "Informe o nome do insumo.")
-      .max(80, "Nome muito longo.")
-      .transform(toTitleCase),
-    unit: z.enum(MEASURE_UNIT_VALUES, { error: "Escolha a unidade." }),
-    quantity: optionalAmountSchema,
-    totalCost: optionalAmountSchema,
-    freightCost: optionalAmountSchema,
+    name: ingredientNameSchema,
+    unit: measureUnitSchema,
     minimumStock: optionalAmountSchema,
     currentStock: optionalAmountSchema,
     currentStockCost: optionalAmountSchema,
     supplierId: z.string().optional(),
     expiresAt: optionalDateSchema,
-    paymentDueDate: optionalDateSchema,
   })
-  .refine(
-    (values) =>
-      (values.quantity ?? 0) > 0 ||
-      getPurchaseCost(values.totalCost, values.freightCost) === 0,
-    { message: "Informe a quantidade comprada.", path: ["quantity"] },
-  )
   .refine(
     (values) =>
       values.currentStockCost === undefined || (values.currentStock ?? 0) > 0,
     { message: "Informe o estoque atual.", path: ["currentStock"] },
   );
 
-const alwaysCheck = { when: () => true };
-
-export const ingredientCreateFormSchema = ingredientFormSchema
-  .refine((values) => Boolean(values.quantity), {
-    message: "Informe a quantidade comprada.",
-    path: ["quantity"],
-    ...alwaysCheck,
-  })
-  .refine((values) => Boolean(values.totalCost), {
-    message: "Informe o valor total pago.",
-    path: ["totalCost"],
-    ...alwaysCheck,
-  })
-  .refine((values) => Boolean(values.paymentDueDate), {
-    message: "Informe a data de pagamento.",
-    path: ["paymentDueDate"],
-    ...alwaysCheck,
-  });
-
-export const stockEntryFormSchema = z.object({
+const newIngredientSchema = z.object({
+  ingredientId: z.string().optional(),
+  name: ingredientNameSchema,
+  unit: measureUnitSchema,
   quantity: z
-    .number({ error: "Informe a quantidade." })
-    .positive("A quantidade precisa ser maior que zero."),
+    .number({ error: "Informe a quantidade comprada." })
+    .positive("Informe a quantidade comprada."),
   totalCost: z
     .number({ error: "Informe o valor total pago." })
     .positive("Informe o valor total pago."),
-  freightCost: optionalAmountSchema,
-  supplierId: z.string().optional(),
+  minimumStock: optionalAmountSchema,
   expiresAt: optionalDateSchema,
+});
+
+export const ingredientsCreateFormSchema = z.object({
+  supplierId: z.string().optional(),
   paymentDueDate: requiredPaymentDateSchema,
+  ingredients: z
+    .array(newIngredientSchema)
+    .min(1, "Adicione pelo menos um insumo.")
+    .superRefine((ingredients, context) => {
+      const seenNames = new Set<string>();
+      ingredients.forEach((ingredient, index) => {
+        const normalizedName = ingredient.name.toLocaleLowerCase("pt-BR");
+        if (!normalizedName) return;
+        if (seenNames.has(normalizedName)) {
+          context.addIssue({
+            code: "custom",
+            path: [index, "name"],
+            message: "Esse insumo já está na lista.",
+          });
+        }
+        seenNames.add(normalizedName);
+      });
+    }),
 });
 
 export type IngredientFormInput = z.infer<typeof ingredientFormSchema>;
-export type StockEntryFormInput = z.infer<typeof stockEntryFormSchema>;
+export type IngredientsCreateFormInput = z.infer<
+  typeof ingredientsCreateFormSchema
+>;
