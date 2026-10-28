@@ -209,9 +209,14 @@ export function PosView({
   const { ingredients, ingredientsById } = useIngredientsMap(organizationId);
   const [stockEntryIngredient, setStockEntryIngredient] =
     useState<Ingredient | null>(null);
+  const [isStockEntryOpen, setIsStockEntryOpen] = useState(false);
   const openStockEntry = useCallback(
-    (ingredientId: IngredientId) =>
-      setStockEntryIngredient(ingredientsById.get(ingredientId) ?? null),
+    (ingredientId: IngredientId) => {
+      const ingredient = ingredientsById.get(ingredientId);
+      if (!ingredient) return;
+      setStockEntryIngredient(ingredient);
+      setIsStockEntryOpen(true);
+    },
     [ingredientsById],
   );
   const [stockEntryProductId, setStockEntryProductId] =
@@ -594,10 +599,10 @@ export function PosView({
       {canAddStock && (
         <PurchaseDialog
           organizationId={organizationId}
-          isOpen={stockEntryIngredient !== null}
+          isOpen={isStockEntryOpen}
           ingredients={ingredients}
           initialIngredient={stockEntryIngredient}
-          onClose={() => setStockEntryIngredient(null)}
+          onClose={() => setIsStockEntryOpen(false)}
         />
       )}
     </div>

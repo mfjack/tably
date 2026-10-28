@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Trash2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import {
   type Control,
   type DefaultValues,
@@ -21,8 +21,7 @@ import { SelectField } from "@/components/form/select-field";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
 import { MAX_FINANCIAL_DOCUMENT_SIZE_IN_MEGABYTES } from "@/features/finance/documents";
-import { useAddFinancialEntryAttachmentsMutation } from "@/features/finance/hooks/use-add-financial-entry-attachments-mutation";
-import type { FinancialEntryId } from "@/features/finance/types";
+import { usePendingAttachments } from "@/features/finance/hooks/use-pending-attachments";
 import { useCreateIngredientsMutation } from "@/features/ingredients/hooks/use-create-ingredients-mutation";
 import {
   getUnitSymbol,
@@ -225,10 +224,8 @@ export function PurchaseDialog({
     organizationId,
     isOpen,
   );
-  const uploadMutation =
-    useAddFinancialEntryAttachmentsMutation(organizationId);
-  const [files, setFiles] = useState<File[]>([]);
-  const [fileError, setFileError] = useState<string | null>(null);
+  const pendingAttachments = usePendingAttachments(organizationId);
+  const { reset: resetAttachments } = pendingAttachments;
   const form = useForm<IngredientsCreateFormInput>({
     resolver: zodResolver(ingredientsCreateFormSchema),
     defaultValues: buildDefaultValues(null),
@@ -268,16 +265,14 @@ export function PurchaseDialog({
   useEffect(() => {
     if (!isOpen) return;
     form.reset(buildDefaultValues(initialIngredient));
-    setFiles([]);
-    setFileError(null);
+    resetAttachments();
     createIngredientsMutation.reset();
-    uploadMutation.reset();
   }, [
     isOpen,
     initialIngredient,
     form,
+    resetAttachments,
     createIngredientsMutation.reset,
-    uploadMutation.reset,
   ]);
 
   const handleSubmit = form.handleSubmit((values) => {
@@ -288,32 +283,21 @@ export function PurchaseDialog({
       : "Compra registrada.";
     createIngredientsMutation.mutate(values, {
       onSuccess: (entryId) =>
-        attachFiles(entryId, () => {
-          toast.success(successMessage);
-          onClose();
+        pendingAttachments.attachTo(entryId, {
+          onDone: () => {
+            toast.success(successMessage);
+            onClose();
+          },
+          onError: (error) => {
+            toast.error(
+              `Compra registrada, mas o boleto não foi enviado: ${error.message} Anexe pelo menu da conta no Financeiro.`,
+            );
+            onClose();
+          },
         }),
       onError: (error) => toast.error(error.message),
     });
   });
-
-  function attachFiles(entryId: FinancialEntryId, onDone: () => void) {
-    if (files.length === 0) {
-      onDone();
-      return;
-    }
-    uploadMutation.mutate(
-      { entryId, files },
-      {
-        onSuccess: onDone,
-        onError: (error) => {
-          toast.error(
-            `Compra registrada, mas o boleto não foi enviado: ${error.message} Anexe pelo menu da conta no Financeiro.`,
-          );
-          onClose();
-        },
-      },
-    );
-  }
 
   return (
     <FormDialog
@@ -323,7 +307,7 @@ export function PurchaseDialog({
       description="Informe o que você comprou. Se o insumo já existir, a compra entra no estoque dele. O custo é calculado automaticamente, e tudo vai para o Financeiro numa conta só."
       submitLabel={initialIngredient ? "Registrar" : "Cadastrar"}
       isSubmitting={
-        createIngredientsMutation.isPending || uploadMutation.isPending
+        createIngredientsMutation.isPending || pendingAttachments.isUploading
       }
       onSubmit={handleSubmit}
       size="extraLarge"
@@ -349,16 +333,13 @@ export function PurchaseDialog({
           />
           <FilePickerField
             label="Boleto, nota ou comprovante (opcional)"
-            files={files}
-            error={fileError}
+            files={pendingAttachments.files}
+            error={pendingAttachments.fileError}
             maxSizeInMegabytes={MAX_FINANCIAL_DOCUMENT_SIZE_IN_MEGABYTES}
             isLabelVisible
             isMultiple
             isCompact
-            onFilesChange={(selectedFiles, error) => {
-              setFiles(selectedFiles);
-              setFileError(error);
-            }}
+            onFilesChange={pendingAttachments.selectFiles}
           />
         </div>
         <div className="flex flex-col gap-3">

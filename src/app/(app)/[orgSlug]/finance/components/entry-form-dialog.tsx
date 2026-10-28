@@ -16,8 +16,8 @@ import { FieldGroup, FieldSeparator } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { MAX_FINANCIAL_DOCUMENT_SIZE_IN_MEGABYTES } from "@/features/finance/documents";
-import { useAddFinancialEntryAttachmentsMutation } from "@/features/finance/hooks/use-add-financial-entry-attachments-mutation";
 import { useCreateFinancialEntryMutation } from "@/features/finance/hooks/use-create-financial-entry-mutation";
+import { usePendingAttachments } from "@/features/finance/hooks/use-pending-attachments";
 import { useUpdateFinancialEntryMutation } from "@/features/finance/hooks/use-update-financial-entry-mutation";
 import {
   ENTRY_KIND_LABELS,
@@ -32,7 +32,6 @@ import {
 import type {
   FinancialCategory,
   FinancialEntry,
-  FinancialEntryId,
   FinancialEntryKind,
 } from "@/features/finance/types";
 import type { OrganizationId } from "@/features/organizations/types";
@@ -125,10 +124,8 @@ export function EntryFormDialog({
   const [scope, setScope] = useState<EntryEditScope>("single");
   const createMutation = useCreateFinancialEntryMutation(organizationId);
   const updateMutation = useUpdateFinancialEntryMutation(organizationId);
-  const uploadMutation =
-    useAddFinancialEntryAttachmentsMutation(organizationId);
-  const [files, setFiles] = useState<File[]>([]);
-  const [fileError, setFileError] = useState<string | null>(null);
+  const pendingAttachments = usePendingAttachments(organizationId);
+  const { reset: resetAttachments } = pendingAttachments;
   const { supplierOptions, hasSuppliers } = useSupplierOptions(
     organizationId,
     isOpen && kind === "expense",
@@ -164,24 +161,22 @@ export function EntryFormDialog({
         : getEmptyValues(state.kind, today),
     );
     setScope("single");
-    setFiles([]);
-    setFileError(null);
+    resetAttachments();
     createMutation.reset();
     updateMutation.reset();
-    uploadMutation.reset();
   }, [
     state,
     today,
     form,
+    resetAttachments,
     createMutation.reset,
     updateMutation.reset,
-    uploadMutation.reset,
   ]);
 
   const isSubmitting =
     createMutation.isPending ||
     updateMutation.isPending ||
-    uploadMutation.isPending;
+    pendingAttachments.isUploading;
   const kindLabel = ENTRY_KIND_LABELS[kind].toLowerCase();
 
   const handleSubmit = form.handleSubmit((values) => {
@@ -210,30 +205,20 @@ export function EntryFormDialog({
         ? { ...values, repeat: "none", isPaid: true, paidAt: values.dueDate }
         : values,
       {
-        onSuccess: (entryId) => attachFiles(entryId, callbacks.onSuccess),
+        onSuccess: (entryId) =>
+          pendingAttachments.attachTo(entryId, {
+            onDone: callbacks.onSuccess,
+            onError: (error) => {
+              toast.error(
+                `Lançamento criado, mas os anexos não foram enviados: ${error.message} Anexe pelo menu da conta.`,
+              );
+              onClose();
+            },
+          }),
         onError: callbacks.onError,
       },
     );
   });
-
-  function attachFiles(entryId: FinancialEntryId | null, onDone: () => void) {
-    if (files.length === 0 || !entryId) {
-      onDone();
-      return;
-    }
-    uploadMutation.mutate(
-      { entryId, files },
-      {
-        onSuccess: onDone,
-        onError: (error) => {
-          toast.error(
-            `Lançamento criado, mas os anexos não foram enviados: ${error.message} Anexe pelo menu da conta.`,
-          );
-          onClose();
-        },
-      },
-    );
-  }
 
   const filePicker = !editingEntry && (
     <FilePickerField
@@ -242,16 +227,13 @@ export function EntryFormDialog({
           ? "Boleto, nota ou comprovante (opcional)"
           : "Documentos (opcional)"
       }
-      files={files}
-      error={fileError}
+      files={pendingAttachments.files}
+      error={pendingAttachments.fileError}
       maxSizeInMegabytes={MAX_FINANCIAL_DOCUMENT_SIZE_IN_MEGABYTES}
       isLabelVisible
       isMultiple
       isCompact
-      onFilesChange={(selectedFiles, error) => {
-        setFiles(selectedFiles);
-        setFileError(error);
-      }}
+      onFilesChange={pendingAttachments.selectFiles}
     />
   );
 
