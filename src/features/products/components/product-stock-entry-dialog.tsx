@@ -99,7 +99,7 @@ export function ProductStockEntryDialog({
           <NumberField
             control={form.control}
             name="totalCost"
-            label="Valor total pago"
+            label="Valor total pago (opcional)"
             format="currency"
             placeholder="Ex.: $ 60,00"
           />

@@ -3596,7 +3596,7 @@ export type Database = {
       add_product_stock: {
         Args: {
           p_minimum_stock?: number
-          p_payment_date: string
+          p_payment_date?: string
           p_product_id: string
           p_quantity: number
           p_supplier_id?: string
@@ -3773,7 +3773,7 @@ export type Database = {
         Args: {
           p_ingredients: Json
           p_organization_id: string
-          p_payment_date: string
+          p_payment_date?: string
           p_supplier_id?: string
         }
         Returns: string

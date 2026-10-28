@@ -149,10 +149,11 @@ export async function saveProduct(
       p_minimum_stock: minimumStock ?? 0,
       p_supplier_id: fromSelectFieldValue<SupplierId>(supplierId),
     }),
-    ...(isPurchasingInitialStock && {
-      p_initial_total_cost: totalCost,
-      p_initial_payment_date: paymentDate,
-    }),
+    ...(isPurchasingInitialStock &&
+      (totalCost ?? 0) > 0 && {
+        p_initial_total_cost: totalCost,
+        p_initial_payment_date: paymentDate,
+      }),
   });
 
   if (isUniqueViolation(error)) {
@@ -208,7 +209,7 @@ export async function addProductStock(
     p_product_id: productId,
     p_quantity: quantity,
     p_total_cost: getPurchaseCost(totalCost, freightCost),
-    p_payment_date: paymentDate,
+    p_payment_date: paymentDate || undefined,
     p_minimum_stock: minimumStock,
     p_supplier_id: fromSelectFieldValue<SupplierId>(supplierId),
   });

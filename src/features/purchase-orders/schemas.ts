@@ -44,18 +44,12 @@ export const receivePurchaseOrderFormSchema = z.object({
             message: "Use um número inteiro.",
           });
         }
-        if (item.quantity > 0 && !item.totalCost) {
-          context.addIssue({
-            code: "custom",
-            path: ["totalCost"],
-            message: "Informe o valor pago.",
-          });
-        }
       }),
   ),
   paymentDueDate: z
-    .string({ error: "Informe a data de pagamento." })
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "Informe a data de pagamento."),
+    .string()
+    .regex(/^(\d{4}-\d{2}-\d{2})?$/, "Data inválida.")
+    .optional(),
 });
 
 export type ReceivePurchaseOrderFormInput = z.infer<

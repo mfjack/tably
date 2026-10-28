@@ -2,10 +2,6 @@ import * as z from "zod";
 import { toTitleCase } from "@/lib/title-case";
 import { MEASURE_UNIT_VALUES } from "./measure-units";
 
-const requiredPaymentDateSchema = z
-  .string({ error: "Informe a data de pagamento." })
-  .regex(/^\d{4}-\d{2}-\d{2}$/, "Informe a data de pagamento.");
-
 const optionalDateSchema = z
   .string()
   .regex(/^(\d{4}-\d{2}-\d{2})?$/, "Data inválida.")
@@ -50,35 +46,40 @@ const newIngredientSchema = z.object({
   quantity: z
     .number({ error: "Informe a quantidade comprada." })
     .positive("Informe a quantidade comprada."),
-  totalCost: z
-    .number({ error: "Informe o valor total pago." })
-    .positive("Informe o valor total pago."),
+  totalCost: optionalAmountSchema,
   minimumStock: optionalAmountSchema,
   expiresAt: optionalDateSchema,
 });
 
-export const ingredientsCreateFormSchema = z.object({
-  supplierId: z.string().optional(),
-  paymentDueDate: requiredPaymentDateSchema,
-  ingredients: z
-    .array(newIngredientSchema)
-    .min(1, "Adicione pelo menos um insumo.")
-    .superRefine((ingredients, context) => {
-      const seenNames = new Set<string>();
-      ingredients.forEach((ingredient, index) => {
-        const normalizedName = ingredient.name.toLocaleLowerCase("pt-BR");
-        if (!normalizedName) return;
-        if (seenNames.has(normalizedName)) {
-          context.addIssue({
-            code: "custom",
-            path: [index, "name"],
-            message: "Esse insumo já está na lista.",
-          });
-        }
-        seenNames.add(normalizedName);
-      });
-    }),
-});
+export const ingredientsCreateFormSchema = z
+  .object({
+    supplierId: z.string().optional(),
+    paymentDueDate: optionalDateSchema,
+    ingredients: z
+      .array(newIngredientSchema)
+      .min(1, "Adicione pelo menos um insumo.")
+      .superRefine((ingredients, context) => {
+        const seenNames = new Set<string>();
+        ingredients.forEach((ingredient, index) => {
+          const normalizedName = ingredient.name.toLocaleLowerCase("pt-BR");
+          if (!normalizedName) return;
+          if (seenNames.has(normalizedName)) {
+            context.addIssue({
+              code: "custom",
+              path: [index, "name"],
+              message: "Esse insumo já está na lista.",
+            });
+          }
+          seenNames.add(normalizedName);
+        });
+      }),
+  })
+  .refine(
+    (values) =>
+      Boolean(values.paymentDueDate) ||
+      values.ingredients.every((ingredient) => !ingredient.totalCost),
+    { message: "Informe a data de pagamento.", path: ["paymentDueDate"] },
+  );
 
 export type IngredientFormInput = z.infer<typeof ingredientFormSchema>;
 export type IngredientsCreateFormInput = z.infer<

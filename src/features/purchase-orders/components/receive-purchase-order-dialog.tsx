@@ -77,7 +77,7 @@ function ReceiveItemFields({ control, index, item }: ReceiveItemFieldsProps) {
           format="currency"
           placeholder={
             isProduct
-              ? "Informe o valor"
+              ? "Opcional"
               : `Estimado: ${formatCurrency(estimateCost(item, quantity ?? 0))}`
           }
           size="compact"
@@ -112,7 +112,13 @@ export function ReceivePurchaseOrderDialog({
     0,
   );
 
-  const handleSubmit = form.handleSubmit((values) =>
+  const handleSubmit = form.handleSubmit((values) => {
+    if (total > 0 && !values.paymentDueDate) {
+      form.setError("paymentDueDate", {
+        message: "Informe a data de pagamento.",
+      });
+      return;
+    }
     receiveMutation.mutate(
       {
         orderId: order.id,
@@ -130,29 +136,30 @@ export function ReceivePurchaseOrderDialog({
               ),
             };
           }),
-          paymentDueDate: values.paymentDueDate,
+          paymentDueDate: values.paymentDueDate || undefined,
         },
       },
       {
         onSuccess: () => {
           toast.success("Pedido recebido.", {
-            description: values.paymentDueDate
-              ? "Estoque atualizado e conta a pagar lançada."
-              : "Estoque atualizado.",
+            description:
+              values.paymentDueDate && total > 0
+                ? "Estoque atualizado e conta a pagar lançada."
+                : "Estoque atualizado.",
           });
           onClose();
         },
         onError: (error) => toast.error(error.message),
       },
-    ),
-  );
+    );
+  });
 
   return (
     <FormDialog
       isOpen
       onOpenChange={(isDialogOpen) => !isDialogOpen && onClose()}
       title={`Receber pedido${order.supplierName ? ` · ${order.supplierName}` : ""}`}
-      description="Confira o que chegou. As quantidades já vêm do pedido; ajuste o que veio diferente. Sem valor pago, usamos o custo atual do insumo; para produtos, o valor pago é obrigatório."
+      description="Confira o que chegou. As quantidades já vêm do pedido; ajuste o que veio diferente. Sem valor pago, usamos o custo atual do insumo."
       submitLabel="Dar entrada"
       isSubmitting={receiveMutation.isPending}
       onSubmit={handleSubmit}

@@ -163,7 +163,7 @@ function NewIngredientFields({
         <NumberField
           control={control}
           name={`ingredients.${index}.totalCost`}
-          label="Valor pago"
+          label="Valor pago (opcional)"
           format="currency"
           placeholder="Ex.: $ 60,00"
         />
@@ -276,6 +276,10 @@ export function PurchaseDialog({
   ]);
 
   const handleSubmit = form.handleSubmit((values) => {
+    if (total === 0 && pendingAttachments.files.length > 0) {
+      toast.error("Informe o valor pago para anexar o boleto.");
+      return;
+    }
     const successMessage = values.ingredients.some(
       (ingredient) => !ingredient.ingredientId,
     )

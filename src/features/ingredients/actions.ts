@@ -106,7 +106,7 @@ export async function listIngredients(
 export async function createIngredients(
   organizationId: OrganizationId,
   input: IngredientsCreateFormInput,
-): Promise<ActionResult<FinancialEntryId>> {
+): Promise<ActionResult<FinancialEntryId | null>> {
   if (!(await hasModuleAccess(organizationId, "ingredients"))) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }
@@ -122,11 +122,11 @@ export async function createIngredients(
       name: ingredient.name,
       unit: ingredient.unit,
       quantity: ingredient.quantity,
-      total_cost: ingredient.totalCost,
+      total_cost: ingredient.totalCost ?? 0,
       minimum_stock: ingredient.minimumStock ?? 0,
       expires_at: ingredient.expiresAt || null,
     })),
-    p_payment_date: paymentDueDate,
+    p_payment_date: paymentDueDate || undefined,
     p_supplier_id: fromSelectFieldValue<SupplierId>(supplierId),
   });
 
@@ -141,7 +141,7 @@ export async function createIngredients(
   if (isUniqueViolation(error)) return actionFailure(DUPLICATE_NAME_MESSAGE);
   if (error) return databaseFailure(GENERIC_ERROR_MESSAGE, error);
 
-  return actionSuccess(data as FinancialEntryId);
+  return actionSuccess((data as FinancialEntryId | null) ?? null);
 }
 
 async function isIngredientInUse(ingredientId: IngredientId) {
