@@ -1,11 +1,9 @@
 "use client";
 
 import {
-  ChefHat,
   CookingPot,
   MoreHorizontal,
   PackageMinus,
-  PackagePlus,
   Pencil,
   Tag,
   Trash2,
@@ -28,7 +26,6 @@ export type IngredientRowActionHandlers = {
   onLoss: (ingredient: Ingredient) => void;
   onPrintLabel: (ingredient: Ingredient) => void;
   onProduce: (ingredient: Ingredient) => void;
-  onEditRecipe: (ingredient: Ingredient) => void;
   onEdit: (ingredient: Ingredient) => void;
   onDelete: (ingredient: Ingredient) => void;
 };
@@ -45,7 +42,6 @@ export function IngredientRowActions({
   onLoss,
   onPrintLabel,
   onProduce,
-  onEditRecipe,
   onEdit,
   onDelete,
 }: IngredientRowActionsProps) {
@@ -94,12 +90,6 @@ export function IngredientRowActions({
           <MoreHorizontal aria-hidden />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-52">
-          {isPrepared && canManage && (
-            <DropdownMenuItem onClick={() => onStockEntry(ingredient)}>
-              <PackagePlus aria-hidden />
-              Registrar entrada
-            </DropdownMenuItem>
-          )}
           <DropdownMenuItem onClick={() => onLoss(ingredient)}>
             <PackageMinus aria-hidden />
             Registrar perda
@@ -111,10 +101,6 @@ export function IngredientRowActions({
           {canManage && (
             <>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => onEditRecipe(ingredient)}>
-                <ChefHat aria-hidden />
-                Receita de produção
-              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onEdit(ingredient)}>
                 <Pencil aria-hidden />
                 Editar

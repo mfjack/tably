@@ -3840,6 +3840,18 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      create_preparation: {
+        Args: {
+          p_components: Json
+          p_instructions?: string
+          p_minimum_stock?: number
+          p_name: string
+          p_organization_id: string
+          p_unit: Database["public"]["Enums"]["measure_unit"]
+          p_yield_quantity: number
+        }
+        Returns: string
+      }
       create_purchase_order: {
         Args: {
           p_items: Json
@@ -3873,6 +3885,10 @@ export type Database = {
         Returns: undefined
       }
       delete_my_account: { Args: never; Returns: undefined }
+      delete_preparation: {
+        Args: { p_ingredient_id: string }
+        Returns: undefined
+      }
       deliver_offline_kitchen_ticket: {
         Args: { p_delivered_at: string; p_ticket_id: string }
         Returns: undefined
@@ -4425,6 +4441,17 @@ export type Database = {
           p_can_access_settings: boolean
           p_organization_id: string
           p_user_id: string
+        }
+        Returns: undefined
+      }
+      update_preparation: {
+        Args: {
+          p_components: Json
+          p_ingredient_id: string
+          p_instructions?: string
+          p_minimum_stock?: number
+          p_name: string
+          p_yield_quantity: number
         }
         Returns: undefined
       }

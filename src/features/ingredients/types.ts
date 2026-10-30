@@ -18,6 +18,7 @@ export type Ingredient = {
   expiresAt: string | null;
   recipeCount: number;
   isInUse: boolean;
+  isReferenced: boolean;
   labelShelfLifeHours: number | null;
   labelStorage: StorageCondition | null;
   isPrepared: boolean;

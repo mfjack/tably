@@ -74,32 +74,35 @@ export async function listIngredients(
     return databaseFailure("Não foi possível carregar os insumos.", error);
 
   return actionSuccess(
-    data.map((ingredient) => ({
-      id: ingredient.id as IngredientId,
-      name: ingredient.name,
-      unit: ingredient.unit,
-      currentStock: ingredient.current_stock,
-      minimumStock: ingredient.minimum_stock,
-      unitCost: ingredient.unit_cost,
-      supplierId: ingredient.supplier_id as SupplierId | null,
-      expiresAt: ingredient.expires_at,
-      recipeCount: ingredient.product_ingredients[0]?.count ?? 0,
-      isInUse:
-        ingredient.is_prepared ||
+    data.map((ingredient) => {
+      const isReferenced =
         (ingredient.product_ingredients[0]?.count ?? 0) > 0 ||
         (ingredient.used_as_component[0]?.count ?? 0) > 0 ||
-        (ingredient.product_addons[0]?.count ?? 0) > 0,
-      labelShelfLifeHours: ingredient.label_shelf_life_hours,
-      labelStorage: ingredient.label_storage,
-      isPrepared: ingredient.is_prepared,
-      yieldQuantity: ingredient.yield_quantity,
-      preparationInstructions: ingredient.preparation_instructions,
-      components: ingredient.ingredient_components.map((component) => ({
-        ingredientId: component.component_ingredient_id as IngredientId,
-        quantity: component.quantity,
-      })),
-      lastPurchase: toLastPurchase(ingredient.last_purchase[0]),
-    })),
+        (ingredient.product_addons[0]?.count ?? 0) > 0;
+      return {
+        id: ingredient.id as IngredientId,
+        name: ingredient.name,
+        unit: ingredient.unit,
+        currentStock: ingredient.current_stock,
+        minimumStock: ingredient.minimum_stock,
+        unitCost: ingredient.unit_cost,
+        supplierId: ingredient.supplier_id as SupplierId | null,
+        expiresAt: ingredient.expires_at,
+        recipeCount: ingredient.product_ingredients[0]?.count ?? 0,
+        isReferenced,
+        isInUse: ingredient.is_prepared || isReferenced,
+        labelShelfLifeHours: ingredient.label_shelf_life_hours,
+        labelStorage: ingredient.label_storage,
+        isPrepared: ingredient.is_prepared,
+        yieldQuantity: ingredient.yield_quantity,
+        preparationInstructions: ingredient.preparation_instructions,
+        components: ingredient.ingredient_components.map((component) => ({
+          ingredientId: component.component_ingredient_id as IngredientId,
+          quantity: component.quantity,
+        })),
+        lastPurchase: toLastPurchase(ingredient.last_purchase[0]),
+      };
+    }),
   );
 }
 
@@ -253,10 +256,16 @@ export async function deleteIngredient(
   ) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }
-  const { error } = await supabase
+  const { data: ingredient } = await supabase
     .from("ingredients")
-    .delete()
-    .eq("id", ingredientId);
+    .select("is_prepared")
+    .eq("id", ingredientId)
+    .maybeSingle();
+  const { error } = ingredient?.is_prepared
+    ? await supabase.rpc("delete_preparation", {
+        p_ingredient_id: ingredientId,
+      })
+    : await supabase.from("ingredients").delete().eq("id", ingredientId);
 
   if (isForeignKeyViolation(error)) {
     return actionFailure(

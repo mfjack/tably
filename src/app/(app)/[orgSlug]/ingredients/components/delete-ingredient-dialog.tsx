@@ -16,6 +16,11 @@ type DeleteIngredientDialogProps = {
 };
 
 function getDeleteDescription(ingredient: Ingredient) {
+  if (ingredient.isPrepared) {
+    return ingredient.isReferenced
+      ? `Ele sai das fichas técnicas, das receitas e dos adicionais em que é usado, e o custo desses produtos muda. ${IRREVERSIBLE_ACTION_MESSAGE}`
+      : `A receita e o histórico também serão excluídos. ${IRREVERSIBLE_ACTION_MESSAGE}`;
+  }
   if (ingredient.recipeCount === 0) {
     return `O histórico de entradas também será excluído. ${IRREVERSIBLE_ACTION_MESSAGE}`;
   }
@@ -39,7 +44,9 @@ export function DeleteIngredientDialog({
     if (!ingredient) return;
     deleteIngredientMutation.mutate(ingredient.id, {
       onSuccess: () => {
-        toast.success("Insumo excluído.");
+        toast.success(
+          ingredient.isPrepared ? "Preparo excluído." : "Insumo excluído.",
+        );
         onClose();
       },
       onError: (error) => toast.error(error.message),

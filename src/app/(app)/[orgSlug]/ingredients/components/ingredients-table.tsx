@@ -7,7 +7,6 @@ import { DataTableFilterTabs } from "@/components/data-table/data-table-filter-t
 import { ALERT_ROW_CLASS_NAME } from "@/components/data-table/data-table-row-styles";
 import { useCountedRowFilter } from "@/components/data-table/use-counted-row-filter";
 import { useDataTable } from "@/components/data-table/use-data-table";
-import { Badge } from "@/components/ui/badge";
 import { getUnitSymbol } from "@/features/ingredients/measure-units";
 import type { Ingredient } from "@/features/ingredients/types";
 import { getExpiryStatus } from "@/lib/expiry";
@@ -64,7 +63,6 @@ export function IngredientsTable({
   onLoss,
   onPrintLabel,
   onProduce,
-  onEditRecipe,
   onEdit,
   onDelete,
 }: IngredientsTableProps) {
@@ -82,15 +80,8 @@ export function IngredientsTable({
       columnHelper.columns([
         columnHelper.accessor("name", {
           header: "Nome",
-          cell: ({ row }) => (
-            <div className="flex flex-col">
-              <span className="flex items-center gap-2 font-medium">
-                {row.original.name}
-                {row.original.isPrepared && (
-                  <Badge variant="secondary">Produzido</Badge>
-                )}
-              </span>
-            </div>
+          cell: ({ getValue }) => (
+            <span className="font-medium">{getValue()}</span>
           ),
         }),
         columnHelper.accessor("currentStock", {
@@ -142,7 +133,6 @@ export function IngredientsTable({
               onLoss={onLoss}
               onPrintLabel={onPrintLabel}
               onProduce={onProduce}
-              onEditRecipe={onEditRecipe}
               onEdit={onEdit}
               onDelete={onDelete}
             />
@@ -155,7 +145,6 @@ export function IngredientsTable({
       onLoss,
       onPrintLabel,
       onProduce,
-      onEditRecipe,
       onEdit,
       onDelete,
     ],

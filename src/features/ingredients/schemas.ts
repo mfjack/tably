@@ -12,14 +12,14 @@ const optionalAmountSchema = z
   .min(0, "Não pode ser negativo.")
   .optional();
 
-const ingredientNameSchema = z
+export const ingredientNameSchema = z
   .string()
   .trim()
   .min(1, "Informe o nome do insumo.")
   .max(80, "Nome muito longo.")
   .transform(toTitleCase);
 
-const measureUnitSchema = z.enum(MEASURE_UNIT_VALUES, {
+export const measureUnitSchema = z.enum(MEASURE_UNIT_VALUES, {
   error: "Escolha a unidade.",
 });
 
