@@ -97,7 +97,6 @@ export type FinancialOverview = {
   periodIncome: number;
   periodSales: number;
   salesBalance: number;
-  pendingReceivables: { amount: number; lastExpectedOn: string | null };
   periodExpense: number;
   overduePayables: EntryTotals;
   monthPayables: EntryTotals;

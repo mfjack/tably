@@ -17,6 +17,7 @@ import type {
   OrganizationPaymentFees,
 } from "@/features/organizations/types";
 import { useSalesReportQuery } from "@/features/sales-report/hooks/use-sales-report-query";
+import { describePendingReceivables } from "@/features/sales-report/pending-receivables";
 import {
   DEFAULT_SALES_REPORT_PERIOD,
   isSalesReportPeriod,
@@ -27,12 +28,10 @@ import {
   formatReportPeriod,
   getAverageTicket,
   getBestSellers,
+  getCashRevenue,
   getChange,
   getCostShare,
   getGrossProfit,
-  getNetRevenue,
-  getTotalFees,
-  getTotalSurcharge,
   getUnsoldProductCount,
   getWorstSellers,
 } from "@/features/sales-report/report-metrics";
@@ -54,9 +53,8 @@ import { ProductsRankingSection } from "./products-ranking-section";
 import { SalesCharts } from "./sales-charts";
 import { SalesReportExportMenu } from "./sales-report-export-menu";
 
-const KPI_CARD_COUNT = 5;
-const KPI_GRID_CLASS_NAME =
-  "grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5";
+const KPI_CARD_COUNT = 4;
+const KPI_GRID_CLASS_NAME = "grid gap-3 sm:grid-cols-2";
 
 type SalesReportViewProps = {
   organizationId: OrganizationId;
@@ -76,7 +74,7 @@ function describeUnsoldProducts(unsoldCount: number): string | undefined {
 function SalesReportSkeleton() {
   return (
     <div className="flex flex-col gap-4">
-      <div className={KPI_GRID_CLASS_NAME}>
+      <div className={cn(KPI_GRID_CLASS_NAME, "lg:grid-cols-4")}>
         {Array.from({ length: KPI_CARD_COUNT }, (_, cardIndex) => (
           <Skeleton
             key={`kpi-${cardIndex.toString()}`}
@@ -90,22 +88,19 @@ function SalesReportSkeleton() {
 }
 
 type SalesReportContentProps = {
-  organizationId: OrganizationId;
   report: SalesReport;
   paymentFees: OrganizationPaymentFees;
   isLoyaltyEnabled: boolean;
 };
 
 function SalesReportContent({
-  organizationId,
   report,
   paymentFees,
   isLoyaltyEnabled,
 }: SalesReportContentProps) {
   const { summary, previousSummary, canceled } = report;
   const costShare = getCostShare(summary.cost, summary.revenue);
-  const totalFees = getTotalFees(report);
-  const totalSurcharge = getTotalSurcharge(report);
+  const cashRevenue = getCashRevenue(report);
 
   if (summary.orderCount === 0) {
     return (
@@ -125,37 +120,41 @@ function SalesReportContent({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className={KPI_GRID_CLASS_NAME}>
+      <div
+        className={cn(
+          KPI_GRID_CLASS_NAME,
+          report.pendingReceivables ? "lg:grid-cols-4" : "lg:grid-cols-3",
+        )}
+      >
         <KpiCard
           label="Faturamento"
           value={formatCurrency(summary.revenue)}
           change={getChange(summary.revenue, previousSummary.revenue)}
-          detail={`${summary.itemCount} ${summary.itemCount === 1 ? "item vendido" : "itens vendidos"}`}
-        />
-        <KpiCard
-          label="Líquido"
-          value={formatCurrency(getNetRevenue(report))}
           detail={
-            totalFees === 0
-              ? "Sem taxas de pagamento"
-              : totalSurcharge > 0
-                ? `Já sem as taxas de ${formatCurrency(totalFees)} · cliente pagou ${formatCurrency(totalSurcharge)}`
-                : `Já sem as taxas de ${formatCurrency(totalFees)}`
+            cashRevenue > 0
+              ? `Sem os ${formatCurrency(cashRevenue)} em dinheiro`
+              : `${summary.itemCount} ${summary.itemCount === 1 ? "item vendido" : "itens vendidos"}`
           }
         />
+        {report.pendingReceivables && (
+          <KpiCard
+            label="Líquido a receber"
+            value={formatCurrency(report.pendingReceivables.amount)}
+            detail={describePendingReceivables(report.pendingReceivables)}
+          />
+        )}
         <KpiCard
           label="Pedidos"
           value={summary.orderCount.toString()}
           change={getChange(summary.orderCount, previousSummary.orderCount)}
-          detail={
+          detail={[
+            `Ticket médio ${formatCurrency(getAverageTicket(report))}`,
             canceled.orderCount > 0
               ? `${canceled.orderCount} ${canceled.orderCount === 1 ? "cancelado" : "cancelados"}`
-              : undefined
-          }
-        />
-        <KpiCard
-          label="Ticket médio"
-          value={formatCurrency(getAverageTicket(report))}
+              : null,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
         />
         <KpiCard
           label="Lucro bruto"
@@ -170,12 +169,7 @@ function SalesReportContent({
         />
       </div>
 
-      <ProductLookupSection key={report.startDate} report={report} />
-      <PaymentMethodsSection
-        organizationId={organizationId}
-        report={report}
-        paymentFees={paymentFees}
-      />
+      <PaymentMethodsSection report={report} paymentFees={paymentFees} />
       {isLoyaltyEnabled && <LoyaltyReportSection loyalty={report.loyalty} />}
 
       <SalesCharts report={report} />
@@ -195,6 +189,8 @@ function SalesReportContent({
           note={describeUnsoldProducts(getUnsoldProductCount(report))}
         />
       </div>
+
+      <ProductLookupSection key={report.startDate} report={report} />
     </div>
   );
 }
@@ -270,7 +266,6 @@ export function SalesReportView({
                 )}
               >
                 <SalesReportContent
-                  organizationId={organizationId}
                   report={report}
                   paymentFees={paymentFees}
                   isLoyaltyEnabled={isLoyaltyEnabled}

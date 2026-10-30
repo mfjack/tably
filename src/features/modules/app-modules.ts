@@ -125,6 +125,13 @@ const APP_MODULE_GROUPS = [
         icon: Banknote,
       },
       {
+        id: "sales_report",
+        label: "Relatório de vendas",
+        description: "Faturamento, mais vendidos, CMV e margem.",
+        path: "sales-report",
+        icon: ChartColumn,
+      },
+      {
         id: "documents",
         label: "Documentos",
         description:
@@ -138,13 +145,6 @@ const APP_MODULE_GROUPS = [
         description: "Clientes, selos e prêmios do programa de fidelidade.",
         path: "loyalty",
         icon: Gift,
-      },
-      {
-        id: "sales_report",
-        label: "Relatório de vendas",
-        description: "Faturamento, mais vendidos, CMV e margem.",
-        path: "sales-report",
-        icon: ChartColumn,
       },
       {
         id: "employees",

@@ -91,7 +91,7 @@ export function PaymentFeesForm({ organization }: PaymentFeesFormProps) {
           format="integer"
           suffix="dias úteis"
           placeholder="Ex.: 1"
-          description="Usado na aba Recebimentos do Financeiro. O Pix cai na hora."
+          description="Usado no Líquido a receber do Relatório de vendas. O Pix cai na hora."
         />
         <NumberField
           control={form.control}

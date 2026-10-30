@@ -129,7 +129,28 @@ export function EntryRow({
       </div>
 
       <div className="col-start-2 row-start-1 flex min-w-0 flex-col gap-1">
-        <span className="truncate font-medium">{entry.description}</span>
+        <span className="flex min-w-0 items-center gap-1.5">
+          <span className="truncate font-medium">{entry.description}</span>
+          {firstAttachment && (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="relative shrink-0 text-muted-foreground"
+              aria-label={
+                attachmentCount === 1
+                  ? `Ver ${isExpense ? "boleto" : "documento"}`
+                  : `Ver ${attachmentCount} anexos`
+              }
+              onClick={() =>
+                attachmentCount === 1
+                  ? openAttachment(firstAttachment.path)
+                  : setIsAttachmentsOpen(true)
+              }
+            >
+              <Paperclip aria-hidden />
+            </Button>
+          )}
+        </span>
         <div className="flex flex-wrap items-center gap-1.5 text-muted-foreground text-xs">
           {entry.installmentNumber && entry.installmentCount && (
             <Badge variant="outline">
@@ -182,29 +203,11 @@ export function EntryRow({
         )}
       </div>
 
-      {(!entry.paidAt || firstAttachment) && (
-        <div className="relative col-span-3 col-start-2 row-start-2 flex justify-end gap-2 sm:col-span-1 sm:col-start-4 sm:row-start-1">
-          {firstAttachment && (
-            <Button
-              variant="secondary"
-              className="h-9"
-              onClick={() =>
-                attachmentCount === 1
-                  ? openAttachment(firstAttachment.path)
-                  : setIsAttachmentsOpen(true)
-              }
-            >
-              <Paperclip aria-hidden />
-              {attachmentCount === 1
-                ? `Ver ${isExpense ? "boleto" : "documento"}`
-                : `${attachmentCount} anexos`}
-            </Button>
-          )}
-          {!entry.paidAt && (
-            <Button variant="outline" className="h-9" onClick={payEntry}>
-              {isExpense ? "Pagar" : "Receber"}
-            </Button>
-          )}
+      {!entry.paidAt && (
+        <div className="relative col-span-3 col-start-2 row-start-2 flex justify-end sm:col-span-1 sm:col-start-4 sm:row-start-1">
+          <Button className="h-9" onClick={payEntry}>
+            {isExpense ? "Pagar" : "Receber"}
+          </Button>
         </div>
       )}
 

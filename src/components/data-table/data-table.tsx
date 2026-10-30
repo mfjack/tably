@@ -1,12 +1,7 @@
 import type { RowData } from "@tanstack/react-table";
-import { Search } from "lucide-react";
 import type { ReactNode } from "react";
+import { SearchInput } from "@/components/search-input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -70,21 +65,15 @@ export function DataTable<TData extends RowData>({
   return (
     <div className="flex min-h-0 flex-col gap-4">
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
-        <InputGroup className="h-10 w-full rounded-lg sm:max-w-xs">
-          <InputGroupAddon>
-            <Search aria-hidden />
-          </InputGroupAddon>
-          <InputGroupInput
-            type="search"
-            aria-label={searchPlaceholder}
-            placeholder={searchPlaceholder}
-            value={table.state.globalFilter ?? ""}
-            onChange={(event) => {
-              table.setGlobalFilter(event.target.value);
-              table.setPageIndex(0);
-            }}
-          />
-        </InputGroup>
+        <SearchInput
+          label={searchPlaceholder}
+          value={table.state.globalFilter ?? ""}
+          onValueChange={(value) => {
+            table.setGlobalFilter(value);
+            table.setPageIndex(0);
+          }}
+          className="sm:max-w-xs"
+        />
         {toolbarActions}
       </div>
 

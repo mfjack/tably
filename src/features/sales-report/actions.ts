@@ -64,6 +64,14 @@ const salesReportRowSchema = z.object({
   by_day: z.array(summarySchema.extend({ date: z.string() })),
   by_hour: z.array(summarySchema.extend({ hour: z.number() })),
   by_weekday: z.array(summarySchema.extend({ weekday: z.number() })),
+  pending_receivables: z
+    .object({
+      amount: z.number(),
+      lastExpectedOn: z.string().nullable(),
+      today: z.string(),
+    })
+    .nullable()
+    .catch(null),
   products: z.array(
     z.object({
       product_id: z.string().nullable(),
@@ -135,6 +143,7 @@ export async function getSalesReport(
       revenue: payment.revenue,
       orderCount: payment.order_count,
     })),
+    pendingReceivables: report.pending_receivables,
     accountReceipts: report.account_receipts.map((receipt) => ({
       operatorName: receipt.operator_name,
       method: receipt.method,

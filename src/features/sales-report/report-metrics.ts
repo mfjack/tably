@@ -12,6 +12,8 @@ import type {
 const RANKING_SIZE = 5;
 const NO_OPERATOR_LABEL = "Sem operador";
 const MIN_DAYS_FOR_WEEKDAY_CHART = 7;
+const MIN_HOURLY_SPAN = 8;
+const LAST_HOUR_OF_DAY = 23;
 
 export type PaymentTotals = Record<
   PaymentMethod,
@@ -91,6 +93,21 @@ function sumReceipts(
   return report.accountReceipts
     .filter((receipt) => receipt.method === method)
     .reduce((total, receipt) => total + receipt[field], 0);
+}
+
+export const OFF_REVENUE_METHODS: readonly PaymentMethod[] = [
+  "customer_account",
+  "cash",
+];
+
+export function isCountedInRevenue(method: PaymentMethod): boolean {
+  return !OFF_REVENUE_METHODS.includes(method);
+}
+
+export function getCashRevenue(report: SalesReport): number {
+  return [...report.byPaymentMethod, ...report.accountReceipts]
+    .filter((payment) => payment.method === "cash")
+    .reduce((total, payment) => total + payment.revenue, 0);
 }
 
 export function getCostShare(cost: number, revenue: number): number | null {
@@ -228,8 +245,17 @@ export function getHourlySeries(report: SalesReport): SalesByHour[] {
   if (report.byHour.length === 0) return [];
 
   const hours = report.byHour.map((entry) => entry.hour);
-  const firstHour = Math.min(...hours);
-  const lastHour = Math.max(...hours);
+  const earliestHour = Math.min(...hours);
+  const latestHour = Math.max(...hours);
+  const missingHours = Math.max(
+    MIN_HOURLY_SPAN - (latestHour - earliestHour + 1),
+    0,
+  );
+  const firstHour = Math.max(earliestHour - Math.ceil(missingHours / 2), 0);
+  const lastHour = Math.min(
+    Math.max(firstHour + MIN_HOURLY_SPAN - 1, latestHour),
+    LAST_HOUR_OF_DAY,
+  );
 
   return Array.from({ length: lastHour - firstHour + 1 }, (_, offset) => {
     const hour = firstHour + offset;

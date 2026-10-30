@@ -1,29 +1,20 @@
 "use client";
 
-import { Landmark } from "lucide-react";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { usePaymentReceivablesQuery } from "@/features/finance/hooks/use-payment-receivables-query";
-import {
-  type ReceivablesSummary,
-  summarizeReceivables,
-} from "@/features/finance/receivables";
 import {
   PAYMENT_METHOD_VALUES,
   PAYMENT_METHODS,
 } from "@/features/orders/payment-methods";
 import type { PaymentMethod } from "@/features/orders/types";
 import { getPaymentMethodFeePercent } from "@/features/organizations/payment-fees";
-import type {
-  OrganizationId,
-  OrganizationPaymentFees,
-} from "@/features/organizations/types";
+import type { OrganizationPaymentFees } from "@/features/organizations/types";
 import {
   getOperatorNames,
   getOperatorPayments,
   getOperatorReceipts,
   getPaymentMethodFee,
   getPaymentMethodSurcharge,
+  isCountedInRevenue,
   sumPaymentTotals,
 } from "@/features/sales-report/report-metrics";
 import type { SalesReport } from "@/features/sales-report/types";
@@ -32,15 +23,13 @@ import {
   formatPercent,
   formatPrecisePercent,
 } from "@/lib/format";
-import { ReceivableBadge } from "./receivable-badge";
-import { ReceivablesDialog } from "./receivables-dialog";
+import { cn } from "@/lib/utils";
 import { ReportFilterSelect } from "./report-filter-select";
 import { ReportSection } from "./report-section";
 
 const ALL_OPERATORS_VALUE = "all";
 
 type PaymentMethodsSectionProps = {
-  organizationId: OrganizationId;
   report: SalesReport;
   paymentFees: OrganizationPaymentFees;
 };
@@ -49,84 +38,103 @@ function formatOrderCount(orderCount: number) {
   return `${orderCount} ${orderCount === 1 ? "pedido" : "pedidos"}`;
 }
 
-type PaymentMethodTileProps = {
+const SHARE_COLOR_CLASS_NAMES = [
+  "bg-chart-1",
+  "bg-chart-3",
+  "bg-chart-4",
+] as const;
+
+function getShareColorClassName(index: number) {
+  return SHARE_COLOR_CLASS_NAMES[index % SHARE_COLOR_CLASS_NAMES.length];
+}
+
+function describePaymentMethod(
+  method: PaymentMethod,
+  orderCount: number,
+  share: number,
+) {
+  if (method === "customer_account") {
+    return `${formatOrderCount(orderCount)} · a receber`;
+  }
+  if (method === "cash") {
+    return `${formatOrderCount(orderCount)} · fora do faturamento`;
+  }
+  return `${formatOrderCount(orderCount)} · ${formatPercent(share)}`;
+}
+
+type PaymentMethodRowProps = {
   method: PaymentMethod;
-  revenue: number;
+  amount: number;
   orderCount: number;
   share: number;
   receivedFromAccounts: number;
   fee: number;
   surcharge: number;
   feePercent: number;
-  receivablesSummary: ReceivablesSummary | null;
+  colorClassName: string | null;
 };
 
-function PaymentMethodTile({
+function PaymentMethodRow({
   method,
-  revenue,
+  amount,
   orderCount,
   share,
   receivedFromAccounts,
   fee,
   surcharge,
   feePercent,
-  receivablesSummary,
-}: PaymentMethodTileProps) {
+  colorClassName,
+}: PaymentMethodRowProps) {
   const { label, icon: Icon } = PAYMENT_METHODS[method];
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border bg-card p-4">
-      <div className="flex items-center gap-2.5">
-        <span className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-          <Icon aria-hidden className="size-4" />
-        </span>
-        <span className="font-medium text-sm">{label}</span>
-        {feePercent > 0 && (
-          <span className="text-muted-foreground text-xs tabular-nums">
-            Taxa {formatPrecisePercent(feePercent / 100)}
-          </span>
+    <li className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
+      <span className="relative flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+        <Icon aria-hidden className="size-4" />
+        {colorClassName && (
+          <span
+            aria-hidden
+            className={cn(
+              "absolute -top-0.5 -right-0.5 size-2.5 rounded-full ring-2 ring-card",
+              colorClassName,
+            )}
+          />
         )}
-      </div>
-      <div className="flex flex-col gap-0.5">
-        <span className="font-bold text-xl tabular-nums tracking-[-0.01em]">
-          {formatCurrency(revenue + receivedFromAccounts)}
+      </span>
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="flex flex-wrap items-baseline gap-x-2 font-medium text-sm">
+          {label}
+          {feePercent > 0 && (
+            <span className="font-normal text-muted-foreground text-xs tabular-nums">
+              Taxa {formatPrecisePercent(feePercent / 100)}
+            </span>
+          )}
         </span>
         <span className="text-muted-foreground text-xs tabular-nums">
-          {method === "customer_account"
-            ? `${formatOrderCount(orderCount)} a receber`
-            : `${formatOrderCount(orderCount)} · ${formatPercent(share)}`}
+          {describePaymentMethod(method, orderCount, share)}
+          {receivedFromAccounts > 0 &&
+            ` · inclui ${formatCurrency(receivedFromAccounts)} de contas`}
+        </span>
+      </div>
+      <div className="flex shrink-0 flex-col items-end gap-0.5">
+        <span className="font-semibold tabular-nums">
+          {formatCurrency(amount)}
         </span>
         {fee > 0 && (
           <span className="text-muted-foreground text-xs tabular-nums">
-            Taxa {formatCurrency(fee)} · recebe{" "}
-            {formatCurrency(revenue + receivedFromAccounts + surcharge - fee)}
-          </span>
-        )}
-        {receivedFromAccounts > 0 && (
-          <span className="text-muted-foreground text-xs tabular-nums">
-            Inclui {formatCurrency(receivedFromAccounts)} de contas recebidas
+            recebe {formatCurrency(amount + surcharge - fee)}
           </span>
         )}
       </div>
-      {receivablesSummary && <ReceivableBadge summary={receivablesSummary} />}
-    </div>
+    </li>
   );
 }
 
 export function PaymentMethodsSection({
-  organizationId,
   report,
   paymentFees,
 }: PaymentMethodsSectionProps) {
   const [operatorFilter, setOperatorFilter] = useState(ALL_OPERATORS_VALUE);
-  const [isReceivablesOpen, setIsReceivablesOpen] = useState(false);
-  const receivablesQuery = usePaymentReceivablesQuery(
-    organizationId,
-    report.startDate,
-    report.endDate,
-  );
-  const receivables = receivablesQuery.data?.receivables ?? [];
-  const today = receivablesQuery.data?.today ?? report.endDate;
 
   const operatorOptions = [
     { value: ALL_OPERATORS_VALUE, label: "Todos os operadores" },
@@ -140,75 +148,78 @@ export function PaymentMethodsSection({
   const payments = getOperatorPayments(report, selectedOperator);
   const receipts = getOperatorReceipts(report, selectedOperator);
   const total = sumPaymentTotals(payments);
-  const receivedTotal = PAYMENT_METHOD_VALUES.filter(
-    (method) => method !== "customer_account",
-  ).reduce(
-    (sum, method) => sum + payments[method].revenue + receipts[method].revenue,
+  function getMethodAmount(method: PaymentMethod) {
+    return payments[method].revenue + receipts[method].revenue;
+  }
+  const usedMethods = PAYMENT_METHOD_VALUES.filter(
+    (method) => getMethodAmount(method) > 0,
+  );
+  const countedMethods = usedMethods.filter(isCountedInRevenue);
+  const receivedTotal = countedMethods.reduce(
+    (sum, method) => sum + getMethodAmount(method),
     0,
   );
-  const usedMethods = PAYMENT_METHOD_VALUES.filter(
-    (method) => payments[method].revenue + receipts[method].revenue > 0,
-  );
 
-  function getMethodReceivablesSummary(method: PaymentMethod) {
-    if (selectedOperator) return null;
-    return summarizeReceivables(
-      receivables.filter((receivable) => receivable.method === method),
-      today,
-    );
+  function getShare(method: PaymentMethod) {
+    return receivedTotal > 0 && isCountedInRevenue(method)
+      ? getMethodAmount(method) / receivedTotal
+      : 0;
   }
 
   return (
     <ReportSection
       title="Recebido por forma de pagamento"
-      description="Quanto entrou em cada forma de pagamento e se o cartão e o Pix já caíram na conta."
+      description="Quanto entrou em cada forma de pagamento."
       actions={
-        <div className="flex flex-wrap items-center gap-2">
-          {receivables.length > 0 && (
-            <Button
-              variant="outline"
-              className="h-10"
-              onClick={() => setIsReceivablesOpen(true)}
-            >
-              <Landmark aria-hidden />
-              Conferir recebimentos
-            </Button>
-          )}
-          <ReportFilterSelect
-            label="Operador"
-            placeholder="Todos os operadores"
-            options={operatorOptions}
-            value={operatorFilter}
-            onValueChange={(value) =>
-              setOperatorFilter(value ?? ALL_OPERATORS_VALUE)
-            }
-          />
-        </div>
+        <ReportFilterSelect
+          label="Operador"
+          placeholder="Todos os operadores"
+          options={operatorOptions}
+          value={operatorFilter}
+          onValueChange={(value) =>
+            setOperatorFilter(value ?? ALL_OPERATORS_VALUE)
+          }
+        />
       }
     >
-      <div className="grid items-start gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        {usedMethods.map((method) => (
-          <PaymentMethodTile
-            key={method}
-            method={method}
-            revenue={payments[method].revenue}
-            orderCount={payments[method].orderCount}
-            receivedFromAccounts={receipts[method].revenue}
-            fee={selectedOperator ? 0 : getPaymentMethodFee(report, method)}
-            surcharge={
-              selectedOperator ? 0 : getPaymentMethodSurcharge(report, method)
-            }
-            feePercent={getPaymentMethodFeePercent(paymentFees, method)}
-            receivablesSummary={getMethodReceivablesSummary(method)}
-            share={
-              receivedTotal > 0
-                ? (payments[method].revenue + receipts[method].revenue) /
-                  receivedTotal
-                : 0
-            }
-          />
-        ))}
-      </div>
+      {countedMethods.length > 0 && (
+        <div
+          role="img"
+          aria-label="Participação de cada forma de pagamento no faturamento"
+          className="flex h-2.5 overflow-hidden rounded-full bg-muted"
+        >
+          {countedMethods.map((method, index) => (
+            <span
+              key={method}
+              className={getShareColorClassName(index)}
+              style={{ width: `${getShare(method) * 100}%` }}
+            />
+          ))}
+        </div>
+      )}
+      <ul className="flex flex-col divide-y">
+        {usedMethods.map((method) => {
+          const countedIndex = countedMethods.indexOf(method);
+          return (
+            <PaymentMethodRow
+              key={method}
+              method={method}
+              amount={getMethodAmount(method)}
+              orderCount={payments[method].orderCount}
+              receivedFromAccounts={receipts[method].revenue}
+              fee={selectedOperator ? 0 : getPaymentMethodFee(report, method)}
+              surcharge={
+                selectedOperator ? 0 : getPaymentMethodSurcharge(report, method)
+              }
+              feePercent={getPaymentMethodFeePercent(paymentFees, method)}
+              share={getShare(method)}
+              colorClassName={
+                countedIndex >= 0 ? getShareColorClassName(countedIndex) : null
+              }
+            />
+          );
+        })}
+      </ul>
 
       {operatorFilter !== ALL_OPERATORS_VALUE && (
         <p className="text-muted-foreground text-sm">
@@ -219,14 +230,6 @@ export function PaymentMethodsSection({
           · {formatOrderCount(total.orderCount)}
         </p>
       )}
-
-      <ReceivablesDialog
-        organizationId={organizationId}
-        isOpen={isReceivablesOpen}
-        receivables={receivables}
-        today={today}
-        onClose={() => setIsReceivablesOpen(false)}
-      />
     </ReportSection>
   );
 }

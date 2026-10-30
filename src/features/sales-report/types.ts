@@ -1,6 +1,7 @@
 import type { PaymentMethod } from "@/features/orders/types";
 import type { ProductId } from "@/features/products/types";
 import type { Database } from "@/lib/supabase/database.types";
+import type { PendingReceivables } from "./pending-receivables";
 
 export type SalesReportPeriod =
   Database["public"]["Enums"]["sales_report_period"];
@@ -84,6 +85,7 @@ export type SalesReport = {
   byPaymentMethod: SalesByPaymentMethodWithFee[];
   byOperatorPayment: SalesByOperatorPayment[];
   accountReceipts: SalesAccountReceipt[];
+  pendingReceivables: PendingReceivables | null;
   byDay: SalesByDay[];
   byHour: SalesByHour[];
   byWeekday: SalesByWeekday[];

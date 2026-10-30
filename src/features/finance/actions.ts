@@ -146,9 +146,6 @@ const overviewSchema = z.object({
   periodIncome: z.number(),
   periodSales: z.number(),
   salesBalance: z.number(),
-  pendingReceivables: z
-    .object({ amount: z.number(), lastExpectedOn: z.string().nullable() })
-    .catch({ amount: 0, lastExpectedOn: null }),
   periodExpense: z.number(),
   overduePayables: z.object({ count: z.number(), amount: z.number() }),
   monthPayables: z.object({ count: z.number(), amount: z.number() }),

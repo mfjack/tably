@@ -1,15 +1,11 @@
 "use client";
 
-import { ArrowLeft, Search, UserRoundX } from "lucide-react";
+import { ArrowLeft, UserRoundX } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { SearchInput } from "@/components/search-input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EMPLOYEE_PIN_LENGTH } from "@/features/employees/schemas";
 import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
@@ -271,18 +267,12 @@ export function TimeClockView({
                 servidor.
               </p>
               {(employees?.length ?? 0) > SEARCH_THRESHOLD && (
-                <InputGroup className="h-11 w-full max-w-xs shrink-0 rounded-lg">
-                  <InputGroupAddon>
-                    <Search aria-hidden />
-                  </InputGroupAddon>
-                  <InputGroupInput
-                    type="search"
-                    aria-label="Buscar seu nome"
-                    placeholder="Buscar seu nome"
-                    value={search}
-                    onChange={(event) => setSearch(event.target.value)}
-                  />
-                </InputGroup>
+                <SearchInput
+                  label="Buscar seu nome"
+                  value={search}
+                  onValueChange={setSearch}
+                  className="h-11 max-w-xs shrink-0"
+                />
               )}
               <ul className="flex min-h-0 flex-wrap justify-center gap-4 overflow-y-auto p-1">
                 {visibleEmployees.map((employee) => (
