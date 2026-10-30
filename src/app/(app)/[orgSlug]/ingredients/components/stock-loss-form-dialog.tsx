@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { type DefaultValues, useController, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { FormDialog } from "@/components/dialog/form-dialog";
@@ -31,11 +31,23 @@ import {
 } from "@/features/stock-losses/schemas";
 import type { StockLoss } from "@/features/stock-losses/types";
 
+function getFullStock(ingredient: Ingredient | undefined) {
+  return ingredient && ingredient.currentStock > 0
+    ? ingredient.currentStock
+    : undefined;
+}
+
 function toFormValues(
   loss: StockLoss | undefined,
   initialIngredient: Ingredient | undefined,
 ): DefaultValues<StockLossFormInput> {
-  if (!loss) return { ingredientId: initialIngredient?.id ?? "", note: "" };
+  if (!loss) {
+    return {
+      ingredientId: initialIngredient?.id ?? "",
+      quantity: getFullStock(initialIngredient),
+      note: "",
+    };
+  }
   return {
     ingredientId: loss.ingredientId,
     quantity: loss.quantity,
@@ -72,9 +84,26 @@ export function StockLossFormDialog({
     name: "ingredientId",
   });
   const reasonField = useController({ control: form.control, name: "reason" });
+  const selectedIngredientId = ingredientField.field.value;
   const selectedIngredient = ingredients.find(
-    (ingredient) => ingredient.id === ingredientField.field.value,
+    (ingredient) => ingredient.id === selectedIngredientId,
   );
+  const previousIngredientIdRef = useRef(selectedIngredientId);
+
+  useEffect(() => {
+    if (isEditing || previousIngredientIdRef.current === selectedIngredientId) {
+      return;
+    }
+    previousIngredientIdRef.current = selectedIngredientId;
+    form.setValue(
+      "quantity",
+      getFullStock(
+        ingredients.find(
+          (ingredient) => ingredient.id === selectedIngredientId,
+        ),
+      ) ?? Number.NaN,
+    );
+  }, [isEditing, selectedIngredientId, ingredients, form]);
 
   const ingredientOptions = useMemo(
     () =>

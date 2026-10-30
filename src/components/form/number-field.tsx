@@ -1,5 +1,6 @@
 "use client";
 
+import type { FocusEvent } from "react";
 import type { FieldValues } from "react-hook-form";
 import { NumericFormat } from "react-number-format";
 import { Input } from "@/components/ui/input";
@@ -42,6 +43,11 @@ type NumberFieldProps<TFieldValues extends FieldValues> = Omit<
   size?: FormInputSize;
 };
 
+function selectInputValue(event: FocusEvent<HTMLInputElement>) {
+  const input = event.currentTarget;
+  requestAnimationFrame(() => input.select());
+}
+
 export function NumberField<TFieldValues extends FieldValues>({
   placeholder,
   format,
@@ -65,6 +71,7 @@ export function NumberField<TFieldValues extends FieldValues>({
           value={Number.isFinite(field.value) ? field.value : ""}
           onValueChange={({ floatValue }) => field.onChange(floatValue)}
           onBlur={field.onBlur}
+          onFocus={selectInputValue}
           disabled={isDisabled}
           inputMode="decimal"
           thousandSeparator="."
