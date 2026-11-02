@@ -98,7 +98,7 @@ export function KitchenView({
           lateTicketCount > 0 && (
             <Badge
               variant="destructive"
-              className="h-9 gap-1.5 px-3 text-sm"
+              className="h-10 gap-1.5 px-3 text-sm"
               role="status"
             >
               <AlarmClock aria-hidden />

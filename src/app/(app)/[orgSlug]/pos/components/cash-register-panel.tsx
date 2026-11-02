@@ -51,7 +51,7 @@ export function CashRegisterPanel({
     <>
       <Button
         variant={isLoaded && !isRegisterOpen ? "default" : "outline"}
-        className="h-9 px-3 sm:px-4"
+        className="h-10 px-3 sm:px-4"
         aria-label={isRegisterOpen ? "Caixa aberto" : "Abrir caixa"}
         onClick={() =>
           isRegisterOpen

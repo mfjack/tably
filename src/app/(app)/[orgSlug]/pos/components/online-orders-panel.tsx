@@ -117,7 +117,7 @@ export function OnlineOrdersPanel({
     <>
       {pendingCount > 0 && (
         <Button
-          className="relative h-9 px-3 sm:px-4"
+          className="relative h-10 px-3 sm:px-4"
           aria-label={`Pedidos pelo cardápio (${pendingCount})`}
           onClick={() => setIsOpen(true)}
         >

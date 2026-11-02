@@ -77,7 +77,7 @@ export function SalesReportExportMenu({
         render={
           <Button
             variant="outline"
-            className="h-11 px-4"
+            className="h-10 px-4"
             disabled={!report}
             isLoading={exportingFormat !== null}
           />

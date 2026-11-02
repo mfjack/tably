@@ -40,7 +40,7 @@ export function OfflineStatus({ organizationId }: OfflineStatusProps) {
   return (
     <>
       {!isOnline && (
-        <span className="inline-flex h-9 items-center gap-2 rounded-lg bg-muted px-3 font-medium text-muted-foreground text-sm">
+        <span className="inline-flex h-10 items-center gap-2 rounded-lg bg-muted px-3 font-medium text-muted-foreground text-sm">
           <WifiOff className="size-4" aria-hidden />
           <span className="hidden sm:inline">Sem internet</span>
         </span>
