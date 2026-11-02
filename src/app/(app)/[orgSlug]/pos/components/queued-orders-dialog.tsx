@@ -25,6 +25,9 @@ type QueuedOrdersDialogProps = {
 };
 
 function getQueuedOrderTitle(queuedOrder: QueuedOrder) {
+  if (queuedOrder.kind === "pay-order") {
+    return `Pagamento da comanda de ${queuedOrder.customerName}`;
+  }
   if (queuedOrder.kind === "add-items") {
     return `Itens na comanda de ${queuedOrder.customerName}`;
   }

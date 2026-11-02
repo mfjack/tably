@@ -35,6 +35,7 @@ export function OpenOrderTabDialog({
   onCancelOrder,
 }: OpenOrderTabDialogProps) {
   const isBusy = removingItemId !== null;
+  const isPendingSync = order?.isPendingSync ?? false;
   const hasItems = (order?.items.length ?? 0) > 0;
 
   return (
@@ -79,10 +80,16 @@ export function OpenOrderTabDialog({
               ...(order.note ? [{ label: "Obs", value: order.note }] : []),
             ]}
           />
+          {isPendingSync && (
+            <p className="rounded-lg bg-warning/10 px-3 py-2 text-sm text-warning">
+              Aberta sem internet. Ela será enviada quando a conexão voltar; até
+              lá, dá para adicionar produtos, cobrar, imprimir ou cancelar.
+            </p>
+          )}
           <OrderItemsList
             order={order}
             removingItemId={removingItemId}
-            onRemoveItem={onRemoveItem}
+            onRemoveItem={isPendingSync ? undefined : onRemoveItem}
           />
           <div className="flex items-center justify-between gap-2">
             <Button

@@ -51,6 +51,7 @@ export type OrderDetails = {
   attendantName: string | null;
   cashierName: string | null;
   items: OrderItem[];
+  isPendingSync: boolean;
 };
 
 export type OrderTabTarget = {

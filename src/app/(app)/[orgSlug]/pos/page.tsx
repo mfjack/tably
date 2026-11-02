@@ -44,10 +44,6 @@ export default async function PosPage({ params }: PageProps<"/[orgSlug]/pos">) {
           : null
       }
       printerSettingsHref={`${buildOrganizationPath(organization.slug, "settings")}?tab=printer`}
-      orderTabsHref={buildOrganizationPath(
-        organization.slug,
-        getAppModule("order_tabs").path,
-      )}
     />
   );
 }

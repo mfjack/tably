@@ -155,8 +155,16 @@ function buildTicketHtml(ticket: OrderTicket): string {
   </body></html>`;
 }
 
+function loadThermalOrderTicket() {
+  return import("./thermal-order-ticket");
+}
+
+export function preloadThermalOrderTicket(): void {
+  void loadThermalOrderTicket();
+}
+
 async function encodeOrderTicketLazily(ticket: OrderTicket, columns: number) {
-  const { encodeOrderTicket } = await import("./thermal-order-ticket");
+  const { encodeOrderTicket } = await loadThermalOrderTicket();
   return encodeOrderTicket(ticket, columns);
 }
 
@@ -164,7 +172,7 @@ async function encodeGroupedOrderTicketLazily(
   ticket: GroupedOrderTicket,
   columns: number,
 ) {
-  const { encodeGroupedOrderTicket } = await import("./thermal-order-ticket");
+  const { encodeGroupedOrderTicket } = await loadThermalOrderTicket();
   return encodeGroupedOrderTicket(ticket, columns);
 }
 

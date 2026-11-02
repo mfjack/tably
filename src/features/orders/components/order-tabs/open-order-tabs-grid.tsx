@@ -12,9 +12,11 @@ import {
 } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { OrderDetails, OrderId } from "@/features/orders/types";
+import { useNow } from "@/hooks/use-now";
 import { OpenOrderTabCard } from "./open-order-tab-card";
 
 const LOADING_CARD_COUNT = 6;
+const CLOCK_REFRESH_IN_MS = 30 * 1000;
 
 const GRID_CLASS_NAME =
   "grid grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] gap-4";
@@ -23,7 +25,8 @@ type OpenOrderTabsGridProps = {
   orders: OrderDetails[] | undefined;
   isLoading: boolean;
   errorMessage?: string;
-  posHref: string;
+  posHref?: string;
+  emptyMessage?: string;
   onSelect: (orderId: OrderId) => void;
 };
 
@@ -32,8 +35,11 @@ export function OpenOrderTabsGrid({
   isLoading,
   errorMessage,
   posHref,
+  emptyMessage,
   onSelect,
 }: OpenOrderTabsGridProps) {
+  const now = useNow(CLOCK_REFRESH_IN_MS);
+
   if (errorMessage) {
     return (
       <Alert variant="destructive">
@@ -55,6 +61,14 @@ export function OpenOrderTabsGrid({
     );
   }
 
+  if (!orders?.length && emptyMessage) {
+    return (
+      <p className="rounded-2xl border border-dashed px-4 py-8 text-center text-muted-foreground text-sm">
+        {emptyMessage}
+      </p>
+    );
+  }
+
   if (!orders?.length) {
     return (
       <Empty className="flex-1 border border-dashed">
@@ -67,15 +81,17 @@ export function OpenOrderTabsGrid({
             No PDV, toque em Imprimir pedido e escolha Abrir comanda.
           </EmptyDescription>
         </EmptyHeader>
-        <EmptyContent>
-          <Button
-            className="h-10"
-            nativeButton={false}
-            render={<Link href={posHref} />}
-          >
-            Ir para o PDV
-          </Button>
-        </EmptyContent>
+        {posHref && (
+          <EmptyContent>
+            <Button
+              className="h-10"
+              nativeButton={false}
+              render={<Link href={posHref} />}
+            >
+              Ir para o PDV
+            </Button>
+          </EmptyContent>
+        )}
       </Empty>
     );
   }
@@ -83,7 +99,12 @@ export function OpenOrderTabsGrid({
   return (
     <div className={GRID_CLASS_NAME}>
       {orders.map((order) => (
-        <OpenOrderTabCard key={order.id} order={order} onSelect={onSelect} />
+        <OpenOrderTabCard
+          key={order.id}
+          order={order}
+          now={now}
+          onSelect={onSelect}
+        />
       ))}
     </div>
   );

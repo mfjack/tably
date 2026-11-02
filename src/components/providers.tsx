@@ -29,11 +29,13 @@ const OFFLINE_QUERY_RESOURCES: readonly unknown[] = [
 ] as const;
 
 function isOfflineQuery(query: Query) {
-  const [scope, , resource] = query.queryKey;
+  const [scope, , resource, subresource] = query.queryKey;
+  if (scope !== "organizations") return false;
+  if (query.queryKey.length === 4) {
+    return resource === "orders" && subresource === "open-tabs";
+  }
   return (
-    scope === "organizations" &&
-    query.queryKey.length === 3 &&
-    OFFLINE_QUERY_RESOURCES.includes(resource)
+    query.queryKey.length === 3 && OFFLINE_QUERY_RESOURCES.includes(resource)
   );
 }
 

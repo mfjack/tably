@@ -30,6 +30,8 @@ import type { OrganizationId } from "@/features/organizations/types";
 import type { Cart, CartTabId } from "@/features/pos/cart-store";
 import {
   createOrderRequestId,
+  type OrderRequestId,
+  type QueuedOrderPreviewItem,
   useOfflineOrderQueue,
 } from "@/features/pos/offline-order-queue";
 import { isNetworkError } from "@/lib/network-error";
@@ -38,6 +40,19 @@ import {
   getCartLineAddonNames,
   toOrderItemInput,
 } from "./use-pos-catalog";
+
+function toPreviewItems(
+  cartLines: readonly CartLine[],
+): QueuedOrderPreviewItem[] {
+  return cartLines.map((cartLine) => ({
+    productName: cartLine.product.name,
+    quantity: cartLine.quantity,
+    unitPrice: cartLine.unitPrice,
+    addonNames: getCartLineAddonNames(cartLine),
+    note: cartLine.note || null,
+    total: cartLine.total,
+  }));
+}
 
 export type TabOrderGroup = {
   cartTabIds: readonly CartTabId[];
@@ -199,6 +214,7 @@ export function usePosCheckout({
         customerName,
         total: localTotal,
         input,
+        previewItems: toPreviewItems(cartLines),
       });
       onPlaced({
         total: localTotal,
@@ -240,6 +256,10 @@ export function usePosCheckout({
     const items = buildOrderItems();
     const requestId = createOrderRequestId();
     const submittedTabId = cartTabId;
+    const { queuedOrders, syncedOrderIds, appendQueuedTabItems } =
+      useOfflineOrderQueue.getState();
+    const pendingTabRequestId = tabTarget.orderId as string as OrderRequestId;
+    const tabOrderId = syncedOrderIds[pendingTabRequestId] ?? tabTarget.orderId;
 
     function finishAddingToTab(placement: OrderPlacement) {
       if (!tabTarget) return;
@@ -270,7 +290,7 @@ export function usePosCheckout({
         placedAt: new Date().toISOString(),
         customerName: tabTarget.customerName,
         total: subtotal,
-        orderId: tabTarget.orderId,
+        orderId: tabOrderId,
         items,
         note: cart.note,
       });
@@ -281,6 +301,28 @@ export function usePosCheckout({
       });
     }
 
+    const isPendingTab = queuedOrders.some(
+      (queuedOrder) =>
+        queuedOrder.kind === "place-order" &&
+        queuedOrder.requestId === pendingTabRequestId,
+    );
+
+    if (isPendingTab) {
+      appendQueuedTabItems(
+        pendingTabRequestId,
+        items,
+        toPreviewItems(cartLines),
+        subtotal,
+        cart.note,
+      );
+      finishAddingToTab({
+        total: subtotal,
+        isQueued: true,
+        cartTabId: submittedTabId,
+      });
+      return;
+    }
+
     if (!onlineManager.isOnline()) {
       queueTabItems();
       return;
@@ -288,7 +330,7 @@ export function usePosCheckout({
 
     addOrderItemsMutation.mutate(
       {
-        orderId: tabTarget.orderId,
+        orderId: tabOrderId,
         items,
         note: cart.note,
         request: { requestId },
@@ -462,6 +504,7 @@ export function usePosCheckout({
         customerName: group.customerName,
         total: localTotal,
         input,
+        previewItems: toPreviewItems(group.cartLines),
       });
       return { status: "placed", isQueued: true };
     }

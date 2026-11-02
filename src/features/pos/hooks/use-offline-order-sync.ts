@@ -1,5 +1,6 @@
 import { onlineManager, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
+import type { PlacedOrder } from "@/features/orders/types";
 import { isNetworkError } from "@/lib/network-error";
 import {
   getPendingQueuedOrders,
@@ -18,6 +19,10 @@ function countPendingOrders(state: { queuedOrders: QueuedOrder[] }) {
   ).length;
 }
 
+function isPlacedOrder(data: unknown): data is PlacedOrder {
+  return typeof data === "object" && data !== null && "id" in data;
+}
+
 export function useOfflineOrderSync() {
   const queryClient = useQueryClient();
   const isQueueHydrated = useHydratedOfflineOrderQueue();
@@ -31,7 +36,8 @@ export function useOfflineOrderSync() {
       if (isSyncingRef.current || !onlineManager.isOnline()) return;
       isSyncingRef.current = true;
 
-      const { removeOrder, markOrderFailed } = useOfflineOrderQueue.getState();
+      const { removeOrder, markOrderFailed, recordSyncedOrder } =
+        useOfflineOrderQueue.getState();
       const syncedOrganizationIds = new Set<string>();
 
       for (const queuedOrder of getPendingQueuedOrders()) {
@@ -39,6 +45,12 @@ export function useOfflineOrderSync() {
           const result = await syncQueuedOrder(queuedOrder);
 
           if (result.status === "success") {
+            if (
+              queuedOrder.kind === "place-order" &&
+              isPlacedOrder(result.data)
+            ) {
+              recordSyncedOrder(queuedOrder.requestId, result.data.id);
+            }
             removeOrder(queuedOrder.requestId);
             syncedOrganizationIds.add(queuedOrder.organizationId);
           } else {

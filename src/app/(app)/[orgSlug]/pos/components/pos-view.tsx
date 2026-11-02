@@ -2,10 +2,11 @@
 
 import { ClipboardList } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ItemNoteDialog } from "@/components/item-note-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { useOpenCashSessionQuery } from "@/features/cash-register/hooks/use-open-cash-session-query";
 import {
   buildCategoryOrder,
@@ -17,8 +18,9 @@ import { useIngredientsMap } from "@/features/ingredients/hooks/use-ingredients-
 import type { Ingredient, IngredientId } from "@/features/ingredients/types";
 import type { OrderSummaryData } from "@/features/orders/components/order-summary";
 import { PaymentDialog } from "@/features/orders/components/payment-dialog";
-import { useOpenOrderTabsQuery } from "@/features/orders/hooks/use-open-order-tabs-query";
+import { useOpenTabs } from "@/features/orders/hooks/use-open-tabs";
 import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
+import { preloadThermalOrderTicket } from "@/features/orders/print-order-ticket";
 import type {
   OrganizationCheckoutSettings,
   OrganizationId,
@@ -37,7 +39,6 @@ import { AddonPickerDialog } from "@/features/product-addons/components/addon-pi
 import { ProductStockEntryDialog } from "@/features/products/components/product-stock-entry-dialog";
 import type { Product, ProductId } from "@/features/products/types";
 import { useIsOnline } from "@/hooks/use-is-online";
-import { ModuleLinkButton } from "../../components/module-link-button";
 import { PageHeader } from "../../components/page-header";
 import {
   type GroupCheckoutMode,
@@ -71,6 +72,7 @@ import { OfflineStatus } from "./offline-status";
 import { OnlineOrdersPanel } from "./online-orders-panel";
 import { OpenCashRegisterDialog } from "./open-cash-register-dialog";
 import { PosHeaderDescription } from "./pos-header-description";
+import { PosOrderTabsSheet } from "./pos-order-tabs-sheet";
 import { ProductGrid } from "./product-grid";
 import { ProductSearchInput } from "./product-search-input";
 import { TabNameDialog } from "./tab-name-dialog";
@@ -84,7 +86,6 @@ type PosViewProps = {
   takeawayFee: number;
   checkoutSettings: OrganizationCheckoutSettings;
   isOnlineOrderingEnabled: boolean;
-  orderTabsHref: string;
   canOpenOrderTabs: boolean;
   kitchenHref: string | null;
   printerSettingsHref: string;
@@ -113,19 +114,19 @@ export function PosView({
   takeawayFee,
   checkoutSettings,
   isOnlineOrderingEnabled,
-  orderTabsHref,
   canOpenOrderTabs,
   kitchenHref,
   printerSettingsHref,
   isKitchenEnabled,
   canAddStock,
 }: PosViewProps) {
-  const router = useRouter();
+  const _router = useRouter();
   const isCartHydrated = useHydratedCartStore();
   const cart = useCart(organizationId);
   const storedTabTarget = useTabTarget(organizationId);
   const tabTarget = isCartHydrated ? storedTabTarget : null;
   const setTabTarget = useCartStore((state) => state.setTabTarget);
+  const [isOrderTabsSheetOpen, setIsOrderTabsSheetOpen] = useState(false);
   const addProductToCart = useCartStore((state) => state.addProduct);
   const decrementCartItem = useCartStore((state) => state.decrementItem);
   const setCartItemNote = useCartStore((state) => state.setItemNote);
@@ -139,6 +140,10 @@ export function PosView({
   const [tabNameDialogState, setTabNameDialogState] =
     useState<CartTabNameDialogState>({ mode: "closed" });
   const { tabs: cartTabs } = useCartTabs(organizationId);
+
+  useEffect(() => {
+    preloadThermalOrderTicket();
+  }, []);
   const activeCartTabId = useActiveCartTabId(organizationId);
 
   const {
@@ -179,7 +184,7 @@ export function PosView({
     onItemsAddedToTab: (cartTabId) => {
       if (cartTabId) finishCartTab(organizationId, cartTabId);
       setTabTarget(organizationId, null);
-      router.push(orderTabsHref);
+      setIsOrderTabsSheetOpen(true);
     },
   });
 
@@ -390,7 +395,7 @@ export function PosView({
   ) : null;
 
   const openTabsCount =
-    useOpenOrderTabsQuery(organizationId, canOpenOrderTabs).data?.length ?? 0;
+    useOpenTabs(organizationId, canOpenOrderTabs).openTabs?.length ?? 0;
   const cartPanelProps = {
     header: cartTabsBar,
     cartLines: isCartHydrated ? cartLines : [],
@@ -435,11 +440,15 @@ export function PosView({
                 />
               )}
               {canOpenOrderTabs && openTabsCount > 0 && (
-                <ModuleLinkButton
-                  href={orderTabsHref}
-                  label="Comandas"
-                  icon={ClipboardList}
-                />
+                <Button
+                  variant="outline"
+                  className="h-10 px-3 sm:px-4"
+                  aria-label="Comandas"
+                  onClick={() => setIsOrderTabsSheetOpen(true)}
+                >
+                  <ClipboardList aria-hidden />
+                  <span className="hidden sm:inline">Comandas</span>
+                </Button>
               )}
             </>
           }
@@ -635,6 +644,19 @@ export function PosView({
           ingredients={ingredients}
           initialIngredient={stockEntryIngredient}
           onClose={() => setIsStockEntryOpen(false)}
+        />
+      )}
+      {canOpenOrderTabs && (
+        <PosOrderTabsSheet
+          organizationId={organizationId}
+          ticketBusiness={ticketBusiness}
+          checkoutSettings={checkoutSettings}
+          isOpen={isOrderTabsSheetOpen}
+          onOpenChange={setIsOrderTabsSheetOpen}
+          onAddProducts={(tabTarget) => {
+            setTabTarget(organizationId, tabTarget);
+            setIsOrderTabsSheetOpen(false);
+          }}
         />
       )}
     </div>

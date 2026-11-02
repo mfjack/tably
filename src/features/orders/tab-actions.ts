@@ -133,6 +133,7 @@ function compareOrderItemsByCategory(
 
 function toOrderDetails(row: OrderDetailsRow): OrderDetails {
   return {
+    isPendingSync: false,
     id: row.id as OrderId,
     customerName: row.customer_name,
     isTakeaway: row.is_takeaway,
