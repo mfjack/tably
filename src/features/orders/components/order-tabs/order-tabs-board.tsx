@@ -56,7 +56,8 @@ export function OrderTabsBoard({
   });
   const [section, setSection] = useState<OrderTabsSection>("open");
 
-  const { openTabs } = useOpenTabs(organizationId);
+  const { isOrderTabsEnabled } = checkoutSettings;
+  const { openTabs } = useOpenTabs(organizationId, isOrderTabsEnabled);
 
   function printOrder(order: OrderDetails) {
     printOrderTicket(buildOrderDetailsTicket(order, ticketBusiness));
@@ -99,56 +100,67 @@ export function OrderTabsBoard({
   }
 
   const openTabCount = openTabs?.length ?? 0;
+  const paidOrdersTable = (
+    <PaidOrdersTable
+      orders={paidOrdersQuery.data}
+      isLoading={paidOrdersQuery.isPending}
+      errorMessage={paidOrdersQuery.error?.message}
+      onSelect={(order) => setPaidOrderState({ step: "details", order })}
+    />
+  );
 
   return (
     <>
-      <Tabs
-        value={section}
-        onValueChange={(value) =>
-          setSection(value === "history" ? "history" : "open")
-        }
-        className="min-h-0 flex-1 gap-6"
-      >
-        <TabsList className="group-data-horizontal/tabs:h-10">
-          <TabsTrigger value="open" className="px-4">
-            Abertas
-            {openTabCount > 0 && (
-              <span className="text-muted-foreground tabular-nums">
-                {openTabCount}
-              </span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="history" className="px-4">
-            Histórico
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent
-          value="open"
-          className="flex min-h-0 flex-col overflow-y-auto *:shrink-0"
+      {isOrderTabsEnabled ? (
+        <Tabs
+          value={section}
+          onValueChange={(value) =>
+            setSection(value === "history" ? "history" : "open")
+          }
+          className="min-h-0 flex-1 gap-6"
         >
-          <OpenOrderTabsPanel
-            organizationId={organizationId}
-            ticketBusiness={ticketBusiness}
-            checkoutSettings={checkoutSettings}
-            posHref={posHref}
-            onAddProducts={onAddProducts}
-          />
-        </TabsContent>
-        <TabsContent value="history" className="flex min-h-0 flex-col">
-          <PaidOrdersTable
-            orders={paidOrdersQuery.data}
-            isLoading={paidOrdersQuery.isPending}
-            errorMessage={paidOrdersQuery.error?.message}
-            onSelect={(order) => setPaidOrderState({ step: "details", order })}
-          />
-        </TabsContent>
-      </Tabs>
+          <TabsList className="group-data-horizontal/tabs:h-10">
+            <TabsTrigger value="open" className="px-4">
+              Abertas
+              {openTabCount > 0 && (
+                <span className="text-muted-foreground tabular-nums">
+                  {openTabCount}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="history" className="px-4">
+              Histórico
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent
+            value="open"
+            className="flex min-h-0 flex-col overflow-y-auto *:shrink-0"
+          >
+            <OpenOrderTabsPanel
+              organizationId={organizationId}
+              ticketBusiness={ticketBusiness}
+              checkoutSettings={checkoutSettings}
+              posHref={posHref}
+              onAddProducts={onAddProducts}
+            />
+          </TabsContent>
+          <TabsContent value="history" className="flex min-h-0 flex-col">
+            {paidOrdersTable}
+          </TabsContent>
+        </Tabs>
+      ) : (
+        <div className="flex min-h-0 flex-1 flex-col">{paidOrdersTable}</div>
+      )}
 
       <PaidOrderDialog
         order={paidOrderState.step === "details" ? paidOrderState.order : null}
         onClose={() => setPaidOrderState({ step: "closed" })}
         onPrint={printOrder}
-        onReopen={(order) => setPaidOrderState({ step: "reopen", order })}
+        onReopen={
+          isOrderTabsEnabled
+            ? (order) => setPaidOrderState({ step: "reopen", order })
+            : undefined
+        }
         onCancel={(order) => setPaidOrderState({ step: "cancel", order })}
       />
       <ConfirmDialog

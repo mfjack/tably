@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import {
   buildOrganizationPath,
   getAppModule,
+  getModuleLabel,
 } from "@/features/modules/app-modules";
 import {
   getAccessibleModuleIds,
@@ -26,7 +27,10 @@ export default async function OrderTabsPage({
       organizationId={organization.id}
       ticketBusiness={toOrderTicketBusiness(organization)}
       checkoutSettings={organization.checkout}
-      title={orderTabsModule.label}
+      title={getModuleLabel(
+        orderTabsModule,
+        organization.checkout.isOrderTabsEnabled,
+      )}
       canOpenPos={accessibleModuleIds.includes("pos")}
       posHref={buildOrganizationPath(
         organization.slug,

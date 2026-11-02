@@ -42,6 +42,7 @@ export function AppSidebar({
         <ModuleNavigation
           organizationSlug={organization.slug}
           hiddenModules={hiddenModules}
+          isOrderTabsEnabled={organization.checkout.isOrderTabsEnabled}
         />
       </SidebarContent>
       <SidebarFooter>

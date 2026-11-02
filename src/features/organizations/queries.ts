@@ -67,7 +67,6 @@ function toSubscription(row: SubscriptionRow): Subscription | null {
 const TOGGLED_MODULES: readonly AppModuleId[] = [
   "loyalty",
   "customer_accounts",
-  "order_tabs",
 ];
 
 const USER_ORGANIZATION_COLUMNS =
@@ -101,9 +100,6 @@ export const getUserOrganizations = cache(
         ...(organization.is_customer_account_payment_enabled
           ? []
           : (["customer_accounts"] as const)),
-        ...(organization.is_order_tabs_enabled
-          ? []
-          : (["order_tabs"] as const)),
       ];
       const selectableModules = APP_MODULE_IDS.filter(
         (moduleId) =>

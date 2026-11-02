@@ -394,8 +394,10 @@ export function PosView({
     />
   ) : null;
 
+  const canUseOrderTabs =
+    canOpenOrderTabs && checkoutSettings.isOrderTabsEnabled;
   const openTabsCount =
-    useOpenTabs(organizationId, canOpenOrderTabs).openTabs?.length ?? 0;
+    useOpenTabs(organizationId, canUseOrderTabs).openTabs?.length ?? 0;
   const cartPanelProps = {
     header: cartTabsBar,
     cartLines: isCartHydrated ? cartLines : [],
@@ -439,7 +441,7 @@ export function PosView({
                   isKitchenEnabled={isKitchenEnabled}
                 />
               )}
-              {canOpenOrderTabs && openTabsCount > 0 && (
+              {canUseOrderTabs && openTabsCount > 0 && (
                 <Button
                   variant="outline"
                   className="h-10 px-3 sm:px-4"
@@ -448,6 +450,9 @@ export function PosView({
                 >
                   <ClipboardList aria-hidden />
                   <span className="hidden sm:inline">Comandas</span>
+                  <span className="text-muted-foreground tabular-nums">
+                    {openTabsCount}
+                  </span>
                 </Button>
               )}
             </>
@@ -646,7 +651,7 @@ export function PosView({
           onClose={() => setIsStockEntryOpen(false)}
         />
       )}
-      {canOpenOrderTabs && (
+      {canUseOrderTabs && (
         <PosOrderTabsSheet
           organizationId={organizationId}
           ticketBusiness={ticketBusiness}

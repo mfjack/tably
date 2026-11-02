@@ -224,7 +224,7 @@ export function OpenOrderTabsPanel({
 
   return (
     <>
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-1 flex-col gap-4">
         {(openTabs?.length ?? 0) > 0 && (
           <SearchInput
             label="Buscar comanda pelo nome"

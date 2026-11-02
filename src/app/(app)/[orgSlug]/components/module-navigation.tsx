@@ -11,6 +11,7 @@ import {
   APP_MODULES,
   type AppModule,
   buildOrganizationPath,
+  getModuleLabel,
   getVisibleModuleGroups,
 } from "@/features/modules/app-modules";
 import type { AppModuleId } from "@/features/organizations/types";
@@ -19,11 +20,13 @@ import { SidebarLink } from "./sidebar-link";
 type ModuleNavigationProps = {
   organizationSlug: string;
   hiddenModules: AppModuleId[];
+  isOrderTabsEnabled: boolean;
 };
 
 export function ModuleNavigation({
   organizationSlug,
   hiddenModules,
+  isOrderTabsEnabled,
 }: ModuleNavigationProps) {
   const moduleGroups = useMemo(
     () => getVisibleModuleGroups(hiddenModules),
@@ -62,7 +65,7 @@ export function ModuleNavigation({
                 activeHrefs={getChildModules(appModule.id).map((childModule) =>
                   buildOrganizationPath(organizationSlug, childModule.path),
                 )}
-                label={appModule.label}
+                label={getModuleLabel(appModule, isOrderTabsEnabled)}
                 icon={appModule.icon}
               />
             ))}

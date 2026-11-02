@@ -48,7 +48,7 @@ const APP_MODULE_GROUPS = [
       {
         id: "order_tabs",
         label: "Comandas",
-        description: "Contas abertas por mesa ou cliente até o fechamento.",
+        description: "Comandas abertas e histórico das vendas.",
         path: "order-tabs",
         icon: ClipboardList,
       },
@@ -189,6 +189,15 @@ export function getAppModule(moduleId: AppModuleId): AppModule {
   const appModule = APP_MODULES.find(({ id }) => id === moduleId);
   if (!appModule) throw new Error(`Unknown module: ${moduleId}`);
   return appModule;
+}
+
+export function getModuleLabel(
+  appModule: AppModule,
+  isOrderTabsEnabled: boolean,
+): string {
+  return appModule.id === "order_tabs" && !isOrderTabsEnabled
+    ? "Vendas"
+    : appModule.label;
 }
 
 export function getVisibleModuleGroups(

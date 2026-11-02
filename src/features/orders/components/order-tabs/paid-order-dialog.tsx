@@ -19,7 +19,7 @@ type PaidOrderDialogProps = {
   order: OrderDetails | null;
   onClose: () => void;
   onPrint: (order: OrderDetails) => void;
-  onReopen: (order: OrderDetails) => void;
+  onReopen?: (order: OrderDetails) => void;
   onCancel: (order: OrderDetails) => void;
 };
 
@@ -30,7 +30,7 @@ export function PaidOrderDialog({
   onReopen,
   onCancel,
 }: PaidOrderDialogProps) {
-  const canReopen = Boolean(order?.customerName);
+  const canReopen = Boolean(order?.customerName && onReopen);
   const change = order ? getOrderPaymentChange(order) : 0;
   const paymentLineCount = order
     ? order.payments.length + (order.loyaltyReward > 0 ? 1 : 0)
@@ -61,7 +61,7 @@ export function PaidOrderDialog({
               type="button"
               variant="outline"
               className={DIALOG_ACTION_BUTTON_CLASS_NAME}
-              onClick={() => order && onReopen(order)}
+              onClick={() => order && onReopen?.(order)}
             >
               <RotateCcw aria-hidden />
               Reabrir comanda
