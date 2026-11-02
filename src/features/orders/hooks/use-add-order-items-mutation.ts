@@ -1,6 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import type { OrganizationId } from "@/features/organizations/types";
 import { unwrapActionResult } from "@/lib/action-result";
+import { withNetworkTimeout } from "@/lib/network-error";
 import type { OrderItemInput, OrderRequestInput } from "../schemas";
 import { addOrderItems } from "../tab-actions";
 import type { OrderId } from "../types";
@@ -28,7 +29,10 @@ export function useAddOrderItemsMutation(organizationId: OrganizationId) {
       note,
       request,
     }: AddOrderItemsVariables) =>
-      unwrapActionResult(await addOrderItems(orderId, items, note, request)),
+      unwrapActionResult(
+        await withNetworkTimeout(addOrderItems(orderId, items, note, request)),
+      ),
+    networkMode: "always",
     onSuccess: invalidateOrders,
   });
 }

@@ -2,6 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useInvalidateLoyalty } from "@/features/loyalty/hooks/use-invalidate-loyalty";
 import type { OrganizationId } from "@/features/organizations/types";
 import { unwrapActionResult } from "@/lib/action-result";
+import { withNetworkTimeout } from "@/lib/network-error";
 import type { OrderAdjustmentsInput } from "../order-adjustments";
 import type { OrderPaymentInput } from "../schemas";
 import { payOrder } from "../tab-actions";
@@ -30,7 +31,10 @@ export function usePayOrderMutation(organizationId: OrganizationId) {
   return useMutation({
     mutationKey: getPayOrderMutationKey(organizationId),
     mutationFn: async ({ orderId, payments, adjustments }: PayOrderVariables) =>
-      unwrapActionResult(await payOrder(orderId, payments, adjustments)),
+      unwrapActionResult(
+        await withNetworkTimeout(payOrder(orderId, payments, adjustments)),
+      ),
+    networkMode: "always",
     onSuccess: handleSuccess,
   });
 }

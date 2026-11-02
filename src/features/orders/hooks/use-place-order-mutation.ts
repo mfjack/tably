@@ -2,6 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useInvalidateLoyalty } from "@/features/loyalty/hooks/use-invalidate-loyalty";
 import type { OrganizationId } from "@/features/organizations/types";
 import { unwrapActionResult } from "@/lib/action-result";
+import { withNetworkTimeout } from "@/lib/network-error";
 import { placeOrder } from "../actions";
 import type { OrderRequestInput, PlaceOrderInput } from "../schemas";
 import { useInvalidateOrders } from "./use-invalidate-orders";
@@ -27,7 +28,10 @@ export function usePlaceOrderMutation(organizationId: OrganizationId) {
   return useMutation({
     mutationKey: getPlaceOrderMutationKey(organizationId),
     mutationFn: async ({ input, request }: PlaceOrderVariables) =>
-      unwrapActionResult(await placeOrder(organizationId, input, request)),
+      unwrapActionResult(
+        await withNetworkTimeout(placeOrder(organizationId, input, request)),
+      ),
+    networkMode: "always",
     onSuccess: handleSuccess,
   });
 }
