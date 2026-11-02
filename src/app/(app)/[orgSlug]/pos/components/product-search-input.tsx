@@ -16,7 +16,7 @@ export function ProductSearchInput({
       label="Buscar produto"
       value={searchTerm}
       onValueChange={onSearchTermChange}
-      className="bg-muted sm:w-80"
+      className="sm:w-80"
     />
   );
 }
