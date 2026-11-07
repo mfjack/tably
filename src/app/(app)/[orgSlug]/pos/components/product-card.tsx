@@ -4,16 +4,20 @@ import { memo } from "react";
 import type { IngredientId } from "@/features/ingredients/types";
 import type { ProductAvailability } from "@/features/products/availability";
 import type { ProductId } from "@/features/products/types";
+import { useLongPress } from "@/hooks/use-long-press";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { PosProduct } from "../hooks/use-pos-catalog";
 import { AvailabilityBadge } from "./availability-badge";
+
+const LONG_PRESS_TO_ORGANIZE_IN_MS = 1000;
 
 type ProductCardProps = {
   product: PosProduct;
   onAdd: (productId: ProductId) => void;
   onAddStock?: (ingredientId: IngredientId) => void;
   onAddProductStock?: (productId: ProductId) => void;
+  onLongPress?: (productId: ProductId) => void;
 };
 
 function getAvailabilityLabel(
@@ -43,7 +47,12 @@ function ProductCardComponent({
   onAdd,
   onAddStock,
   onAddProductStock,
+  onLongPress,
 }: ProductCardProps) {
+  const longPress = useLongPress(
+    onLongPress ? () => onLongPress(product.id) : undefined,
+    LONG_PRESS_TO_ORGANIZE_IN_MS,
+  );
   const { availability, cartQuantity } = product;
   const isOut = availability.status === "out";
   const isLow = availability.status === "low";
@@ -63,8 +72,12 @@ function ProductCardComponent({
         type="button"
         disabled={isOut}
         aria-label={getAccessibleLabel(product, availabilityLabel)}
-        onClick={() => onAdd(product.id)}
-        className="absolute inset-0 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed"
+        onClick={() => {
+          if (longPress.shouldIgnoreClick()) return;
+          onAdd(product.id);
+        }}
+        {...longPress.handlers}
+        className="absolute inset-0 select-none rounded-xl outline-none [-webkit-touch-callout:none] focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed"
       />
       <div
         className={cn(

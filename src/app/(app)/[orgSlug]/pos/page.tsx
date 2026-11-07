@@ -31,6 +31,7 @@ export default async function PosPage({ params }: PageProps<"/[orgSlug]/pos">) {
       isOnlineOrderingEnabled={organization.menu.isOnlineOrderingEnabled}
       canOpenOrderTabs={accessibleModuleIds.includes("order_tabs")}
       isKitchenEnabled={!organization.hiddenModules.includes("kitchen")}
+      canOrganizeProducts={canManageCatalog(organization.role)}
       canAddStock={
         accessibleModuleIds.includes("ingredients") &&
         canManageCatalog(organization.role)

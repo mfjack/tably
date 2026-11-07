@@ -2424,6 +2424,7 @@ export type Database = {
           minimum_stock: number
           name: string
           organization_id: string
+          position: number | null
           price: number
           stock_quantity: number | null
           supplier_id: string | null
@@ -2440,6 +2441,7 @@ export type Database = {
           minimum_stock?: number
           name: string
           organization_id: string
+          position?: number | null
           price: number
           stock_quantity?: number | null
           supplier_id?: string | null
@@ -2456,6 +2458,7 @@ export type Database = {
           minimum_stock?: number
           name?: string
           organization_id?: string
+          position?: number | null
           price?: number
           stock_quantity?: number | null
           supplier_id?: string | null
@@ -4305,6 +4308,10 @@ export type Database = {
         Returns: number
       }
       reopen_order: { Args: { p_order_id: string }; Returns: undefined }
+      reorder_products: {
+        Args: { p_organization_id: string; p_product_ids: string[] }
+        Returns: undefined
+      }
       report_subscription_payment: {
         Args: { p_organization_id: string }
         Returns: undefined

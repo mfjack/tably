@@ -41,6 +41,7 @@ export async function listProducts(
       .from("products")
       .select(PRODUCT_COLUMNS)
       .eq("organization_id", organizationId)
+      .order("position", { nullsFirst: false })
       .order("name"),
     supabase
       .from("product_costs")
@@ -217,4 +218,21 @@ export async function addProductStock(
   if (error)
     return databaseFailure("Não foi possível registrar a entrada.", error);
   return actionSuccess(data);
+}
+
+export async function reorderProducts(
+  organizationId: OrganizationId,
+  productIds: readonly ProductId[],
+): Promise<ActionResult> {
+  if (!(await hasModuleAccess(organizationId, "pos"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("reorder_products", {
+    p_organization_id: organizationId,
+    p_product_ids: [...productIds],
+  });
+
+  if (error) return databaseFailure("Não foi possível salvar a ordem.", error);
+  return actionSuccess();
 }

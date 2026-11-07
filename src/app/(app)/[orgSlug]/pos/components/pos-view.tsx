@@ -51,6 +51,7 @@ import {
   usePosCatalog,
 } from "../hooks/use-pos-catalog";
 import { usePosCheckout } from "../hooks/use-pos-checkout";
+import { useProductOrganizer } from "../hooks/use-product-organizer";
 import { CartPanel } from "./cart-panel";
 import {
   CartTabNameDialog,
@@ -74,7 +75,9 @@ import { OpenCashRegisterDialog } from "./open-cash-register-dialog";
 import { PosHeaderDescription } from "./pos-header-description";
 import { PosOrderTabsSheet } from "./pos-order-tabs-sheet";
 import { ProductGrid } from "./product-grid";
+import { ProductOrganizerBar } from "./product-organizer-bar";
 import { ProductSearchInput } from "./product-search-input";
+import { SortableProductGrid } from "./sortable-product-grid";
 import { TabNameDialog } from "./tab-name-dialog";
 import { ThermalPrinterWarning } from "./thermal-printer-warning";
 
@@ -91,6 +94,7 @@ type PosViewProps = {
   printerSettingsHref: string;
   isKitchenEnabled: boolean;
   canAddStock: boolean;
+  canOrganizeProducts: boolean;
 };
 
 const EMPTY_GROUP_SUMMARY: OrderSummaryData = {
@@ -119,6 +123,7 @@ export function PosView({
   printerSettingsHref,
   isKitchenEnabled,
   canAddStock,
+  canOrganizeProducts,
 }: PosViewProps) {
   const _router = useRouter();
   const isCartHydrated = useHydratedCartStore();
@@ -214,15 +219,50 @@ export function PosView({
     ];
   }, [categories, posProducts]);
 
+  const productOrganizer = useProductOrganizer(organizationId, posProducts);
+  const { isOrganizing, organizedProducts } = productOrganizer;
+  const canDragProducts =
+    selectedCategoryId !== null || categoryOptions.length === 1;
+
   const visibleProducts = useMemo(() => {
-    const normalizedSearch = searchTerm.trim().toLocaleLowerCase("pt-BR");
-    return posProducts.filter(
+    const normalizedSearch = isOrganizing
+      ? ""
+      : searchTerm.trim().toLocaleLowerCase("pt-BR");
+    const filteredProducts = organizedProducts.filter(
       (product) =>
         (selectedCategoryId === null ||
           product.categoryId === selectedCategoryId) &&
         (normalizedSearch === "" || matchesSearch(product, normalizedSearch)),
     );
-  }, [posProducts, searchTerm, selectedCategoryId]);
+    return selectedCategoryId === null
+      ? sortByCategoryOrder(
+          filteredProducts,
+          (product) => product.categoryId,
+          categoryOrder,
+        )
+      : filteredProducts;
+  }, [
+    organizedProducts,
+    isOrganizing,
+    searchTerm,
+    selectedCategoryId,
+    categoryOrder,
+  ]);
+
+  const { startOrganizing } = productOrganizer;
+  const startOrganizingFromProduct = useCallback(
+    (productId: ProductId) => {
+      const pressedProduct = posProducts.find(
+        (product) => product.id === productId,
+      );
+      if (pressedProduct?.categoryId) {
+        setSelectedCategoryId(pressedProduct.categoryId);
+      }
+      setSearchTerm("");
+      startOrganizing();
+    },
+    [posProducts, startOrganizing],
+  );
 
   const { ingredients, ingredientsById } = useIngredientsMap(organizationId);
   const [stockEntryIngredient, setStockEntryIngredient] =
@@ -472,16 +512,30 @@ export function PosView({
                 selectedCategoryId={selectedCategoryId}
                 onSelect={setSelectedCategoryId}
               />
-              <ProductSearchInput
-                searchTerm={searchTerm}
-                onSearchTermChange={setSearchTerm}
-              />
+              {isOrganizing ? (
+                <ProductOrganizerBar
+                  canDrag={canDragProducts}
+                  isSaving={productOrganizer.isSaving}
+                  onCancel={productOrganizer.cancelOrganizing}
+                  onSave={productOrganizer.saveOrganization}
+                />
+              ) : (
+                <ProductSearchInput
+                  searchTerm={searchTerm}
+                  onSearchTermChange={setSearchTerm}
+                />
+              )}
             </div>
             <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pt-6 pb-28 md:px-6 md:pb-8">
               {catalogErrorMessage ? (
                 <Alert variant="destructive">
                   <AlertDescription>{catalogErrorMessage}</AlertDescription>
                 </Alert>
+              ) : isOrganizing && canDragProducts ? (
+                <SortableProductGrid
+                  products={visibleProducts}
+                  onMove={productOrganizer.moveProduct}
+                />
               ) : (
                 <ProductGrid
                   products={visibleProducts}
@@ -489,6 +543,9 @@ export function PosView({
                   onAdd={handleAddProduct}
                   onAddStock={canAddStock ? openStockEntry : undefined}
                   onAddProductStock={setStockEntryProductId}
+                  onLongPress={
+                    canOrganizeProducts ? startOrganizingFromProduct : undefined
+                  }
                 />
               )}
             </div>

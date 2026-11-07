@@ -12,7 +12,7 @@ import type { ProductId } from "@/features/products/types";
 import type { PosProduct } from "../hooks/use-pos-catalog";
 import { ProductCard } from "./product-card";
 
-const GRID_CLASS_NAME =
+export const PRODUCT_GRID_CLASS_NAME =
   "grid grid-cols-3 gap-3 md:grid-cols-4 md:gap-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7";
 
 const LOADING_CARD_COUNT = 10;
@@ -23,6 +23,7 @@ type ProductGridProps = {
   onAdd: (productId: ProductId) => void;
   onAddStock?: (ingredientId: IngredientId) => void;
   onAddProductStock?: (productId: ProductId) => void;
+  onLongPress?: (productId: ProductId) => void;
 };
 
 export function ProductGrid({
@@ -31,10 +32,11 @@ export function ProductGrid({
   onAdd,
   onAddStock,
   onAddProductStock,
+  onLongPress,
 }: ProductGridProps) {
   if (isLoading) {
     return (
-      <div className={GRID_CLASS_NAME}>
+      <div className={PRODUCT_GRID_CLASS_NAME}>
         {Array.from({ length: LOADING_CARD_COUNT }, (_, index) => (
           <Skeleton
             key={`loading-${index.toString()}`}
@@ -63,7 +65,7 @@ export function ProductGrid({
   }
 
   return (
-    <div className={GRID_CLASS_NAME}>
+    <div className={PRODUCT_GRID_CLASS_NAME}>
       {products.map((product) => (
         <ProductCard
           key={product.id}
@@ -71,6 +73,7 @@ export function ProductGrid({
           onAdd={onAdd}
           onAddStock={onAddStock}
           onAddProductStock={onAddProductStock}
+          onLongPress={onLongPress}
         />
       ))}
     </div>
