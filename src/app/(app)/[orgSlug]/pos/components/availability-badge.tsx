@@ -27,6 +27,7 @@ export function AvailabilityBadge({
 }: AvailabilityBadgeProps) {
   if (availability.status === "unlimited") return null;
   const isOut = availability.status === "out";
+  const isLow = availability.status === "low";
   const { stockLevels } = availability;
   const singleStockLevel = stockLevels.length === 1 ? stockLevels[0] : null;
 
@@ -41,16 +42,15 @@ export function AvailabilityBadge({
             aria-label={`${label} · ver o que falta para ${productName}`}
             className={cn(
               "pointer-events-auto relative z-10 inline-flex h-5 max-w-full shrink-0 items-center overflow-hidden rounded px-1.5 font-semibold text-[0.625rem] leading-none underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
-              isOut
-                ? "bg-muted-foreground text-background"
-                : "bg-destructive/15 text-destructive",
+              isOut && "bg-muted-foreground text-background",
+              isLow && "bg-destructive/15 text-destructive",
+              availability.status === "available" &&
+                "bg-muted text-muted-foreground",
             )}
           />
         }
       >
-        {availability.status === "low" && (
-          <Info className="mr-1 size-3" aria-hidden />
-        )}
+        {isLow && <Info className="mr-1 size-3" aria-hidden />}
         {label}
       </PopoverTrigger>
       <PopoverContent

@@ -19,9 +19,9 @@ type ProductCardProps = {
 function getAvailabilityLabel(
   availability: ProductAvailability,
 ): string | null {
-  if (availability.status === "low") return `${availability.remaining}`;
+  if (availability.status === "unlimited") return null;
   if (availability.status === "out") return "Esgotado";
-  return null;
+  return `${availability.remaining}`;
 }
 
 function getAccessibleLabel(
