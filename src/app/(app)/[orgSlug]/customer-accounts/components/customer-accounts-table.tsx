@@ -1,5 +1,5 @@
 "use client";
-import { HandCoins, ReceiptText } from "lucide-react";
+import { ReceiptText } from "lucide-react";
 import { type ReactNode, useMemo } from "react";
 import { DataTable } from "@/components/data-table/data-table";
 import { createDataTableColumnHelper } from "@/components/data-table/data-table-features";
@@ -23,7 +23,6 @@ type CustomerAccountsTableProps = {
   errorMessage?: string;
   emptyState: ReactNode;
   onOpenStatement: (account: CustomerAccount) => void;
-  onReceivePayment: (account: CustomerAccount) => void;
   onEdit: (account: CustomerAccount) => void;
   onDelete: (account: CustomerAccount) => void;
 };
@@ -38,7 +37,6 @@ export function CustomerAccountsTable({
   errorMessage,
   emptyState,
   onOpenStatement,
-  onReceivePayment,
   onEdit,
   onDelete,
 }: CustomerAccountsTableProps) {
@@ -113,14 +111,6 @@ export function CustomerAccountsTable({
               onEdit={() => onEdit(row.original)}
               onDelete={() => onDelete(row.original)}
             >
-              {row.original.balance > 0 && (
-                <DataTableRowActionButton
-                  label="Receber pagamento"
-                  accessibleLabel={`Receber pagamento de ${row.original.name}`}
-                  icon={HandCoins}
-                  onClick={() => onReceivePayment(row.original)}
-                />
-              )}
               <DataTableRowActionButton
                 label="Ver extrato"
                 accessibleLabel={`Ver extrato de ${row.original.name}`}
@@ -131,7 +121,7 @@ export function CustomerAccountsTable({
           ),
         }),
       ]),
-    [onOpenStatement, onReceivePayment, onEdit, onDelete],
+    [onOpenStatement, onEdit, onDelete],
   );
 
   const table = useDataTable({

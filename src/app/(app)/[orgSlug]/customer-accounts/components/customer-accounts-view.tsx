@@ -139,7 +139,6 @@ export function CustomerAccountsView({
             />
           }
           onOpenStatement={openStatement}
-          onReceivePayment={openPayment}
           onEdit={openEditForm}
           onDelete={requestDelete}
         />
