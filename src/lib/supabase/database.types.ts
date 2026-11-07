@@ -3880,6 +3880,10 @@ export type Database = {
         Args: { p_plan: Database["public"]["Enums"]["subscription_plan"] }
         Returns: number
       }
+      delete_account_charge: {
+        Args: { p_entry_id: string }
+        Returns: undefined
+      }
       delete_customer_account: {
         Args: { p_account_id: string }
         Returns: undefined

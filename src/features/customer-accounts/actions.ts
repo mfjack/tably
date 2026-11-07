@@ -26,7 +26,12 @@ import {
   createAccountPaymentSchema,
   customerAccountSchema,
 } from "./schemas";
-import type { AccountEntry, CustomerAccount, CustomerAccountId } from "./types";
+import type {
+  AccountEntry,
+  AccountEntryId,
+  CustomerAccount,
+  CustomerAccountId,
+} from "./types";
 
 const ACCOUNT_ENTRIES_LIMIT = 200;
 
@@ -119,7 +124,7 @@ export async function listAccountEntries(
 
   return actionSuccess(
     data.map((entry) => ({
-      id: entry.id,
+      id: entry.id as AccountEntryId,
       kind: entry.kind,
       amount: entry.amount,
       orderId: entry.order_id as OrderId | null,
@@ -233,6 +238,31 @@ export async function deleteCustomerAccount(
   if (error) {
     return actionFailure(
       getAccountErrorMessage(error, "Não foi possível excluir a conta."),
+    );
+  }
+  return actionSuccess();
+}
+
+export async function deleteAccountCharge(
+  entryId: AccountEntryId,
+): Promise<ActionResult> {
+  if (
+    !(await hasModuleAccessToRow(
+      "account_entries",
+      entryId,
+      "customer_accounts",
+    ))
+  ) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("delete_account_charge", {
+    p_entry_id: entryId,
+  });
+
+  if (error) {
+    return actionFailure(
+      getAccountErrorMessage(error, "Não foi possível remover a compra."),
     );
   }
   return actionSuccess();

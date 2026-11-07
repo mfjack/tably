@@ -1,7 +1,10 @@
 "use client";
 
 import { format } from "date-fns";
-import { HandCoins } from "lucide-react";
+import { HandCoins, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/dialog/confirm-dialog";
 import { DetailsDialog } from "@/components/dialog/details-dialog";
 import { DIALOG_ACTION_BUTTON_CLASS_NAME } from "@/components/dialog/dialog-styles";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -9,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WhatsAppLink } from "@/components/whatsapp-link";
 import { useAccountEntriesQuery } from "@/features/customer-accounts/hooks/use-account-entries-query";
+import { useDeleteAccountChargeMutation } from "@/features/customer-accounts/hooks/use-delete-account-charge-mutation";
 import type {
   AccountEntry,
   CustomerAccount,
@@ -34,7 +38,18 @@ function describeEntry(entry: AccountEntry) {
     : "Pagamento";
 }
 
-function AccountEntryRow({ entry }: { entry: AccountEntry }) {
+type AccountEntryRowProps = {
+  entry: AccountEntry;
+  onRemove: (entry: AccountEntry) => void;
+};
+
+function describeEntryItems(entry: AccountEntry) {
+  return entry.items
+    .map((item) => `${item.quantity}x ${item.productName}`)
+    .join(", ");
+}
+
+function AccountEntryRow({ entry, onRemove }: AccountEntryRowProps) {
   const isCharge = entry.kind === "charge";
   const details = [
     format(new Date(entry.createdAt), "dd/MM/yyyy, HH:mm"),
@@ -47,24 +62,34 @@ function AccountEntryRow({ entry }: { entry: AccountEntry }) {
       <div className="min-w-0">
         <p className="font-medium text-sm">{describeEntry(entry)}</p>
         {entry.items.length > 0 && (
-          <p className="text-sm">
-            {entry.items
-              .map((item) => `${item.quantity}x ${item.productName}`)
-              .join(", ")}
-          </p>
+          <p className="text-sm">{describeEntryItems(entry)}</p>
         )}
         <p className="truncate text-muted-foreground text-xs">
           {details.join(" · ")}
         </p>
       </div>
-      <span
-        className={cn(
-          "shrink-0 font-semibold text-sm tabular-nums",
-          isCharge ? "text-destructive" : "text-primary",
+      <div className="flex shrink-0 items-center gap-2">
+        <span
+          className={cn(
+            "font-semibold text-sm tabular-nums",
+            isCharge ? "text-destructive" : "text-primary",
+          )}
+        >
+          {isCharge ? "+" : "−"} {formatCurrency(entry.amount)}
+        </span>
+        {isCharge && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            className="text-muted-foreground hover:text-destructive"
+            aria-label={`Remover compra de ${formatCurrency(entry.amount)}`}
+            onClick={() => onRemove(entry)}
+          >
+            <Trash2 aria-hidden />
+          </Button>
         )}
-      >
-        {isCharge ? "+" : "−"} {formatCurrency(entry.amount)}
-      </span>
+      </div>
     </li>
   );
 }
@@ -80,76 +105,109 @@ export function AccountStatementDialog({
     account?.id ?? null,
   );
   const hasDebt = (account?.balance ?? 0) > 0;
+  const deleteChargeMutation = useDeleteAccountChargeMutation(organizationId);
+  const [chargeToRemove, setChargeToRemove] = useState<AccountEntry | null>(
+    null,
+  );
+
+  function confirmRemoveCharge() {
+    if (!chargeToRemove) return;
+    deleteChargeMutation.mutate(chargeToRemove.id, {
+      onSuccess: () => {
+        toast.success("Compra removida da conta.");
+        setChargeToRemove(null);
+      },
+      onError: (error) => toast.error(error.message),
+    });
+  }
 
   return (
-    <DetailsDialog
-      isOpen={account !== null}
-      onOpenChange={(isDialogOpen) => !isDialogOpen && onClose()}
-      title={account ? `Extrato de ${account.name}` : "Extrato"}
-      footer={
-        <Button
-          type="button"
-          className={cn(DIALOG_ACTION_BUTTON_CLASS_NAME, "col-span-2")}
-          disabled={!hasDebt}
-          onClick={() => account && onReceivePayment(account)}
-        >
-          <HandCoins aria-hidden />
-          {hasDebt ? "Receber pagamento" : "Conta sem débito"}
-        </Button>
-      }
-    >
-      {account && (
-        <div className="flex flex-col gap-4">
-          <div className="flex items-end justify-between gap-4 rounded-lg bg-muted px-4 py-3">
-            <div className="flex flex-col gap-0.5">
-              <span className="text-muted-foreground text-xs">
-                Saldo devedor
-              </span>
-              <span
-                className={cn(
-                  "font-bold text-2xl tabular-nums",
-                  hasDebt && "text-destructive",
-                )}
-              >
-                {formatCurrency(account.balance)}
-              </span>
+    <>
+      <DetailsDialog
+        isOpen={account !== null}
+        size="medium"
+        onOpenChange={(isDialogOpen) => !isDialogOpen && onClose()}
+        title={account ? `Extrato de ${account.name}` : "Extrato"}
+        footer={
+          <Button
+            type="button"
+            className={cn(DIALOG_ACTION_BUTTON_CLASS_NAME, "col-span-2")}
+            disabled={!hasDebt}
+            onClick={() => account && onReceivePayment(account)}
+          >
+            <HandCoins aria-hidden />
+            {hasDebt ? "Receber pagamento" : "Conta sem débito"}
+          </Button>
+        }
+      >
+        {account && (
+          <div className="flex flex-col gap-4">
+            <div className="flex items-end justify-between gap-4 rounded-lg bg-muted px-4 py-3">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-muted-foreground text-xs">
+                  Saldo devedor
+                </span>
+                <span
+                  className={cn(
+                    "font-bold text-2xl tabular-nums",
+                    hasDebt && "text-destructive",
+                  )}
+                >
+                  {formatCurrency(account.balance)}
+                </span>
+              </div>
+              <div className="flex flex-col items-end gap-0.5 text-muted-foreground text-xs">
+                {account.phone && <WhatsAppLink phone={account.phone} />}
+                <span>
+                  {account.creditLimit === null
+                    ? "Sem limite"
+                    : `Limite ${formatCurrency(account.creditLimit)}`}
+                </span>
+              </div>
             </div>
-            <div className="flex flex-col items-end gap-0.5 text-muted-foreground text-xs">
-              {account.phone && <WhatsAppLink phone={account.phone} />}
-              <span>
-                {account.creditLimit === null
-                  ? "Sem limite"
-                  : `Limite ${formatCurrency(account.creditLimit)}`}
-              </span>
-            </div>
-          </div>
 
-          {entriesQuery.error ? (
-            <Alert variant="destructive">
-              <AlertDescription>{entriesQuery.error.message}</AlertDescription>
-            </Alert>
-          ) : entriesQuery.isPending ? (
-            <div className="flex flex-col gap-2">
-              {Array.from({ length: LOADING_ROW_COUNT }, (_, rowIndex) => (
-                <Skeleton
-                  key={`entry-${rowIndex.toString()}`}
-                  className="h-12"
-                />
-              ))}
-            </div>
-          ) : entriesQuery.data?.length ? (
-            <ul className="divide-y">
-              {entriesQuery.data.map((entry) => (
-                <AccountEntryRow key={entry.id} entry={entry} />
-              ))}
-            </ul>
-          ) : (
-            <p className="py-6 text-center text-muted-foreground text-sm">
-              Nenhuma movimentação ainda.
-            </p>
-          )}
-        </div>
-      )}
-    </DetailsDialog>
+            {entriesQuery.error ? (
+              <Alert variant="destructive">
+                <AlertDescription>
+                  {entriesQuery.error.message}
+                </AlertDescription>
+              </Alert>
+            ) : entriesQuery.isPending ? (
+              <div className="flex flex-col gap-2">
+                {Array.from({ length: LOADING_ROW_COUNT }, (_, rowIndex) => (
+                  <Skeleton
+                    key={`entry-${rowIndex.toString()}`}
+                    className="h-12"
+                  />
+                ))}
+              </div>
+            ) : entriesQuery.data?.length ? (
+              <ul className="divide-y">
+                {entriesQuery.data.map((entry) => (
+                  <AccountEntryRow
+                    key={entry.id}
+                    entry={entry}
+                    onRemove={setChargeToRemove}
+                  />
+                ))}
+              </ul>
+            ) : (
+              <p className="py-6 text-center text-muted-foreground text-sm">
+                Nenhuma movimentação ainda.
+              </p>
+            )}
+          </div>
+        )}
+      </DetailsDialog>
+      <ConfirmDialog
+        isOpen={chargeToRemove !== null}
+        onOpenChange={(isOpen) => !isOpen && setChargeToRemove(null)}
+        title="Remover compra?"
+        description={`A compra de ${chargeToRemove ? formatCurrency(chargeToRemove.amount) : ""}${chargeToRemove?.items.length ? ` (${describeEntryItems(chargeToRemove)})` : ""} sai da conta e deixa de ser cobrada. A venda continua no relatório e o estoque não volta.`}
+        confirmLabel="Remover compra"
+        isConfirming={deleteChargeMutation.isPending}
+        onConfirm={confirmRemoveCharge}
+      />
+    </>
   );
 }

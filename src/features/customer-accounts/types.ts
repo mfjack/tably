@@ -3,6 +3,7 @@ import type { Brand } from "@/lib/brand";
 import type { Database } from "@/lib/supabase/database.types";
 
 export type CustomerAccountId = Brand<string, "CustomerAccountId">;
+export type AccountEntryId = Brand<string, "AccountEntryId">;
 
 export type AccountEntryKind =
   Database["public"]["Enums"]["account_entry_kind"];
@@ -19,7 +20,7 @@ export type CustomerAccount = {
 };
 
 export type AccountEntry = {
-  id: string;
+  id: AccountEntryId;
   kind: AccountEntryKind;
   amount: number;
   orderId: OrderId | null;

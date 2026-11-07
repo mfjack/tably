@@ -9,6 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 import { canAccessSettings, isModuleAllowed } from "./access";
 
 type OrganizationRecordTable =
+  | "account_entries"
   | "categories"
   | "customer_accounts"
   | "ingredients"
