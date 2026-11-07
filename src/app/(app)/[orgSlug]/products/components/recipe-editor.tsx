@@ -10,8 +10,9 @@ import {
   useFieldArray,
   useWatch,
 } from "react-hook-form";
+import { ComboboxField } from "@/components/form/combobox-field";
 import { NumberField } from "@/components/form/number-field";
-import { SelectField, type SelectOption } from "@/components/form/select-field";
+import type { SelectOption } from "@/components/form/select-field";
 import { Button } from "@/components/ui/button";
 import { getUnitSymbol } from "@/features/ingredients/measure-units";
 import type { Ingredient } from "@/features/ingredients/types";
@@ -95,13 +96,14 @@ export function RecipeEditor<TFieldValues extends FieldValues & RecipeFields>({
 
         return (
           <div key={recipeField.id} className={RECIPE_GRID_CLASS_NAME}>
-            <SelectField
+            <ComboboxField
               control={control}
               name={`recipe.${index}.ingredientId`}
               label={`Insumo ${index + 1}`}
               isLabelHidden
-              placeholder="Selecione"
+              placeholder="Buscar insumo"
               options={ingredientOptions}
+              emptyMessage="Nenhum insumo com esse nome."
             />
             <NumberField
               control={control}
