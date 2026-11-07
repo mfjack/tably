@@ -46,6 +46,7 @@ export function AddonPickerDialog({
 
   return (
     <DetailsDialog
+      size="large"
       isOpen
       onOpenChange={(isDialogOpen) => !isDialogOpen && onClose()}
       title={title}
