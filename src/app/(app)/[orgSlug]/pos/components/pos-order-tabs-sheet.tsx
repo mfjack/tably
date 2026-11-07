@@ -37,7 +37,14 @@ export function PosOrderTabsSheet({
       >
         <header className="flex shrink-0 items-center gap-3 px-4 pt-7 pb-1 md:px-6">
           <SheetTitle className="min-w-0 flex-1 truncate font-bold text-[1.375rem] leading-7 tracking-[-0.02em]">
-            Comandas
+            <button
+              type="button"
+              className="max-w-full truncate text-left"
+              aria-label="Fechar comandas e voltar para o PDV"
+              onClick={() => onOpenChange(false)}
+            >
+              Comandas
+            </button>
           </SheetTitle>
           <Button
             variant="outline"
