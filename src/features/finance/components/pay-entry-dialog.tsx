@@ -13,10 +13,10 @@ import { FieldGroup } from "@/components/ui/field";
 import { usePayFinancialEntryMutation } from "@/features/finance/hooks/use-pay-financial-entry-mutation";
 import { type PayEntryInput, payEntrySchema } from "@/features/finance/schemas";
 import type { FinancialEntry } from "@/features/finance/types";
-
+import { getUnitSymbol } from "@/features/ingredients/measure-units";
 import type { OrganizationId } from "@/features/organizations/types";
 import { copyToClipboard } from "@/lib/copy-to-clipboard";
-import { formatCurrency, formatDateKey } from "@/lib/format";
+import { formatCurrency, formatDateKey, formatQuantity } from "@/lib/format";
 
 export type PayableEntry = Pick<
   FinancialEntry,
@@ -27,6 +27,7 @@ export type PayableEntry = Pick<
   | "dueDate"
   | "notes"
   | "supplierName"
+  | "purchasedItems"
 >;
 
 type PayEntryDialogProps = {
@@ -104,6 +105,28 @@ export function PayEntryDialog({
                 </p>
               </div>
             </div>
+            {entry.purchasedItems.length > 0 && (
+              <ul
+                aria-label="Itens comprados"
+                className="flex flex-col gap-1.5 border-t pt-3 text-sm"
+              >
+                {entry.purchasedItems.map((item, index) => (
+                  <li
+                    key={`${item.name}-${index.toString()}`}
+                    className="flex items-baseline justify-between gap-4"
+                  >
+                    <span className="min-w-0 truncate">
+                      {formatQuantity(item.quantity)}
+                      {item.unit ? ` ${getUnitSymbol(item.unit)}` : ""} ·{" "}
+                      {item.name}
+                    </span>
+                    <span className="shrink-0 text-muted-foreground tabular-nums">
+                      {formatCurrency(item.totalCost)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
             {entry.notes && (
               <div className="flex items-start gap-2 border-t pt-3 text-sm">
                 <MessageSquareText

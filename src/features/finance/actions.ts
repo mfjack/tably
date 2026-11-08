@@ -2,6 +2,7 @@
 
 import { addDays, addMonths, parseISO } from "date-fns";
 import * as z from "zod";
+import type { MeasureUnit } from "@/features/ingredients/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import type { SupplierId } from "@/features/suppliers/types";
 import { getOrganizationClock } from "@/features/time-clock/load-timesheet";
@@ -51,7 +52,7 @@ const PURCHASE_ORDER_SOURCE_PREFIX = "purchase-order:";
 const INVOICE_SOURCE_PREFIX = "nfe:";
 
 const ENTRY_COLUMNS =
-  "id, kind, description, amount, due_date, category_id, supplier_id, account_id, paid_at, paid_amount, recurrence_id, installment_group_id, installment_number, installment_count, barcode, notes, created_by_name, paid_by_name, source, category:financial_categories(name), supplier:suppliers(name), account:financial_accounts(name), recurrence:financial_recurrences(frequency, end_date), attachments:financial_entry_attachments(id, path, file_name, created_at), source_key, stock_entries(count)";
+  "id, kind, description, amount, due_date, category_id, supplier_id, account_id, paid_at, paid_amount, recurrence_id, installment_group_id, installment_number, installment_count, barcode, notes, created_by_name, paid_by_name, source, category:financial_categories(name), supplier:suppliers(name), account:financial_accounts(name), recurrence:financial_recurrences(frequency, end_date), attachments:financial_entry_attachments(id, path, file_name, created_at), source_key, stock_entries(quantity, total_cost, ingredient:ingredients(name, unit))";
 
 type EntryRow = {
   id: string;
@@ -74,7 +75,11 @@ type EntryRow = {
   paid_by_name: string | null;
   source: FinancialEntry["source"];
   source_key: string | null;
-  stock_entries: { count: number }[];
+  stock_entries: {
+    quantity: number;
+    total_cost: number;
+    ingredient: { name: string; unit: MeasureUnit } | null;
+  }[];
   category: { name: string } | null;
   supplier: { name: string } | null;
   account: { name: string } | null;
@@ -127,7 +132,13 @@ function toFinancialEntry(row: EntryRow): FinancialEntry {
     source: row.source,
     purchasedItemCount: row.source_key?.startsWith(PURCHASE_ORDER_SOURCE_PREFIX)
       ? 0
-      : (row.stock_entries[0]?.count ?? 0),
+      : row.stock_entries.length,
+    purchasedItems: row.stock_entries.map((stockEntry) => ({
+      name: stockEntry.ingredient?.name ?? "Insumo removido",
+      unit: stockEntry.ingredient?.unit ?? null,
+      quantity: stockEntry.quantity,
+      totalCost: stockEntry.total_cost,
+    })),
   };
 }
 

@@ -1,3 +1,4 @@
+import type { MeasureUnit } from "@/features/ingredients/types";
 import type { SupplierId } from "@/features/suppliers/types";
 import type { Brand } from "@/lib/brand";
 import type { Database } from "@/lib/supabase/database.types";
@@ -69,6 +70,14 @@ export type FinancialEntry = {
   paidByName: string | null;
   source: FinancialEntrySource;
   purchasedItemCount: number;
+  purchasedItems: PurchasedItem[];
+};
+
+export type PurchasedItem = {
+  name: string;
+  unit: MeasureUnit | null;
+  quantity: number;
+  totalCost: number;
 };
 
 export type FinancialEntryAttachment = {
