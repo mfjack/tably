@@ -4443,6 +4443,18 @@ export type Database = {
         }
         Returns: undefined
       }
+      update_product_stock_settings: {
+        Args: {
+          p_is_stock_tracked: boolean
+          p_minimum_stock: number
+          p_payment_date?: string
+          p_product_id: string
+          p_quantity?: number
+          p_supplier_id?: string
+          p_total_cost?: number
+        }
+        Returns: number
+      }
       update_stock_loss: {
         Args: {
           p_loss_id: string

@@ -1,15 +1,14 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useMemo } from "react";
 import { type DefaultValues, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { FormDialog } from "@/components/dialog/form-dialog";
-import { DateField } from "@/components/form/date-field";
 import { NumberField } from "@/components/form/number-field";
 import { SelectField } from "@/components/form/select-field";
 import { SwitchField } from "@/components/form/switch-field";
 import { TextField } from "@/components/form/text-field";
-import { useCreateOrEditResolver } from "@/components/form/use-create-or-edit-resolver";
 import {
   FieldDescription,
   FieldGroup,
@@ -25,15 +24,9 @@ import { useSaveProductMutation } from "@/features/products/hooks/use-save-produ
 import { calculateRecipePricing } from "@/features/products/pricing";
 import {
   type ProductFormInput,
-  productCreateFormSchema,
   productFormSchema,
 } from "@/features/products/schemas";
 import type { Product } from "@/features/products/types";
-import { useSupplierOptions } from "@/features/suppliers/hooks/use-supplier-options";
-import {
-  NONE_SELECT_VALUE,
-  toSelectFieldValue,
-} from "@/lib/optional-select-value";
 import { ProductAddonsField } from "./product-addons-field";
 import { ProductImagePicker } from "./product-image-picker";
 import { ProductPricingSummary } from "./product-pricing-summary";
@@ -47,9 +40,6 @@ const EMPTY_PRODUCT_FORM: DefaultValues<ProductFormInput> = {
   imageUrl: "",
   recipe: [],
   addonIds: [],
-  isStockTracked: false,
-  supplierId: NONE_SELECT_VALUE,
-  paymentDate: "",
 };
 
 function toFormValues(product: Product): DefaultValues<ProductFormInput> {
@@ -63,10 +53,6 @@ function toFormValues(product: Product): DefaultValues<ProductFormInput> {
     imageUrl: product.imageUrl ?? "",
     recipe: product.recipe,
     addonIds: product.addons.map((addon) => addon.id),
-    isStockTracked: product.stockQuantity !== null,
-    stockQuantity: product.stockQuantity ?? undefined,
-    minimumStock: product.minimumStock || undefined,
-    supplierId: toSelectFieldValue(product.supplierId),
   };
 }
 
@@ -88,21 +74,13 @@ export function ProductFormDialog({
   const saveProductMutation = useSaveProductMutation(organizationId);
   const categoriesQuery = useCategoriesQuery(organizationId);
   const { ingredients, ingredientsById } = useIngredientsMap(organizationId);
-  const { supplierOptions, hasSuppliers } = useSupplierOptions(
-    organizationId,
-    isOpen,
-  );
-  const resolver = useCreateOrEditResolver<ProductFormInput>(Boolean(product), {
-    create: productCreateFormSchema,
-    edit: productFormSchema,
-  });
   const form = useForm<ProductFormInput>({
-    resolver,
+    resolver: zodResolver(productFormSchema),
     defaultValues: EMPTY_PRODUCT_FORM,
   });
-  const [productName, price, recipe, isStockTracked, isOnMenu] = useWatch({
+  const [productName, price, recipe, isOnMenu] = useWatch({
     control: form.control,
-    name: ["name", "price", "recipe", "isStockTracked", "isOnMenu"],
+    name: ["name", "price", "recipe", "isOnMenu"],
   });
   const isEditing = Boolean(product);
 
@@ -192,20 +170,12 @@ export function ProductFormDialog({
           <FieldDescription>
             Onde o produto aparece para ser vendido.
           </FieldDescription>
-          <div className="grid gap-5 sm:grid-cols-2">
-            <SwitchField
-              control={form.control}
-              name="isActive"
-              label="Disponível no PDV"
-              description="Desligado, continua cadastrado, mas não aparece para venda."
-            />
-            <SwitchField
-              control={form.control}
-              name="isOnMenu"
-              label="Cardápio digital"
-              description="Aparece na seção da categoria, se ela estiver no cardápio."
-            />
-          </div>
+          <SwitchField
+            control={form.control}
+            name="isOnMenu"
+            label="Cardápio digital"
+            description="Aparece na seção da categoria, se ela estiver no cardápio."
+          />
           {isOnMenu && (
             <TextField
               control={form.control}
@@ -214,73 +184,6 @@ export function ProductFormDialog({
               placeholder="Ex.: 220ml"
               autoComplete="off"
             />
-          )}
-        </FieldSet>
-
-        <FieldSeparator />
-
-        <FieldSet>
-          <FieldLegend>Estoque</FieldLegend>
-          <FieldDescription>
-            Para produtos prontos que você compra ou faz em lote, como bolos e
-            bebidas.
-          </FieldDescription>
-          <SwitchField
-            control={form.control}
-            name="isStockTracked"
-            label="Controlar quantidade"
-            description="O PDV desconta a cada venda e esgota em 0."
-          />
-          {isStockTracked && (
-            <div className="grid items-start gap-5 sm:grid-cols-2">
-              <NumberField
-                control={form.control}
-                name="stockQuantity"
-                label={
-                  isEditing ? "Quantidade em estoque" : "Quantidade comprada"
-                }
-                format="integer"
-                suffix="un"
-                placeholder="Ex.: 12"
-              />
-              <NumberField
-                control={form.control}
-                name="minimumStock"
-                label="Estoque mínimo (alerta)"
-                format="integer"
-                suffix="un"
-                placeholder="Ex.: 3"
-              />
-              {!isEditing && (
-                <>
-                  <NumberField
-                    control={form.control}
-                    name="totalCost"
-                    label="Valor total pago (opcional)"
-                    format="currency"
-                    placeholder="Ex.: $ 60,00"
-                  />
-                  <DateField
-                    control={form.control}
-                    name="paymentDate"
-                    label="Data de pagamento"
-                  />
-                </>
-              )}
-              <div className="sm:col-span-2">
-                <SelectField
-                  control={form.control}
-                  name="supplierId"
-                  label="Fornecedor"
-                  options={supplierOptions}
-                  description={
-                    hasSuppliers
-                      ? undefined
-                      : "Cadastre fornecedores no módulo Fornecedores para vinculá-los."
-                  }
-                />
-              </div>
-            </div>
           )}
         </FieldSet>
 

@@ -13,6 +13,7 @@ import { PageHeader } from "../../components/page-header";
 import { DeleteProductDialog } from "./delete-product-dialog";
 import { ProductAddonsDialog } from "./product-addons-dialog";
 import { ProductFormDialog } from "./product-form-dialog";
+import { ProductStockDialog } from "./product-stock-dialog";
 import { ProductsTable } from "./products-table";
 
 type ProductFormState =
@@ -43,6 +44,7 @@ export function ProductsView({
     mode: "closed",
   });
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [stockProduct, setStockProduct] = useState<Product | null>(null);
   const [isAddonsDialogOpen, setIsAddonsDialogOpen] = useState(false);
 
   const openCreateForm = useCallback(() => {
@@ -97,9 +99,15 @@ export function ProductsView({
           }
           onEdit={openEditForm}
           onDelete={setProductToDelete}
+          onManageStock={setStockProduct}
         />
       </PageContent>
 
+      <ProductStockDialog
+        organizationId={organizationId}
+        product={stockProduct}
+        onClose={() => setStockProduct(null)}
+      />
       <ProductFormDialog
         organizationId={organizationId}
         isOpen={formState.mode !== "closed"}

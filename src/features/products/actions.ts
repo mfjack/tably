@@ -23,9 +23,10 @@ import { createClient } from "@/lib/supabase/server";
 import {
   type ProductFormInput,
   type ProductStockEntryInput,
-  productCreateFormSchema,
+  type ProductStockSettingsInput,
   productFormSchema,
   productStockEntrySchema,
+  productStockSettingsSchema,
 } from "./schemas";
 import type { Product, ProductId } from "./types";
 
@@ -104,9 +105,7 @@ export async function saveProduct(
   if (!(await hasModuleAccess(organizationId, "products"))) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }
-  const parsedInput = (
-    productId ? productFormSchema : productCreateFormSchema
-  ).safeParse(input);
+  const parsedInput = productFormSchema.safeParse(input);
   if (!parsedInput.success) {
     return actionFailure("Confira os campos e tente novamente.");
   }
@@ -121,14 +120,7 @@ export async function saveProduct(
     imageUrl,
     recipe,
     addonIds,
-    isStockTracked,
-    stockQuantity,
-    minimumStock,
-    supplierId,
-    totalCost,
-    paymentDate,
   } = parsedInput.data;
-  const isPurchasingInitialStock = !productId && isStockTracked;
   const supabase = await createClient();
   const { error } = await supabase.rpc("save_product", {
     p_organization_id: organizationId,
@@ -145,16 +137,6 @@ export async function saveProduct(
     p_addon_ids: addonIds,
     p_is_on_menu: isOnMenu,
     p_menu_detail: menuDetail || undefined,
-    ...(isStockTracked && {
-      p_stock_quantity: stockQuantity ?? 0,
-      p_minimum_stock: minimumStock ?? 0,
-      p_supplier_id: fromSelectFieldValue<SupplierId>(supplierId),
-    }),
-    ...(isPurchasingInitialStock &&
-      (totalCost ?? 0) > 0 && {
-        p_initial_total_cost: totalCost,
-        p_initial_payment_date: paymentDate,
-      }),
   });
 
   if (isUniqueViolation(error)) {
@@ -235,4 +217,43 @@ export async function reorderProducts(
 
   if (error) return databaseFailure("Não foi possível salvar a ordem.", error);
   return actionSuccess();
+}
+
+export async function updateProductStockSettings(
+  productId: ProductId,
+  input: ProductStockSettingsInput,
+): Promise<ActionResult<number | null>> {
+  if (!(await hasModuleAccessToRow("products", productId, "products"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
+  const parsedInput = productStockSettingsSchema.safeParse(input);
+  if (!parsedInput.success) {
+    return actionFailure("Confira os campos e tente novamente.");
+  }
+
+  const {
+    isStockTracked,
+    quantity,
+    minimumStock,
+    supplierId,
+    totalCost,
+    paymentDate,
+  } = parsedInput.data;
+  const isPurchasing = isStockTracked && (quantity ?? 0) > 0;
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("update_product_stock_settings", {
+    p_product_id: productId,
+    p_is_stock_tracked: isStockTracked,
+    p_minimum_stock: minimumStock ?? 0,
+    p_supplier_id: fromSelectFieldValue<SupplierId>(supplierId),
+    ...(isPurchasing && {
+      p_quantity: quantity,
+      p_total_cost: totalCost ?? 0,
+      p_payment_date: paymentDate || undefined,
+    }),
+  });
+
+  if (error)
+    return databaseFailure("Não foi possível salvar o estoque.", error);
+  return actionSuccess(data);
 }

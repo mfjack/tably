@@ -1,10 +1,11 @@
 "use client";
 
-import { TriangleAlert } from "lucide-react";
+import { Package, TriangleAlert } from "lucide-react";
 import { type ReactNode, useMemo } from "react";
 import { DataTable } from "@/components/data-table/data-table";
 import { createDataTableColumnHelper } from "@/components/data-table/data-table-features";
 import { DataTableFilterTabs } from "@/components/data-table/data-table-filter-tabs";
+import { DataTableRowActionButton } from "@/components/data-table/data-table-row-action-button";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { ALERT_ROW_CLASS_NAME } from "@/components/data-table/data-table-row-styles";
 import { useCountedRowFilter } from "@/components/data-table/use-counted-row-filter";
@@ -56,6 +57,7 @@ type ProductsTableProps = {
   emptyState: ReactNode;
   onEdit: (product: Product) => void;
   onDelete: (product: Product) => void;
+  onManageStock: (product: Product) => void;
 };
 
 function getProductRowId(product: ProductRow) {
@@ -91,6 +93,7 @@ export function ProductsTable({
   emptyState,
   onEdit,
   onDelete,
+  onManageStock,
 }: ProductsTableProps) {
   const productRows = useMemo<ProductRow[]>(
     () =>
@@ -186,16 +189,6 @@ export function ProductsTable({
             <ProductStockCell availability={row.original.availability} />
           ),
         }),
-        columnHelper.accessor("isActive", {
-          header: "Status",
-          enableGlobalFilter: false,
-          cell: ({ getValue }) =>
-            getValue() ? (
-              <Badge variant="secondary">Ativo</Badge>
-            ) : (
-              <Badge variant="outline">Inativo</Badge>
-            ),
-        }),
         ...(canManage
           ? [
               columnHelper.display({
@@ -206,13 +199,20 @@ export function ProductsTable({
                     itemLabel={row.original.name}
                     onEdit={() => onEdit(row.original)}
                     onDelete={() => onDelete(row.original)}
-                  />
+                  >
+                    <DataTableRowActionButton
+                      label="Estoque"
+                      accessibleLabel={`Estoque de ${row.original.name}`}
+                      icon={Package}
+                      onClick={() => onManageStock(row.original)}
+                    />
+                  </DataTableRowActions>
                 ),
               }),
             ]
           : []),
       ]),
-    [canManage, onEdit, onDelete],
+    [canManage, onEdit, onDelete, onManageStock],
   );
 
   const table = useDataTable({

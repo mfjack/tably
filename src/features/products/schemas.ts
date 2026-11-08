@@ -31,33 +31,8 @@ export const productFormSchema = z
     imageUrl: z.string().optional(),
     recipe: z.array(recipeItemSchema),
     addonIds: z.array(z.string()),
-    isStockTracked: z.boolean(),
-    stockQuantity: z
-      .number()
-      .int("Use um número inteiro.")
-      .min(0, "Não pode ser negativo.")
-      .optional(),
-    minimumStock: z
-      .number()
-      .int("Use um número inteiro.")
-      .min(0, "Não pode ser negativo.")
-      .optional(),
-    supplierId: z.string().optional(),
-    totalCost: z.number().min(0, "Não pode ser negativo.").optional(),
-    paymentDate: z
-      .string()
-      .regex(/^(\d{4}-\d{2}-\d{2})?$/, "Data inválida.")
-      .optional(),
   })
   .superRefine((values, context) => {
-    if (values.isStockTracked && values.stockQuantity === undefined) {
-      context.addIssue({
-        code: "custom",
-        message: "Informe a quantidade.",
-        path: ["stockQuantity"],
-      });
-    }
-
     const seenIngredientIds = new Set<string>();
 
     values.recipe.forEach((recipeItem, index) => {
@@ -72,31 +47,38 @@ export const productFormSchema = z
     });
   });
 
-const alwaysCheck = { when: () => true };
-
-export const productCreateFormSchema = productFormSchema
-  .refine(
-    (values) => !values.isStockTracked || (values.stockQuantity ?? 0) > 0,
-    {
-      message: "Informe a quantidade comprada.",
-      path: ["stockQuantity"],
-      ...alwaysCheck,
-    },
-  )
-  .refine(
-    (values) =>
-      !values.isStockTracked ||
-      !values.totalCost ||
-      Boolean(values.paymentDate),
-    {
-      message: "Informe a data de pagamento.",
-      path: ["paymentDate"],
-      ...alwaysCheck,
-    },
-  );
-
 export type RecipeItemInput = z.infer<typeof recipeItemSchema>;
 export type ProductFormInput = z.infer<typeof productFormSchema>;
+
+const stockCountSchema = z
+  .number()
+  .int("Use um número inteiro.")
+  .min(0, "Não pode ser negativo.");
+
+export const productStockSettingsSchema = z
+  .object({
+    isStockTracked: z.boolean(),
+    quantity: stockCountSchema.optional(),
+    minimumStock: stockCountSchema.optional(),
+    supplierId: z.string().optional(),
+    totalCost: z.number().min(0, "Não pode ser negativo.").optional(),
+    paymentDate: z
+      .string()
+      .regex(/^(\d{4}-\d{2}-\d{2})?$/, "Data inválida.")
+      .optional(),
+  })
+  .refine((values) => !values.totalCost || Boolean(values.quantity), {
+    message: "Informe a quantidade comprada.",
+    path: ["quantity"],
+  })
+  .refine((values) => !values.totalCost || Boolean(values.paymentDate), {
+    message: "Informe a data de pagamento.",
+    path: ["paymentDate"],
+  });
+
+export type ProductStockSettingsInput = z.infer<
+  typeof productStockSettingsSchema
+>;
 
 export const productStockEntrySchema = z
   .object({
