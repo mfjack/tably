@@ -22,14 +22,6 @@ export type PaymentMethod = Database["public"]["Enums"]["payment_method"];
 export type RecurrenceFrequency =
   Database["public"]["Enums"]["recurrence_frequency"];
 
-export type FinancialAccount = {
-  id: FinancialAccountId;
-  name: string;
-  kind: FinancialAccountKind;
-  openingBalance: number;
-  isArchived: boolean;
-};
-
 export type FinancialAccountBalance = {
   id: FinancialAccountId;
   name: string;

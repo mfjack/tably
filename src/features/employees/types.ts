@@ -52,8 +52,6 @@ export type EmployeeWithAccess = Employee & {
   canDelete: boolean;
 };
 
-export type EmployeeSummary = Pick<Employee, "id" | "name" | "jobTitle">;
-
 export type Holiday = {
   id: HolidayId;
   date: string;

@@ -19,8 +19,6 @@ const moneySchema = z
 
 const ENTRY_REPEAT_OPTIONS = ["none", "installments", "recurring"] as const;
 
-export type EntryRepeat = (typeof ENTRY_REPEAT_OPTIONS)[number];
-
 export const ENTRY_EDIT_SCOPES = ["single", "following"] as const;
 
 export type EntryEditScope = (typeof ENTRY_EDIT_SCOPES)[number];

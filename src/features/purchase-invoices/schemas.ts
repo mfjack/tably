@@ -87,5 +87,4 @@ export const invoiceImportSchema = z.object({
 });
 
 export type InvoiceImportFormInput = z.infer<typeof invoiceImportFormSchema>;
-export type InvoiceItemDecision = z.infer<typeof invoiceItemDecisionSchema>;
 export type InvoiceImportInput = z.infer<typeof invoiceImportSchema>;

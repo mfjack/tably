@@ -18,7 +18,6 @@ export const orderAdjustmentsSchema = z.object({
   loyalty: loyaltyCheckoutSchema.optional(),
 });
 
-export type OrderDiscountInput = z.infer<typeof orderDiscountSchema>;
 export type OrderAdjustmentsInput = z.infer<typeof orderAdjustmentsSchema>;
 
 type OrderTotalsInput = {

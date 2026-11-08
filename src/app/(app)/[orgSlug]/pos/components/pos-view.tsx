@@ -1,7 +1,6 @@
 "use client";
 
 import { ClipboardList } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ItemNoteDialog } from "@/components/item-note-dialog";
@@ -125,7 +124,6 @@ export function PosView({
   canAddStock,
   canOrganizeProducts,
 }: PosViewProps) {
-  const _router = useRouter();
   const isCartHydrated = useHydratedCartStore();
   const cart = useCart(organizationId);
   const storedTabTarget = useTabTarget(organizationId);
