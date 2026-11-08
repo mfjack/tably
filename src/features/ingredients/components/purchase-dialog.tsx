@@ -276,8 +276,13 @@ export function PurchaseDialog({
   ]);
 
   const handleSubmit = form.handleSubmit((values) => {
-    if (total === 0 && pendingAttachments.files.length > 0) {
-      toast.error("Informe o valor pago para anexar o boleto.");
+    if (
+      (total === 0 || !values.paymentDueDate) &&
+      pendingAttachments.files.length > 0
+    ) {
+      toast.error(
+        "Informe o valor pago e a data de pagamento para anexar o boleto.",
+      );
       return;
     }
     const successMessage = values.ingredients.some(
@@ -332,7 +337,7 @@ export function PurchaseDialog({
           <DateField
             control={form.control}
             name="paymentDueDate"
-            label="Data de pagamento"
+            label="Data de pagamento (opcional)"
             placeholder="Escolha a data"
           />
           <FilePickerField
