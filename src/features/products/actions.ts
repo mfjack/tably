@@ -1,7 +1,6 @@
 "use server";
 
 import type { CategoryId } from "@/features/categories/types";
-import { getPurchaseCost } from "@/features/ingredients/stock-cost";
 import type { IngredientId } from "@/features/ingredients/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import type { ProductAddonId } from "@/features/product-addons/types";
@@ -22,10 +21,8 @@ import { fromSelectFieldValue } from "@/lib/optional-select-value";
 import { createClient } from "@/lib/supabase/server";
 import {
   type ProductFormInput,
-  type ProductStockEntryInput,
   type ProductStockSettingsInput,
   productFormSchema,
-  productStockEntrySchema,
   productStockSettingsSchema,
 } from "./schemas";
 import type { Product, ProductId } from "./types";
@@ -169,42 +166,6 @@ export async function deleteProduct(
   return actionSuccess();
 }
 
-export async function addProductStock(
-  organizationId: OrganizationId,
-  productId: ProductId,
-  input: ProductStockEntryInput,
-): Promise<ActionResult<number>> {
-  if (!(await hasModuleAccess(organizationId, "pos"))) {
-    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
-  }
-  const parsedInput = productStockEntrySchema.safeParse(input);
-  if (!parsedInput.success) {
-    return actionFailure("Confira os campos e tente novamente.");
-  }
-
-  const {
-    quantity,
-    totalCost,
-    freightCost,
-    paymentDate,
-    minimumStock,
-    supplierId,
-  } = parsedInput.data;
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc("add_product_stock", {
-    p_product_id: productId,
-    p_quantity: quantity,
-    p_total_cost: getPurchaseCost(totalCost, freightCost),
-    p_payment_date: paymentDate || undefined,
-    p_minimum_stock: minimumStock,
-    p_supplier_id: fromSelectFieldValue<SupplierId>(supplierId),
-  });
-
-  if (error)
-    return databaseFailure("Não foi possível registrar a entrada.", error);
-  return actionSuccess(data);
-}
-
 export async function reorderProducts(
   organizationId: OrganizationId,
   productIds: readonly ProductId[],
@@ -236,6 +197,7 @@ export async function updateProductStockSettings(
 
   const {
     isStockTracked,
+    countedQuantity,
     quantity,
     minimumStock,
     supplierId,
@@ -249,6 +211,10 @@ export async function updateProductStockSettings(
     p_is_stock_tracked: isStockTracked,
     p_minimum_stock: minimumStock ?? 0,
     p_supplier_id: fromSelectFieldValue<SupplierId>(supplierId),
+    ...(isStockTracked &&
+      countedQuantity !== undefined && {
+        p_counted_quantity: countedQuantity,
+      }),
     ...(isPurchasing && {
       p_quantity: quantity,
       p_total_cost: totalCost ?? 0,

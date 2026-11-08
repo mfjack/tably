@@ -1,5 +1,4 @@
 import * as z from "zod";
-import { getPurchaseCost } from "@/features/ingredients/stock-cost";
 import { toTitleCase } from "@/lib/title-case";
 
 export const recipeItemSchema = z.object({
@@ -63,6 +62,7 @@ const stockCountSchema = z
 export const productStockSettingsSchema = z
   .object({
     isStockTracked: z.boolean(),
+    countedQuantity: stockCountSchema.optional(),
     quantity: stockCountSchema.optional(),
     minimumStock: stockCountSchema.optional(),
     supplierId: z.string().optional(),
@@ -84,31 +84,3 @@ export const productStockSettingsSchema = z
 export type ProductStockSettingsInput = z.infer<
   typeof productStockSettingsSchema
 >;
-
-export const productStockEntrySchema = z
-  .object({
-    quantity: z
-      .number({ error: "Informe a quantidade." })
-      .int("Use um número inteiro.")
-      .positive("A quantidade precisa ser maior que zero."),
-    totalCost: z.number().min(0, "Não pode ser negativo.").optional(),
-    freightCost: z.number().min(0, "Não pode ser negativo.").optional(),
-    paymentDate: z
-      .string()
-      .regex(/^(\d{4}-\d{2}-\d{2})?$/, "Data inválida.")
-      .optional(),
-    minimumStock: z
-      .number()
-      .int("Use um número inteiro.")
-      .min(0, "Não pode ser negativo.")
-      .optional(),
-    supplierId: z.string().optional(),
-  })
-  .refine(
-    (values) =>
-      !getPurchaseCost(values.totalCost, values.freightCost) ||
-      Boolean(values.paymentDate),
-    { message: "Informe a data de pagamento.", path: ["paymentDate"] },
-  );
-
-export type ProductStockEntryInput = z.infer<typeof productStockEntrySchema>;

@@ -4449,6 +4449,7 @@ export type Database = {
       }
       update_product_stock_settings: {
         Args: {
+          p_counted_quantity?: number
           p_is_stock_tracked: boolean
           p_minimum_stock: number
           p_payment_date?: string

@@ -105,6 +105,19 @@ export function ProductStockDialog({
         />
         {isStockTracked && (
           <div className="grid items-start gap-5 sm:grid-cols-2">
+            {currentStock !== null && (
+              <div className="sm:col-span-2">
+                <NumberField
+                  control={form.control}
+                  name="countedQuantity"
+                  label="Corrigir estoque para"
+                  description="Use quando sair produto sem lançar, como perda ou quebra."
+                  format="integer"
+                  suffix="un"
+                  placeholder="Ex.: 0"
+                />
+              </div>
+            )}
             <NumberField
               control={form.control}
               name="quantity"
