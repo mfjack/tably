@@ -149,7 +149,7 @@ export function MenuOrderSheet({
             <SheetHeader>
               <SheetTitle>Seu pedido</SheetTitle>
               <SheetDescription>
-                Para comer aqui. O pagamento é feito no balcão.
+                Para comer aqui. Você paga no balcão quando terminar.
               </SheetDescription>
             </SheetHeader>
 

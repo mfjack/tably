@@ -1,6 +1,6 @@
 import * as z from "zod";
 import { TIME_OF_DAY_PATTERN } from "@/lib/time-of-day";
-import { getWeekdayLabel, ISO_WEEKDAYS } from "@/lib/weekdays";
+import { ISO_WEEKDAYS } from "@/lib/weekdays";
 
 export const openingHourSchema = z.object({
   weekday: z.number().int().min(1).max(7),
@@ -73,38 +73,11 @@ export function parseOpeningHours(value: unknown): OpeningHour[] {
   return parsedHours.success ? parsedHours.data : [];
 }
 
-function formatHour(time: string): string {
-  const [hours, minutes] = time.split(":");
-  return `${Number(hours)}h${minutes === "00" ? "" : minutes}`;
-}
-
-function describeOpeningDay(daysAhead: number, weekday: number): string {
-  if (daysAhead === 0) return "hoje";
-  if (daysAhead === 1) return "amanhã";
-  return getWeekdayLabel(weekday).toLowerCase();
-}
-
-const MINUTE_IN_MS = 60_000;
-const OPENING_COUNTDOWN_LIMIT_IN_MINUTES = 24 * 60;
-const CLOSING_COUNTDOWN_LIMIT_IN_MINUTES = 60;
-
 export type OpeningStatusSummary = {
   isOpen: boolean;
   label: string;
   nextChangeAt: Date | null;
 };
-
-function getMinutesUntil(moment: string | null | undefined, now: Date) {
-  if (!moment) return null;
-  return Math.ceil((new Date(moment).getTime() - now.getTime()) / MINUTE_IN_MS);
-}
-
-function formatDuration(totalMinutes: number): string {
-  if (totalMinutes < 60) return `${totalMinutes} min`;
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  return minutes === 0 ? `${hours}h` : `${hours}h ${minutes}min`;
-}
 
 function toDate(moment: string | null | undefined): Date | null {
   return moment ? new Date(moment) : null;
@@ -112,34 +85,18 @@ function toDate(moment: string | null | undefined): Date | null {
 
 export function summarizeOpeningStatus(
   status: OpeningStatus,
-  now: Date,
 ): OpeningStatusSummary | null {
   if (!status.isConfigured) return null;
-
   if (status.isOpen) {
-    const minutesUntilClosing = getMinutesUntil(status.closesAtMoment, now);
-    const label =
-      minutesUntilClosing !== null &&
-      minutesUntilClosing > 0 &&
-      minutesUntilClosing <= CLOSING_COUNTDOWN_LIMIT_IN_MINUTES
-        ? `Aberto · fecha em ${formatDuration(minutesUntilClosing)}`
-        : status.closesAt
-          ? `Aberto agora · fecha às ${formatHour(status.closesAt)}`
-          : "Aberto agora";
-    return { isOpen: true, label, nextChangeAt: toDate(status.closesAtMoment) };
+    return {
+      isOpen: true,
+      label: "Aberto",
+      nextChangeAt: toDate(status.closesAtMoment),
+    };
   }
-
-  if (!status.nextOpening) {
-    return { isOpen: false, label: "Fechado agora", nextChangeAt: null };
-  }
-
-  const { daysAhead, weekday, opensAt, moment } = status.nextOpening;
-  const minutesUntilOpening = getMinutesUntil(moment, now);
-  const label =
-    minutesUntilOpening !== null &&
-    minutesUntilOpening > 0 &&
-    minutesUntilOpening <= OPENING_COUNTDOWN_LIMIT_IN_MINUTES
-      ? `Fechado · abre em ${formatDuration(minutesUntilOpening)}`
-      : `Fechado agora · abrimos ${describeOpeningDay(daysAhead, weekday)} às ${formatHour(opensAt)}`;
-  return { isOpen: false, label, nextChangeAt: toDate(moment) };
+  return {
+    isOpen: false,
+    label: "Fechado",
+    nextChangeAt: toDate(status.nextOpening?.moment),
+  };
 }

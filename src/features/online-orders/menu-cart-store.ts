@@ -10,7 +10,7 @@ import {
 import type { ProductId } from "@/features/products/types";
 import type { OnlineOrderDeviceId, OnlineOrderId } from "./types";
 
-const RECENT_ORDER_LIFETIME_IN_MILLISECONDS = 12 * 60 * 60 * 1000;
+const RECENT_ORDER_LIFETIME_IN_MILLISECONDS = 2 * 60 * 60 * 1000;
 const MAX_RECENT_ORDERS = 5;
 
 export type MenuCartItem = CartItem;

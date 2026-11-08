@@ -9,6 +9,10 @@ import type {
   PublicMenuItem,
 } from "@/features/menu/types";
 import {
+  isOnlineOrderFinished,
+  useRecentOnlineOrderStatusQuery,
+} from "@/features/online-orders/hooks/use-online-order-status-query";
+import {
   useHydratedMenuCartStore,
   useLatestRecentOrder,
   useMenuCartItems,
@@ -44,7 +48,14 @@ export function MenuOrderBar({
 }: MenuOrderBarProps) {
   const isHydrated = useHydratedMenuCartStore();
   const cartItems = useMenuCartItems(menuSlug);
-  const latestOrder = useLatestRecentOrder(menuSlug);
+  const recentOrder = useLatestRecentOrder(menuSlug);
+  const { data: recentOrderStatus } = useRecentOnlineOrderStatusQuery(
+    recentOrder?.id ?? null,
+  );
+  const latestOrder =
+    recentOrderStatus && isOnlineOrderFinished(recentOrderStatus)
+      ? null
+      : recentOrder;
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [hasOpenedSheet, setHasOpenedSheet] = useState(false);
 

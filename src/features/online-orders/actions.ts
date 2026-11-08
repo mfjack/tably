@@ -47,6 +47,9 @@ const publicOnlineOrderSchema = z.object({
   createdAt: z.string(),
   stage: z.enum(ONLINE_ORDER_STAGES),
   isKitchenEnabled: z.boolean().default(true),
+  isPaid: z.boolean().default(false),
+  instagram: z.string().nullable().default(null),
+  menuNote: z.string().nullable().default(null),
   items: z.array(onlineOrderItemRowSchema),
 });
 

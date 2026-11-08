@@ -19,7 +19,7 @@ type MenuOpeningStatusProps = {
 export function MenuOpeningStatus({ status }: MenuOpeningStatusProps) {
   const router = useRouter();
   const now = useNow(REFRESH_INTERVAL_IN_MS);
-  const summary = summarizeOpeningStatus(status, now);
+  const summary = summarizeOpeningStatus(status);
   const hasStatusChanged =
     summary?.nextChangeAt !== null &&
     summary?.nextChangeAt !== undefined &&

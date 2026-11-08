@@ -3,6 +3,8 @@
 import { Check } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
+import { InstagramLink } from "@/features/menu/components/instagram-link";
+import { MenuNote } from "@/features/menu/components/menu-note";
 import { useOnlineOrderStatusQuery } from "@/features/online-orders/hooks/use-online-order-status-query";
 import type {
   OnlineOrderStage,
@@ -42,8 +44,7 @@ function getStagePosition(
 }
 
 const STAGE_MESSAGES = {
-  pending:
-    "Recebemos seu pedido! Assim que o balcão confirmar, ele vai pra cozinha.",
+  pending: "Pedido recebido! Assim que confirmarmos, ele vai para a cozinha.",
   accepted: "Pedido aceito! Em breve te chamamos quando estiver pronto.",
   waiting: "Pedido confirmado! Ele já está na fila da cozinha.",
   preparing: "Estamos preparando seu pedido.",
@@ -70,7 +71,7 @@ export function OnlineOrderTracker({
   const isRejected = order.stage === "rejected";
   const stageMessage =
     order.stage === "pending" && !order.isKitchenEnabled
-      ? "Recebemos seu pedido! Assim que o balcão confirmar, a gente te avisa aqui."
+      ? "Pedido recebido! Avisamos por aqui assim que ele for confirmado."
       : STAGE_MESSAGES[order.stage];
 
   useEffect(() => {
@@ -88,13 +89,20 @@ export function OnlineOrderTracker({
             {order.menuTitle}
           </h1>
           <p className="text-muted-foreground">Olá, {order.customerName}!</p>
+          {order.instagram && (
+            <div className="pt-2">
+              <InstagramLink handle={order.instagram} />
+            </div>
+          )}
         </header>
 
         <section
           aria-live="polite"
           className="flex flex-col gap-5 rounded-xl border bg-card p-5 shadow-xs"
         >
-          <p className="text-center font-semibold text-lg">{stageMessage}</p>
+          <p className="text-center font-semibold text-[1.0625rem]">
+            {stageMessage}
+          </p>
           {!isRejected && (
             <ol className="flex flex-col gap-3">
               {progressSteps.map((step, index) => {
@@ -163,9 +171,11 @@ export function OnlineOrderTracker({
             <span className="tabular-nums">{formatCurrency(order.total)}</span>
           </p>
           <p className="text-muted-foreground text-sm">
-            O pagamento é feito no balcão.
+            Não precisa pagar agora: é só passar no balcão quando terminar.
           </p>
         </section>
+
+        {order.menuNote && <MenuNote note={order.menuNote} />}
 
         <Link
           href={`/menu/${order.menuSlug}`}

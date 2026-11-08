@@ -50,6 +50,9 @@ export type PublicOnlineOrder = {
   createdAt: string;
   stage: OnlineOrderStage;
   isKitchenEnabled: boolean;
+  isPaid: boolean;
+  instagram: string | null;
+  menuNote: string | null;
   items: OnlineOrderItem[];
 };
 

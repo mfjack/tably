@@ -1,7 +1,7 @@
-import { AtSign, Info } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { InstagramLink } from "@/features/menu/components/instagram-link";
+import { MenuNote } from "@/features/menu/components/menu-note";
 import {
   getPublicLoyaltyProgram,
   getPublicMenu,
@@ -30,7 +30,6 @@ export default async function PublicMenuPage({
   ]);
   if (!menu) notFound();
 
-  const instagramHandle = menu.instagram?.replace(/^@/, "");
   const menuItems = menu.sections.flatMap((section) => section.items);
 
   return (
@@ -45,17 +44,7 @@ export default async function PublicMenuPage({
           )}
           <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
             <MenuOpeningStatus status={menu.openingStatus} />
-            {instagramHandle && (
-              <Link
-                href={`https://instagram.com/${instagramHandle}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex h-8 items-center gap-1.5 rounded-full border px-3 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
-              >
-                <AtSign className="size-4" aria-hidden />
-                {instagramHandle}
-              </Link>
-            )}
+            {menu.instagram && <InstagramLink handle={menu.instagram} />}
           </div>
           {loyaltyProgram && (
             <div className="pt-3">
@@ -85,12 +74,7 @@ export default async function PublicMenuPage({
           </div>
         )}
 
-        {menu.note && (
-          <p className="flex gap-3 rounded-2xl bg-muted px-4 py-3 text-muted-foreground text-sm">
-            <Info className="mt-0.5 size-4 shrink-0" aria-hidden />
-            {menu.note}
-          </p>
-        )}
+        {menu.note && <MenuNote note={menu.note} />}
       </div>
       <MenuOrderBar
         menuSlug={orgSlug}
