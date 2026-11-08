@@ -45,17 +45,17 @@ export function OpenOrderTabCard({
       onClick={() => onSelect(order.id)}
     >
       <div className="flex w-full items-start justify-between gap-2">
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="truncate font-semibold text-base">
             {order.customerName}
           </p>
           {order.isPendingSync ? (
-            <p className="flex items-center gap-1 text-warning text-xs">
+            <p className="flex items-center gap-1 whitespace-nowrap text-warning text-xs">
               <CloudOff aria-hidden className="size-3.5 shrink-0" />
               Aguardando internet · {format(new Date(order.createdAt), "HH:mm")}
             </p>
           ) : (
-            <p className="text-muted-foreground text-xs">
+            <p className="truncate whitespace-nowrap text-muted-foreground text-xs">
               {describeOpenedAt(order.createdAt, now)}
             </p>
           )}
