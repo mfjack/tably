@@ -27,20 +27,20 @@ export function ProductStockCell({ availability }: ProductStockCellProps) {
     );
   }
 
+  if (availability.status === "out") {
+    return <Badge variant="destructive">Esgotado</Badge>;
+  }
+
   return (
     <div className="flex flex-col items-start gap-1">
-      {availability.status === "out" ? (
-        <Badge variant="destructive">Esgotado</Badge>
-      ) : (
-        <div className="flex items-center gap-2">
-          <span className="tabular-nums">
-            {formatQuantity(availability.remaining)} un
-          </span>
-          {availability.status === "low" && (
-            <Badge variant="destructive">Estoque baixo</Badge>
-          )}
-        </div>
-      )}
+      <div className="flex items-center gap-2">
+        <span className="tabular-nums">
+          {formatQuantity(availability.remaining)} un
+        </span>
+        {availability.status === "low" && (
+          <Badge variant="destructive">Estoque baixo</Badge>
+        )}
+      </div>
       <IngredientShortageList shortages={availability} />
     </div>
   );
