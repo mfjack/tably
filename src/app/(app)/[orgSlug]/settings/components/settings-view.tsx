@@ -29,6 +29,7 @@ type SettingsViewProps = {
   organization: UserOrganization;
   currentUser: CurrentUser;
   canManageEstablishment: boolean;
+  isAutomaticBillingAvailable: boolean;
   isOwner: boolean;
   initialTab?: string;
 };
@@ -40,6 +41,7 @@ export function SettingsView({
   canManageEstablishment,
   isOwner,
   initialTab,
+  isAutomaticBillingAvailable,
 }: SettingsViewProps) {
   const defaultTab = isOwner
     ? "organization"
@@ -174,6 +176,7 @@ export function SettingsView({
                   <SubscriptionSettings
                     organization={organization}
                     subscription={organization.subscription}
+                    isAutomaticBillingAvailable={isAutomaticBillingAvailable}
                   />
                 </TabsContent>
               )}

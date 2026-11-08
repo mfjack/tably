@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { UserOrganization } from "@/features/organizations/types";
+import { AutomaticBillingCard } from "@/features/subscriptions/components/automatic-billing-card";
 import { PixPaymentCard } from "@/features/subscriptions/components/pix-payment-card";
 import { useChooseBillingCycleMutation } from "@/features/subscriptions/hooks/use-choose-billing-cycle-mutation";
 import { useChooseSubscriptionPlanMutation } from "@/features/subscriptions/hooks/use-choose-subscription-plan-mutation";
@@ -31,11 +32,13 @@ import { cn } from "@/lib/utils";
 type SubscriptionSettingsProps = {
   organization: UserOrganization;
   subscription: Subscription;
+  isAutomaticBillingAvailable: boolean;
 };
 
 export function SubscriptionSettings({
   organization,
   subscription,
+  isAutomaticBillingAvailable,
 }: SubscriptionSettingsProps) {
   const choosePlanMutation = useChooseSubscriptionPlanMutation(organization.id);
   const chooseCycleMutation = useChooseBillingCycleMutation(organization.id);
@@ -180,16 +183,26 @@ export function SubscriptionSettings({
       {state.chargeAmount > 0 && (
         <section className="flex flex-col gap-3">
           <h3 className="font-semibold">Pagamento</h3>
-          <PixPaymentCard
-            organizationId={organization.id}
-            reference={organization.slug}
-            amount={state.chargeAmount}
-            isPaymentReported={state.isPaymentReported}
-          />
-          <p className="text-muted-foreground text-sm">
-            Depois que confirmarmos o Pix, sua assinatura é renovada por mais{" "}
-            {isYearly ? "um ano" : "um mês"}.
-          </p>
+          {isAutomaticBillingAvailable && isOwner ? (
+            <AutomaticBillingCard
+              organizationId={organization.id}
+              defaultTaxId={organization.taxId}
+              activeBillingType={subscription.asaasBillingType}
+            />
+          ) : (
+            <>
+              <PixPaymentCard
+                organizationId={organization.id}
+                reference={organization.slug}
+                amount={state.chargeAmount}
+                isPaymentReported={state.isPaymentReported}
+              />
+              <p className="text-muted-foreground text-sm">
+                Depois que confirmarmos o Pix, sua assinatura é renovada por
+                mais {isYearly ? "um ano" : "um mês"}.
+              </p>
+            </>
+          )}
         </section>
       )}
     </div>

@@ -5,6 +5,7 @@ import { SETTINGS_PAGE } from "@/features/modules/app-modules";
 import { canManageOrganization } from "@/features/organizations/permissions";
 import { getUserOrganizationBySlug } from "@/features/organizations/queries";
 import { canAccessSettings } from "@/features/team/access";
+import { isAsaasConfigured } from "@/lib/server-env";
 import { SettingsView } from "./components/settings-view";
 
 export const metadata: Metadata = { title: SETTINGS_PAGE.label };
@@ -33,6 +34,7 @@ export default async function SettingsPage({
         canManageOrganization(organization.role)
       }
       isOwner={organization.role === "owner"}
+      isAutomaticBillingAvailable={isAsaasConfigured()}
     />
   );
 }

@@ -1930,44 +1930,6 @@ export type Database = {
         }
         Relationships: []
       }
-      payment_settlements: {
-        Row: {
-          confirmed_at: string
-          confirmed_by_name: string | null
-          id: string
-          method: Database["public"]["Enums"]["payment_method"]
-          organization_id: string
-          received_amount: number
-          sale_date: string
-        }
-        Insert: {
-          confirmed_at?: string
-          confirmed_by_name?: string | null
-          id?: string
-          method: Database["public"]["Enums"]["payment_method"]
-          organization_id: string
-          received_amount: number
-          sale_date: string
-        }
-        Update: {
-          confirmed_at?: string
-          confirmed_by_name?: string | null
-          id?: string
-          method?: Database["public"]["Enums"]["payment_method"]
-          organization_id?: string
-          received_amount?: number
-          sale_date?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "payment_settlements_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       payroll_settings: {
         Row: {
           inss_brackets: Json
@@ -2917,6 +2879,7 @@ export type Database = {
       subscription_payments: {
         Row: {
           amount: number
+          asaas_payment_id: string | null
           created_at: string
           id: string
           months: number
@@ -2924,9 +2887,11 @@ export type Database = {
           organization_id: string
           paid_until: string
           recorded_by: string | null
+          reverted_at: string | null
         }
         Insert: {
           amount: number
+          asaas_payment_id?: string | null
           created_at?: string
           id?: string
           months?: number
@@ -2934,9 +2899,11 @@ export type Database = {
           organization_id: string
           paid_until: string
           recorded_by?: string | null
+          reverted_at?: string | null
         }
         Update: {
           amount?: number
+          asaas_payment_id?: string | null
           created_at?: string
           id?: string
           months?: number
@@ -2944,6 +2911,7 @@ export type Database = {
           organization_id?: string
           paid_until?: string
           recorded_by?: string | null
+          reverted_at?: string | null
         }
         Relationships: [
           {
@@ -2957,6 +2925,9 @@ export type Database = {
       }
       subscriptions: {
         Row: {
+          asaas_billing_type: string | null
+          asaas_customer_id: string | null
+          asaas_subscription_id: string | null
           billing_cycle: Database["public"]["Enums"]["billing_cycle"]
           created_at: string
           monthly_price: number
@@ -2970,6 +2941,9 @@ export type Database = {
           yearly_price: number
         }
         Insert: {
+          asaas_billing_type?: string | null
+          asaas_customer_id?: string | null
+          asaas_subscription_id?: string | null
           billing_cycle?: Database["public"]["Enums"]["billing_cycle"]
           created_at?: string
           monthly_price: number
@@ -2983,6 +2957,9 @@ export type Database = {
           yearly_price?: number
         }
         Update: {
+          asaas_billing_type?: string | null
+          asaas_customer_id?: string | null
+          asaas_subscription_id?: string | null
           billing_cycle?: Database["public"]["Enums"]["billing_cycle"]
           created_at?: string
           monthly_price?: number
@@ -3755,15 +3732,6 @@ export type Database = {
         Args: { p_order_id: string }
         Returns: undefined
       }
-      confirm_payment_settlement: {
-        Args: {
-          p_method: Database["public"]["Enums"]["payment_method"]
-          p_organization_id: string
-          p_received_amount: number
-          p_sale_date: string
-        }
-        Returns: undefined
-      }
       count_day_punches: {
         Args: { p_employee_id: string; p_work_date: string }
         Returns: number
@@ -3982,10 +3950,6 @@ export type Database = {
           p_organization_id: string
         }
         Returns: number
-      }
-      get_payment_receivables: {
-        Args: { p_from: string; p_organization_id: string; p_to: string }
-        Returns: Json
       }
       get_payment_surcharge: {
         Args: {
@@ -4234,6 +4198,14 @@ export type Database = {
         Args: { p_items: Json; p_order_id: string; p_payment_due_date?: string }
         Returns: number
       }
+      record_asaas_payment: {
+        Args: {
+          p_amount: number
+          p_asaas_payment_id: string
+          p_asaas_subscription_id: string
+        }
+        Returns: undefined
+      }
       record_loyalty_purchase: {
         Args: { p_name?: string; p_order_id: string; p_phone: string }
         Returns: number
@@ -4334,6 +4306,23 @@ export type Database = {
         Args: { p_order_id: string; p_organization_id: string }
         Returns: undefined
       }
+      revert_asaas_payment: {
+        Args: { p_asaas_payment_id: string }
+        Returns: undefined
+      }
+      save_asaas_customer: {
+        Args: { p_customer_id: string; p_organization_id: string }
+        Returns: undefined
+      }
+      save_asaas_subscription: {
+        Args: {
+          p_billing_type: string
+          p_customer_id: string
+          p_organization_id: string
+          p_subscription_id: string
+        }
+        Returns: undefined
+      }
       save_customer_account: {
         Args: {
           p_account_id?: string
@@ -4385,10 +4374,6 @@ export type Database = {
         }
         Returns: string
       }
-      set_employee_pin: {
-        Args: { p_employee_id: string; p_pin: string }
-        Returns: undefined
-      }
       set_kitchen_ticket_status: {
         Args: {
           p_status: Database["public"]["Enums"]["kitchen_ticket_status"]
@@ -4436,14 +4421,6 @@ export type Database = {
           p_frequency: Database["public"]["Enums"]["task_frequency"]
         }
         Returns: string
-      }
-      undo_payment_settlement: {
-        Args: {
-          p_method: Database["public"]["Enums"]["payment_method"]
-          p_organization_id: string
-          p_sale_date: string
-        }
-        Returns: undefined
       }
       undo_stock_purchase: { Args: { p_entry_id: string }; Returns: number }
       update_member_access: {

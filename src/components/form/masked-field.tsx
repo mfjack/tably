@@ -17,9 +17,17 @@ import { getFieldDescriptionId } from "./form-field-shell";
 import { FORM_INPUT_CLASS_NAME } from "./form-field-styles";
 import type { FormFieldProps } from "./form-field-types";
 
+const CPF_DIGITS_LENGTH = 11;
+
 const MASK_PRESETS = {
   cnpj: { getPattern: () => CNPJ_PATTERN, maxDigits: 14, inputMode: "numeric" },
   cpf: { getPattern: () => CPF_PATTERN, maxDigits: 11, inputMode: "numeric" },
+  cpfCnpj: {
+    getPattern: (digits: string) =>
+      digits.length > CPF_DIGITS_LENGTH ? CNPJ_PATTERN : CPF_PATTERN,
+    maxDigits: 14,
+    inputMode: "numeric",
+  },
   pis: { getPattern: () => PIS_PATTERN, maxDigits: 11, inputMode: "numeric" },
   phone: { getPattern: getPhonePattern, maxDigits: 11, inputMode: "tel" },
   pin: { getPattern: () => "####", maxDigits: 4, inputMode: "numeric" },

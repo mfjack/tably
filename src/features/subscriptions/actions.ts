@@ -7,7 +7,9 @@ import {
   actionFailure,
   actionSuccess,
 } from "@/lib/action-result";
+import { ASAAS_BILLING_TYPES } from "@/lib/asaas/types";
 import { createClient } from "@/lib/supabase/server";
+import { syncAsaasSubscriptionCharge } from "./automatic-billing";
 import {
   BILLING_CYCLES,
   type BillingCycle,
@@ -40,6 +42,7 @@ const adminSubscriptionRowSchema = z.object({
   trialEndsAt: z.string(),
   paidUntil: z.string().nullable(),
   paymentReportedAt: z.string().nullable(),
+  asaasBillingType: z.enum(ASAAS_BILLING_TYPES).nullish(),
   notes: z.string().nullable(),
   payments: z.array(
     z.object({
@@ -76,6 +79,7 @@ export async function chooseSubscriptionPlan(
         : "Não foi possível trocar o plano.",
     );
   }
+  await syncAsaasSubscriptionCharge(organizationId);
   return actionSuccess();
 }
 
@@ -98,6 +102,7 @@ export async function chooseBillingCycle(
         : "Não foi possível trocar a forma de cobrança.",
     );
   }
+  await syncAsaasSubscriptionCharge(organizationId);
   return actionSuccess();
 }
 
@@ -140,6 +145,7 @@ export async function listAdminSubscriptions(): Promise<
     parsedRows.data.map((row) => ({
       ...row,
       organizationId: row.organizationId as OrganizationId,
+      asaasBillingType: row.asaasBillingType ?? null,
     })),
   );
 }
@@ -171,6 +177,7 @@ export async function updateAdminSubscription(
         : "Não foi possível salvar o cliente.",
     );
   }
+  await syncAsaasSubscriptionCharge(organizationId);
   return actionSuccess();
 }
 

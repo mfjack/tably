@@ -8,6 +8,7 @@ import {
 } from "@/features/organizations/queries";
 import { getSubscriptionState } from "@/features/subscriptions/subscription-state";
 import { getEffectiveHiddenModules } from "@/features/team/access";
+import { isAsaasConfigured } from "@/lib/server-env";
 import { AppSidebar } from "./components/app-sidebar";
 import { OfflineOrderSync } from "./components/offline-order-sync";
 import { OnlineOrdersNotifier } from "./components/online-orders-notifier";
@@ -39,6 +40,7 @@ export default async function OrganizationLayout({
         organization={organization}
         subscription={organization.subscription}
         state={subscriptionState}
+        isAutomaticBillingAvailable={isAsaasConfigured()}
       />
     );
   }

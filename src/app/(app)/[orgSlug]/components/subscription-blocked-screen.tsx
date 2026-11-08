@@ -7,6 +7,7 @@ import {
   LANDING_INFO,
 } from "@/features/landing/landing-info";
 import type { UserOrganization } from "@/features/organizations/types";
+import { AutomaticBillingCard } from "@/features/subscriptions/components/automatic-billing-card";
 import { PixPaymentCard } from "@/features/subscriptions/components/pix-payment-card";
 import { PLAN_DETAILS } from "@/features/subscriptions/plans";
 import { getSubscriptionStatusDescription } from "@/features/subscriptions/subscription-labels";
@@ -19,12 +20,14 @@ type SubscriptionBlockedScreenProps = {
   organization: UserOrganization;
   subscription: Subscription;
   state: SubscriptionState;
+  isAutomaticBillingAvailable: boolean;
 };
 
 export function SubscriptionBlockedScreen({
   organization,
   subscription,
   state,
+  isAutomaticBillingAvailable,
 }: SubscriptionBlockedScreenProps) {
   const canPay =
     organization.role === "owner" || organization.role === "manager";
@@ -48,12 +51,20 @@ export function SubscriptionBlockedScreen({
         </div>
         {canPay ? (
           <>
-            <PixPaymentCard
-              organizationId={organization.id}
-              reference={organization.slug}
-              amount={state.chargeAmount}
-              isPaymentReported={state.isPaymentReported}
-            />
+            {isAutomaticBillingAvailable && organization.role === "owner" ? (
+              <AutomaticBillingCard
+                organizationId={organization.id}
+                defaultTaxId={organization.taxId}
+                activeBillingType={subscription.asaasBillingType}
+              />
+            ) : (
+              <PixPaymentCard
+                organizationId={organization.id}
+                reference={organization.slug}
+                amount={state.chargeAmount}
+                isPaymentReported={state.isPaymentReported}
+              />
+            )}
             <p className="text-muted-foreground text-sm">
               Plano {PLAN_DETAILS[subscription.plan].label}. Para trocar de
               plano ou tirar dúvidas, fale com a gente.

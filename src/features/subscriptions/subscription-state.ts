@@ -1,4 +1,5 @@
 import type { AppModuleId } from "@/features/organizations/types";
+import type { AsaasBillingType } from "@/lib/asaas/types";
 import {
   type BillingCycle,
   PLAN_DETAILS,
@@ -21,6 +22,7 @@ export type Subscription = {
   trialEndsAt: string;
   paidUntil: string | null;
   paymentReportedAt: string | null;
+  asaasBillingType: AsaasBillingType | null;
 };
 
 export type SubscriptionStatus =

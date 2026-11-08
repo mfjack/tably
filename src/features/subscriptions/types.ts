@@ -1,4 +1,5 @@
 import type { OrganizationId } from "@/features/organizations/types";
+import type { AsaasBillingType } from "@/lib/asaas/types";
 import type { BillingCycle, SubscriptionPlan } from "./plans";
 
 export type SubscriptionPaymentRecord = {
@@ -23,6 +24,7 @@ export type AdminSubscription = {
   trialEndsAt: string;
   paidUntil: string | null;
   paymentReportedAt: string | null;
+  asaasBillingType: AsaasBillingType | null;
   notes: string | null;
   payments: SubscriptionPaymentRecord[];
 };
