@@ -21,7 +21,12 @@ export function MenuSection({
       id={buildMenuSectionAnchor(section.id)}
       className="flex scroll-mt-20 flex-col gap-3"
     >
-      <h2 className="font-semibold text-xl tracking-tight">{section.name}</h2>
+      <div className="flex flex-col gap-1">
+        <h2 className="font-semibold text-xl tracking-tight">{section.name}</h2>
+        {section.description && (
+          <p className="text-muted-foreground text-sm">{section.description}</p>
+        )}
+      </div>
       <ul className="flex flex-col divide-y overflow-hidden rounded-2xl border bg-card shadow-xs">
         {section.items.map((item) => (
           <li

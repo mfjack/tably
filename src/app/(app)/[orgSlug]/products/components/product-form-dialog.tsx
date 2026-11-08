@@ -37,6 +37,7 @@ const EMPTY_PRODUCT_FORM: DefaultValues<ProductFormInput> = {
   name: "",
   isActive: true,
   isOnMenu: true,
+  isDailyLuck: false,
   menuDetail: "",
   menuDescription: "",
   imageUrl: "",
@@ -51,6 +52,7 @@ function toFormValues(product: Product): DefaultValues<ProductFormInput> {
     price: product.price,
     isActive: product.isActive,
     isOnMenu: product.isOnMenu,
+    isDailyLuck: product.isDailyLuck,
     menuDetail: product.menuDetail ?? "",
     menuDescription: product.menuDescription ?? "",
     imageUrl: product.imageUrl ?? "",
@@ -178,6 +180,12 @@ export function ProductFormDialog({
             name="isOnMenu"
             label="Cardápio digital"
             description="Aparece na seção da categoria, se ela estiver no cardápio."
+          />
+          <SwitchField
+            control={form.control}
+            name="isDailyLuck"
+            label="Sorte do Dia"
+            description="Item especial que só aparece no PDV e no cardápio aos sábados e domingos."
           />
           {isOnMenu && (
             <>

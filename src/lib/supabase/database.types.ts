@@ -2381,6 +2381,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_active: boolean
+          is_daily_luck: boolean
           is_on_menu: boolean
           menu_description: string | null
           menu_detail: string | null
@@ -2399,6 +2400,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean
+          is_daily_luck?: boolean
           is_on_menu?: boolean
           menu_description?: string | null
           menu_detail?: string | null
@@ -2417,6 +2419,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean
+          is_daily_luck?: boolean
           is_on_menu?: boolean
           menu_description?: string | null
           menu_detail?: string | null
@@ -4364,6 +4367,7 @@ export type Database = {
           p_initial_payment_date?: string
           p_initial_total_cost?: number
           p_is_active: boolean
+          p_is_daily_luck?: boolean
           p_is_on_menu: boolean
           p_menu_description?: string
           p_menu_detail?: string

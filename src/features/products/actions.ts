@@ -28,7 +28,7 @@ import {
 import type { Product, ProductId } from "./types";
 
 const PRODUCT_COLUMNS =
-  "id, name, price, image_url, is_active, is_on_menu, menu_detail, menu_description, stock_quantity, minimum_stock, supplier_id, category_id, categories(name), product_ingredients(ingredient_id, quantity), product_addon_links(product_addons(id, name, price, is_active, ingredient_id, ingredient_quantity))";
+  "id, name, price, image_url, is_active, is_on_menu, menu_detail, menu_description, is_daily_luck, stock_quantity, minimum_stock, supplier_id, category_id, categories(name), product_ingredients(ingredient_id, quantity), product_addon_links(product_addons(id, name, price, is_active, ingredient_id, ingredient_quantity))";
 
 export async function listProducts(
   organizationId: OrganizationId,
@@ -71,6 +71,7 @@ export async function listProducts(
       isOnMenu: product.is_on_menu,
       menuDetail: product.menu_detail,
       menuDescription: product.menu_description,
+      isDailyLuck: product.is_daily_luck,
       stockQuantity: product.stock_quantity,
       minimumStock: product.minimum_stock,
       supplierId: product.supplier_id as SupplierId | null,
@@ -116,6 +117,7 @@ export async function saveProduct(
     isOnMenu,
     menuDetail,
     menuDescription,
+    isDailyLuck,
     imageUrl,
     recipe,
     addonIds,
@@ -137,6 +139,7 @@ export async function saveProduct(
     p_is_on_menu: isOnMenu,
     p_menu_detail: menuDetail || undefined,
     p_menu_description: menuDescription || undefined,
+    p_is_daily_luck: isDailyLuck,
   });
 
   if (isUniqueViolation(error)) {

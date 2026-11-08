@@ -24,6 +24,7 @@ export type Product = {
   isOnMenu: boolean;
   menuDetail: string | null;
   menuDescription: string | null;
+  isDailyLuck: boolean;
   stockQuantity: number | null;
   minimumStock: number;
   supplierId: SupplierId | null;

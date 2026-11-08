@@ -15,15 +15,21 @@ export type PublicMenuItem = {
   name: string;
   detail: string | null;
   description: string | null;
+  isDailyLuck: boolean;
   price: number;
   isAvailable: boolean;
   remaining: number | null;
   addons: PublicMenuAddon[];
 };
 
+export const DAILY_LUCK_SECTION_ID = "daily-luck";
+
+export type PublicMenuSectionId = CategoryId | typeof DAILY_LUCK_SECTION_ID;
+
 export type PublicMenuSection = {
-  id: CategoryId;
+  id: PublicMenuSectionId;
   name: string;
+  description?: string;
   items: PublicMenuItem[];
 };
 

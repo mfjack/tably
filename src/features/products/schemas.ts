@@ -26,6 +26,7 @@ export const productFormSchema = z
       .positive("O preço precisa ser maior que zero."),
     isActive: z.boolean(),
     isOnMenu: z.boolean(),
+    isDailyLuck: z.boolean(),
     menuDetail: z.string().trim().max(40, "Detalhe muito longo.").optional(),
     menuDescription: z
       .string()

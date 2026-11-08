@@ -16,6 +16,7 @@ import {
   getProductAvailability,
   type ProductAvailability,
 } from "@/features/products/availability";
+import { isDailyLuckDay } from "@/features/products/daily-luck";
 import { getExpiredIngredientNames } from "@/features/products/expired-ingredients";
 import { useProductsQuery } from "@/features/products/hooks/use-products-query";
 import type { Product, ProductId } from "@/features/products/types";
@@ -85,7 +86,8 @@ export function usePosCatalog(organizationId: OrganizationId, cart: Cart) {
   const activeProducts = useMemo(
     () =>
       (productsQuery.data ?? EMPTY_PRODUCTS).filter(
-        (product) => product.isActive,
+        (product) =>
+          product.isActive && (!product.isDailyLuck || isDailyLuckDay()),
       ),
     [productsQuery.data],
   );
