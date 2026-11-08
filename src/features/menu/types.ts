@@ -14,6 +14,7 @@ export type PublicMenuItem = {
   id: ProductId;
   name: string;
   detail: string | null;
+  description: string | null;
   price: number;
   isAvailable: boolean;
   remaining: number | null;

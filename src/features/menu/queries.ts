@@ -28,6 +28,7 @@ const publicMenuSchema = z.object({
           id: z.string().transform((id) => id as ProductId),
           name: z.string(),
           detail: z.string().nullable(),
+          description: z.string().nullable().default(null),
           price: z.number(),
           isAvailable: z.boolean(),
           remaining: z.number().nullable(),

@@ -28,6 +28,11 @@ export const productFormSchema = z
     isActive: z.boolean(),
     isOnMenu: z.boolean(),
     menuDetail: z.string().trim().max(40, "Detalhe muito longo.").optional(),
+    menuDescription: z
+      .string()
+      .trim()
+      .max(200, "Descrição muito longa.")
+      .optional(),
     imageUrl: z.string().optional(),
     recipe: z.array(recipeItemSchema),
     addonIds: z.array(z.string()),

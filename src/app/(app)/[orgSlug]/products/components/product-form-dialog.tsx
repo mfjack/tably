@@ -9,6 +9,7 @@ import { NumberField } from "@/components/form/number-field";
 import { SelectField } from "@/components/form/select-field";
 import { SwitchField } from "@/components/form/switch-field";
 import { TextField } from "@/components/form/text-field";
+import { TextareaField } from "@/components/form/textarea-field";
 import {
   FieldDescription,
   FieldGroup,
@@ -37,6 +38,7 @@ const EMPTY_PRODUCT_FORM: DefaultValues<ProductFormInput> = {
   isActive: true,
   isOnMenu: true,
   menuDetail: "",
+  menuDescription: "",
   imageUrl: "",
   recipe: [],
   addonIds: [],
@@ -50,6 +52,7 @@ function toFormValues(product: Product): DefaultValues<ProductFormInput> {
     isActive: product.isActive,
     isOnMenu: product.isOnMenu,
     menuDetail: product.menuDetail ?? "",
+    menuDescription: product.menuDescription ?? "",
     imageUrl: product.imageUrl ?? "",
     recipe: product.recipe,
     addonIds: product.addons.map((addon) => addon.id),
@@ -177,13 +180,21 @@ export function ProductFormDialog({
             description="Aparece na seção da categoria, se ela estiver no cardápio."
           />
           {isOnMenu && (
-            <TextField
-              control={form.control}
-              name="menuDetail"
-              label="Detalhe no cardápio"
-              placeholder="Ex.: 220ml"
-              autoComplete="off"
-            />
+            <>
+              <TextField
+                control={form.control}
+                name="menuDetail"
+                label="Detalhe no cardápio"
+                placeholder="Ex.: 220ml"
+                autoComplete="off"
+              />
+              <TextareaField
+                control={form.control}
+                name="menuDescription"
+                label="Descrição no cardápio"
+                placeholder="Ex.: Croissant amanteigado com ovos mexidos e bacon crocante."
+              />
+            </>
           )}
         </FieldSet>
 

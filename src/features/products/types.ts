@@ -23,6 +23,7 @@ export type Product = {
   recipe: RecipeItem[];
   isOnMenu: boolean;
   menuDetail: string | null;
+  menuDescription: string | null;
   stockQuantity: number | null;
   minimumStock: number;
   supplierId: SupplierId | null;

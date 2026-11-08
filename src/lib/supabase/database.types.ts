@@ -2382,6 +2382,7 @@ export type Database = {
           image_url: string | null
           is_active: boolean
           is_on_menu: boolean
+          menu_description: string | null
           menu_detail: string | null
           minimum_stock: number
           name: string
@@ -2399,6 +2400,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean
           is_on_menu?: boolean
+          menu_description?: string | null
           menu_detail?: string | null
           minimum_stock?: number
           name: string
@@ -2416,6 +2418,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean
           is_on_menu?: boolean
+          menu_description?: string | null
           menu_detail?: string | null
           minimum_stock?: number
           name?: string
@@ -4362,6 +4365,7 @@ export type Database = {
           p_initial_total_cost?: number
           p_is_active: boolean
           p_is_on_menu: boolean
+          p_menu_description?: string
           p_menu_detail?: string
           p_minimum_stock?: number
           p_name: string

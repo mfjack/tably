@@ -32,11 +32,18 @@ export function MenuSection({
             )}
           >
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <span className="font-medium">{item.name}</span>
-              {item.detail && (
-                <span className="text-muted-foreground text-sm">
-                  {item.detail}
-                </span>
+              <span className="font-medium">
+                {item.name}
+                {item.detail && (
+                  <span className="ml-1.5 font-normal text-muted-foreground text-xs">
+                    {item.detail}
+                  </span>
+                )}
+              </span>
+              {item.description && (
+                <p className="text-muted-foreground text-xs">
+                  {item.description}
+                </p>
               )}
             </div>
             {item.isAvailable ? (
