@@ -1,6 +1,5 @@
-import { StockEntryButton } from "@/features/ingredients/components/stock-entry-button";
+import { StockLinkButton } from "@/features/ingredients/components/stock-link-button";
 import { getUnitSymbol } from "@/features/ingredients/measure-units";
-import type { IngredientId } from "@/features/ingredients/types";
 import { formatQuantity } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { IngredientStockLevel } from "../availability";
@@ -8,13 +7,13 @@ import type { IngredientStockLevel } from "../availability";
 type IngredientStockLevelsProps = {
   stockLevels: readonly IngredientStockLevel[];
   className?: string;
-  onAddStock?: (ingredientId: IngredientId) => void;
+  getStockHref?: (level: IngredientStockLevel) => string;
 };
 
 export function IngredientStockLevels({
   stockLevels,
   className,
-  onAddStock,
+  getStockHref,
 }: IngredientStockLevelsProps) {
   if (stockLevels.length === 0) return null;
 
@@ -22,7 +21,7 @@ export function IngredientStockLevels({
     <ul
       className={cn(
         "flex flex-col text-xs",
-        onAddStock ? "gap-3" : "gap-0.5",
+        getStockHref ? "gap-3" : "gap-0.5",
         className,
       )}
     >
@@ -41,7 +40,7 @@ export function IngredientStockLevels({
           </span>
         );
 
-        if (!onAddStock) {
+        if (!getStockHref) {
           return (
             <li
               key={level.ingredientId}
@@ -62,10 +61,7 @@ export function IngredientStockLevels({
               <span className="truncate font-medium text-sm">{level.name}</span>
               {stockSummary}
             </span>
-            <StockEntryButton
-              itemName={level.name}
-              onClick={() => onAddStock(level.ingredientId)}
-            />
+            <StockLinkButton itemName={level.name} href={getStockHref(level)} />
           </li>
         );
       })}

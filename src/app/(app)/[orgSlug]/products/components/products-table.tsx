@@ -1,6 +1,7 @@
 "use client";
 
 import { Package, TriangleAlert } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { type ReactNode, useMemo } from "react";
 import { DataTable } from "@/components/data-table/data-table";
 import { createDataTableColumnHelper } from "@/components/data-table/data-table-features";
@@ -215,10 +216,12 @@ export function ProductsTable({
     [canManage, onEdit, onDelete, onManageStock],
   );
 
+  const searchParams = useSearchParams();
   const table = useDataTable({
     data: filteredProductRows,
     columns,
     getRowId: getProductRowId,
+    initialSearch: searchParams.get("search") ?? undefined,
   });
 
   return (

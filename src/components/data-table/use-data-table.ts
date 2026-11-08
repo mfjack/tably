@@ -17,6 +17,7 @@ type UseDataTableOptions<TData extends RowData> = {
   columns: ColumnDef<DataTableFeatures, TData, unknown>[];
   getRowId: (row: TData) => string;
   pageSize?: number;
+  initialSearch?: string;
 };
 
 export type DataTableInstance<TData extends RowData> = ReactTable<
@@ -29,6 +30,7 @@ export function useDataTable<TData extends RowData>({
   columns,
   getRowId,
   pageSize = DEFAULT_PAGE_SIZE,
+  initialSearch,
 }: UseDataTableOptions<TData>): DataTableInstance<TData> {
   const table = useTable({
     features: dataTableFeatures,
@@ -39,6 +41,7 @@ export function useDataTable<TData extends RowData>({
     autoResetPageIndex: false,
     initialState: {
       pagination: { pageIndex: 0, pageSize },
+      globalFilter: initialSearch,
     },
   });
 

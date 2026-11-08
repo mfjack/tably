@@ -32,10 +32,24 @@ export default async function PosPage({ params }: PageProps<"/[orgSlug]/pos">) {
       canOpenOrderTabs={accessibleModuleIds.includes("order_tabs")}
       isKitchenEnabled={!organization.hiddenModules.includes("kitchen")}
       canOrganizeProducts={canManageCatalog(organization.role)}
-      canAddStock={
-        accessibleModuleIds.includes("ingredients") &&
-        canManageCatalog(organization.role)
-      }
+      stockLinks={{
+        productsHref:
+          accessibleModuleIds.includes("products") &&
+          canManageCatalog(organization.role)
+            ? buildOrganizationPath(
+                organization.slug,
+                getAppModule("products").path,
+              )
+            : null,
+        ingredientsHref:
+          accessibleModuleIds.includes("ingredients") &&
+          canManageCatalog(organization.role)
+            ? buildOrganizationPath(
+                organization.slug,
+                getAppModule("ingredients").path,
+              )
+            : null,
+      }}
       kitchenHref={
         accessibleModuleIds.includes("kitchen")
           ? buildOrganizationPath(

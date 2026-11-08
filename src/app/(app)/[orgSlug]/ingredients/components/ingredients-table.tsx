@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { type ReactNode, useMemo } from "react";
 import { DataTable } from "@/components/data-table/data-table";
 import { createDataTableColumnHelper } from "@/components/data-table/data-table-features";
@@ -150,10 +151,12 @@ export function IngredientsTable({
     ],
   );
 
+  const searchParams = useSearchParams();
   const table = useDataTable({
     data: filteredIngredients,
     columns,
     getRowId: getIngredientRowId,
+    initialSearch: searchParams.get("search") ?? undefined,
   });
 
   return (

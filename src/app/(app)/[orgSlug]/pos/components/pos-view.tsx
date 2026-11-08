@@ -12,9 +12,6 @@ import {
   sortByCategoryOrder,
 } from "@/features/categories/category-order";
 import type { CategoryId } from "@/features/categories/types";
-import { PurchaseDialog } from "@/features/ingredients/components/purchase-dialog";
-import { useIngredientsMap } from "@/features/ingredients/hooks/use-ingredients-map";
-import type { Ingredient, IngredientId } from "@/features/ingredients/types";
 import type { OrderSummaryData } from "@/features/orders/components/order-summary";
 import { PaymentDialog } from "@/features/orders/components/payment-dialog";
 import { useOpenTabs } from "@/features/orders/hooks/use-open-tabs";
@@ -35,7 +32,6 @@ import {
   useTabTarget,
 } from "@/features/pos/cart-store";
 import { AddonPickerDialog } from "@/features/product-addons/components/addon-picker-dialog";
-import { ProductStockEntryDialog } from "@/features/products/components/product-stock-entry-dialog";
 import type { Product, ProductId } from "@/features/products/types";
 import { useIsOnline } from "@/hooks/use-is-online";
 import { PageHeader } from "../../components/page-header";
@@ -51,6 +47,7 @@ import {
 } from "../hooks/use-pos-catalog";
 import { usePosCheckout } from "../hooks/use-pos-checkout";
 import { useProductOrganizer } from "../hooks/use-product-organizer";
+import type { StockLinks } from "../stock-links";
 import { CartPanel } from "./cart-panel";
 import {
   CartTabNameDialog,
@@ -92,7 +89,7 @@ type PosViewProps = {
   kitchenHref: string | null;
   printerSettingsHref: string;
   isKitchenEnabled: boolean;
-  canAddStock: boolean;
+  stockLinks: StockLinks;
   canOrganizeProducts: boolean;
 };
 
@@ -121,7 +118,7 @@ export function PosView({
   kitchenHref,
   printerSettingsHref,
   isKitchenEnabled,
-  canAddStock,
+  stockLinks,
   canOrganizeProducts,
 }: PosViewProps) {
   const isCartHydrated = useHydratedCartStore();
@@ -261,24 +258,6 @@ export function PosView({
     },
     [posProducts, startOrganizing],
   );
-
-  const { ingredients, ingredientsById } = useIngredientsMap(organizationId);
-  const [stockEntryIngredient, setStockEntryIngredient] =
-    useState<Ingredient | null>(null);
-  const [isStockEntryOpen, setIsStockEntryOpen] = useState(false);
-  const openStockEntry = useCallback(
-    (ingredientId: IngredientId) => {
-      const ingredient = ingredientsById.get(ingredientId);
-      if (!ingredient) return;
-      setStockEntryIngredient(ingredient);
-      setIsStockEntryOpen(true);
-    },
-    [ingredientsById],
-  );
-  const [stockEntryProductId, setStockEntryProductId] =
-    useState<ProductId | null>(null);
-  const stockEntryProduct =
-    posProducts.find((product) => product.id === stockEntryProductId) ?? null;
 
   const handleAddProduct = useCallback(
     (productId: ProductId) => {
@@ -539,8 +518,7 @@ export function PosView({
                   products={visibleProducts}
                   isLoading={isLoading || !isCartHydrated}
                   onAdd={handleAddProduct}
-                  onAddStock={canAddStock ? openStockEntry : undefined}
-                  onAddProductStock={setStockEntryProductId}
+                  stockLinks={stockLinks}
                   onLongPress={
                     canOrganizeProducts ? startOrganizingFromProduct : undefined
                   }
@@ -692,20 +670,6 @@ export function PosView({
         onClose={checkout.startQuickPayment}
         onConfirm={checkout.createTab}
       />
-      <ProductStockEntryDialog
-        organizationId={organizationId}
-        product={stockEntryProduct}
-        onClose={() => setStockEntryProductId(null)}
-      />
-      {canAddStock && (
-        <PurchaseDialog
-          organizationId={organizationId}
-          isOpen={isStockEntryOpen}
-          ingredients={ingredients}
-          initialIngredient={stockEntryIngredient}
-          onClose={() => setIsStockEntryOpen(false)}
-        />
-      )}
       {canUseOrderTabs && (
         <PosOrderTabsSheet
           organizationId={organizationId}

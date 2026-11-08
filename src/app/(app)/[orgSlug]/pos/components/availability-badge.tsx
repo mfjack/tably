@@ -4,32 +4,42 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { StockEntryButton } from "@/features/ingredients/components/stock-entry-button";
-import type { IngredientId } from "@/features/ingredients/types";
+import { StockLinkButton } from "@/features/ingredients/components/stock-link-button";
 import type { ProductAvailability } from "@/features/products/availability";
 import { IngredientStockLevels } from "@/features/products/components/ingredient-stock-levels";
 import { cn } from "@/lib/utils";
+import { buildStockSearchHref, type StockLinks } from "../stock-links";
 
 type AvailabilityBadgeProps = {
   productName: string;
   label: string;
   availability: ProductAvailability;
-  onAddStock?: (ingredientId: IngredientId) => void;
-  onAddProductStock?: () => void;
+  isProductStock: boolean;
+  stockLinks?: StockLinks;
 };
 
 export function AvailabilityBadge({
   productName,
   label,
   availability,
-  onAddStock,
-  onAddProductStock,
+  isProductStock,
+  stockLinks,
 }: AvailabilityBadgeProps) {
   if (availability.status === "unlimited") return null;
   const isOut = availability.status === "out";
   const isLow = availability.status === "low";
   const { stockLevels } = availability;
   const singleStockLevel = stockLevels.length === 1 ? stockLevels[0] : null;
+  const productsHref = stockLinks?.productsHref ?? null;
+  const ingredientsHref = stockLinks?.ingredientsHref ?? null;
+  const productStockHref =
+    isProductStock && productsHref
+      ? buildStockSearchHref(productsHref, productName)
+      : null;
+  const singleIngredientHref =
+    !productStockHref && singleStockLevel && ingredientsHref
+      ? buildStockSearchHref(ingredientsHref, singleStockLevel.name)
+      : null;
 
   return (
     <Popover>
@@ -61,22 +71,23 @@ export function AvailabilityBadge({
           <p className="font-semibold text-sm">
             {isOut ? label : `Restam ${label}`}
           </p>
-          {onAddProductStock && (
-            <StockEntryButton
-              itemName={productName}
-              onClick={onAddProductStock}
-            />
+          {productStockHref && (
+            <StockLinkButton itemName={productName} href={productStockHref} />
           )}
-          {!onAddProductStock && onAddStock && singleStockLevel && (
-            <StockEntryButton
+          {singleStockLevel && singleIngredientHref && (
+            <StockLinkButton
               itemName={singleStockLevel.name}
-              onClick={() => onAddStock(singleStockLevel.ingredientId)}
+              href={singleIngredientHref}
             />
           )}
         </div>
         <IngredientStockLevels
           stockLevels={stockLevels}
-          onAddStock={singleStockLevel ? undefined : onAddStock}
+          getStockHref={
+            singleStockLevel || !ingredientsHref
+              ? undefined
+              : (level) => buildStockSearchHref(ingredientsHref, level.name)
+          }
         />
       </PopoverContent>
     </Popover>

@@ -1,13 +1,13 @@
 import { ShoppingBag } from "lucide-react";
 import Image from "next/image";
 import { memo } from "react";
-import type { IngredientId } from "@/features/ingredients/types";
 import type { ProductAvailability } from "@/features/products/availability";
 import type { ProductId } from "@/features/products/types";
 import { useLongPress } from "@/hooks/use-long-press";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { PosProduct } from "../hooks/use-pos-catalog";
+import type { StockLinks } from "../stock-links";
 import { AvailabilityBadge } from "./availability-badge";
 
 const LONG_PRESS_TO_ORGANIZE_IN_MS = 1000;
@@ -15,8 +15,7 @@ const LONG_PRESS_TO_ORGANIZE_IN_MS = 1000;
 type ProductCardProps = {
   product: PosProduct;
   onAdd: (productId: ProductId) => void;
-  onAddStock?: (ingredientId: IngredientId) => void;
-  onAddProductStock?: (productId: ProductId) => void;
+  stockLinks?: StockLinks;
   onLongPress?: (productId: ProductId) => void;
 };
 
@@ -45,8 +44,7 @@ function getAccessibleLabel(
 function ProductCardComponent({
   product,
   onAdd,
-  onAddStock,
-  onAddProductStock,
+  stockLinks,
   onLongPress,
 }: ProductCardProps) {
   const longPress = useLongPress(
@@ -122,12 +120,8 @@ function ProductCardComponent({
               productName={product.name}
               label={availabilityLabel}
               availability={availability}
-              onAddStock={onAddStock}
-              onAddProductStock={
-                onAddProductStock && product.stockQuantity !== null
-                  ? () => onAddProductStock(product.id)
-                  : undefined
-              }
+              isProductStock={product.stockQuantity !== null}
+              stockLinks={stockLinks}
             />
           )}
         </div>
