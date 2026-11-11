@@ -1,3 +1,4 @@
+import { resolveSelectedAddons } from "@/features/product-addons/item-addons";
 import type { Product, ProductId } from "@/features/products/types";
 import type { CartItem } from "./cart-store";
 
@@ -20,13 +21,11 @@ export function buildReservedIngredientQuantities(
     for (const recipeItem of product.recipe) {
       reserve(recipeItem.ingredientId, recipeItem.quantity * cartItem.quantity);
     }
-    const addonIds = new Set(cartItem.addonIds ?? []);
-    for (const addon of product.addons) {
-      if (
-        addonIds.has(addon.id) &&
-        addon.ingredientId &&
-        addon.ingredientQuantity !== null
-      ) {
+    for (const addon of resolveSelectedAddons(
+      cartItem.addonIds,
+      product.addons,
+    )) {
+      if (addon.ingredientId && addon.ingredientQuantity !== null) {
         reserve(
           addon.ingredientId,
           addon.ingredientQuantity * cartItem.quantity,

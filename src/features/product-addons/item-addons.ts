@@ -34,10 +34,33 @@ export function formatAddonLabel(
     : addon.name;
 }
 
+export function getAddonNames(
+  addons: readonly Pick<OrderItemAddon, "name">[],
+): string[] {
+  const countsByName = new Map<string, number>();
+  for (const addon of addons) {
+    countsByName.set(addon.name, (countsByName.get(addon.name) ?? 0) + 1);
+  }
+  return [...countsByName].map(([name, count]) =>
+    count > 1 ? `${count}x ${name}` : name,
+  );
+}
+
+export function resolveSelectedAddons<TAddon extends { id: string }>(
+  addonIds: readonly string[] | undefined,
+  availableAddons: readonly TAddon[],
+): TAddon[] {
+  return (addonIds ?? []).flatMap((addonId) =>
+    availableAddons.filter((addon) => addon.id === addonId),
+  );
+}
+
 export function formatAddonNames(
   addons: readonly Pick<OrderItemAddon, "name">[],
 ): string {
-  return addons.map((addon) => `+ ${addon.name}`).join(" ");
+  return getAddonNames(addons)
+    .map((addonName) => `+ ${addonName}`)
+    .join(" ");
 }
 
 export function formatItemNameWithAddons(

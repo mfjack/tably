@@ -6,6 +6,7 @@ import {
 } from "@/features/loyalty/record-loyalty-purchase";
 import type { OrganizationId } from "@/features/organizations/types";
 import {
+  getAddonNames,
   getAddonsTotal,
   parseOrderItemAddons,
 } from "@/features/product-addons/item-addons";
@@ -169,7 +170,7 @@ function toOrderDetails(row: OrderDetailsRow): OrderDetails {
           quantity: item.quantity,
           unitPrice: item.unit_price,
           basePrice: item.unit_price - getAddonsTotal(addons),
-          addonNames: addons.map((addon) => addon.name),
+          addonNames: getAddonNames(addons),
           note: item.note,
           total: item.unit_price * item.quantity,
         };

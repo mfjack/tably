@@ -11,7 +11,7 @@ export type CartItem = {
 type CartItemIdentity = Pick<CartItem, "productId" | "note" | "addonIds">;
 
 function normalizeAddonIds(addonIds: readonly string[] = []): string[] {
-  return [...new Set(addonIds)].sort();
+  return [...addonIds].sort();
 }
 
 function getAddonKey(addonIds?: readonly string[]) {

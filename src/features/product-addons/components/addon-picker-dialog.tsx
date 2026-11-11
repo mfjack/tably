@@ -3,10 +3,16 @@
 import { useState } from "react";
 import { DetailsDialog } from "@/components/dialog/details-dialog";
 import { DIALOG_ACTION_BUTTON_CLASS_NAME } from "@/components/dialog/dialog-styles";
-import { ToggleChip } from "@/components/toggle-chip";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format";
-import { formatAddonLabel, getAddonsTotal } from "../item-addons";
+import {
+  formatAddonLabel,
+  getAddonsTotal,
+  resolveSelectedAddons,
+} from "../item-addons";
+import { AddonQuantityChip } from "./addon-quantity-chip";
+
+const MAX_ADDON_QUANTITY = 5;
 
 export type AddonOption = {
   id: string;
@@ -31,17 +37,24 @@ export function AddonPickerDialog({
   onConfirm,
 }: AddonPickerDialogProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const selectedAddons = addons.filter((addon) =>
-    selectedIds.includes(addon.id),
-  );
+  const selectedAddons = resolveSelectedAddons(selectedIds, addons);
   const total = basePrice + getAddonsTotal(selectedAddons);
 
-  function toggleAddon(addonId: string) {
-    setSelectedIds((currentIds) =>
-      currentIds.includes(addonId)
-        ? currentIds.filter((currentId) => currentId !== addonId)
-        : [...currentIds, addonId],
-    );
+  function countSelected(addonId: string) {
+    return selectedIds.filter((selectedId) => selectedId === addonId).length;
+  }
+
+  function addAddon(addonId: string) {
+    setSelectedIds((currentIds) => [...currentIds, addonId]);
+  }
+
+  function removeAddon(addonId: string) {
+    setSelectedIds((currentIds) => {
+      const index = currentIds.lastIndexOf(addonId);
+      return index === -1
+        ? currentIds
+        : [...currentIds.slice(0, index), ...currentIds.slice(index + 1)];
+    });
   }
 
   return (
@@ -72,21 +85,24 @@ export function AddonPickerDialog({
     >
       <div className="flex flex-col gap-3">
         <p className="text-muted-foreground text-sm">
-          Escolha os adicionais ou toque em Adicionar para levar sem nenhum.
+          Toque no adicional para incluir e use + para pedir mais de um. Ou
+          toque em Adicionar para levar sem nenhum.
         </p>
         <div className="grid grid-cols-2 gap-2">
           {addons.map((addon) => (
-            <ToggleChip
+            <AddonQuantityChip
               key={addon.id}
               label={
                 addon.isAvailable
                   ? formatAddonLabel(addon)
                   : `${addon.name} · Esgotado`
               }
-              isSelected={selectedIds.includes(addon.id)}
+              addonName={addon.name}
+              quantity={countSelected(addon.id)}
+              maxQuantity={MAX_ADDON_QUANTITY}
               isDisabled={!addon.isAvailable}
-              onToggle={() => toggleAddon(addon.id)}
-              className="w-full justify-center"
+              onIncrement={() => addAddon(addon.id)}
+              onDecrement={() => removeAddon(addon.id)}
             />
           ))}
         </div>

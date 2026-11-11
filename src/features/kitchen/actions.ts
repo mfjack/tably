@@ -2,7 +2,10 @@
 
 import type { OrderId } from "@/features/orders/types";
 import type { OrganizationId } from "@/features/organizations/types";
-import { parseOrderItemAddons } from "@/features/product-addons/item-addons";
+import {
+  getAddonNames,
+  parseOrderItemAddons,
+} from "@/features/product-addons/item-addons";
 import {
   hasModuleAccess,
   hasModuleAccessToRow,
@@ -79,9 +82,7 @@ function toKitchenTicket(row: KitchenTicketRow): KitchenTicket {
       .map((item) => ({
         id: item.id,
         productName: item.product_name,
-        addonNames: parseOrderItemAddons(item.addons).map(
-          (addon) => addon.name,
-        ),
+        addonNames: getAddonNames(parseOrderItemAddons(item.addons)),
         quantity: item.quantity,
         unitPrice: item.unit_price,
         note: item.note,

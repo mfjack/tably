@@ -17,7 +17,11 @@ import {
   useLatestRecentOrder,
   useMenuCartItems,
 } from "@/features/online-orders/menu-cart-store";
-import { getAddonsTotal } from "@/features/product-addons/item-addons";
+import {
+  getAddonNames,
+  getAddonsTotal,
+  resolveSelectedAddons,
+} from "@/features/product-addons/item-addons";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { MenuCartLine } from "./menu-cart-item-card";
@@ -64,8 +68,7 @@ export function MenuOrderBar({
     (cartItem) => {
       const menuItem = itemsById.get(cartItem.productId);
       if (!menuItem) return [];
-      const addonIds = new Set(cartItem.addonIds ?? []);
-      const addons = menuItem.addons.filter((addon) => addonIds.has(addon.id));
+      const addons = resolveSelectedAddons(cartItem.addonIds, menuItem.addons);
       return [
         {
           productId: menuItem.id,
@@ -75,7 +78,7 @@ export function MenuOrderBar({
           quantity: cartItem.quantity,
           note: cartItem.note,
           addonIds: cartItem.addonIds ?? [],
-          addonNames: addons.map((addon) => addon.name),
+          addonNames: getAddonNames(addons),
           total: (menuItem.price + getAddonsTotal(addons)) * cartItem.quantity,
         },
       ];

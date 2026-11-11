@@ -4,7 +4,10 @@ import * as z from "zod";
 import { getPublicMenu } from "@/features/menu/queries";
 import type { OrderId } from "@/features/orders/types";
 import type { OrganizationId } from "@/features/organizations/types";
-import { parseOrderItemAddons } from "@/features/product-addons/item-addons";
+import {
+  getAddonNames,
+  parseOrderItemAddons,
+} from "@/features/product-addons/item-addons";
 import type { ProductId } from "@/features/products/types";
 import {
   hasModuleAccess,
@@ -65,7 +68,7 @@ function toOnlineOrderItems(items: unknown): OnlineOrderItem[] {
     quantity: item.quantity,
     unitPrice: item.unit_price,
     note: item.note,
-    addonNames: parseOrderItemAddons(item.addons).map((addon) => addon.name),
+    addonNames: getAddonNames(parseOrderItemAddons(item.addons)),
   }));
 }
 

@@ -9,7 +9,9 @@ import { isAddonAvailable } from "@/features/product-addons/availability";
 import type { AddonOption } from "@/features/product-addons/components/addon-picker-dialog";
 import {
   formatItemNameWithAddons,
+  getAddonNames,
   getAddonsTotal,
+  resolveSelectedAddons,
 } from "@/features/product-addons/item-addons";
 import type { ProductAddon } from "@/features/product-addons/types";
 import {
@@ -41,7 +43,7 @@ export type CartLine = {
 };
 
 export function getCartLineAddonNames(cartLine: CartLine): string[] {
-  return cartLine.addons.map((addon) => addon.name);
+  return getAddonNames(cartLine.addons);
 }
 
 export function toOrderItemInput(cartLine: CartLine): OrderItemInput {
@@ -57,8 +59,7 @@ function buildCartLine(
   cartItem: Cart["items"][number],
   product: Product,
 ): CartLine {
-  const addonIds = new Set(cartItem.addonIds ?? []);
-  const addons = product.addons.filter((addon) => addonIds.has(addon.id));
+  const addons = resolveSelectedAddons(cartItem.addonIds, product.addons);
   const unitPrice = product.price + getAddonsTotal(addons);
   return {
     key: getCartItemKey(cartItem),
