@@ -22,14 +22,9 @@ export type PublicMenuItem = {
   addons: PublicMenuAddon[];
 };
 
-export const DAILY_LUCK_SECTION_ID = "daily-luck";
-
-export type PublicMenuSectionId = CategoryId | typeof DAILY_LUCK_SECTION_ID;
-
 export type PublicMenuSection = {
-  id: PublicMenuSectionId;
+  id: CategoryId;
   name: string;
-  description?: string;
   items: PublicMenuItem[];
 };
 

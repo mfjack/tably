@@ -7,38 +7,7 @@ import { openingStatusSchema } from "@/features/organizations/opening-hours";
 import type { ProductAddonId } from "@/features/product-addons/types";
 import type { ProductId } from "@/features/products/types";
 import { createClient } from "@/lib/supabase/server";
-import {
-  DAILY_LUCK_SECTION_ID,
-  type PublicLoyaltyProgram,
-  type PublicMenu,
-  type PublicMenuSection,
-} from "./types";
-
-const DAILY_LUCK_SECTION_NAME = "Sorte do Dia";
-const DAILY_LUCK_SECTION_DESCRIPTION =
-  "Só no fim de semana: delícias que não estão no cardápio de sempre.";
-
-function withDailyLuckSection(menu: PublicMenu): PublicMenu {
-  const dailyLuckItems = menu.sections.flatMap((section) =>
-    section.items.filter((item) => item.isDailyLuck),
-  );
-  if (dailyLuckItems.length === 0) return menu;
-
-  const dailyLuckSection: PublicMenuSection = {
-    id: DAILY_LUCK_SECTION_ID,
-    name: DAILY_LUCK_SECTION_NAME,
-    description: DAILY_LUCK_SECTION_DESCRIPTION,
-    items: dailyLuckItems,
-  };
-  const regularSections = menu.sections
-    .map((section) => ({
-      ...section,
-      items: section.items.filter((item) => !item.isDailyLuck),
-    }))
-    .filter((section) => section.items.length > 0);
-
-  return { ...menu, sections: [dailyLuckSection, ...regularSections] };
-}
+import type { PublicLoyaltyProgram, PublicMenu } from "./types";
 
 const publicMenuSchema = z.object({
   title: z.string(),
@@ -89,7 +58,7 @@ export const getPublicMenu = cache(
     if (error || data === null) return null;
 
     const parsedMenu = publicMenuSchema.safeParse(data);
-    return parsedMenu.success ? withDailyLuckSection(parsedMenu.data) : null;
+    return parsedMenu.success ? parsedMenu.data : null;
   },
 );
 

@@ -185,7 +185,7 @@ export function ProductFormDialog({
             control={form.control}
             name="isDailyLuck"
             label="Sorte do Dia"
-            description="Item especial que só aparece no PDV e no cardápio aos sábados e domingos."
+            description="Destaca o produto no cardápio como item especial do dia."
           />
           {isOnMenu && (
             <>

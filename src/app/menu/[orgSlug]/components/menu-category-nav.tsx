@@ -2,10 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import type {
-  PublicMenuSection,
-  PublicMenuSectionId,
-} from "@/features/menu/types";
+import type { CategoryId } from "@/features/categories/types";
+import type { PublicMenuSection } from "@/features/menu/types";
 import { cn } from "@/lib/utils";
 import { buildMenuSectionAnchor } from "./menu-section-anchor";
 
@@ -38,8 +36,9 @@ type MenuCategoryNavProps = {
 };
 
 export function MenuCategoryNav({ sections }: MenuCategoryNavProps) {
-  const [activeSectionId, setActiveSectionId] =
-    useState<PublicMenuSectionId | null>(sections[0]?.id ?? null);
+  const [activeSectionId, setActiveSectionId] = useState<CategoryId | null>(
+    sections[0]?.id ?? null,
+  );
   const listRef = useRef<HTMLUListElement>(null);
   const [edgeFade, setEdgeFade] = useState<EdgeFade>("none");
 

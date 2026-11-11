@@ -1,5 +1,5 @@
-import type { PublicMenuSectionId } from "@/features/menu/types";
+import type { CategoryId } from "@/features/categories/types";
 
-export function buildMenuSectionAnchor(sectionId: PublicMenuSectionId) {
-  return `category-${sectionId}`;
+export function buildMenuSectionAnchor(categoryId: CategoryId) {
+  return `category-${categoryId}`;
 }

@@ -1,3 +1,4 @@
+import { Clover } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatMenuPrice } from "@/features/menu/format-menu-price";
 import type { PublicMenuSection } from "@/features/menu/types";
@@ -21,22 +22,24 @@ export function MenuSection({
       id={buildMenuSectionAnchor(section.id)}
       className="flex scroll-mt-20 flex-col gap-3"
     >
-      <div className="flex flex-col gap-1">
-        <h2 className="font-semibold text-xl tracking-tight">{section.name}</h2>
-        {section.description && (
-          <p className="text-muted-foreground text-sm">{section.description}</p>
-        )}
-      </div>
+      <h2 className="font-semibold text-xl tracking-tight">{section.name}</h2>
       <ul className="flex flex-col divide-y overflow-hidden rounded-2xl border bg-card shadow-xs">
         {section.items.map((item) => (
           <li
             key={item.id}
             className={cn(
               "flex min-h-16 items-center gap-3 px-4 py-3",
+              item.isDailyLuck && "bg-primary/5",
               !item.isAvailable && "text-muted-foreground",
             )}
           >
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+              {item.isDailyLuck && (
+                <Badge variant="outline" className="mb-0.5 gap-1 self-start">
+                  <Clover aria-hidden />
+                  Sorte do Dia
+                </Badge>
+              )}
               <span className="font-medium">
                 {item.name}
                 {item.detail && (
