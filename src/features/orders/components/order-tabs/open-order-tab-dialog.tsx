@@ -27,7 +27,7 @@ type OpenOrderTabDialogProps = {
   onCharge: () => void;
   onPrint: () => void;
   onCancelOrder: () => void;
-  onChangeTable: () => void;
+  onChangeTable?: () => void;
 };
 
 export function OpenOrderTabDialog({
@@ -114,7 +114,7 @@ export function OpenOrderTabDialog({
               Cancelar comanda
             </Button>
             <div className="flex gap-1">
-              {!isPendingSync && (
+              {onChangeTable && !isPendingSync && (
                 <Button
                   type="button"
                   variant="ghost"

@@ -160,6 +160,7 @@ export const getUserOrganizations = cache(
           isMultipleCartsEnabled: organization.is_multiple_carts_enabled,
           isCustomerAccountPaymentEnabled:
             organization.is_customer_account_payment_enabled,
+          isTableServiceEnabled: organization.menu_ordering_mode === "team",
           loyaltyProgram: toLoyaltyProgram(loyalty, hiddenModules),
           paymentFees,
           acceptedPaymentMethods: sortPaymentMethods(

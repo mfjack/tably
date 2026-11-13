@@ -49,6 +49,7 @@ export type OrganizationCheckoutSettings = {
   isProductAddonsEnabled: boolean;
   isMultipleCartsEnabled: boolean;
   isCustomerAccountPaymentEnabled: boolean;
+  isTableServiceEnabled: boolean;
   loyaltyProgram: LoyaltyProgram | null;
   paymentFees: OrganizationPaymentFees;
   acceptedPaymentMethods: PaymentMethod[];

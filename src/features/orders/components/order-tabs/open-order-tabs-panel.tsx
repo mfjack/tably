@@ -262,9 +262,12 @@ export function OpenOrderTabsPanel({
           selectedOrder &&
           setOpenTabState({ step: "cancel", orderId: selectedOrder.id })
         }
-        onChangeTable={() =>
-          selectedOrder &&
-          setOpenTabState({ step: "table", orderId: selectedOrder.id })
+        onChangeTable={
+          checkoutSettings.isTableServiceEnabled
+            ? () =>
+                selectedOrder &&
+                setOpenTabState({ step: "table", orderId: selectedOrder.id })
+            : undefined
         }
       />
       <ChangeTableDialog
