@@ -114,7 +114,7 @@ export function OpenOrderTabDialog({
               Cancelar comanda
             </Button>
             <div className="flex gap-1">
-              {order.tableNumber !== null && !isPendingSync && (
+              {!isPendingSync && (
                 <Button
                   type="button"
                   variant="ghost"
@@ -122,7 +122,7 @@ export function OpenOrderTabDialog({
                   onClick={onChangeTable}
                 >
                   <ArrowLeftRight aria-hidden />
-                  Trocar mesa
+                  {order.tableNumber === null ? "Definir mesa" : "Trocar mesa"}
                 </Button>
               )}
               <Button

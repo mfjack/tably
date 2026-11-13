@@ -48,10 +48,12 @@ export default async function PublicMenuPage({
               {menu.tagline}
             </p>
           )}
-          <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
-            <MenuOpeningStatus status={menu.openingStatus} />
-            {menu.instagram && <InstagramLink handle={menu.instagram} />}
-          </div>
+          {!waiterOrganizationId && (
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+              <MenuOpeningStatus status={menu.openingStatus} />
+              {menu.instagram && <InstagramLink handle={menu.instagram} />}
+            </div>
+          )}
           {loyaltyProgram && (
             <div className="pt-3">
               <MenuLoyaltyDialog menuSlug={orgSlug} program={loyaltyProgram} />

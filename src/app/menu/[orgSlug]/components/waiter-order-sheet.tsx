@@ -1,10 +1,13 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { type FormEvent, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { NumberField } from "@/components/form/number-field";
 import { TextField } from "@/components/form/text-field";
+import { SearchInput } from "@/components/search-input";
+import { ToggleChip } from "@/components/toggle-chip";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
 import {
@@ -21,6 +24,9 @@ import {
   type WaiterOrderTableInput,
   waiterOrderTableSchema,
 } from "@/features/online-orders/schemas";
+import { useAddOrderItemsMutation } from "@/features/orders/hooks/use-add-order-items-mutation";
+import { useOpenOrderTabsQuery } from "@/features/orders/hooks/use-open-order-tabs-query";
+import type { OrderDetails, OrderId } from "@/features/orders/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import { formatCurrency } from "@/lib/format";
 import type { MenuCartLine } from "./menu-cart-item-card";
@@ -45,35 +51,75 @@ export function WaiterOrderSheet({
 }: WaiterOrderSheetProps) {
   const clearCart = useMenuCartStore((state) => state.clearCart);
   const placeWaiterOrderMutation = usePlaceWaiterOrderMutation(organizationId);
+  const addOrderItemsMutation = useAddOrderItemsMutation(organizationId);
+  const openTabsQuery = useOpenOrderTabsQuery(organizationId, isOpen);
+  const [selectedOrderId, setSelectedOrderId] = useState<OrderId | null>(null);
+  const [tabSearch, setTabSearch] = useState("");
+  const openTabs = openTabsQuery.data ?? [];
+  const normalizedTabSearch = tabSearch.trim().toLocaleLowerCase("pt-BR");
+  const visibleTabs = normalizedTabSearch
+    ? openTabs.filter((order) =>
+        (order.customerName ?? "")
+          .toLocaleLowerCase("pt-BR")
+          .includes(normalizedTabSearch),
+      )
+    : openTabs;
+  const selectedOrder =
+    openTabs.find((order) => order.id === selectedOrderId) ?? null;
+  const isSending =
+    placeWaiterOrderMutation.isPending || addOrderItemsMutation.isPending;
+  const orderItems = cartLines.map((line) => ({
+    productId: line.productId,
+    quantity: line.quantity,
+    note: line.note,
+    addonIds: line.addonIds,
+  }));
+
+  function finishOrder() {
+    toast.success("Pedido enviado.", { description: "Já está na cozinha." });
+    clearCart(menuSlug);
+    form.reset({ customerName: "" });
+    setSelectedOrderId(null);
+    setTabSearch("");
+    onOpenChange(false);
+  }
+
+  function sendToSelectedOrder(order: OrderDetails) {
+    addOrderItemsMutation.mutate(
+      {
+        orderId: order.id,
+        items: orderItems,
+        request: { requestId: crypto.randomUUID() },
+      },
+      {
+        onSuccess: finishOrder,
+        onError: (error) => toast.error(error.message),
+      },
+    );
+  }
   const form = useForm<WaiterOrderTableInput>({
     resolver: zodResolver(waiterOrderTableSchema),
     defaultValues: { customerName: "" },
   });
 
-  const handleSubmit = form.handleSubmit((values) => {
+  const submitNewOrder = form.handleSubmit((values) => {
     placeWaiterOrderMutation.mutate(
+      { ...values, items: orderItems },
       {
-        ...values,
-        items: cartLines.map((line) => ({
-          productId: line.productId,
-          quantity: line.quantity,
-          note: line.note,
-          addonIds: line.addonIds,
-        })),
-      },
-      {
-        onSuccess: () => {
-          toast.success(`Pedido da mesa ${values.tableNumber} enviado.`, {
-            description: "Já está na cozinha.",
-          });
-          clearCart(menuSlug);
-          form.reset({ customerName: "" });
-          onOpenChange(false);
-        },
+        onSuccess: finishOrder,
         onError: (error) => toast.error(error.message),
       },
     );
   });
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    if (selectedOrder) {
+      event.preventDefault();
+      sendToSelectedOrder(selectedOrder);
+      return;
+    }
+    void submitNewOrder(event);
+  }
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
@@ -83,45 +129,68 @@ export function WaiterOrderSheet({
       >
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <SheetHeader>
-            <SheetTitle>Pedido da mesa</SheetTitle>
+            <SheetTitle>Pedido</SheetTitle>
             <SheetDescription>
-              Vai direto para a cozinha. Se a mesa já tem conta aberta, os itens
-              entram nela.
+              Escolha uma comanda aberta ou abra uma nova. Vai direto para a
+              cozinha.
             </SheetDescription>
           </SheetHeader>
 
           <MenuCartLines menuSlug={menuSlug} cartLines={cartLines} />
 
-          <FieldGroup className="grid gap-4 px-4 sm:grid-cols-2">
-            <NumberField
-              control={form.control}
-              name="tableNumber"
-              label="Mesa"
-              format="integer"
-              placeholder="Ex.: 5"
-            />
-            <TextField
-              control={form.control}
-              name="customerName"
-              label="Nome do cliente (opcional)"
-              placeholder="Ex.: Ana"
-              autoComplete="off"
-              description="Para separar a conta de cada pessoa na mesa."
-            />
-          </FieldGroup>
+          <section className="flex flex-col gap-2 px-4">
+            <h3 className="font-medium text-sm">Comanda</h3>
+            {openTabs.length > 0 && (
+              <SearchInput
+                label="Buscar comanda pelo nome ou mesa"
+                value={tabSearch}
+                onValueChange={setTabSearch}
+              />
+            )}
+            <div className="flex flex-wrap gap-2">
+              <ToggleChip
+                label="Nova comanda"
+                isSelected={selectedOrderId === null}
+                onToggle={() => setSelectedOrderId(null)}
+              />
+              {visibleTabs.map((order) => (
+                <ToggleChip
+                  key={order.id}
+                  label={order.customerName ?? "Sem nome"}
+                  isSelected={selectedOrderId === order.id}
+                  onToggle={() => setSelectedOrderId(order.id)}
+                />
+              ))}
+            </div>
+          </section>
+
+          {!selectedOrder && (
+            <FieldGroup className="grid gap-4 px-4 sm:grid-cols-2">
+              <NumberField
+                control={form.control}
+                name="tableNumber"
+                label="Mesa"
+                format="integer"
+                placeholder="Ex.: 5"
+              />
+              <TextField
+                control={form.control}
+                name="customerName"
+                label="Nome do cliente"
+                placeholder="Ex.: Ana"
+                autoComplete="off"
+              />
+            </FieldGroup>
+          )}
 
           <SheetFooter>
             <Button
               type="submit"
               size="lg"
               className="h-12 w-full justify-between"
-              disabled={placeWaiterOrderMutation.isPending}
+              disabled={isSending}
             >
-              <span>
-                {placeWaiterOrderMutation.isPending
-                  ? "Enviando..."
-                  : "Enviar para a cozinha"}
-              </span>
+              <span>{isSending ? "Enviando..." : "Enviar para a cozinha"}</span>
               <span className="tabular-nums">{formatCurrency(total)}</span>
             </Button>
           </SheetFooter>

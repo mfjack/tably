@@ -260,7 +260,7 @@ export async function placeWaiterOrder(
   const supabase = await createClient();
   const { error } = await supabase.rpc("place_waiter_order", {
     p_organization_id: organizationId,
-    p_table_number: tableNumber,
+    p_table_number: tableNumber ?? 0,
     p_customer_name: customerName,
     p_items: items.map((item) => ({
       product_id: item.productId,

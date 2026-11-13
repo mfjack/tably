@@ -26,7 +26,7 @@ const QR_CODE_SIZE_IN_PIXELS = 1024;
 
 const ORDERING_MODE_OPTIONS = [
   { value: "everyone", label: "Qualquer pessoa" },
-  { value: "team", label: "Só a equipe (garçom)" },
+  { value: "team", label: "Só a equipe" },
 ] as const;
 
 const ORDERING_MODE_DESCRIPTIONS = {
@@ -110,7 +110,7 @@ export function MenuSettings({ organization }: MenuSettingsProps) {
             control={form.control}
             name="isOnlineOrderingEnabled"
             label="Receber pedidos pelo cardápio"
-            description="Pedidos pelo celular para comer no local. Escolha abaixo se o próprio cliente pede ou só a equipe (garçom)."
+            description="Pedidos pelo celular para comer no local. Escolha abaixo se o próprio cliente pede ou só a equipe."
           />
           {isOnlineOrderingEnabled && (
             <SelectField

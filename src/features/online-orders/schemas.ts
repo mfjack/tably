@@ -43,22 +43,29 @@ export type OnlineOrderCustomerInput = z.infer<
 >;
 export type PlaceOnlineOrderInput = z.infer<typeof placeOnlineOrderSchema>;
 
-export const waiterOrderTableSchema = z.object({
-  tableNumber: z
-    .number({ error: "Informe a mesa." })
-    .int("Use um número inteiro.")
-    .min(1, "Informe a mesa.")
-    .max(999, "Mesa inválida."),
-  customerName: z
-    .string()
-    .trim()
-    .max(40, "Nome muito longo.")
-    .transform(toTitleCase),
-});
+export const waiterOrderTableSchema = z
+  .object({
+    tableNumber: z
+      .number()
+      .int("Use um número inteiro.")
+      .min(1, "Mesa inválida.")
+      .max(999, "Mesa inválida.")
+      .optional(),
+    customerName: z
+      .string()
+      .trim()
+      .max(40, "Nome muito longo.")
+      .transform(toTitleCase),
+  })
+  .refine(
+    (values) => values.tableNumber !== undefined || values.customerName !== "",
+    { message: "Informe a mesa ou o nome do cliente.", path: ["tableNumber"] },
+  );
 
-export const placeWaiterOrderSchema = waiterOrderTableSchema.extend({
-  items: onlineOrderItemsSchema,
-});
+export const placeWaiterOrderSchema = z.intersection(
+  waiterOrderTableSchema,
+  z.object({ items: onlineOrderItemsSchema }),
+);
 
 export type WaiterOrderTableInput = z.input<typeof waiterOrderTableSchema>;
 export type PlaceWaiterOrderInput = z.input<typeof placeWaiterOrderSchema>;
