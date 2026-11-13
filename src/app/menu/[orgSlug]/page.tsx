@@ -12,6 +12,7 @@ import { MenuLoyaltyDialog } from "./components/menu-loyalty-dialog";
 import { MenuOpeningStatus } from "./components/menu-opening-status";
 import { MenuOrderBar } from "./components/menu-order-bar";
 import { MenuSection } from "./components/menu-section";
+import { WaiterTabsSheet } from "./components/waiter-tabs-sheet";
 
 export async function generateMetadata({
   params,
@@ -47,6 +48,11 @@ export default async function PublicMenuPage({
             <p className="max-w-md text-balance text-muted-foreground">
               {menu.tagline}
             </p>
+          )}
+          {waiterOrganizationId && (
+            <div className="pt-2">
+              <WaiterTabsSheet organizationId={waiterOrganizationId} />
+            </div>
           )}
           {!waiterOrganizationId && (
             <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
