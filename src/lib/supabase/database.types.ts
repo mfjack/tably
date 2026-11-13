@@ -132,6 +132,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           created_by_name: string | null
+          financial_entry_id: string | null
           id: string
           kind: Database["public"]["Enums"]["cash_movement_kind"]
           note: string | null
@@ -143,6 +144,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           created_by_name?: string | null
+          financial_entry_id?: string | null
           id?: string
           kind: Database["public"]["Enums"]["cash_movement_kind"]
           note?: string | null
@@ -154,6 +156,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           created_by_name?: string | null
+          financial_entry_id?: string | null
           id?: string
           kind?: Database["public"]["Enums"]["cash_movement_kind"]
           note?: string | null
@@ -161,6 +164,13 @@ export type Database = {
           session_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "cash_movements_financial_entry_id_fkey"
+            columns: ["financial_entry_id"]
+            isOneToOne: false
+            referencedRelation: "financial_entries"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "cash_movements_organization_id_fkey"
             columns: ["organization_id"]

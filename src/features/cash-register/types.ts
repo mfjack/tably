@@ -16,6 +16,15 @@ export type CashMovement = {
   createdByName: string | null;
 };
 
+export type CashEntry = {
+  id: string;
+  kind: "sale" | "account_payment";
+  label: string;
+  amount: number;
+  createdAt: string;
+  createdByName: string | null;
+};
+
 export type CashPaymentTotal = {
   method: PaymentMethod;
   amount: number;
@@ -34,6 +43,10 @@ export type CashSessionSummary = {
   closingNote: string | null;
   orderCount: number;
   receivedTotal: number;
+  cashSales: number;
+  cashSalesCount: number;
+  cashAccountPayments: number;
+  cashEntries: CashEntry[];
   supplies: number;
   withdrawals: number;
   expectedCash: number;

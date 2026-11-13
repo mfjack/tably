@@ -52,7 +52,7 @@ const FEATURES = [
     icon: Wallet,
     title: "Controle de caixa",
     description:
-      "Abertura com troco, sangria, reforço e fechamento com a diferença do que foi contado.",
+      "Abertura com troco, retirada, reforço e fechamento com a diferença do que foi contado.",
   },
   {
     icon: QrCode,

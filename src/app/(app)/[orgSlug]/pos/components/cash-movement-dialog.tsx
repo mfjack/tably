@@ -10,28 +10,37 @@ import { TextField } from "@/components/form/text-field";
 import { FieldGroup } from "@/components/ui/field";
 import { useAddCashMovementMutation } from "@/features/cash-register/hooks/use-add-cash-movement-mutation";
 import {
+  CASH_MOVEMENT_SCHEMAS,
   type CashMovementInput,
-  cashMovementSchema,
 } from "@/features/cash-register/schemas";
 import type { CashMovementKind } from "@/features/cash-register/types";
 import type { OrganizationId } from "@/features/organizations/types";
 
 const MOVEMENT_TEXTS = {
   withdrawal: {
-    title: "Sangria",
-    description: "Retirada de dinheiro da gaveta, como depósito ou pagamento.",
-    placeholder: "Ex.: Depósito no banco",
-    success: "Sangria registrada.",
+    title: "Retirada",
+    description:
+      "Dinheiro que sai da gaveta, como pagamento de fornecedor. Entra no Financeiro como despesa paga.",
+    noteLabel: "Motivo",
+    placeholder: "Ex.: Pagamento do fornecedor de pães",
+    success: "Retirada registrada e lançada no Financeiro.",
   },
   supply: {
     title: "Reforço",
     description: "Entrada de dinheiro na gaveta, como mais troco.",
+    noteLabel: "Motivo (opcional)",
     placeholder: "Ex.: Troco extra",
     success: "Reforço registrado.",
   },
 } as const satisfies Record<
   CashMovementKind,
-  { title: string; description: string; placeholder: string; success: string }
+  {
+    title: string;
+    description: string;
+    noteLabel: string;
+    placeholder: string;
+    success: string;
+  }
 >;
 
 const EMPTY_MOVEMENT_FORM: DefaultValues<CashMovementInput> = { note: "" };
@@ -49,7 +58,7 @@ export function CashMovementDialog({
 }: CashMovementDialogProps) {
   const movementMutation = useAddCashMovementMutation(organizationId);
   const form = useForm<CashMovementInput>({
-    resolver: zodResolver(cashMovementSchema),
+    resolver: zodResolver(CASH_MOVEMENT_SCHEMAS[kind ?? "withdrawal"]),
     defaultValues: EMPTY_MOVEMENT_FORM,
   });
   const texts = MOVEMENT_TEXTS[kind ?? "withdrawal"];
@@ -93,7 +102,7 @@ export function CashMovementDialog({
         <TextField
           control={form.control}
           name="note"
-          label="Motivo (opcional)"
+          label={texts.noteLabel}
           placeholder={texts.placeholder}
           autoComplete="off"
         />

@@ -56,8 +56,13 @@ function buildSections(summary: CashSessionSummary): ClosingRow[][] {
     ],
     [
       ["Troco inicial", formatCurrency(summary.openingAmount)],
+      [
+        `Vendas em dinheiro (${summary.cashSalesCount})`,
+        formatCurrency(summary.cashSales),
+      ],
+      ["Fiado em dinheiro", formatCurrency(summary.cashAccountPayments)],
       ["Reforços", formatCurrency(summary.supplies)],
-      ["Sangrias", `- ${formatCurrency(summary.withdrawals)}`],
+      ["Retiradas", `- ${formatCurrency(summary.withdrawals)}`],
       ["Dinheiro esperado", formatCurrency(summary.expectedCash)],
       ["Dinheiro contado", formatCurrency(summary.countedCash ?? 0)],
       ...(difference

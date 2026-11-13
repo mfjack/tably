@@ -9,7 +9,7 @@ import { getNetPaymentAmount, sumPayments } from "../cash-payment-totals";
 import type { CashMovementKind, CashSessionSummary } from "../types";
 
 const MOVEMENT_LABELS = {
-  withdrawal: "Sangria",
+  withdrawal: "Retirada",
   supply: "Reforço",
 } as const satisfies Record<CashMovementKind, string>;
 
@@ -60,6 +60,29 @@ function formatSessionPeriod(summary: CashSessionSummary) {
   }.`;
 }
 
+type StatementLine = {
+  id: string;
+  label: string;
+  amount: number;
+  createdAt: string;
+  createdByName: string | null;
+  isOutflow: boolean;
+};
+
+function buildStatementLines(summary: CashSessionSummary): StatementLine[] {
+  return [
+    ...summary.cashEntries.map((entry) => ({ ...entry, isOutflow: false })),
+    ...summary.movements.map((movement) => ({
+      id: movement.id,
+      label: `${MOVEMENT_LABELS[movement.kind]}${movement.note ? ` · ${movement.note}` : ""}`,
+      amount: movement.amount,
+      createdAt: movement.createdAt,
+      createdByName: movement.createdByName,
+      isOutflow: movement.kind === "withdrawal",
+    })),
+  ].sort((first, second) => first.createdAt.localeCompare(second.createdAt));
+}
+
 type CashSessionDetailsProps = {
   summary: CashSessionSummary;
 };
@@ -69,6 +92,7 @@ export function CashSessionDetails({ summary }: CashSessionDetailsProps) {
   const totalSurcharge = sumPayments(summary.payments, "surcharge");
   const totalFee = sumPayments(summary.payments, "fee");
   const isClosed = summary.closedAt !== null;
+  const statementLines = buildStatementLines(summary);
 
   return (
     <div className="flex flex-col gap-5">
@@ -120,13 +144,24 @@ export function CashSessionDetails({ summary }: CashSessionDetailsProps) {
           label="Troco inicial"
           value={formatCurrency(summary.openingAmount)}
         />
-        {summary.movements.map((movement) => (
+        <SummaryRow
+          label={`Vendas em dinheiro (${summary.cashSalesCount})`}
+          value={`+ ${formatCurrency(summary.cashSales)}`}
+        />
+        {summary.cashAccountPayments > 0 && (
           <SummaryRow
-            key={movement.id}
-            label={`${MOVEMENT_LABELS[movement.kind]}${movement.note ? ` · ${movement.note}` : ""}`}
-            value={`${movement.kind === "withdrawal" ? "− " : ""}${formatCurrency(movement.amount)}`}
+            label="Fiado recebido em dinheiro"
+            value={`+ ${formatCurrency(summary.cashAccountPayments)}`}
           />
-        ))}
+        )}
+        <SummaryRow
+          label="Reforços"
+          value={`+ ${formatCurrency(summary.supplies)}`}
+        />
+        <SummaryRow
+          label="Retiradas"
+          value={`− ${formatCurrency(summary.withdrawals)}`}
+        />
         <SummaryRow
           label={isClosed ? "Esperado" : "Esperado agora"}
           value={formatCurrency(summary.expectedCash)}
@@ -153,6 +188,40 @@ export function CashSessionDetails({ summary }: CashSessionDetailsProps) {
           <p className="rounded-lg bg-muted px-3 py-2 text-sm">
             {summary.closingNote}
           </p>
+        )}
+      </section>
+
+      <section className="flex flex-col gap-2 border-t pt-4">
+        <h3 className="font-semibold text-sm">Movimentação em dinheiro</h3>
+        {statementLines.length === 0 ? (
+          <p className="text-muted-foreground text-sm">
+            Nenhuma movimentação em dinheiro.
+          </p>
+        ) : (
+          <ul className="flex flex-col divide-y">
+            {statementLines.map((line) => (
+              <li
+                key={line.id}
+                className="flex items-start justify-between gap-4 py-2 text-sm"
+              >
+                <div className="flex min-w-0 flex-col">
+                  <span className="truncate">{line.label}</span>
+                  <span className="text-muted-foreground text-xs">
+                    {format(new Date(line.createdAt), "HH:mm")}
+                    {line.createdByName ? ` · ${line.createdByName}` : ""}
+                  </span>
+                </div>
+                <span
+                  className={cn(
+                    "shrink-0 font-medium tabular-nums",
+                    line.isOutflow && "text-destructive",
+                  )}
+                >
+                  {line.isOutflow ? "−" : "+"} {formatCurrency(line.amount)}
+                </span>
+              </li>
+            ))}
+          </ul>
         )}
       </section>
     </div>

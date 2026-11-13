@@ -20,9 +20,9 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { getCashRegisterErrorMessage } from "./messages";
 import {
+  CASH_MOVEMENT_SCHEMAS,
   type CashMovementInput,
   type CloseCashSessionInput,
-  cashMovementSchema,
   closeCashSessionSchema,
   type OpenCashSessionInput,
   openCashSessionSchema,
@@ -46,6 +46,21 @@ const cashSessionSummarySchema = z.object({
   closingNote: z.string().nullable(),
   orderCount: z.number(),
   receivedTotal: z.number(),
+  cashSales: z.number().default(0),
+  cashSalesCount: z.number().default(0),
+  cashAccountPayments: z.number().default(0),
+  cashEntries: z
+    .array(
+      z.object({
+        id: z.string(),
+        kind: z.enum(["sale", "account_payment"]),
+        label: z.string(),
+        amount: z.number(),
+        createdAt: z.string(),
+        createdByName: z.string().nullable(),
+      }),
+    )
+    .default([]),
   supplies: z.number(),
   withdrawals: z.number(),
   expectedCash: z.number(),
@@ -133,7 +148,7 @@ export async function addCashMovement(
   if (!(await hasAnyModuleAccess(organizationId, ["pos", "order_tabs"]))) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }
-  const parsedInput = cashMovementSchema.safeParse(input);
+  const parsedInput = CASH_MOVEMENT_SCHEMAS[kind].safeParse(input);
   if (!parsedInput.success) return actionFailure(INVALID_FORM_MESSAGE);
 
   const supabase = await createClient();

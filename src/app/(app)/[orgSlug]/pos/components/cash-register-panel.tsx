@@ -82,7 +82,7 @@ export function CashRegisterPanel({
               }
             >
               <ArrowUpFromLine aria-hidden />
-              Sangria
+              Retirada
             </Button>
             <Button
               variant="outline"

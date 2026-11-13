@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useInvalidateFinance } from "@/features/finance/hooks/use-invalidate-finance";
 import type { OrganizationId } from "@/features/organizations/types";
 import { unwrapActionResult } from "@/lib/action-result";
 import { addCashMovement } from "../actions";
@@ -17,6 +18,7 @@ export function getAddCashMovementMutationKey(organizationId: OrganizationId) {
 
 export function useAddCashMovementMutation(organizationId: OrganizationId) {
   const queryClient = useQueryClient();
+  const invalidateFinance = useInvalidateFinance(organizationId);
 
   return useMutation({
     mutationKey: getAddCashMovementMutationKey(organizationId),
@@ -24,8 +26,11 @@ export function useAddCashMovementMutation(organizationId: OrganizationId) {
       unwrapActionResult(await addCashMovement(organizationId, kind, input)),
     networkMode: "online",
     onSettled: () =>
-      queryClient.invalidateQueries({
-        queryKey: getOpenCashSessionQueryKey(organizationId),
-      }),
+      Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: getOpenCashSessionQueryKey(organizationId),
+        }),
+        invalidateFinance(),
+      ]),
   });
 }
