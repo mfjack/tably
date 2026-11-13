@@ -15,6 +15,7 @@ const publicMenuSchema = z.object({
   instagram: z.string().nullable(),
   note: z.string().nullable(),
   acceptsOrders: z.boolean(),
+  isWaiterOrdering: z.boolean().default(false),
   openingStatus: openingStatusSchema.catch({
     isConfigured: false,
     isOpen: true,

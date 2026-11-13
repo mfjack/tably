@@ -50,7 +50,7 @@ import type {
 } from "./types";
 
 const ORDER_DETAILS_COLUMNS = `
-  id, customer_name, is_takeaway, note, subtotal, takeaway_fee,
+  id, customer_name, table_number, is_takeaway, note, subtotal, takeaway_fee,
   service_fee_amount, discount_amount, loyalty_reward_amount, total,
   created_at, paid_at, status,
   created_by_operator_name, paid_by_operator_name,
@@ -74,6 +74,7 @@ type OrderDetailsRow = {
   id: string;
   status: string;
   customer_name: string | null;
+  table_number: number | null;
   is_takeaway: boolean;
   note: string | null;
   subtotal: number;
@@ -141,6 +142,7 @@ function toOrderDetails(row: OrderDetailsRow): OrderDetails {
     isPendingSync: false,
     id: row.id as OrderId,
     customerName: row.customer_name,
+    tableNumber: row.table_number,
     isTakeaway: row.is_takeaway,
     note: row.note,
     subtotal: row.subtotal,
@@ -400,6 +402,33 @@ export async function cancelOrder(orderId: OrderId): Promise<ActionResult> {
   if (error) {
     return actionFailure(
       getOrderErrorMessage(error, "Não foi possível cancelar a comanda."),
+    );
+  }
+  return actionSuccess();
+}
+
+export async function setOrderTable(
+  orderId: OrderId,
+  tableNumber: number,
+): Promise<ActionResult> {
+  if (!(await hasModuleAccessToRow("orders", orderId, "order_tabs"))) {
+    return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
+  }
+  if (!Number.isInteger(tableNumber) || tableNumber < 1 || tableNumber > 999) {
+    return actionFailure("Informe uma mesa válida.");
+  }
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_order_table", {
+    p_order_id: orderId,
+    p_table_number: tableNumber,
+  });
+
+  if (error?.code === "TB002") {
+    return actionFailure("Essa mesa já tem uma conta com esse nome.");
+  }
+  if (error) {
+    return actionFailure(
+      getOrderErrorMessage(error, "Não foi possível trocar a mesa."),
     );
   }
   return actionSuccess();

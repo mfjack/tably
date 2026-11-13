@@ -1,4 +1,5 @@
 import type { LoyaltyProgram, LoyaltySettings } from "@/features/loyalty/types";
+import type { MenuOrderingMode } from "@/features/menu/schemas";
 import type { PaymentMethod } from "@/features/orders/types";
 import type { Subscription } from "@/features/subscriptions/subscription-state";
 import type { Brand } from "@/lib/brand";
@@ -64,6 +65,7 @@ export type OrganizationPaymentFees = {
 
 export type OrganizationMenuSettings = {
   isOnlineOrderingEnabled: boolean;
+  orderingMode: MenuOrderingMode;
   title: string | null;
   tagline: string | null;
   instagram: string | null;

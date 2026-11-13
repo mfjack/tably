@@ -1603,6 +1603,7 @@ export type Database = {
           service_fee_percent: number | null
           status: Database["public"]["Enums"]["order_status"]
           subtotal: number
+          table_number: number | null
           takeaway_fee: number
           total: number
           updated_at: string
@@ -1633,6 +1634,7 @@ export type Database = {
           service_fee_percent?: number | null
           status: Database["public"]["Enums"]["order_status"]
           subtotal: number
+          table_number?: number | null
           takeaway_fee?: number
           total: number
           updated_at?: string
@@ -1663,6 +1665,7 @@ export type Database = {
           service_fee_percent?: number | null
           status?: Database["public"]["Enums"]["order_status"]
           subtotal?: number
+          table_number?: number | null
           takeaway_fee?: number
           total?: number
           updated_at?: string
@@ -1836,6 +1839,7 @@ export type Database = {
           last_order_number: number
           menu_instagram: string | null
           menu_note: string | null
+          menu_ordering_mode: string
           menu_tagline: string | null
           menu_title: string | null
           name: string
@@ -1879,6 +1883,7 @@ export type Database = {
           last_order_number?: number
           menu_instagram?: string | null
           menu_note?: string | null
+          menu_ordering_mode?: string
           menu_tagline?: string | null
           menu_title?: string | null
           name: string
@@ -1922,6 +1927,7 @@ export type Database = {
           last_order_number?: number
           menu_instagram?: string | null
           menu_note?: string | null
+          menu_ordering_mode?: string
           menu_tagline?: string | null
           menu_title?: string | null
           name?: string
@@ -3702,6 +3708,10 @@ export type Database = {
         Args: { p_session_id: string }
         Returns: Json
       }
+      build_table_customer_name: {
+        Args: { p_customer_name: string; p_table_number: number }
+        Returns: string
+      }
       can_manage_storage_folder: {
         Args: { p_object_name: string }
         Returns: boolean
@@ -3804,6 +3814,7 @@ export type Database = {
           last_order_number: number
           menu_instagram: string | null
           menu_note: string | null
+          menu_ordering_mode: string
           menu_tagline: string | null
           menu_title: string | null
           name: string
@@ -4118,6 +4129,7 @@ export type Database = {
           service_fee_percent: number | null
           status: Database["public"]["Enums"]["order_status"]
           subtotal: number
+          table_number: number | null
           takeaway_fee: number
           total: number
           updated_at: string
@@ -4209,6 +4221,16 @@ export type Database = {
           order_number: number
           order_total: number
         }[]
+      }
+      place_waiter_order: {
+        Args: {
+          p_customer_name: string
+          p_items: Json
+          p_note?: string
+          p_organization_id: string
+          p_table_number: number
+        }
+        Returns: string
       }
       receive_purchase_order: {
         Args: { p_items: Json; p_order_id: string; p_payment_due_date?: string }
@@ -4409,6 +4431,10 @@ export type Database = {
       }
       set_opening_balance: {
         Args: { p_amount: number; p_organization_id: string }
+        Returns: undefined
+      }
+      set_order_table: {
+        Args: { p_order_id: string; p_table_number: number }
         Returns: undefined
       }
       set_product_addons: {

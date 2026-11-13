@@ -34,6 +34,7 @@ export type PublicMenu = {
   instagram: string | null;
   note: string | null;
   acceptsOrders: boolean;
+  isWaiterOrdering: boolean;
   openingStatus: OpeningStatus;
   sections: PublicMenuSection[];
 };

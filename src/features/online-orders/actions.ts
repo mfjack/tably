@@ -22,7 +22,12 @@ import {
 } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
 import { getOnlineOrderErrorMessage } from "./messages";
-import { type PlaceOnlineOrderInput, placeOnlineOrderSchema } from "./schemas";
+import {
+  type PlaceOnlineOrderInput,
+  type PlaceWaiterOrderInput,
+  placeOnlineOrderSchema,
+  placeWaiterOrderSchema,
+} from "./schemas";
 import {
   type AcceptedOnlineOrder,
   ONLINE_ORDER_STAGES,
@@ -239,5 +244,36 @@ export async function rejectOnlineOrder(
     );
   }
 
+  return actionSuccess();
+}
+
+export async function placeWaiterOrder(
+  organizationId: OrganizationId,
+  input: PlaceWaiterOrderInput,
+): Promise<ActionResult> {
+  const parsedInput = placeWaiterOrderSchema.safeParse(input);
+  if (!parsedInput.success) {
+    return actionFailure("Confira o pedido e tente de novo.");
+  }
+
+  const { tableNumber, customerName, items } = parsedInput.data;
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("place_waiter_order", {
+    p_organization_id: organizationId,
+    p_table_number: tableNumber,
+    p_customer_name: customerName,
+    p_items: items.map((item) => ({
+      product_id: item.productId,
+      quantity: item.quantity,
+      note: item.note,
+      addon_ids: item.addonIds ?? [],
+    })),
+  });
+
+  if (error) {
+    return actionFailure(
+      getOnlineOrderErrorMessage(error, "Não foi possível enviar o pedido."),
+    );
+  }
   return actionSuccess();
 }

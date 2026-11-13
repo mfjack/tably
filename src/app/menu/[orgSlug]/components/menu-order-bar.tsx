@@ -17,6 +17,7 @@ import {
   useLatestRecentOrder,
   useMenuCartItems,
 } from "@/features/online-orders/menu-cart-store";
+import type { OrganizationId } from "@/features/organizations/types";
 import {
   getAddonNames,
   getAddonsTotal,
@@ -35,10 +36,15 @@ const MenuOrderSheet = dynamic(() =>
   loadMenuOrderSheet().then((module) => module.MenuOrderSheet),
 );
 
+const WaiterOrderSheet = dynamic(() =>
+  import("./waiter-order-sheet").then((module) => module.WaiterOrderSheet),
+);
+
 type MenuOrderBarProps = {
   menuSlug: string;
   loyaltyProgram: PublicLoyaltyProgram | null;
   acceptsOrders: boolean;
+  waiterOrganizationId: OrganizationId | null;
   items: readonly PublicMenuItem[];
   className?: string;
 };
@@ -47,6 +53,7 @@ export function MenuOrderBar({
   menuSlug,
   loyaltyProgram,
   acceptsOrders,
+  waiterOrganizationId,
   items,
   className,
 }: MenuOrderBarProps) {
@@ -133,7 +140,17 @@ export function MenuOrderBar({
         </div>
       </div>
 
-      {hasOpenedSheet && (
+      {hasOpenedSheet && waiterOrganizationId && (
+        <WaiterOrderSheet
+          menuSlug={menuSlug}
+          organizationId={waiterOrganizationId}
+          cartLines={cartLines}
+          total={total}
+          isOpen={isSheetOpen && hasCartItems}
+          onOpenChange={setIsSheetOpen}
+        />
+      )}
+      {hasOpenedSheet && !waiterOrganizationId && (
         <MenuOrderSheet
           menuSlug={menuSlug}
           loyaltyProgram={loyaltyProgram}

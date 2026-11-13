@@ -1,5 +1,11 @@
 import { format } from "date-fns";
-import { Ban, ClipboardPlus, CreditCard, Printer } from "lucide-react";
+import {
+  ArrowLeftRight,
+  Ban,
+  ClipboardPlus,
+  CreditCard,
+  Printer,
+} from "lucide-react";
 import { DetailsDialog } from "@/components/dialog/details-dialog";
 import { DIALOG_ACTION_BUTTON_CLASS_NAME } from "@/components/dialog/dialog-styles";
 import { Button } from "@/components/ui/button";
@@ -21,6 +27,7 @@ type OpenOrderTabDialogProps = {
   onCharge: () => void;
   onPrint: () => void;
   onCancelOrder: () => void;
+  onChangeTable: () => void;
 };
 
 export function OpenOrderTabDialog({
@@ -33,6 +40,7 @@ export function OpenOrderTabDialog({
   onCharge,
   onPrint,
   onCancelOrder,
+  onChangeTable,
 }: OpenOrderTabDialogProps) {
   const isBusy = removingItemId !== null;
   const isPendingSync = order?.isPendingSync ?? false;
@@ -72,6 +80,9 @@ export function OpenOrderTabDialog({
           <OrderInfoList
             rows={[
               { label: "Cliente", value: order.customerName ?? "" },
+              ...(order.tableNumber
+                ? [{ label: "Mesa", value: String(order.tableNumber) }]
+                : []),
               {
                 label: "Aberta em",
                 value: format(new Date(order.createdAt), "dd/MM/yyyy, HH:mm"),
@@ -102,15 +113,28 @@ export function OpenOrderTabDialog({
               <Ban aria-hidden />
               Cancelar comanda
             </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              disabled={isBusy || !hasItems}
-              onClick={onPrint}
-            >
-              <Printer aria-hidden />
-              Imprimir
-            </Button>
+            <div className="flex gap-1">
+              {order.tableNumber !== null && !isPendingSync && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  disabled={isBusy}
+                  onClick={onChangeTable}
+                >
+                  <ArrowLeftRight aria-hidden />
+                  Trocar mesa
+                </Button>
+              )}
+              <Button
+                type="button"
+                variant="ghost"
+                disabled={isBusy || !hasItems}
+                onClick={onPrint}
+              >
+                <Printer aria-hidden />
+                Imprimir
+              </Button>
+            </div>
           </div>
         </div>
       )}

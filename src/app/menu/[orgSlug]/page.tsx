@@ -6,6 +6,7 @@ import {
   getPublicLoyaltyProgram,
   getPublicMenu,
 } from "@/features/menu/queries";
+import { getUserOrganizationBySlug } from "@/features/organizations/queries";
 import { MenuCategoryNav } from "./components/menu-category-nav";
 import { MenuLoyaltyDialog } from "./components/menu-loyalty-dialog";
 import { MenuOpeningStatus } from "./components/menu-opening-status";
@@ -24,11 +25,16 @@ export default async function PublicMenuPage({
   params,
 }: PageProps<"/menu/[orgSlug]">) {
   const { orgSlug } = await params;
-  const [menu, loyaltyProgram] = await Promise.all([
+  const [menu, loyaltyProgram, viewerOrganization] = await Promise.all([
     getPublicMenu(orgSlug),
     getPublicLoyaltyProgram(orgSlug),
+    getUserOrganizationBySlug(orgSlug),
   ]);
   if (!menu) notFound();
+
+  const waiterOrganizationId =
+    menu.isWaiterOrdering && viewerOrganization ? viewerOrganization.id : null;
+  const acceptsOrders = menu.acceptsOrders || waiterOrganizationId !== null;
 
   const menuItems = menu.sections.flatMap((section) => section.items);
 
@@ -67,7 +73,7 @@ export default async function PublicMenuPage({
               <MenuSection
                 key={section.id}
                 menuSlug={orgSlug}
-                acceptsOrders={menu.acceptsOrders}
+                acceptsOrders={acceptsOrders}
                 section={section}
               />
             ))}
@@ -79,7 +85,8 @@ export default async function PublicMenuPage({
       <MenuOrderBar
         menuSlug={orgSlug}
         loyaltyProgram={loyaltyProgram}
-        acceptsOrders={menu.acceptsOrders}
+        acceptsOrders={acceptsOrders}
+        waiterOrganizationId={waiterOrganizationId}
         items={menuItems}
       />
     </main>

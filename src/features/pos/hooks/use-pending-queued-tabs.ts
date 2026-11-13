@@ -40,6 +40,7 @@ function toPendingTab(queuedOrder: QueuedPlaceOrder): OrderDetails {
   return {
     id: queuedOrder.requestId as string as OrderId,
     customerName: queuedOrder.customerName,
+    tableNumber: null,
     isTakeaway: queuedOrder.input.customer?.isTakeaway ?? false,
     note: queuedOrder.input.note || null,
     subtotal,

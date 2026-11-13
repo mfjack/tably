@@ -28,13 +28,20 @@ export async function updateMenuSettings(
     return actionFailure("Confira os campos e tente novamente.");
   }
 
-  const { isOnlineOrderingEnabled, title, tagline, instagram, note } =
-    parsedInput.data;
+  const {
+    isOnlineOrderingEnabled,
+    orderingMode,
+    title,
+    tagline,
+    instagram,
+    note,
+  } = parsedInput.data;
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("organizations")
     .update({
       is_online_ordering_enabled: isOnlineOrderingEnabled,
+      menu_ordering_mode: orderingMode,
       menu_title: title || null,
       menu_tagline: tagline || null,
       menu_instagram: instagram.replace(/^@/, "") || null,

@@ -3,14 +3,16 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Copy, Download, ExternalLink } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
+import { SelectField } from "@/components/form/select-field";
 import { SwitchField } from "@/components/form/switch-field";
 import { TextField } from "@/components/form/text-field";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
 import { useSaveMenuSettingsMutation } from "@/features/menu/hooks/use-save-menu-settings-mutation";
 import {
+  type MenuOrderingMode,
   type MenuSettingsInput,
   menuSettingsSchema,
 } from "@/features/menu/schemas";
@@ -22,6 +24,17 @@ import { SettingsFormSection } from "./settings-form-section";
 
 const QR_CODE_SIZE_IN_PIXELS = 1024;
 
+const ORDERING_MODE_OPTIONS = [
+  { value: "everyone", label: "Qualquer pessoa" },
+  { value: "team", label: "Só a equipe (garçom)" },
+] as const;
+
+const ORDERING_MODE_DESCRIPTIONS = {
+  everyone:
+    "O cliente pede pelo celular. Só funciona com o caixa aberto, e cada pedido precisa ser aceito por você.",
+  team: "O cliente só vê o cardápio. Quem está logado na equipe pede pela mesa, e o pedido vai direto para a cozinha.",
+} as const satisfies Record<MenuOrderingMode, string>;
+
 type MenuSettingsProps = {
   organization: UserOrganization;
 };
@@ -29,6 +42,7 @@ type MenuSettingsProps = {
 function toFormValues(organization: UserOrganization): MenuSettingsInput {
   return {
     isOnlineOrderingEnabled: organization.menu.isOnlineOrderingEnabled,
+    orderingMode: organization.menu.orderingMode,
     title: organization.menu.title ?? "",
     tagline: organization.menu.tagline ?? "",
     instagram: organization.menu.instagram ?? "",
@@ -41,6 +55,10 @@ export function MenuSettings({ organization }: MenuSettingsProps) {
   const form = useForm<MenuSettingsInput>({
     resolver: zodResolver(menuSettingsSchema),
     defaultValues: toFormValues(organization),
+  });
+  const [isOnlineOrderingEnabled, orderingMode] = useWatch({
+    control: form.control,
+    name: ["isOnlineOrderingEnabled", "orderingMode"],
   });
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const menuUrl = new URL(
@@ -92,8 +110,17 @@ export function MenuSettings({ organization }: MenuSettingsProps) {
             control={form.control}
             name="isOnlineOrderingEnabled"
             label="Receber pedidos pelo cardápio"
-            description="O cliente faz o pedido pelo celular para comer no local. Os pedidos só são aceitos enquanto o caixa estiver aberto, e cada um precisa ser aceito por você."
+            description="Pedidos pelo celular para comer no local. Escolha abaixo se o próprio cliente pede ou só a equipe (garçom)."
           />
+          {isOnlineOrderingEnabled && (
+            <SelectField
+              control={form.control}
+              name="orderingMode"
+              label="Quem pode pedir"
+              options={ORDERING_MODE_OPTIONS}
+              description={ORDERING_MODE_DESCRIPTIONS[orderingMode]}
+            />
+          )}
           <div className="grid gap-5 sm:grid-cols-2">
             <TextField
               control={form.control}

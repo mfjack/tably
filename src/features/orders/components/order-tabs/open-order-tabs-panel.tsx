@@ -40,6 +40,7 @@ import {
   useOfflineOrderQueue,
 } from "@/features/pos/offline-order-queue";
 import { isNetworkError } from "@/lib/network-error";
+import { ChangeTableDialog } from "./change-table-dialog";
 import { OpenOrderTabDialog } from "./open-order-tab-dialog";
 import { OpenOrderTabsGrid } from "./open-order-tabs-grid";
 
@@ -50,7 +51,8 @@ type OpenTabState =
   | { step: "closed" }
   | { step: "details"; orderId: OrderId }
   | { step: "payment"; orderId: OrderId }
-  | { step: "cancel"; orderId: OrderId };
+  | { step: "cancel"; orderId: OrderId }
+  | { step: "table"; orderId: OrderId };
 
 type OpenOrderTabsPanelProps = {
   organizationId: OrganizationId;
@@ -76,7 +78,7 @@ export function OpenOrderTabsPanel({
   const normalizedSearch = searchTerm.trim().toLocaleLowerCase("pt-BR");
   const visibleTabs = normalizedSearch
     ? openTabs?.filter((order) =>
-        (order.customerName ?? "")
+        `${order.customerName ?? ""} ${order.tableNumber ?? ""}`
           .toLocaleLowerCase("pt-BR")
           .includes(normalizedSearch),
       )
@@ -260,6 +262,16 @@ export function OpenOrderTabsPanel({
           selectedOrder &&
           setOpenTabState({ step: "cancel", orderId: selectedOrder.id })
         }
+        onChangeTable={() =>
+          selectedOrder &&
+          setOpenTabState({ step: "table", orderId: selectedOrder.id })
+        }
+      />
+      <ChangeTableDialog
+        organizationId={organizationId}
+        order={selectedOrder}
+        isOpen={openTabState.step === "table" && selectedOrder !== null}
+        onClose={backToDetails}
       />
       <PaymentDialog
         organizationId={organizationId}

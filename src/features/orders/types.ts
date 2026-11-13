@@ -36,6 +36,7 @@ export type OrderPayment = {
 export type OrderDetails = {
   id: OrderId;
   customerName: string | null;
+  tableNumber: number | null;
   isTakeaway: boolean;
   note: string | null;
   subtotal: number;

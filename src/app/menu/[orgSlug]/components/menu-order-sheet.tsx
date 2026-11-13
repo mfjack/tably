@@ -7,7 +7,6 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { MaskedField } from "@/components/form/masked-field";
 import { TextField } from "@/components/form/text-field";
-import { ItemNoteDialog } from "@/components/item-note-dialog";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
 import {
@@ -27,7 +26,8 @@ import {
   onlineOrderCustomerSchema,
 } from "@/features/online-orders/schemas";
 import { formatCurrency } from "@/lib/format";
-import { MenuCartItemCard, type MenuCartLine } from "./menu-cart-item-card";
+import type { MenuCartLine } from "./menu-cart-item-card";
+import { MenuCartLines } from "./menu-cart-lines";
 import { MenuOrderLoyaltyHint } from "./menu-order-loyalty-hint";
 import { buildOrderPath } from "./menu-order-path";
 
@@ -52,15 +52,12 @@ export function MenuOrderSheet({
   const savedCustomerName = useMenuCartStore((state) => state.customerName);
   const savedCustomerPhone = useMenuCartStore((state) => state.customerPhone);
   const setCustomerPhone = useMenuCartStore((state) => state.setCustomerPhone);
-  const decrementItem = useMenuCartStore((state) => state.decrementItem);
-  const setItemNote = useMenuCartStore((state) => state.setItemNote);
   const clearCart = useMenuCartStore((state) => state.clearCart);
   const setCustomerName = useMenuCartStore((state) => state.setCustomerName);
   const addRecentOrder = useMenuCartStore((state) => state.addRecentOrder);
   const getDeviceId = useMenuCartStore((state) => state.getDeviceId);
   const placeOnlineOrderMutation = usePlaceOnlineOrderMutation(menuSlug);
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
-  const [noteCartLine, setNoteCartLine] = useState<MenuCartLine | null>(null);
 
   const form = useForm<OnlineOrderCustomerInput>({
     resolver: zodResolver(onlineOrderCustomerSchema),
@@ -70,34 +67,6 @@ export function MenuOrderSheet({
     },
     resetOptions: { keepDirtyValues: true },
   });
-
-  function decrementCartLine(cartLine: MenuCartLine) {
-    decrementItem(
-      menuSlug,
-      cartLine.productId,
-      cartLine.note,
-      cartLine.addonIds,
-    );
-  }
-
-  function closeNoteDialog() {
-    setNoteCartLine(null);
-  }
-
-  function saveItemNote(
-    cartLine: MenuCartLine,
-    note: string,
-    quantityToMove: number,
-  ) {
-    setItemNote(
-      menuSlug,
-      cartLine.productId,
-      cartLine.note,
-      note,
-      quantityToMove,
-      cartLine.addonIds,
-    );
-  }
 
   const handleSubmit = form.handleSubmit((values) => {
     const onlineOrderId = pendingOrderId ?? crypto.randomUUID();
@@ -139,87 +108,68 @@ export function MenuOrderSheet({
   });
 
   return (
-    <>
-      <Sheet open={isOpen} onOpenChange={onOpenChange}>
-        <SheetContent
-          side="bottom"
-          className="mx-auto max-h-[90svh] w-full max-w-2xl overflow-y-auto rounded-t-3xl"
-        >
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <SheetHeader>
-              <SheetTitle>Seu pedido</SheetTitle>
-              <SheetDescription>
-                Para comer aqui. Você paga no balcão quando terminar.
-              </SheetDescription>
-            </SheetHeader>
+    <Sheet open={isOpen} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="bottom"
+        className="mx-auto max-h-[90svh] w-full max-w-2xl overflow-y-auto rounded-t-3xl"
+      >
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <SheetHeader>
+            <SheetTitle>Seu pedido</SheetTitle>
+            <SheetDescription>
+              Para comer aqui. Você paga no balcão quando terminar.
+            </SheetDescription>
+          </SheetHeader>
 
-            <ul className="flex flex-col gap-3 px-4">
-              {cartLines.map((line) => (
-                <MenuCartItemCard
-                  key={`${line.productId}:${line.note}`}
-                  cartLine={line}
-                  onDecrement={decrementCartLine}
-                  onEditNote={setNoteCartLine}
-                />
-              ))}
-            </ul>
+          <MenuCartLines menuSlug={menuSlug} cartLines={cartLines} />
 
-            <FieldGroup className="px-4">
-              <TextField
+          <FieldGroup className="px-4">
+            <TextField
+              control={form.control}
+              name="customerName"
+              label="Seu nome"
+              placeholder="Ex.: Ana"
+              autoComplete="given-name"
+              description="É por ele que vamos chamar você quando o pedido ficar pronto."
+            />
+            {loyaltyProgram && (
+              <MaskedField
                 control={form.control}
-                name="customerName"
-                label="Seu nome"
-                placeholder="Ex.: Ana"
-                autoComplete="given-name"
-                description="É por ele que vamos chamar você quando o pedido ficar pronto."
+                name="customerPhone"
+                label="Celular para a fidelidade"
+                description={`Opcional. Junte ${loyaltyProgram.stampsRequired} selos e ganhe ${loyaltyProgram.rewardDescription}.`}
+                isDescriptionCompact
+                mask="phone"
+                placeholder="00 00000-0000"
+                autoComplete="tel-national"
               />
-              {loyaltyProgram && (
-                <MaskedField
-                  control={form.control}
-                  name="customerPhone"
-                  label="Celular para a fidelidade"
-                  description={`Opcional. Junte ${loyaltyProgram.stampsRequired} selos e ganhe ${loyaltyProgram.rewardDescription}.`}
-                  isDescriptionCompact
-                  mask="phone"
-                  placeholder="00 00000-0000"
-                  autoComplete="tel-national"
-                />
-              )}
-              {loyaltyProgram && (
-                <MenuOrderLoyaltyHint
-                  menuSlug={menuSlug}
-                  program={loyaltyProgram}
-                  control={form.control}
-                />
-              )}
-            </FieldGroup>
+            )}
+            {loyaltyProgram && (
+              <MenuOrderLoyaltyHint
+                menuSlug={menuSlug}
+                program={loyaltyProgram}
+                control={form.control}
+              />
+            )}
+          </FieldGroup>
 
-            <SheetFooter>
-              <Button
-                type="submit"
-                size="lg"
-                className="h-12 w-full justify-between"
-                disabled={placeOnlineOrderMutation.isPending}
-              >
-                <span>
-                  {placeOnlineOrderMutation.isPending
-                    ? "Enviando..."
-                    : "Enviar pedido"}
-                </span>
-                <span className="tabular-nums">{formatCurrency(total)}</span>
-              </Button>
-            </SheetFooter>
-          </form>
-        </SheetContent>
-      </Sheet>
-      <ItemNoteDialog
-        line={noteCartLine}
-        itemName={noteCartLine?.name ?? ""}
-        description="Vai junto com o pedido para a cozinha."
-        placeholder="Ex.: sem açúcar, leite vegetal"
-        onClose={closeNoteDialog}
-        onSave={saveItemNote}
-      />
-    </>
+          <SheetFooter>
+            <Button
+              type="submit"
+              size="lg"
+              className="h-12 w-full justify-between"
+              disabled={placeOnlineOrderMutation.isPending}
+            >
+              <span>
+                {placeOnlineOrderMutation.isPending
+                  ? "Enviando..."
+                  : "Enviar pedido"}
+              </span>
+              <span className="tabular-nums">{formatCurrency(total)}</span>
+            </Button>
+          </SheetFooter>
+        </form>
+      </SheetContent>
+    </Sheet>
   );
 }
