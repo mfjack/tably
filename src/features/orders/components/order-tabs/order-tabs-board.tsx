@@ -47,7 +47,8 @@ export function OrderTabsBoard({
   posHref,
   onAddProducts,
 }: OrderTabsBoardProps) {
-  const paidOrdersQuery = usePaidOrdersQuery(organizationId);
+  const [salesDate, setSalesDate] = useState("");
+  const paidOrdersQuery = usePaidOrdersQuery(organizationId, salesDate);
   const reopenOrderMutation = useReopenOrderMutation(organizationId);
   const cancelPaidOrderMutation = useCancelPaidOrderMutation(organizationId);
 
@@ -105,6 +106,8 @@ export function OrderTabsBoard({
       orders={paidOrdersQuery.data}
       isLoading={paidOrdersQuery.isPending}
       errorMessage={paidOrdersQuery.error?.message}
+      dateKey={salesDate}
+      onDateChange={setSalesDate}
       onSelect={(order) => setPaidOrderState({ step: "details", order })}
     />
   );
@@ -129,7 +132,7 @@ export function OrderTabsBoard({
               )}
             </TabsTrigger>
             <TabsTrigger value="history" className="px-4">
-              Histórico
+              Histórico de vendas
             </TabsTrigger>
           </TabsList>
           <TabsContent

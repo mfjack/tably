@@ -1,5 +1,6 @@
 "use server";
 
+import { addDays, format, parseISO } from "date-fns";
 import {
   findOnlineOrderLoyalty,
   recordLoyaltyPurchase,
@@ -17,6 +18,7 @@ import {
   hasModuleAccessToRow,
   MODULE_ACCESS_DENIED_MESSAGE,
 } from "@/features/team/module-access";
+import { zonedDateTimeToIso } from "@/features/time-clock/time-utils";
 import {
   type ActionResult,
   actionFailure,
@@ -64,7 +66,9 @@ const ORDER_DETAILS_COLUMNS = `
   online_orders(id)
 `;
 
-const PAID_ORDERS_LIMIT = 200;
+const PAID_ORDERS_LIMIT = 500;
+const DATE_KEY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const DEFAULT_TIME_ZONE = "America/Sao_Paulo";
 
 type OrderDetailsRow = {
   id: string;
@@ -201,19 +205,45 @@ export async function listOpenOrderTabs(
   return actionSuccess(data.map(toOrderDetails));
 }
 
+async function getDayRange(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  organizationId: OrganizationId,
+  dateKey: string,
+) {
+  const { data } = await supabase
+    .from("organizations")
+    .select("timezone")
+    .eq("id", organizationId)
+    .maybeSingle();
+  const timeZone = data?.timezone ?? DEFAULT_TIME_ZONE;
+  const nextDateKey = format(addDays(parseISO(dateKey), 1), "yyyy-MM-dd");
+  return {
+    start: zonedDateTimeToIso(dateKey, "00:00", timeZone),
+    end: zonedDateTimeToIso(nextDateKey, "00:00", timeZone),
+  };
+}
+
 export async function listPaidOrders(
   organizationId: OrganizationId,
+  dateKey: string | null = null,
 ): Promise<ActionResult<OrderDetails[]>> {
   if (!(await hasModuleAccess(organizationId, "order_tabs"))) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("orders")
     .select(ORDER_DETAILS_COLUMNS)
     .eq("organization_id", organizationId)
     .not("paid_at", "is", null)
-    .neq("status", "canceled")
+    .neq("status", "canceled");
+
+  if (dateKey && DATE_KEY_PATTERN.test(dateKey)) {
+    const { start, end } = await getDayRange(supabase, organizationId, dateKey);
+    query = query.gte("paid_at", start).lt("paid_at", end);
+  }
+
+  const { data, error } = await query
     .order("paid_at", { ascending: false })
     .limit(PAID_ORDERS_LIMIT)
     .overrideTypes<OrderDetailsRow[], { merge: false }>();

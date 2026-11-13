@@ -7,6 +7,7 @@ import { DataTable } from "@/components/data-table/data-table";
 import { createDataTableColumnHelper } from "@/components/data-table/data-table-features";
 import { DataTableRowActionButton } from "@/components/data-table/data-table-row-action-button";
 import { useDataTable } from "@/components/data-table/use-data-table";
+import { DatePicker } from "@/components/date-picker";
 import {
   Empty,
   EmptyDescription,
@@ -27,6 +28,8 @@ type PaidOrdersTableProps = {
   orders: OrderDetails[] | undefined;
   isLoading: boolean;
   errorMessage?: string;
+  dateKey: string;
+  onDateChange: (dateKey: string) => void;
   onSelect: (order: OrderDetails) => void;
 };
 
@@ -46,8 +49,14 @@ export function PaidOrdersTable({
   orders,
   isLoading,
   errorMessage,
+  dateKey,
+  onDateChange,
   onSelect,
 }: PaidOrdersTableProps) {
+  const salesTotal = (orders ?? EMPTY_ORDERS).reduce(
+    (total, order) => total + order.total,
+    0,
+  );
   const columns = useMemo(
     () =>
       columnHelper.columns([
@@ -112,6 +121,24 @@ export function PaidOrdersTable({
     <DataTable
       table={table}
       searchPlaceholder="Buscar por cliente"
+      toolbarActions={
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="w-44">
+            <DatePicker
+              value={dateKey}
+              placeholder="Últimas vendas"
+              className="h-10 rounded-lg bg-muted px-3 text-sm"
+              onChange={onDateChange}
+            />
+          </div>
+          {dateKey && orders && (
+            <span className="text-muted-foreground text-sm tabular-nums">
+              {orders.length} {orders.length === 1 ? "venda" : "vendas"} ·{" "}
+              {formatCurrency(salesTotal)}
+            </span>
+          )}
+        </div>
+      }
       isLoading={isLoading}
       errorMessage={errorMessage}
       emptyState={
@@ -120,9 +147,13 @@ export function PaidOrdersTable({
             <EmptyMedia variant="icon">
               <History aria-hidden />
             </EmptyMedia>
-            <EmptyTitle>Nenhuma comanda paga ainda</EmptyTitle>
+            <EmptyTitle>
+              {dateKey ? "Nenhuma venda nesse dia" : "Nenhuma venda ainda"}
+            </EmptyTitle>
             <EmptyDescription>
-              As comandas e pedidos pagos aparecem aqui.
+              {dateKey
+                ? "Escolha outra data ou limpe o filtro."
+                : "As comandas e pedidos pagos aparecem aqui."}
             </EmptyDescription>
           </EmptyHeader>
         </Empty>
