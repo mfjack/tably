@@ -166,6 +166,7 @@ export async function updateMemberAccess(
   const { error } = await supabase.rpc("update_member_access", {
     p_organization_id: organizationId,
     p_user_id: userId,
+    p_full_name: parsedInput.data.fullName,
     p_allowed_modules: parsedInput.data.allowedModules,
     p_can_access_settings: parsedInput.data.canAccessSettings,
   });

@@ -1,7 +1,15 @@
 import * as z from "zod";
 import { Constants } from "@/lib/supabase/database.types";
+import { toTitleCase } from "@/lib/title-case";
 
 const PAGE_REQUIRED_MESSAGE = "Escolha pelo menos uma página.";
+
+const personNameSchema = z
+  .string()
+  .trim()
+  .min(1, "Informe o nome da pessoa.")
+  .max(60, "Nome muito longo.")
+  .transform(toTitleCase);
 
 const pageAccessShape = {
   allowedModules: z.array(z.enum(Constants.public.Enums.app_module)),
@@ -15,18 +23,16 @@ function hasAnyPage(access: {
   return access.allowedModules.length > 0 || access.canAccessSettings;
 }
 
-export const memberAccessSchema = z.object(pageAccessShape).refine(hasAnyPage, {
-  message: PAGE_REQUIRED_MESSAGE,
-  path: ["allowedModules"],
-});
+export const memberAccessSchema = z
+  .object({ fullName: personNameSchema, ...pageAccessShape })
+  .refine(hasAnyPage, {
+    message: PAGE_REQUIRED_MESSAGE,
+    path: ["allowedModules"],
+  });
 
 export const invitationSchema = z
   .object({
-    inviteeName: z
-      .string()
-      .trim()
-      .min(1, "Informe o nome da pessoa.")
-      .max(60, "Nome muito longo."),
+    inviteeName: personNameSchema,
     ...pageAccessShape,
   })
   .refine(hasAnyPage, {

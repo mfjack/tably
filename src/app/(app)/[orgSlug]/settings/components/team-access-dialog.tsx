@@ -86,13 +86,14 @@ export function TeamAccessDialog({
         {
           userId: state.member.userId,
           input: {
+            fullName: values.inviteeName,
             allowedModules: values.allowedModules,
             canAccessSettings: values.canAccessSettings,
           },
         },
         {
           onSuccess: () => {
-            toast.success("Acesso atualizado.");
+            toast.success(`${values.inviteeName} atualizado.`);
             onClose();
           },
           onError: (error) => toast.error(error.message),
@@ -112,12 +113,12 @@ export function TeamAccessDialog({
       onOpenChange={(isDialogOpen) => !isDialogOpen && onClose()}
       title={
         state.mode === "edit"
-          ? `Acesso de ${state.member.name}`
+          ? `Editar ${state.member.name}`
           : "Convidar pessoa"
       }
       description={
         isEditing
-          ? "Escolha as páginas que essa pessoa pode ver."
+          ? "Mude o nome ou as páginas que essa pessoa pode ver."
           : "A pessoa recebe um link, entra com a conta dela e vê só as páginas que você liberar. O link vale por 7 dias."
       }
       submitLabel={isEditing ? "Salvar" : "Gerar convite"}
@@ -128,15 +129,13 @@ export function TeamAccessDialog({
       size="large"
     >
       <FieldGroup>
-        {!isEditing && (
-          <TextField
-            control={form.control}
-            name="inviteeName"
-            label="Nome da pessoa"
-            placeholder="Ex.: João, contador"
-            autoComplete="off"
-          />
-        )}
+        <TextField
+          control={form.control}
+          name="inviteeName"
+          label="Nome da pessoa"
+          placeholder="Ex.: João, contador"
+          autoComplete="off"
+        />
         <PageAccessField
           allowedModules={allowedModulesField.field.value}
           canAccessSettings={settingsField.field.value}

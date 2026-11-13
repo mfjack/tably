@@ -142,8 +142,8 @@ export function TeamSettings({
                   ) : (
                     <div className="flex gap-2">
                       <DataTableRowActionButton
-                        label="Editar acesso"
-                        accessibleLabel={`Editar acesso de ${member.name}`}
+                        label="Editar"
+                        accessibleLabel={`Editar ${member.name}`}
                         icon={Pencil}
                         onClick={() => setDialogState({ mode: "edit", member })}
                       />

@@ -4475,6 +4475,7 @@ export type Database = {
         Args: {
           p_allowed_modules: Database["public"]["Enums"]["app_module"][]
           p_can_access_settings: boolean
+          p_full_name: string
           p_organization_id: string
           p_user_id: string
         }
