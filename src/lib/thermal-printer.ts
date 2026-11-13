@@ -9,6 +9,7 @@ const LEGACY_RAWBT_STORAGE_KEY = "tably-thermal-printer-rawbt";
 const RAWBT_INTENT_SUFFIX =
   "#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;";
 const PAPER_WIDTH_STORAGE_KEY = "tably-thermal-printer-paper-width";
+const AUTO_PRINT_STORAGE_KEY = "tably-thermal-printer-auto-print";
 const SETTINGS_CHANGE_EVENT = "tably-thermal-printer-change";
 
 export const THERMAL_PAPER_WIDTHS = ["58mm", "80mm"] as const;
@@ -110,6 +111,15 @@ export function isThermalPrintingEnabled(): boolean {
   return readStorage(ENABLED_STORAGE_KEY) === "true";
 }
 
+export function isKitchenAutoPrintEnabled(): boolean {
+  if (typeof window === "undefined") return false;
+  return readStorage(AUTO_PRINT_STORAGE_KEY) === "true";
+}
+
+export function setKitchenAutoPrintEnabled(isEnabled: boolean) {
+  writeStorage(AUTO_PRINT_STORAGE_KEY, String(isEnabled));
+}
+
 export function setThermalPrintingEnabled(isEnabled: boolean) {
   writeStorage(ENABLED_STORAGE_KEY, String(isEnabled));
 }
@@ -172,8 +182,13 @@ export function useThermalPrinterSettings() {
     getThermalPrinterMode,
     () => "usb" as ThermalPrinterMode,
   );
+  const isAutoPrintEnabled = useSyncExternalStore(
+    subscribeToSettings,
+    isKitchenAutoPrintEnabled,
+    getEnabledOnServer,
+  );
 
-  return { isEnabled, paperWidth, printerName, mode };
+  return { isEnabled, paperWidth, printerName, mode, isAutoPrintEnabled };
 }
 
 async function openPrinterDevice(

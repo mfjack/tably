@@ -18,6 +18,7 @@ import {
   isThermalPrintingSupported,
   printThermalReceipt,
   reconnectThermalPrinter,
+  setKitchenAutoPrintEnabled,
   setThermalPaperWidth,
   setThermalPrinterMode,
   setThermalPrintingEnabled,
@@ -84,12 +85,13 @@ async function encodeTestReceipt(columns: number): Promise<Uint8Array> {
 
 export function ThermalPrinterSettings() {
   const switchId = useId();
+  const autoPrintSwitchId = useId();
   const isSupported = useSyncExternalStore(
     subscribeToNothing,
     isThermalPrintingSupported,
     getIsSupportedOnServer,
   );
-  const { isEnabled, paperWidth, printerName, mode } =
+  const { isEnabled, paperWidth, printerName, mode, isAutoPrintEnabled } =
     useThermalPrinterSettings();
   const [isConnecting, setIsConnecting] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
@@ -204,6 +206,28 @@ export function ThermalPrinterSettings() {
               onCheckedChange={setThermalPrintingEnabled}
             />
           </div>
+
+          {isEnabled && (
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex flex-col gap-0.5">
+                <label
+                  htmlFor={autoPrintSwitchId}
+                  className="font-medium text-sm"
+                >
+                  Imprimir pedidos novos automaticamente
+                </label>
+                <p className="text-muted-foreground text-sm">
+                  Neste aparelho, cada pedido que chega na cozinha sai na
+                  impressora sozinho, com o Tably aberto em qualquer tela.
+                </p>
+              </div>
+              <Switch
+                id={autoPrintSwitchId}
+                checked={isAutoPrintEnabled}
+                onCheckedChange={setKitchenAutoPrintEnabled}
+              />
+            </div>
+          )}
 
           <div className="flex items-center justify-between gap-4">
             <div className="flex flex-col gap-0.5">

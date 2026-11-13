@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { getCurrentUser } from "@/features/auth/queries";
+import { KitchenAutoPrinter } from "@/features/kitchen/components/kitchen-auto-printer";
 import { buildOrganizationPath } from "@/features/modules/app-modules";
+import { toOrderTicketBusiness } from "@/features/orders/print-order-ticket";
 import {
   getUserOrganizationBySlug,
   getUserOrganizations,
@@ -68,6 +70,12 @@ export default async function OrganizationLayout({
       <SidebarOverlay />
       <ServerDataRefresher />
       <OfflineOrderSync />
+      {!hiddenModules.includes("kitchen") && (
+        <KitchenAutoPrinter
+          organizationId={organization.id}
+          ticketBusiness={toOrderTicketBusiness(organization)}
+        />
+      )}
       {organization.menu.isOnlineOrderingEnabled &&
         !hiddenModules.includes("pos") && (
           <OnlineOrdersNotifier
