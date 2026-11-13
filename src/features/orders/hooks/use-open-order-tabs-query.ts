@@ -11,6 +11,8 @@ export function getOpenOrderTabsQueryKey(organizationId: OrganizationId) {
   return ["organizations", organizationId, "orders", "open-tabs"] as const;
 }
 
+const OPEN_TABS_REFRESH_INTERVAL_IN_MS = 30_000;
+
 export function useOpenOrderTabsQuery(
   organizationId: OrganizationId,
   isEnabled = true,
@@ -18,6 +20,8 @@ export function useOpenOrderTabsQuery(
   return useQuery({
     queryKey: getOpenOrderTabsQueryKey(organizationId),
     enabled: isEnabled,
+    refetchInterval: OPEN_TABS_REFRESH_INTERVAL_IN_MS,
+    refetchOnWindowFocus: true,
     queryFn: async () =>
       fetchActionResult<ActionData<typeof listOpenOrderTabs>>(
         organizationApiPath(organizationId, "orders/open-tabs"),

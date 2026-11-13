@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 import type { OrganizationId } from "@/features/organizations/types";
 import { loadBrowserClient } from "@/lib/supabase/load-browser-client";
 
-type RealtimeTable = "kitchen_tickets" | "online_orders";
+type RealtimeTable = "kitchen_tickets" | "online_orders" | "orders";
 
 export type RealtimeChange = RealtimePostgresChangesPayload<
   Record<string, unknown>

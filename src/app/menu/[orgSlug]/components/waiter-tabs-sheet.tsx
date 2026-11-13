@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { OpenOrderTabCard } from "@/features/orders/components/order-tabs/open-order-tab-card";
 import { OrderItemsList } from "@/features/orders/components/order-tabs/order-items-list";
 import { useOpenOrderTabsQuery } from "@/features/orders/hooks/use-open-order-tabs-query";
+import { useOrdersRealtime } from "@/features/orders/hooks/use-orders-realtime";
 import type { OrderId } from "@/features/orders/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import { useNow } from "@/hooks/use-now";
@@ -32,6 +33,7 @@ export function WaiterTabsSheet({ organizationId }: WaiterTabsSheetProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedOrderId, setSelectedOrderId] = useState<OrderId | null>(null);
   const openTabsQuery = useOpenOrderTabsQuery(organizationId, isOpen);
+  useOrdersRealtime(organizationId);
   const now = useNow(CLOCK_REFRESH_IN_MS);
   const openTabs = openTabsQuery.data ?? [];
   const normalizedSearch = searchTerm.trim().toLocaleLowerCase("pt-BR");
