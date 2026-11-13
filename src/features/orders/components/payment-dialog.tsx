@@ -46,7 +46,7 @@ import {
   calculateOrderTotals,
   type OrderAdjustmentsInput,
 } from "../order-adjustments";
-import { getPaymentsChange } from "../order-payments";
+import { getPaymentsChange, isCustomerAccountOnly } from "../order-payments";
 import { sortPaymentMethods } from "../payment-methods";
 import {
   countUnassignedUnits,
@@ -445,7 +445,11 @@ export function PaymentDialog({
         isOpen={isOpen}
         onOpenChange={(isDialogOpen) => !isDialogOpen && onClose()}
         title={title}
-        submitLabel={submitLabel}
+        submitLabel={
+          isCustomerAccountOnly(payments ?? [])
+            ? "Lançar na conta"
+            : submitLabel
+        }
         isSubmitting={isSubmitting}
         onSubmit={handleSubmit}
         secondaryAction={secondaryAction}
