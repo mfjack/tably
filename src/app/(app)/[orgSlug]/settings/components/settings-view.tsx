@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { CurrentUser } from "@/features/auth/types";
 import { APP_MODULES } from "@/features/modules/app-modules";
@@ -53,16 +56,17 @@ export function SettingsView({
     ...(isOwner ? OWNER_TABS : []),
     ...PERSONAL_TABS,
   ];
+  const [activeTab, setActiveTab] = useState(() =>
+    initialTab && availableTabs.includes(initialTab) ? initialTab : defaultTab,
+  );
+
   return (
     <>
       <PageHeader title={title} />
       <PageContent>
         <Tabs
-          defaultValue={
-            initialTab && availableTabs.includes(initialTab)
-              ? initialTab
-              : defaultTab
-          }
+          value={activeTab}
+          onValueChange={(tab: string) => setActiveTab(tab)}
           className="min-h-0 gap-6"
         >
           <TabsList className="w-full justify-start overflow-x-auto group-data-horizontal/tabs:h-10 sm:w-fit">
