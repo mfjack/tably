@@ -1,8 +1,6 @@
 "use server";
 
-import { ORGANIZATION_DOCUMENTS_BUCKET } from "@/features/documents/document-files";
-import { FINANCIAL_DOCUMENTS_BUCKET } from "@/features/finance/documents";
-import { PRODUCT_IMAGES_BUCKET } from "@/features/products/product-image";
+import { removeOrganizationFiles } from "@/features/organizations/organization-files";
 import {
   type ActionResult,
   actionFailure,
@@ -32,8 +30,6 @@ import {
   signInSchema,
   signUpSchema,
 } from "./schemas";
-
-const STORAGE_LIST_LIMIT = 1000;
 
 export type SignUpResult = { requiresEmailConfirmation: boolean };
 
@@ -173,54 +169,6 @@ export async function listOwnedOrganizations(): Promise<
   return actionSuccess(data);
 }
 
-async function removeOrganizationFiles(organizationIds: readonly string[]) {
-  const supabase = await createClient();
-  const productImages = supabase.storage.from(PRODUCT_IMAGES_BUCKET);
-  const documents = supabase.storage.from(FINANCIAL_DOCUMENTS_BUCKET);
-  const organizationDocuments = supabase.storage.from(
-    ORGANIZATION_DOCUMENTS_BUCKET,
-  );
-
-  await Promise.all(
-    organizationIds.map(async (organizationId) => {
-      const { data: images } = await productImages.list(organizationId, {
-        limit: STORAGE_LIST_LIMIT,
-      });
-      const imagePaths = (images ?? []).map(
-        (file) => `${organizationId}/${file.name}`,
-      );
-      if (imagePaths.length > 0) await productImages.remove(imagePaths);
-
-      const { data: organizationFiles } = await organizationDocuments.list(
-        organizationId,
-        { limit: STORAGE_LIST_LIMIT },
-      );
-      const organizationFilePaths = (organizationFiles ?? []).map(
-        (file) => `${organizationId}/${file.name}`,
-      );
-      if (organizationFilePaths.length > 0) {
-        await organizationDocuments.remove(organizationFilePaths);
-      }
-
-      const { data: entryFolders } = await documents.list(organizationId, {
-        limit: STORAGE_LIST_LIMIT,
-      });
-      const documentPaths = (
-        await Promise.all(
-          (entryFolders ?? []).map(async (folder) => {
-            const folderPath = `${organizationId}/${folder.name}`;
-            const { data: files } = await documents.list(folderPath, {
-              limit: STORAGE_LIST_LIMIT,
-            });
-            return (files ?? []).map((file) => `${folderPath}/${file.name}`);
-          }),
-        )
-      ).flat();
-      if (documentPaths.length > 0) await documents.remove(documentPaths);
-    }),
-  );
-}
-
 export async function deleteMyAccount(
   input: DeleteAccountInput,
 ): Promise<ActionResult> {
@@ -239,6 +187,7 @@ export async function deleteMyAccount(
   }
 
   await removeOrganizationFiles(
+    supabase,
     organizations.map((organization) => organization.id),
   );
 

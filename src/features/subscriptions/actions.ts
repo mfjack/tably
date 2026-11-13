@@ -1,6 +1,11 @@
 "use server";
 
 import * as z from "zod";
+import {
+  type DeleteAccountInput,
+  deleteAccountSchema,
+} from "@/features/auth/schemas";
+import { removeOrganizationFiles } from "@/features/organizations/organization-files";
 import type { OrganizationId } from "@/features/organizations/types";
 import {
   type ActionResult,
@@ -8,8 +13,12 @@ import {
   actionSuccess,
 } from "@/lib/action-result";
 import { ASAAS_BILLING_TYPES } from "@/lib/asaas/types";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { syncAsaasSubscriptionCharge } from "./automatic-billing";
+import {
+  cancelAsaasSubscription,
+  syncAsaasSubscriptionCharge,
+} from "./automatic-billing";
 import {
   BILLING_CYCLES,
   type BillingCycle,
@@ -207,4 +216,41 @@ export async function recordSubscriptionPayment(
     );
   }
   return actionSuccess(data);
+}
+
+export async function deleteAdminOrganization(
+  organizationId: OrganizationId,
+  input: DeleteAccountInput,
+): Promise<ActionResult> {
+  if (!deleteAccountSchema.safeParse(input).success) {
+    return actionFailure(INVALID_FORM_MESSAGE);
+  }
+
+  const supabase = await createClient();
+  const { data: asaasSubscriptionId, error } = await supabase.rpc(
+    "admin_delete_organization",
+    { p_organization_id: organizationId },
+  );
+
+  if (error) {
+    return actionFailure(
+      isPermissionError(error)
+        ? NOT_ALLOWED_MESSAGE
+        : "Não foi possível excluir o cliente.",
+    );
+  }
+
+  await Promise.allSettled([
+    removeOrganizationFiles(createAdminClient(), [organizationId]),
+    asaasSubscriptionId
+      ? cancelAsaasSubscription(asaasSubscriptionId)
+      : Promise.resolve(),
+  ]).then((results) => {
+    for (const result of results) {
+      if (result.status === "rejected") {
+        console.error("Admin organization cleanup failed", result.reason);
+      }
+    }
+  });
+  return actionSuccess();
 }

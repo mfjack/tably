@@ -3614,6 +3614,10 @@ export type Database = {
         Args: { p_customer_id: string; p_note: string; p_stamps: number }
         Returns: number
       }
+      admin_delete_organization: {
+        Args: { p_organization_id: string }
+        Returns: string
+      }
       admin_list_subscriptions: { Args: never; Returns: Json }
       admin_record_subscription_payment: {
         Args: {

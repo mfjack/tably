@@ -59,6 +59,14 @@ export async function updateAsaasSubscriptionCharge(
   );
 }
 
+export async function cancelAsaasSubscription(
+  asaasSubscriptionId: string,
+): Promise<void> {
+  await asaasRequest(`/subscriptions/${asaasSubscriptionId}`, {
+    method: "DELETE",
+  });
+}
+
 export async function syncAsaasSubscriptionCharge(
   organizationId: OrganizationId,
 ): Promise<void> {

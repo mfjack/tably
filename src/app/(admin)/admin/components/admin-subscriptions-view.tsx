@@ -1,7 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
-import { BellRing, Pencil, Wallet } from "lucide-react";
+import { BellRing, Pencil, Trash2, Wallet } from "lucide-react";
 import { useState } from "react";
 import { StatCard } from "@/components/stat-card";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +20,7 @@ import {
 } from "@/features/subscriptions/subscription-state";
 import type { AdminSubscription } from "@/features/subscriptions/types";
 import { AdminSubscriptionDialog } from "./admin-subscription-dialog";
+import { DeleteOrganizationDialog } from "./delete-organization-dialog";
 import { RecordPaymentDialog } from "./record-payment-dialog";
 
 type AdminSubscriptionsViewProps = {
@@ -29,7 +30,8 @@ type AdminSubscriptionsViewProps = {
 type DialogState =
   | { step: "closed" }
   | { step: "edit"; subscription: AdminSubscription }
-  | { step: "payment"; subscription: AdminSubscription };
+  | { step: "payment"; subscription: AdminSubscription }
+  | { step: "delete"; subscription: AdminSubscription };
 
 const STATUS_BADGE_VARIANTS = {
   trial: "secondary",
@@ -157,6 +159,17 @@ export function AdminSubscriptionsView({
                   <Wallet aria-hidden />
                   Registrar pagamento
                 </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="size-10 text-destructive"
+                  aria-label={`Excluir ${subscription.name}`}
+                  onClick={() =>
+                    setDialogState({ step: "delete", subscription })
+                  }
+                >
+                  <Trash2 aria-hidden />
+                </Button>
               </div>
             </li>
           ))}
@@ -172,6 +185,12 @@ export function AdminSubscriptionsView({
       <RecordPaymentDialog
         subscription={
           dialogState.step === "payment" ? dialogState.subscription : null
+        }
+        onClose={() => setDialogState({ step: "closed" })}
+      />
+      <DeleteOrganizationDialog
+        subscription={
+          dialogState.step === "delete" ? dialogState.subscription : null
         }
         onClose={() => setDialogState({ step: "closed" })}
       />
