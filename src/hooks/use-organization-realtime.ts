@@ -5,6 +5,13 @@ import { loadBrowserClient } from "@/lib/supabase/load-browser-client";
 
 type RealtimeTable = "kitchen_tickets" | "online_orders" | "orders";
 
+let channelCount = 0;
+
+function createChannelSuffix() {
+  channelCount += 1;
+  return channelCount;
+}
+
 export type RealtimeChange = RealtimePostgresChangesPayload<
   Record<string, unknown>
 >;
@@ -37,7 +44,7 @@ export function useOrganizationRealtime({
     void loadBrowserClient().then((supabase) => {
       if (!isActive) return;
       const channel = supabase
-        .channel(`${table}:${organizationId}`)
+        .channel(`${table}:${organizationId}:${createChannelSuffix()}`)
         .on(
           "postgres_changes",
           {

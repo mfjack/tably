@@ -3,7 +3,9 @@ import { useOrganizationRealtime } from "@/hooks/use-organization-realtime";
 import { useInvalidateOrders } from "./use-invalidate-orders";
 
 export function useOrdersRealtime(organizationId: OrganizationId) {
-  const invalidateOrders = useInvalidateOrders(organizationId);
+  const invalidateOrders = useInvalidateOrders(organizationId, {
+    shouldRefetchRelated: false,
+  });
 
   useOrganizationRealtime({
     table: "orders",
