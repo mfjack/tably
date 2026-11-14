@@ -30,7 +30,7 @@ export function formatAddonLabel(
   addon: Pick<OrderItemAddon, "name" | "price">,
 ): string {
   return addon.price > 0
-    ? `${addon.name} · + ${formatCurrency(addon.price)}`
+    ? `${addon.name} + ${formatCurrency(addon.price)}`
     : addon.name;
 }
 

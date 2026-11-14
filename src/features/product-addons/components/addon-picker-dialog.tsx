@@ -85,8 +85,7 @@ export function AddonPickerDialog({
     >
       <div className="flex flex-col gap-3">
         <p className="text-muted-foreground text-sm">
-          Toque no adicional para incluir e use + para pedir mais de um. Ou
-          toque em Adicionar para levar sem nenhum.
+          Quer algum adicional?
         </p>
         <div className="grid grid-cols-2 gap-2">
           {addons.map((addon) => (
@@ -95,7 +94,7 @@ export function AddonPickerDialog({
               label={
                 addon.isAvailable
                   ? formatAddonLabel(addon)
-                  : `${addon.name} · Esgotado`
+                  : `${addon.name} (esgotado)`
               }
               addonName={addon.name}
               quantity={countSelected(addon.id)}
