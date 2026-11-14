@@ -1,17 +1,11 @@
 "use client";
 
-import { ClipboardList } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ItemNoteDialog } from "@/components/item-note-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import { useOpenCashSessionQuery } from "@/features/cash-register/hooks/use-open-cash-session-query";
-import {
-  buildCategoryOrder,
-  sortByCategoryOrder,
-} from "@/features/categories/category-order";
-import type { CategoryId } from "@/features/categories/types";
+import { buildCategoryOrder } from "@/features/categories/category-order";
 import type { OrderSummaryData } from "@/features/orders/components/order-summary";
 import { PaymentDialog } from "@/features/orders/components/payment-dialog";
 import { useOpenTabs } from "@/features/orders/hooks/use-open-tabs";
@@ -22,7 +16,6 @@ import type {
   OrganizationId,
 } from "@/features/organizations/types";
 import {
-  getCartTabLabel,
   useActiveCartTab,
   useActiveCartTabId,
   useCart,
@@ -35,17 +28,15 @@ import { AddonPickerDialog } from "@/features/product-addons/components/addon-pi
 import type { Product, ProductId } from "@/features/products/types";
 import { useIsOnline } from "@/hooks/use-is-online";
 import { PageHeader } from "../../components/page-header";
+import { buildGroupOrderEntries, buildTabOrderGroups } from "../group-orders";
 import {
   type GroupCheckoutMode,
   getGroupKey,
   useGroupCheckout,
 } from "../hooks/use-group-checkout";
-import {
-  type CartLine,
-  type PosProduct,
-  usePosCatalog,
-} from "../hooks/use-pos-catalog";
+import { type CartLine, usePosCatalog } from "../hooks/use-pos-catalog";
 import { usePosCheckout } from "../hooks/use-pos-checkout";
+import { usePosProductFilter } from "../hooks/use-pos-product-filter";
 import { useProductOrganizer } from "../hooks/use-product-organizer";
 import type { StockLinks } from "../stock-links";
 import { CartPanel } from "./cart-panel";
@@ -55,19 +46,16 @@ import {
 } from "./cart-tab-name-dialog";
 import { CartTabsBar } from "./cart-tabs-bar";
 import { CashRegisterClosedState } from "./cash-register-closed-state";
-import { CashRegisterPanel } from "./cash-register-panel";
-import { CategoryFilter, type CategoryFilterOption } from "./category-filter";
+import { CategoryFilter } from "./category-filter";
 import { CustomerDialog } from "./customer-dialog";
 import { GroupOrderPicker } from "./group-order-picker";
 import {
   type GroupOrderConfirmation,
-  type GroupOrderEntry,
   GroupOrdersDialog,
 } from "./group-orders-dialog";
 import { MobileCartSheet } from "./mobile-cart-sheet";
-import { OfflineStatus } from "./offline-status";
-import { OnlineOrdersPanel } from "./online-orders-panel";
 import { OpenCashRegisterDialog } from "./open-cash-register-dialog";
+import { PosHeaderActions } from "./pos-header-actions";
 import { PosHeaderDescription } from "./pos-header-description";
 import { PosOrderTabsSheet } from "./pos-order-tabs-sheet";
 import { ProductGrid } from "./product-grid";
@@ -75,7 +63,6 @@ import { ProductOrganizerBar } from "./product-organizer-bar";
 import { ProductSearchInput } from "./product-search-input";
 import { SortableProductGrid } from "./sortable-product-grid";
 import { TabNameDialog } from "./tab-name-dialog";
-import { ThermalPrinterWarning } from "./thermal-printer-warning";
 
 type PosViewProps = {
   organizationId: OrganizationId;
@@ -101,10 +88,6 @@ const EMPTY_GROUP_SUMMARY: OrderSummaryData = {
 
 const OFFLINE_CATALOG_MESSAGE =
   "Sem internet e o cardápio ainda não foi salvo neste aparelho. Abra o PDV com internet uma vez para vender offline.";
-
-function matchesSearch(product: PosProduct, normalizedSearch: string) {
-  return product.name.toLocaleLowerCase("pt-BR").includes(normalizedSearch);
-}
 
 export function PosView({
   organizationId,
@@ -188,79 +171,24 @@ export function PosView({
     },
   });
 
-  const [searchTerm, setSearchTerm] = useState("");
   const [noteCartLine, setNoteCartLine] = useState<CartLine | null>(null);
   const [addonPickerProduct, setAddonPickerProduct] = useState<Product | null>(
     null,
   );
-  const [chosenCategoryId, setSelectedCategoryId] = useState<
-    CategoryId | null | undefined
-  >(undefined);
 
   const isKitchenPayment = checkout.checkoutStep.step === "kitchen-payment";
   const isQuickPayment = checkout.checkoutStep.step === "quick-payment";
 
-  const categoryOptions = useMemo<CategoryFilterOption[]>(() => {
-    const categoryIdsWithProducts = new Set<CategoryId>(
-      posProducts.flatMap((product) =>
-        product.categoryId ? [product.categoryId] : [],
-      ),
-    );
-
-    return (categories ?? [])
-      .filter((category) => categoryIdsWithProducts.has(category.id))
-      .map((category) => ({ id: category.id, label: category.name }));
-  }, [categories, posProducts]);
-  const selectedCategoryId =
-    chosenCategoryId === undefined
-      ? (categoryOptions[0]?.id ?? null)
-      : chosenCategoryId;
-
   const productOrganizer = useProductOrganizer(organizationId, posProducts);
   const { isOrganizing, organizedProducts } = productOrganizer;
-  const canDragProducts =
-    selectedCategoryId !== null || categoryOptions.length === 0;
-
-  const visibleProducts = useMemo(() => {
-    const normalizedSearch = isOrganizing
-      ? ""
-      : searchTerm.trim().toLocaleLowerCase("pt-BR");
-    const categoryFilterId = normalizedSearch ? null : selectedCategoryId;
-    const filteredProducts = organizedProducts.filter(
-      (product) =>
-        (categoryFilterId === null ||
-          product.categoryId === categoryFilterId) &&
-        (normalizedSearch === "" || matchesSearch(product, normalizedSearch)),
-    );
-    return categoryFilterId === null
-      ? sortByCategoryOrder(
-          filteredProducts,
-          (product) => product.categoryId,
-          categoryOrder,
-        )
-      : filteredProducts;
-  }, [
+  const productFilter = usePosProductFilter({
+    products: posProducts,
     organizedProducts,
-    isOrganizing,
-    searchTerm,
-    selectedCategoryId,
+    categories,
     categoryOrder,
-  ]);
-
-  const { startOrganizing } = productOrganizer;
-  const startOrganizingFromProduct = useCallback(
-    (productId: ProductId) => {
-      const pressedProduct = posProducts.find(
-        (product) => product.id === productId,
-      );
-      if (pressedProduct?.categoryId) {
-        setSelectedCategoryId(pressedProduct.categoryId);
-      }
-      setSearchTerm("");
-      startOrganizing();
-    },
-    [posProducts, startOrganizing],
-  );
+    isOrganizing,
+    onStartOrganizing: productOrganizer.startOrganizing,
+  });
 
   const handleAddProduct = useCallback(
     (productId: ProductId) => {
@@ -336,16 +264,10 @@ export function PosView({
   const hasItemsInAnyTab = cartTabs.some((tab) => tab.items.length > 0);
   const tabsWithItems = cartTabs.filter((tab) => tab.items.length > 0);
   const hasManyOrders = tabsWithItems.length > 1;
-  const groupOrderEntries: GroupOrderEntry[] = tabsWithItems.map((tab) => {
-    const tabLines = buildCartLines(tab.items);
-    return {
-      cartTabId: tab.id,
-      label: getCartTabLabel(tab),
-      defaultName: tab.name,
-      itemCount: tabLines.reduce((count, line) => count + line.quantity, 0),
-      total: tabLines.reduce((total, line) => total + line.total, 0),
-    };
-  });
+  const groupOrderEntries = buildGroupOrderEntries(
+    tabsWithItems,
+    buildCartLines,
+  );
 
   const groupCheckout = useGroupCheckout({
     placeGroupOrder: checkout.placeGroupOrder,
@@ -374,24 +296,14 @@ export function PosView({
     orders: readonly GroupOrderConfirmation[],
     isAllTakeaway: boolean,
   ) {
-    const groups = groupOrderEntries.map((entry, index) => {
-      const tab = tabsWithItems.find(({ id }) => id === entry.cartTabId);
-      return {
-        cartTabIds: [entry.cartTabId],
-        customerName: orders[index]?.customerName ?? entry.label,
-        isTakeaway: isAllTakeaway || (orders[index]?.isTakeaway ?? false),
-        isTakeawayCharged: isAllTakeaway
-          ? index === 0
-          : (orders[index]?.isTakeaway ?? false),
-        takeawayFee: (isAllTakeaway ? index === 0 : orders[index]?.isTakeaway)
-          ? takeawayFee
-          : 0,
-        cartLines: sortByCategoryOrder(
-          buildCartLines(tab?.items ?? []),
-          (cartLine) => cartLine.product.categoryId,
-          categoryOrder,
-        ),
-      };
+    const groups = buildTabOrderGroups({
+      entries: groupOrderEntries,
+      tabs: tabsWithItems,
+      orders,
+      isAllTakeaway,
+      takeawayFee,
+      categoryOrder,
+      buildCartLines,
     });
     if (groupDialogMode) groupCheckout.start(groups, groupDialogMode);
     setGroupDialogMode(null);
@@ -445,37 +357,18 @@ export function PosView({
           title={organizationName}
           description={<PosHeaderDescription />}
           actions={
-            <>
-              <ThermalPrinterWarning settingsHref={printerSettingsHref} />
-              <OfflineStatus organizationId={organizationId} />
-              <CashRegisterPanel
-                organizationId={organizationId}
-                ticketBusiness={ticketBusiness}
-                onOpenRegister={() => setIsOpenRegisterDialogOpen(true)}
-              />
-              {isOnlineOrderingEnabled && (
-                <OnlineOrdersPanel
-                  organizationId={organizationId}
-                  ticketBusiness={ticketBusiness}
-                  kitchenHref={kitchenHref}
-                  isKitchenEnabled={isKitchenEnabled}
-                />
-              )}
-              {canUseOrderTabs && openTabsCount > 0 && (
-                <Button
-                  variant="outline"
-                  className="h-10 px-3 sm:px-4"
-                  aria-label="Comandas"
-                  onClick={() => setIsOrderTabsSheetOpen(true)}
-                >
-                  <ClipboardList aria-hidden />
-                  <span className="hidden sm:inline">Comandas</span>
-                  <span className="text-muted-foreground tabular-nums">
-                    {openTabsCount}
-                  </span>
-                </Button>
-              )}
-            </>
+            <PosHeaderActions
+              organizationId={organizationId}
+              ticketBusiness={ticketBusiness}
+              printerSettingsHref={printerSettingsHref}
+              isOnlineOrderingEnabled={isOnlineOrderingEnabled}
+              kitchenHref={kitchenHref}
+              isKitchenEnabled={isKitchenEnabled}
+              openTabsCount={openTabsCount}
+              canShowOrderTabs={canUseOrderTabs}
+              onOpenRegister={() => setIsOpenRegisterDialogOpen(true)}
+              onOpenOrderTabs={() => setIsOrderTabsSheetOpen(true)}
+            />
           }
         />
         {isCashRegisterClosed ? (
@@ -488,21 +381,21 @@ export function PosView({
           <>
             <div className="flex flex-col gap-4 px-4 pt-5 md:px-6">
               <CategoryFilter
-                options={categoryOptions}
-                selectedCategoryId={selectedCategoryId}
-                onSelect={setSelectedCategoryId}
+                options={productFilter.categoryOptions}
+                selectedCategoryId={productFilter.selectedCategoryId}
+                onSelect={productFilter.selectCategory}
               />
               {isOrganizing ? (
                 <ProductOrganizerBar
-                  canDrag={canDragProducts}
+                  canDrag={productFilter.canDragProducts}
                   isSaving={productOrganizer.isSaving}
                   onCancel={productOrganizer.cancelOrganizing}
                   onSave={productOrganizer.saveOrganization}
                 />
               ) : (
                 <ProductSearchInput
-                  searchTerm={searchTerm}
-                  onSearchTermChange={setSearchTerm}
+                  searchTerm={productFilter.searchTerm}
+                  onSearchTermChange={productFilter.setSearchTerm}
                 />
               )}
             </div>
@@ -511,19 +404,21 @@ export function PosView({
                 <Alert variant="destructive">
                   <AlertDescription>{catalogErrorMessage}</AlertDescription>
                 </Alert>
-              ) : isOrganizing && canDragProducts ? (
+              ) : isOrganizing && productFilter.canDragProducts ? (
                 <SortableProductGrid
-                  products={visibleProducts}
+                  products={productFilter.visibleProducts}
                   onMove={productOrganizer.moveProduct}
                 />
               ) : (
                 <ProductGrid
-                  products={visibleProducts}
+                  products={productFilter.visibleProducts}
                   isLoading={isLoading || !isCartHydrated}
                   onAdd={handleAddProduct}
                   stockLinks={stockLinks}
                   onLongPress={
-                    canOrganizeProducts ? startOrganizingFromProduct : undefined
+                    canOrganizeProducts
+                      ? productFilter.startOrganizingFromProduct
+                      : undefined
                   }
                 />
               )}
