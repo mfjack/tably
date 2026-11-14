@@ -22,6 +22,7 @@ type CustomerAccountsTableProps = {
   isLoading: boolean;
   errorMessage?: string;
   emptyState: ReactNode;
+  toolbarActions?: ReactNode;
   onOpenStatement: (account: CustomerAccount) => void;
   onEdit: (account: CustomerAccount) => void;
   onDelete: (account: CustomerAccount) => void;
@@ -36,6 +37,7 @@ export function CustomerAccountsTable({
   isLoading,
   errorMessage,
   emptyState,
+  toolbarActions,
   onOpenStatement,
   onEdit,
   onDelete,
@@ -137,6 +139,7 @@ export function CustomerAccountsTable({
       isLoading={isLoading}
       errorMessage={errorMessage}
       emptyState={emptyState}
+      toolbarActions={toolbarActions}
     />
   );
 }

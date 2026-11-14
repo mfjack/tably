@@ -7,7 +7,16 @@ import {
   ConfirmDialog,
   IRREVERSIBLE_ACTION_MESSAGE,
 } from "@/components/dialog/confirm-dialog";
+import { ToggleChip } from "@/components/toggle-chip";
 import { Button } from "@/components/ui/button";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { CustomerAccountFormDialog } from "@/features/customer-accounts/components/customer-account-form-dialog";
 import { useCustomerAccountsQuery } from "@/features/customer-accounts/hooks/use-customer-accounts-query";
 import { useDeleteCustomerAccountMutation } from "@/features/customer-accounts/hooks/use-delete-customer-account-mutation";
@@ -66,11 +75,15 @@ export function CustomerAccountsView({
     useState<CustomerAccount | null>(null);
   const deleteAccountMutation =
     useDeleteCustomerAccountMutation(organizationId);
+  const [isShowingPaidAccounts, setIsShowingPaidAccounts] = useState(false);
 
   const accounts = accountsQuery.data;
   const findAccount = (accountId: CustomerAccountId | null) =>
     accounts?.find((account) => account.id === accountId) ?? null;
   const debtors = (accounts ?? []).filter((account) => account.balance > 0);
+  const hasPaidAccounts = (accounts?.length ?? 0) > debtors.length;
+  const visibleAccounts =
+    accounts && !isShowingPaidAccounts ? debtors : accounts;
   const totalReceivable = debtors.reduce(
     (total, account) => total + account.balance,
     0,
@@ -125,18 +138,52 @@ export function CustomerAccountsView({
       />
       <PageContent>
         <CustomerAccountsTable
-          accounts={accounts}
+          accounts={visibleAccounts}
           isLoading={accountsQuery.isPending}
           errorMessage={accountsQuery.error?.message}
           emptyState={
-            <ListEmptyState
-              icon={BookUser}
-              title="Nenhuma conta ainda"
-              description="Cadastre os clientes que compram para pagar depois. No PDV, escolha a forma de pagamento Conta."
-              createLabel="Criar primeira conta"
-              canCreate
-              onCreate={openCreateForm}
-            />
+            hasPaidAccounts ? (
+              <Empty className="flex-1 border border-dashed">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <BookUser aria-hidden />
+                  </EmptyMedia>
+                  <EmptyTitle>Ninguém devendo</EmptyTitle>
+                  <EmptyDescription>
+                    Todas as contas estão quitadas.
+                  </EmptyDescription>
+                </EmptyHeader>
+                <EmptyContent>
+                  <Button
+                    variant="outline"
+                    className="h-10"
+                    onClick={() => setIsShowingPaidAccounts(true)}
+                  >
+                    Mostrar quitadas
+                  </Button>
+                </EmptyContent>
+              </Empty>
+            ) : (
+              <ListEmptyState
+                icon={BookUser}
+                title="Nenhuma conta ainda"
+                description="Cadastre os clientes que compram para pagar depois. No PDV, escolha a forma de pagamento Conta."
+                createLabel="Criar primeira conta"
+                canCreate
+                onCreate={openCreateForm}
+              />
+            )
+          }
+          toolbarActions={
+            hasPaidAccounts && (
+              <ToggleChip
+                label="Mostrar quitadas"
+                isSelected={isShowingPaidAccounts}
+                onToggle={() =>
+                  setIsShowingPaidAccounts((isShowing) => !isShowing)
+                }
+              />
+            )
           }
           onOpenStatement={openStatement}
           onEdit={openEditForm}
