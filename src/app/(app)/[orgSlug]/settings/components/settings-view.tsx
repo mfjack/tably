@@ -21,11 +21,18 @@ import { SubscriptionSettings } from "./subscription-settings";
 import { TeamSettings } from "./team-settings";
 import { ThermalPrinterSettings } from "./thermal-printer-settings";
 
-const ESTABLISHMENT_TABS = ["checkout", "loyalty", "menu"] as const;
+const ESTABLISHMENT_TABS = ["checkout", "menu"] as const;
 
-const OWNER_TABS = ["organization", "modules", "subscription", "team"] as const;
+const OWNER_TABS = [
+  "organization",
+  "modules",
+  "loyalty",
+  "subscription",
+  "team",
+  "profile",
+] as const;
 
-const PERSONAL_TABS = ["printer", "profile"] as const;
+const PERSONAL_TABS = ["printer"] as const;
 
 type SettingsViewProps = {
   title: string;
@@ -85,9 +92,11 @@ export function SettingsView({
                 <TabsTrigger value="checkout" className="shrink-0 px-4">
                   Vendas
                 </TabsTrigger>
-                <TabsTrigger value="loyalty" className="shrink-0 px-4">
-                  Fidelidade
-                </TabsTrigger>
+                {isOwner && (
+                  <TabsTrigger value="loyalty" className="shrink-0 px-4">
+                    Fidelidade
+                  </TabsTrigger>
+                )}
                 <TabsTrigger value="menu" className="shrink-0 px-4">
                   Cardápio
                 </TabsTrigger>
@@ -108,9 +117,11 @@ export function SettingsView({
             <TabsTrigger value="printer" className="shrink-0 px-4">
               Impressora
             </TabsTrigger>
-            <TabsTrigger value="profile" className="shrink-0 px-4">
-              Meu perfil
-            </TabsTrigger>
+            {isOwner && (
+              <TabsTrigger value="profile" className="shrink-0 px-4">
+                Meu perfil
+              </TabsTrigger>
+            )}
           </TabsList>
           {isOwner && (
             <>
@@ -152,16 +163,22 @@ export function SettingsView({
                   organization={organization}
                 />
               </TabsContent>
-              <TabsContent value="loyalty" className="min-h-0 overflow-y-auto">
-                <LoyaltySettingsForm
-                  key={organization.id}
-                  organization={organization}
-                  isAvailableInPlan={
-                    getPlanHiddenModules(organization.subscription, ["loyalty"])
-                      .length === 0
-                  }
-                />
-              </TabsContent>
+              {isOwner && (
+                <TabsContent
+                  value="loyalty"
+                  className="min-h-0 overflow-y-auto"
+                >
+                  <LoyaltySettingsForm
+                    key={organization.id}
+                    organization={organization}
+                    isAvailableInPlan={
+                      getPlanHiddenModules(organization.subscription, [
+                        "loyalty",
+                      ]).length === 0
+                    }
+                  />
+                </TabsContent>
+              )}
               <TabsContent value="menu" className="min-h-0 overflow-y-auto">
                 <MenuSettings
                   key={organization.id}
@@ -201,16 +218,18 @@ export function SettingsView({
           <TabsContent value="printer" className="min-h-0 overflow-y-auto">
             <ThermalPrinterSettings />
           </TabsContent>
-          <TabsContent
-            value="profile"
-            className="flex min-h-0 flex-col gap-6 overflow-y-auto *:shrink-0"
-          >
-            <ProfileForm
-              email={currentUser.email}
-              fullName={currentUser.fullName}
-            />
-            <DeleteAccountSection email={currentUser.email} />
-          </TabsContent>
+          {isOwner && (
+            <TabsContent
+              value="profile"
+              className="flex min-h-0 flex-col gap-6 overflow-y-auto *:shrink-0"
+            >
+              <ProfileForm
+                email={currentUser.email}
+                fullName={currentUser.fullName}
+              />
+              <DeleteAccountSection email={currentUser.email} />
+            </TabsContent>
+          )}
         </Tabs>
       </PageContent>
     </>

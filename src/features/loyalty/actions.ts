@@ -4,6 +4,7 @@ import type { OrganizationId } from "@/features/organizations/types";
 import {
   hasAnyModuleAccess,
   hasModuleAccess,
+  isOrganizationOwner,
   MODULE_ACCESS_DENIED_MESSAGE,
 } from "@/features/team/module-access";
 import {
@@ -54,7 +55,7 @@ export async function saveLoyaltySettings(
   organizationId: OrganizationId,
   input: LoyaltySettingsInput,
 ): Promise<ActionResult> {
-  if (!(await hasModuleAccess(organizationId, "settings"))) {
+  if (!(await isOrganizationOwner(organizationId))) {
     return ACCESS_DENIED;
   }
   const parsedInput = loyaltySettingsSchema.safeParse(input);
