@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import type { OrganizationId } from "@/features/organizations/types";
 import { unwrapActionResult } from "@/lib/action-result";
-import { createFinancialEntry } from "../actions";
+import { createFinancialEntry } from "../entry-actions";
 import type { EntryInput } from "../schemas";
 import { useInvalidateFinance } from "./use-invalidate-finance";
 

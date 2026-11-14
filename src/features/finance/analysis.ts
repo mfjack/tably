@@ -1,4 +1,5 @@
-import { addDays, format, getISODay, parseISO } from "date-fns";
+import { addDays, getISODay, parseISO } from "date-fns";
+import { toDateKey } from "@/lib/date-key";
 
 export const PROJECTION_HORIZONS = [30, 60, 90] as const;
 
@@ -31,10 +32,6 @@ export type CashFlowProjection = {
   firstNegativeDate: string | null;
   endingBalance: number;
 };
-
-function toDateKey(date: Date): string {
-  return format(date, "yyyy-MM-dd");
-}
 
 export function buildCashFlowProjection(
   data: FinancialAnalysisData,

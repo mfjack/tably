@@ -3,7 +3,7 @@ import type { OrganizationId } from "@/features/organizations/types";
 import { unwrapActionResult } from "@/lib/action-result";
 import { buildDocumentPath, getDocumentFileError } from "@/lib/document-files";
 import { loadBrowserClient } from "@/lib/supabase/load-browser-client";
-import { addFinancialEntryAttachments } from "../actions";
+import { addFinancialEntryAttachments } from "../attachment-actions";
 import {
   FINANCIAL_DOCUMENTS_BUCKET,
   MAX_FINANCIAL_DOCUMENT_SIZE_IN_MEGABYTES,

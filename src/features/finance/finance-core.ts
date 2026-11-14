@@ -1,12 +1,13 @@
 import "server-only";
 
-import { addDays, format, parseISO } from "date-fns";
+import { addDays, parseISO } from "date-fns";
 import type { OrganizationId } from "@/features/organizations/types";
 import {
   hasModuleAccess,
   MODULE_ACCESS_DENIED_MESSAGE,
 } from "@/features/team/module-access";
 import { actionFailure } from "@/lib/action-result";
+import { toDateKey } from "@/lib/date-key";
 import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_CATEGORIES } from "./labels";
 import type { FinancialAccountId } from "./types";
@@ -16,10 +17,6 @@ export const ACCESS_DENIED = actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
 
 export async function canUseFinance(organizationId: OrganizationId) {
   return hasModuleAccess(organizationId, "finance");
-}
-
-export function toDateKey(date: Date): string {
-  return format(date, "yyyy-MM-dd");
 }
 
 export async function syncRecurrences(
