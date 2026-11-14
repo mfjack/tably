@@ -11,7 +11,7 @@ const preparedRecipeShape = {
     .positive("O rendimento precisa ser maior que zero."),
   recipe: z
     .array(recipeItemSchema)
-    .min(1, "Adicione pelo menos um insumo à receita."),
+    .min(1, "Adicione pelo menos um item à receita."),
   steps: z
     .array(
       z.object({
@@ -30,7 +30,7 @@ function refineRepeatedIngredients(
     if (seenIngredientIds.has(recipeItem.ingredientId)) {
       context.addIssue({
         code: "custom",
-        message: "Esse insumo já está na receita.",
+        message: "Esse item já está na receita.",
         path: ["recipe", index, "ingredientId"],
       });
     }

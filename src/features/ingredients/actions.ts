@@ -31,7 +31,7 @@ import {
 import type { Ingredient, IngredientId, IngredientLastPurchase } from "./types";
 
 const DUPLICATE_INGREDIENT_ERROR_CODE = "TB047";
-const DUPLICATE_NAME_MESSAGE = "Já existe um insumo com esse nome.";
+const DUPLICATE_NAME_MESSAGE = "Já existe um item com esse nome.";
 const INVALID_FORM_MESSAGE = "Confira os campos e tente novamente.";
 const GENERIC_ERROR_MESSAGE = "Não foi possível salvar. Tente novamente.";
 
@@ -71,7 +71,7 @@ export async function listIngredients(
     .limit(1, { referencedTable: "last_purchase" });
 
   if (error)
-    return databaseFailure("Não foi possível carregar os insumos.", error);
+    return databaseFailure("Não foi possível carregar o estoque.", error);
 
   return actionSuccess(
     data.map((ingredient) => {
@@ -135,11 +135,11 @@ export async function createIngredients(
 
   if (error?.code === "P0002") {
     return actionFailure(
-      "Algum insumo ou fornecedor não existe mais. Atualize a página.",
+      "Algum item ou fornecedor não existe mais. Atualize a página.",
     );
   }
   if (error?.code === DUPLICATE_INGREDIENT_ERROR_CODE) {
-    return actionFailure(`Já existe um insumo chamado "${error.message}".`);
+    return actionFailure(`Já existe um item chamado "${error.message}".`);
   }
   if (isUniqueViolation(error)) return actionFailure(DUPLICATE_NAME_MESSAGE);
   if (error) return databaseFailure(GENERIC_ERROR_MESSAGE, error);
@@ -209,7 +209,7 @@ export async function updateIngredient(
     (await isIngredientInUse(ingredientId))
   ) {
     return actionFailure(
-      "Esse insumo é usado em fichas técnicas, receitas ou adicionais. Só dá para trocar entre g e ml.",
+      "Esse item é usado em fichas técnicas, receitas ou adicionais. Só dá para trocar entre g e ml.",
     );
   }
   const { error } = await supabase
@@ -269,11 +269,10 @@ export async function deleteIngredient(
 
   if (isForeignKeyViolation(error)) {
     return actionFailure(
-      "Esse insumo está na ficha técnica de algum produto. Remova-o dos produtos antes de excluir.",
+      "Esse item está na ficha técnica de algum produto. Remova-o dos produtos antes de excluir.",
     );
   }
-  if (error)
-    return databaseFailure("Não foi possível excluir o insumo.", error);
+  if (error) return databaseFailure("Não foi possível excluir o item.", error);
 
   return actionSuccess();
 }

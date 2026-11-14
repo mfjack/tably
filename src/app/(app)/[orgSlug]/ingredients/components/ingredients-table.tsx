@@ -165,7 +165,7 @@ export function IngredientsTable({
       table={table}
       isLoading={isLoading}
       errorMessage={errorMessage}
-      searchPlaceholder="Buscar insumo"
+      searchPlaceholder="Buscar item"
       emptyState={emptyState}
       toolbarActions={
         filterTabs && (

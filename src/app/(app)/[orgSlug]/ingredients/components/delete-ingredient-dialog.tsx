@@ -30,7 +30,7 @@ function getDeleteDescription(ingredient: Ingredient) {
       ? "1 produto"
       : `${ingredient.recipeCount} produtos`;
 
-  return `Esse insumo está na ficha técnica de ${productsLabel}. Remova-o dos produtos antes de excluir.`;
+  return `Esse item está na ficha técnica de ${productsLabel}. Remova-o dos produtos antes de excluir.`;
 }
 
 export function DeleteIngredientDialog({
@@ -45,7 +45,7 @@ export function DeleteIngredientDialog({
     deleteIngredientMutation.mutate(ingredient.id, {
       onSuccess: () => {
         toast.success(
-          ingredient.isPrepared ? "Preparo excluído." : "Insumo excluído.",
+          ingredient.isPrepared ? "Preparo excluído." : "Item excluído.",
         );
         onClose();
       },

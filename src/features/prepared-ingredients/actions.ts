@@ -53,7 +53,7 @@ export async function createPreparation(
   });
 
   if (error?.code === DUPLICATE_NAME_ERROR_CODE) {
-    return actionFailure(`Já existe um insumo chamado "${error.message}".`);
+    return actionFailure(`Já existe um item chamado "${error.message}".`);
   }
   return toRecipeResult(error, "Não foi possível cadastrar o preparo.");
 }
@@ -84,7 +84,7 @@ export async function updatePreparation(
   });
 
   if (error?.code === DUPLICATE_NAME_ERROR_CODE) {
-    return actionFailure(`Já existe um insumo chamado "${error.message}".`);
+    return actionFailure(`Já existe um item chamado "${error.message}".`);
   }
   return toRecipeResult(error, "Não foi possível salvar o preparo.");
 }
@@ -106,7 +106,7 @@ function toRecipeResult(
 ): ActionResult {
   if (error?.code === "TB035") {
     return actionFailure(
-      "Essa receita usa um insumo que, por sua vez, leva este. Tire esse insumo da receita.",
+      "Essa receita usa um item que, por sua vez, leva este. Tire esse item da receita.",
     );
   }
   if (error?.code === "42501") {
@@ -134,7 +134,7 @@ export async function registerProduction(
     .single();
 
   if (error?.code === "TB036") {
-    return actionFailure("Esse insumo não tem receita de produção.");
+    return actionFailure("Esse item não tem receita de produção.");
   }
   if (error) {
     return databaseFailure("Não foi possível registrar a produção.", error);

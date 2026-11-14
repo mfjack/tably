@@ -39,7 +39,7 @@ export const purchaseInvoiceSchema = z.object({
 
 const invoiceItemDecisionSchema = z
   .object({
-    target: z.string().min(1, "Escolha o insumo."),
+    target: z.string().min(1, "Escolha o item."),
     newName: z
       .string()
       .trim()
@@ -64,7 +64,7 @@ const invoiceItemDecisionSchema = z
     if (!decision.newName) {
       context.addIssue({
         code: "custom",
-        message: "Dê um nome ao insumo.",
+        message: "Dê um nome ao item.",
         path: ["newName"],
       });
     }

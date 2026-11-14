@@ -3,8 +3,8 @@ import { STOCK_LOSS_REASONS } from "./labels";
 
 export const stockLossFormSchema = z.object({
   ingredientId: z
-    .string({ error: "Escolha o insumo." })
-    .min(1, "Escolha o insumo."),
+    .string({ error: "Escolha o item." })
+    .min(1, "Escolha o item."),
   quantity: z
     .number({ error: "Informe a quantidade." })
     .positive("A quantidade precisa ser maior que zero."),

@@ -126,7 +126,7 @@ export function ProductAddonFormDialog({
         <SelectField
           control={form.control}
           name="ingredientId"
-          label="Insumo usado"
+          label="Item do estoque usado"
           options={ingredientOptions}
         />
         {selectedIngredient && (

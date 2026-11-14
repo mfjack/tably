@@ -60,7 +60,7 @@ export function PreparedRecipeFields<
         placeholder="Ex.: 800"
       />
       <FieldSet>
-        <FieldLegend>Insumos de uma receita</FieldLegend>
+        <FieldLegend>Itens de uma receita</FieldLegend>
         <FieldDescription>
           O que vai em uma receita e quanto de cada um.
         </FieldDescription>

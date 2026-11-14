@@ -159,7 +159,7 @@ export function ReceivePurchaseOrderDialog({
       isOpen
       onOpenChange={(isDialogOpen) => !isDialogOpen && onClose()}
       title={`Receber pedido${order.supplierName ? ` · ${order.supplierName}` : ""}`}
-      description="Confira o que chegou. As quantidades já vêm do pedido; ajuste o que veio diferente. Sem valor pago, usamos o custo atual do insumo."
+      description="Confira o que chegou. As quantidades já vêm do pedido; ajuste o que veio diferente. Sem valor pago, usamos o custo atual do item."
       submitLabel="Dar entrada"
       isSubmitting={receiveMutation.isPending}
       onSubmit={handleSubmit}

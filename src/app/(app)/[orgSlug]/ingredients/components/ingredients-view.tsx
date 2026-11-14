@@ -246,7 +246,7 @@ export function IngredientsView({
               {canManage && (
                 <Button className="h-10" onClick={openCreateForm}>
                   <Plus aria-hidden />
-                  <span className="max-sm:sr-only">Novo insumo</span>
+                  <span className="max-sm:sr-only">Novo item</span>
                 </Button>
               )}
             </>
@@ -261,7 +261,7 @@ export function IngredientsView({
         >
           <TabsList className="max-w-full shrink-0 justify-start overflow-x-auto group-data-horizontal/tabs:h-10">
             <TabsTrigger value="supplies" className="px-3">
-              Insumos
+              Itens
             </TabsTrigger>
             <TabsTrigger value="preparations" className="px-3">
               Preparos
@@ -274,9 +274,9 @@ export function IngredientsView({
               emptyState={
                 <ListEmptyState
                   icon={Package}
-                  title="Nenhum insumo ainda"
-                  description="Insumos são o que você compra para fazer os produtos, como leite, café em grãos ou copos. Com eles o Tably calcula o custo de cada produto."
-                  createLabel="Cadastrar primeiro insumo"
+                  title="Nenhum item no estoque ainda"
+                  description="O estoque é o que você compra para fazer os produtos, como leite, café em grãos ou copos. Com eles o Tably calcula o custo de cada produto."
+                  createLabel="Cadastrar primeiro item"
                   canCreate={canManage}
                   onCreate={openCreateForm}
                 />
@@ -291,7 +291,7 @@ export function IngredientsView({
                 <ListEmptyState
                   icon={CookingPot}
                   title="Nenhum preparo ainda"
-                  description="Preparos são o que vocês fazem na casa com os insumos, como caldas, cremes e massas. Cadastre a receita e use Produzir quando fizer."
+                  description="Preparos são o que vocês fazem na casa com os itens do estoque, como caldas, cremes e massas. Cadastre a receita e use Produzir quando fizer."
                   createLabel="Cadastrar primeiro preparo"
                   canCreate={canManage}
                   onCreate={openPreparationForm}

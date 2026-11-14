@@ -3,8 +3,8 @@ import { toTitleCase } from "@/lib/title-case";
 
 export const recipeItemSchema = z.object({
   ingredientId: z
-    .string({ error: "Escolha o insumo." })
-    .min(1, "Escolha o insumo."),
+    .string({ error: "Escolha o item." })
+    .min(1, "Escolha o item."),
   quantity: z
     .number({ error: "Informe a quantidade." })
     .positive("A quantidade precisa ser maior que zero."),
@@ -44,7 +44,7 @@ export const productFormSchema = z
       if (seenIngredientIds.has(recipeItem.ingredientId)) {
         context.addIssue({
           code: "custom",
-          message: "Esse insumo já está na ficha técnica.",
+          message: "Esse item já está na ficha técnica.",
           path: ["recipe", index, "ingredientId"],
         });
       }

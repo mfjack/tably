@@ -188,7 +188,7 @@ export function FoodLabelDialog({
       isOpen
       onOpenChange={(isDialogOpen) => !isDialogOpen && onClose()}
       title="Etiqueta de validade"
-      description="Para o que foi aberto ou preparado. A data de manipulação é a de agora; a validade e a conservação ficam guardadas no insumo para a próxima vez."
+      description="Para o que foi aberto ou preparado. A data de manipulação é a de agora; a validade e a conservação ficam guardadas no item para a próxima vez."
       submitLabel="Imprimir etiqueta"
       isSubmitting={false}
       onSubmit={handleSubmit}
@@ -197,7 +197,7 @@ export function FoodLabelDialog({
         <SelectField
           control={form.control}
           name="ingredientId"
-          label="Insumo"
+          label="Item"
           options={ingredientOptions}
         />
         <TextField

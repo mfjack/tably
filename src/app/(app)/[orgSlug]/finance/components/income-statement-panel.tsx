@@ -362,8 +362,8 @@ export function IncomeStatementPanel({
           )}
           <p className="text-muted-foreground text-xs">
             {statement.usesRecipeCost
-              ? "O CMV vem das fichas técnicas dos produtos vendidos. As compras de insumos não entram de novo, para não contar duas vezes."
-              : "Sem fichas técnicas com custo, o CMV usa as compras de insumos do mês."}
+              ? "O CMV vem das fichas técnicas dos produtos vendidos. As compras para o estoque não entram de novo, para não contar duas vezes."
+              : "Sem fichas técnicas com custo, o CMV usa as compras para o estoque do mês."}
             {statement.itemsWithoutCost > 0 &&
               ` ${statement.itemsWithoutCost} ${statement.itemsWithoutCost === 1 ? "item vendido está" : "itens vendidos estão"} sem custo na ficha técnica.`}{" "}
             As taxas de cartão e Pix são calculadas das vendas; não lance essas

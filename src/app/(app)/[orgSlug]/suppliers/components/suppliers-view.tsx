@@ -86,7 +86,7 @@ export function SuppliersView({
             <ListEmptyState
               icon={Truck}
               title="Nenhum fornecedor ainda"
-              description="Cadastre quem vende seus insumos para registrar as compras e falar com eles pelo WhatsApp."
+              description="Cadastre quem vende para você para registrar as compras e falar com eles pelo WhatsApp."
               createLabel="Cadastrar primeiro fornecedor"
               canCreate={canManage}
               onCreate={openCreateForm}
@@ -113,7 +113,7 @@ export function SuppliersView({
         isOpen={supplierToDelete !== null}
         onOpenChange={(isOpen) => !isOpen && setSupplierToDelete(null)}
         title="Excluir fornecedor?"
-        description={`${supplierToDelete?.name ?? ""} sai da lista. As entradas de insumos já registradas continuam, só ficam sem fornecedor.`}
+        description={`${supplierToDelete?.name ?? ""} sai da lista. As entradas no estoque já registradas continuam, só ficam sem fornecedor.`}
         confirmLabel="Excluir"
         isConfirming={deleteSupplierMutation.isPending}
         onConfirm={confirmDelete}

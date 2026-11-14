@@ -6,7 +6,7 @@ const ONLINE_ORDER_ERROR_MESSAGES: Readonly<Record<string, string>> = {
   P0002:
     "Algum item não está mais disponível. Atualize a página e monte o pedido de novo.",
   TB001:
-    "Estoque insuficiente para algum item. Recuse o pedido ou registre a entrada dos insumos.",
+    "Estoque insuficiente para algum item. Recuse o pedido ou dê entrada no estoque.",
   TB010:
     "No momento não estamos recebendo pedidos pelo cardápio. Faça o pedido no balcão.",
   TB011:

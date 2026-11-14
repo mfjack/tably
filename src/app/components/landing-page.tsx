@@ -64,7 +64,7 @@ const FEATURES = [
     icon: Package,
     title: "Estoque e ficha técnica",
     description:
-      "Baixa automática dos insumos a cada venda, custo de cada produto e alerta de estoque mínimo.",
+      "Baixa automática do estoque a cada venda, custo de cada produto e alerta de estoque mínimo.",
   },
   {
     icon: Users,

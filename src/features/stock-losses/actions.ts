@@ -126,7 +126,7 @@ export async function registerStockLoss(
   });
 
   if (error?.code === "P0002") {
-    return actionFailure("Esse insumo não existe mais. Atualize a tela.");
+    return actionFailure("Esse item não existe mais. Atualize a tela.");
   }
   if (error)
     return databaseFailure("Não foi possível registrar a perda.", error);

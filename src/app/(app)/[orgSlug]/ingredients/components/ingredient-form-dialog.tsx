@@ -74,7 +74,7 @@ export function IngredientFormDialog({
       { ingredientId: ingredient.id, values },
       {
         onSuccess: () => {
-          toast.success("Insumo atualizado.");
+          toast.success("Item atualizado.");
           onClose();
         },
         onError: (error) => form.setError("name", { message: error.message }),
@@ -90,7 +90,7 @@ export function IngredientFormDialog({
     <FormDialog
       isOpen={isOpen}
       onOpenChange={(isDialogOpen) => !isDialogOpen && onClose()}
-      title="Editar insumo"
+      title="Editar item"
       description="Para registrar uma compra, use a entrada de estoque. Aqui você corrige o estoque atual."
       submitLabel="Salvar"
       isSubmitting={updateIngredientMutation.isPending}

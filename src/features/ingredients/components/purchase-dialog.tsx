@@ -120,9 +120,9 @@ function NewIngredientFields({
           <AutocompleteField
             control={control}
             name={`ingredients.${index}.name`}
-            label={`Insumo ${ingredientNumber}`}
+            label={`Item ${ingredientNumber}`}
             isLabelHidden
-            placeholder="Nome do insumo. Ex.: Leite integral"
+            placeholder="Nome do item. Ex.: Leite integral"
             suggestions={ingredientNames}
             description={
               existingIngredient
@@ -136,7 +136,7 @@ function NewIngredientFields({
           variant="destructive"
           size="icon-lg"
           className="mt-1"
-          aria-label={`Remover insumo ${ingredientNumber}`}
+          aria-label={`Remover item ${ingredientNumber}`}
           disabled={isOnlyIngredient}
           onClick={onRemove}
         >
@@ -288,7 +288,7 @@ export function PurchaseDialog({
     const successMessage = values.ingredients.some(
       (ingredient) => !ingredient.ingredientId,
     )
-      ? "Compra registrada e insumos cadastrados."
+      ? "Compra registrada e itens cadastrados."
       : "Compra registrada.";
     createIngredientsMutation.mutate(values, {
       onSuccess: (entryId) =>
@@ -312,8 +312,8 @@ export function PurchaseDialog({
     <FormDialog
       isOpen={isOpen}
       onOpenChange={(isDialogOpen) => !isDialogOpen && onClose()}
-      title={initialIngredient ? "Registrar compra" : "Novo insumo"}
-      description="Informe o que você comprou. Se o insumo já existir, a compra entra no estoque dele. O custo é calculado automaticamente, e tudo vai para o Financeiro numa conta só."
+      title={initialIngredient ? "Registrar compra" : "Novo item"}
+      description="Informe o que você comprou. Se o item já existir, a compra entra no estoque dele. O custo é calculado automaticamente, e tudo vai para o Financeiro numa conta só."
       submitLabel={initialIngredient ? "Registrar" : "Cadastrar"}
       isSubmitting={
         createIngredientsMutation.isPending || pendingAttachments.isUploading
@@ -373,7 +373,7 @@ export function PurchaseDialog({
             onClick={() => append(EMPTY_INGREDIENT)}
           >
             <Plus aria-hidden />
-            Adicionar insumo
+            Adicionar item
           </Button>
         </div>
         <div className="flex items-baseline justify-between rounded-xl bg-muted/50 px-4 py-3">

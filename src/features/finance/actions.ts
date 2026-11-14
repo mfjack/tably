@@ -134,7 +134,7 @@ function toFinancialEntry(row: EntryRow): FinancialEntry {
       ? 0
       : row.stock_entries.length,
     purchasedItems: row.stock_entries.map((stockEntry) => ({
-      name: stockEntry.ingredient?.name ?? "Insumo removido",
+      name: stockEntry.ingredient?.name ?? "Item removido",
       unit: stockEntry.ingredient?.unit ?? null,
       quantity: stockEntry.quantity,
       totalCost: stockEntry.total_cost,

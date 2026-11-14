@@ -80,7 +80,7 @@ export function SupplierPurchasesDialog({
           </div>
 
           <div className="flex items-baseline justify-between">
-            <h3 className="font-semibold text-sm">Compras de insumos</h3>
+            <h3 className="font-semibold text-sm">Compras</h3>
             <span className="text-muted-foreground text-sm tabular-nums">
               {formatCurrency(supplier.totalSpent)}
             </span>
@@ -126,7 +126,7 @@ export function SupplierPurchasesDialog({
             </ul>
           ) : (
             <p className="py-6 text-center text-muted-foreground text-sm">
-              Nenhuma compra registrada. Ao dar entrada de insumos, escolha este
+              Nenhuma compra registrada. Ao dar entrada no estoque, escolha este
               fornecedor.
             </p>
           )}

@@ -13,7 +13,7 @@ export const TAB_ALREADY_CLOSED_MESSAGE =
 const ORDER_ERROR_MESSAGES: Readonly<Record<string, string>> = {
   P0002: "Algum produto não está mais disponível. Atualize a tela.",
   TB001:
-    "Estoque insuficiente para algum produto. Registre a entrada dos insumos e tente de novo.",
+    "Estoque insuficiente para algum produto. Dê entrada no estoque e tente de novo.",
   TB002: CUSTOMER_NAME_IN_USE_MESSAGE,
   TB003: TAB_ALREADY_CLOSED_MESSAGE,
   TB005: "Essa venda passa do limite de crédito da conta do cliente.",

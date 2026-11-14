@@ -18,7 +18,7 @@ export function FreightCostField<TFieldValues extends FieldValues>({
       label="Frete (opcional)"
       format="currency"
       placeholder="Ex.: $ 15,00"
-      description="Somado ao valor pago no custo do insumo."
+      description="Somado ao valor pago no custo do item."
     />
   );
 }

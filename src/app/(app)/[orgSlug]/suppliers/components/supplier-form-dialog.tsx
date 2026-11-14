@@ -83,7 +83,7 @@ export function SupplierFormDialog({
       isOpen={isOpen}
       onOpenChange={(isDialogOpen) => !isDialogOpen && onClose()}
       title={isEditing ? "Editar fornecedor" : "Novo fornecedor"}
-      description="Quem vende os insumos para o seu negócio."
+      description="Quem vende o que você usa no seu negócio."
       submitLabel={isEditing ? "Salvar" : "Cadastrar"}
       isSubmitting={saveSupplierMutation.isPending}
       onSubmit={handleSubmit}

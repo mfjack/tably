@@ -150,8 +150,8 @@ export function DeleteEntryDialog({
                   {purchasedItemCount > 1
                     ? `Os ${purchasedItemCount} itens saem do estoque`
                     : "O item sai do estoque"}{" "}
-                  e o custo volta ao de antes. Insumos cadastrados nessa compra
-                  e ainda não usados são apagados.
+                  e o custo volta ao de antes. Itens cadastrados nessa compra e
+                  ainda não usados são apagados.
                 </span>
               </Label>
             </div>

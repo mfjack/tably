@@ -100,7 +100,7 @@ const APP_MODULE_GROUPS = [
     modules: [
       {
         id: "ingredients",
-        label: "Insumos",
+        label: "Estoque",
         description: "Matérias-primas, estoque e custo por unidade.",
         path: "ingredients",
         icon: Package,

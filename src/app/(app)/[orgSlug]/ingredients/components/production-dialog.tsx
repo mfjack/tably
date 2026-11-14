@@ -79,7 +79,7 @@ export function ProductionDialog({
             <span className="font-semibold tabular-nums">
               {formatItemQuantity(producedQuantity, ingredient.unit)}
             </span>{" "}
-            de {ingredient.name}, e os insumos da receita saíram do estoque.
+            de {ingredient.name}, e os itens da receita saíram do estoque.
             Imprima a etiqueta para identificar o pote.
           </p>
         </div>
@@ -121,7 +121,7 @@ export function ProductionDialog({
           <span className="font-medium text-foreground tabular-nums">
             {formatItemQuantity(expectedQuantity, ingredient.unit)}
           </span>
-          . Ao registrar, os insumos abaixo saem do estoque e a produção entra.
+          . Ao registrar, os itens abaixo saem do estoque e a produção entra.
         </p>
         <section className="flex flex-col gap-2">
           <h3 className="font-medium text-sm">Vai sair do estoque</h3>

@@ -105,7 +105,7 @@ export function PreparationFormDialog({
       isOpen={isOpen}
       onOpenChange={(isDialogOpen) => !isDialogOpen && onClose()}
       title={isEditing ? "Editar preparo" : "Novo preparo"}
-      description="O que vocês fazem na casa com os insumos, como caldas, cremes e massas. Ao produzir, os insumos da receita saem do estoque e o preparo entra."
+      description="O que vocês fazem na casa com os itens do estoque, como caldas, cremes e massas. Ao produzir, os itens da receita saem do estoque e o preparo entra."
       submitLabel={isEditing ? "Salvar" : "Cadastrar"}
       isSubmitting={saveMutation.isPending}
       onSubmit={handleSubmit}

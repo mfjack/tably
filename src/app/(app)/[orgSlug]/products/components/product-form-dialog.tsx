@@ -211,8 +211,8 @@ export function ProductFormDialog({
         <FieldSet>
           <FieldLegend>Ficha técnica</FieldLegend>
           <FieldDescription>
-            Os insumos e as quantidades usadas para fazer uma unidade do
-            produto.
+            Os itens do estoque e as quantidades usadas para fazer uma unidade
+            do produto.
           </FieldDescription>
           <RecipeEditor
             control={form.control}

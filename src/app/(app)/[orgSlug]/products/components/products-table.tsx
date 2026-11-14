@@ -145,10 +145,10 @@ export function ProductsTable({
                   {row.original.expiredIngredientNames.length > 0 && (
                     <Badge
                       variant="destructive"
-                      title={`Insumo vencido: ${row.original.expiredIngredientNames.join(", ")}`}
+                      title={`Item vencido: ${row.original.expiredIngredientNames.join(", ")}`}
                     >
                       <TriangleAlert aria-hidden />
-                      Insumo vencido
+                      Item vencido
                     </Badge>
                   )}
                 </span>

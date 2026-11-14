@@ -15,7 +15,7 @@ const optionalAmountSchema = z
 export const ingredientNameSchema = z
   .string()
   .trim()
-  .min(1, "Informe o nome do insumo.")
+  .min(1, "Informe o nome do item.")
   .max(80, "Nome muito longo.")
   .transform(toTitleCase);
 
@@ -56,7 +56,7 @@ export const ingredientsCreateFormSchema = z.object({
   paymentDueDate: optionalDateSchema,
   ingredients: z
     .array(newIngredientSchema)
-    .min(1, "Adicione pelo menos um insumo.")
+    .min(1, "Adicione pelo menos um item.")
     .superRefine((ingredients, context) => {
       const seenNames = new Set<string>();
       ingredients.forEach((ingredient, index) => {
@@ -66,7 +66,7 @@ export const ingredientsCreateFormSchema = z.object({
           context.addIssue({
             code: "custom",
             path: [index, "name"],
-            message: "Esse insumo já está na lista.",
+            message: "Esse item já está na lista.",
           });
         }
         seenNames.add(normalizedName);

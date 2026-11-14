@@ -159,8 +159,8 @@ export function StockLossFormDialog({
         <SelectField
           control={form.control}
           name="ingredientId"
-          label="Insumo"
-          placeholder="Escolha o insumo"
+          label="Item"
+          placeholder="Escolha o item"
           options={ingredientOptions}
           isDisabled={isEditing}
         />
@@ -187,7 +187,7 @@ export function StockLossFormDialog({
           label="Valor da perda (opcional)"
           format="currency"
           placeholder="Ex.: $ 28,00"
-          description="Vazio: calcula pelo custo do insumo."
+          description="Vazio: calcula pelo custo do item."
         />
         <FieldSet>
           <FieldLegend variant="label">Motivo</FieldLegend>

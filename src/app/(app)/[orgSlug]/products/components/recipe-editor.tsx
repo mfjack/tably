@@ -57,7 +57,7 @@ export function RecipeEditor<TFieldValues extends FieldValues & RecipeFields>({
   if (ingredients.length === 0) {
     return (
       <p className="rounded-lg border border-dashed px-4 py-5 text-center text-muted-foreground text-sm">
-        Cadastre insumos em{" "}
+        Cadastre itens no{" "}
         <Link
           href={buildOrganizationPath(
             orgSlug,
@@ -65,7 +65,7 @@ export function RecipeEditor<TFieldValues extends FieldValues & RecipeFields>({
           )}
           className="font-medium text-primary hover:underline"
         >
-          Insumos
+          Estoque
         </Link>{" "}
         para montar a ficha técnica.
       </p>
@@ -79,7 +79,7 @@ export function RecipeEditor<TFieldValues extends FieldValues & RecipeFields>({
           aria-hidden
           className={`${RECIPE_GRID_CLASS_NAME} font-medium text-muted-foreground text-xs`}
         >
-          <span>Insumo</span>
+          <span>Item</span>
           <span>Quantidade</span>
           <span className="text-right">Custo</span>
         </div>
@@ -99,16 +99,16 @@ export function RecipeEditor<TFieldValues extends FieldValues & RecipeFields>({
             <ComboboxField
               control={control}
               name={`recipe.${index}.ingredientId`}
-              label={`Insumo ${index + 1}`}
+              label={`Item ${index + 1}`}
               isLabelHidden
-              placeholder="Buscar insumo"
+              placeholder="Buscar item"
               options={ingredientOptions}
-              emptyMessage="Nenhum insumo com esse nome."
+              emptyMessage="Nenhum item com esse nome."
             />
             <NumberField
               control={control}
               name={`recipe.${index}.quantity`}
-              label={`Quantidade do insumo ${index + 1}`}
+              label={`Quantidade do item ${index + 1}`}
               isLabelHidden
               format="quantity"
               suffix={
@@ -126,7 +126,7 @@ export function RecipeEditor<TFieldValues extends FieldValues & RecipeFields>({
               variant="destructive"
               size="icon-lg"
               className="mt-1"
-              aria-label={`Remover insumo ${index + 1}`}
+              aria-label={`Remover item ${index + 1}`}
               onClick={() => remove(index)}
             >
               <Trash2 aria-hidden />
@@ -142,7 +142,7 @@ export function RecipeEditor<TFieldValues extends FieldValues & RecipeFields>({
         onClick={() => append({ ingredientId: "", quantity: Number.NaN })}
       >
         <Plus aria-hidden />
-        Adicionar insumo
+        Adicionar item
       </Button>
     </div>
   );

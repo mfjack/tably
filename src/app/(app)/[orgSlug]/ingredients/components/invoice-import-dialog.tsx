@@ -110,7 +110,7 @@ function InvoiceItemFields({
   const unitSymbol = stockUnit ? getUnitSymbol(stockUnit) : undefined;
   const packageLabel = item.unit || "embalagem";
   const options = [
-    { value: CREATE_INGREDIENT_TARGET, label: "Criar insumo novo" },
+    { value: CREATE_INGREDIENT_TARGET, label: "Criar item novo" },
     { value: SKIP_ITEM_TARGET, label: "Não dar entrada" },
     ...ingredients.map((ingredient) => ({
       value: ingredient.id,
@@ -140,7 +140,7 @@ function InvoiceItemFields({
       <SelectField
         control={control}
         name={`items.${index}.target`}
-        label="Insumo"
+        label="Item do estoque"
         options={options}
       />
       {isNew && (
@@ -148,7 +148,7 @@ function InvoiceItemFields({
           <TextField
             control={control}
             name={`items.${index}.newName`}
-            label="Nome do insumo"
+            label="Nome do item"
           />
           <SelectField
             control={control}
@@ -222,7 +222,7 @@ function InvoiceReviewDialog({
       isOpen
       onOpenChange={(isDialogOpen) => !isDialogOpen && onClose()}
       title={`Nota ${invoice.number}`}
-      description="Confira em qual insumo cada produto entra. Na próxima nota desse fornecedor, isso já vem preenchido."
+      description="Confira em qual item do estoque cada produto entra. Na próxima nota desse fornecedor, isso já vem preenchido."
       submitLabel="Importar"
       isSubmitting={importMutation.isPending}
       onSubmit={handleSubmit}
@@ -348,7 +348,7 @@ export function InvoiceImportDialog({
       <div className="flex flex-col gap-4">
         <p className="text-muted-foreground text-sm">
           Envie o arquivo XML que o fornecedor mandou por e-mail. O Tably cria o
-          fornecedor, dá entrada nos insumos e lança as contas a pagar.
+          fornecedor, dá entrada no estoque e lança as contas a pagar.
         </p>
         <input
           ref={fileInputRef}

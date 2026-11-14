@@ -299,7 +299,7 @@ export function ShoppingListDialog({
         {tab === "buy" ? (
           <>
             <p className="text-muted-foreground text-sm">
-              Já vêm os insumos e produtos no estoque mínimo ou abaixo dele.
+              Já vêm os itens e produtos no estoque mínimo ou abaixo dele.
               Digite quanto pedir de cada um ou adicione outros. Depois de
               pedir, toque em Pedido feito: os itens saem daqui e vão para
               Aguardando entrega.
@@ -307,7 +307,7 @@ export function ShoppingListDialog({
             {addableItemOptions.length > 0 && (
               <OptionSelect
                 label="Adicionar item ao pedido"
-                placeholder="Adicionar outro insumo ou produto"
+                placeholder="Adicionar outro item ou produto"
                 options={addableItemOptions}
                 value={null}
                 onValueChange={addItem}

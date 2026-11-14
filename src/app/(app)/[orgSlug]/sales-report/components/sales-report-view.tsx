@@ -163,7 +163,7 @@ function SalesReportContent({
           }
           detail={
             costShare === null
-              ? "Cadastre o custo dos insumos"
+              ? "Cadastre o custo dos itens do estoque"
               : `CMV ${formatPercent(costShare)}`
           }
         />

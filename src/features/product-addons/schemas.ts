@@ -27,7 +27,7 @@ export const productAddonFormSchema = z
     ) {
       context.addIssue({
         code: "custom",
-        message: "Informe quanto do insumo é usado.",
+        message: "Informe quanto do item é usado.",
         path: ["ingredientQuantity"],
       });
     }
