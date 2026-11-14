@@ -136,7 +136,7 @@ export function OrderTabsBoard({
               )}
             </TabsTrigger>
             <TabsTrigger value="history" className="px-4">
-              Histórico de vendas
+              Histórico de Vendas
             </TabsTrigger>
           </TabsList>
           <TabsContent
