@@ -1579,6 +1579,8 @@ export type Database = {
       orders: {
         Row: {
           amount_received: number | null
+          canceled_at: string | null
+          canceled_by: string | null
           created_at: string
           created_by: string | null
           created_by_operator_name: string | null
@@ -1610,6 +1612,8 @@ export type Database = {
         }
         Insert: {
           amount_received?: number | null
+          canceled_at?: string | null
+          canceled_by?: string | null
           created_at?: string
           created_by?: string | null
           created_by_operator_name?: string | null
@@ -1641,6 +1645,8 @@ export type Database = {
         }
         Update: {
           amount_received?: number | null
+          canceled_at?: string | null
+          canceled_by?: string | null
           created_at?: string
           created_by?: string | null
           created_by_operator_name?: string | null
@@ -1704,6 +1710,35 @@ export type Database = {
             columns: ["paid_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_cancel_pins: {
+        Row: {
+          failed_attempts: number
+          locked_until: string | null
+          organization_id: string
+          pin_hash: string
+        }
+        Insert: {
+          failed_attempts?: number
+          locked_until?: string | null
+          organization_id: string
+          pin_hash: string
+        }
+        Update: {
+          failed_attempts?: number
+          locked_until?: string | null
+          organization_id?: string
+          pin_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_cancel_pins_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -1824,6 +1859,7 @@ export type Database = {
           debit_card_settlement_days: number
           hidden_modules: Database["public"]["Enums"]["app_module"][]
           id: string
+          is_cancel_pin_enabled: boolean
           is_card_fee_passed_on: boolean
           is_customer_account_payment_enabled: boolean
           is_discount_enabled: boolean
@@ -1868,6 +1904,7 @@ export type Database = {
           debit_card_settlement_days?: number
           hidden_modules?: Database["public"]["Enums"]["app_module"][]
           id?: string
+          is_cancel_pin_enabled?: boolean
           is_card_fee_passed_on?: boolean
           is_customer_account_payment_enabled?: boolean
           is_discount_enabled?: boolean
@@ -1912,6 +1949,7 @@ export type Database = {
           debit_card_settlement_days?: number
           hidden_modules?: Database["public"]["Enums"]["app_module"][]
           id?: string
+          is_cancel_pin_enabled?: boolean
           is_card_fee_passed_on?: boolean
           is_customer_account_payment_enabled?: boolean
           is_discount_enabled?: boolean
@@ -3721,7 +3759,10 @@ export type Database = {
         Returns: boolean
       }
       cancel_order: { Args: { p_order_id: string }; Returns: undefined }
-      cancel_paid_order: { Args: { p_order_id: string }; Returns: undefined }
+      cancel_paid_order: {
+        Args: { p_order_id: string; p_pin?: string }
+        Returns: string
+      }
       cancel_purchase_order: {
         Args: { p_order_id: string }
         Returns: undefined
@@ -3734,6 +3775,10 @@ export type Database = {
           p_organization_id: string
         }
         Returns: undefined
+      }
+      check_cancel_authorization: {
+        Args: { p_organization_id: string; p_pin: string }
+        Returns: string
       }
       choose_billing_cycle: {
         Args: {
@@ -3803,6 +3848,7 @@ export type Database = {
           debit_card_settlement_days: number
           hidden_modules: Database["public"]["Enums"]["app_module"][]
           id: string
+          is_cancel_pin_enabled: boolean
           is_card_fee_passed_on: boolean
           is_customer_account_payment_enabled: boolean
           is_discount_enabled: boolean
@@ -4109,6 +4155,8 @@ export type Database = {
         Args: { p_order_id: string }
         Returns: {
           amount_received: number | null
+          canceled_at: string | null
+          canceled_by: string | null
           created_at: string
           created_by: string | null
           created_by_operator_name: string | null
@@ -4321,7 +4369,10 @@ export type Database = {
         Args: { p_order_item_id: string; p_quantity?: number }
         Returns: number
       }
-      reopen_order: { Args: { p_order_id: string }; Returns: undefined }
+      reopen_order: {
+        Args: { p_order_id: string; p_pin?: string }
+        Returns: string
+      }
       reorder_products: {
         Args: { p_organization_id: string; p_product_ids: string[] }
         Returns: undefined
@@ -4417,6 +4468,10 @@ export type Database = {
           p_supplier_id?: string
         }
         Returns: string
+      }
+      set_cancel_pin: {
+        Args: { p_organization_id: string; p_pin: string }
+        Returns: undefined
       }
       set_kitchen_ticket_status: {
         Args: {

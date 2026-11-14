@@ -8,6 +8,7 @@ import type { UserOrganization } from "@/features/organizations/types";
 import { getPlanHiddenModules } from "@/features/subscriptions/subscription-state";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
+import { CancelPinForm } from "./cancel-pin-form";
 import { CheckoutSettingsForm } from "./checkout-settings-form";
 import { DeleteAccountSection } from "./delete-account-section";
 import { LoyaltySettingsForm } from "./loyalty-settings-form";
@@ -162,6 +163,12 @@ export function SettingsView({
                   key={`${organization.id}-payment-fees`}
                   organization={organization}
                 />
+                {isOwner && (
+                  <CancelPinForm
+                    organizationId={organization.id}
+                    isEnabled={organization.checkout.isCancelPinEnabled}
+                  />
+                )}
               </TabsContent>
               {isOwner && (
                 <TabsContent

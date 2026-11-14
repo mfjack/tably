@@ -1,6 +1,10 @@
 "use server";
 
 import { TERMS_VERSION } from "@/features/legal/legal-info";
+import {
+  type CancelPinInput,
+  cancelPinSchema,
+} from "@/features/orders/cancel-authorization";
 import type {
   BillingCycle,
   SubscriptionPlan,
@@ -306,4 +310,38 @@ export async function updateOrganizationModules(
   if (data.length === 0) return actionFailure(FORBIDDEN_MESSAGE);
 
   return actionSuccess();
+}
+
+async function saveCancelPin(
+  organizationId: OrganizationId,
+  pin: string,
+): Promise<ActionResult> {
+  if (!(await isOrganizationOwner(organizationId))) {
+    return actionFailure("Só o dono do estabelecimento pode mudar o PIN.");
+  }
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_cancel_pin", {
+    p_organization_id: organizationId,
+    p_pin: pin,
+  });
+
+  if (error) return databaseFailure("Não foi possível salvar o PIN.", error);
+  return actionSuccess();
+}
+
+export async function setCancelPin(
+  organizationId: OrganizationId,
+  input: CancelPinInput,
+): Promise<ActionResult> {
+  const parsedInput = cancelPinSchema.safeParse(input);
+  if (!parsedInput.success) {
+    return actionFailure("Digite os 4 números do PIN.");
+  }
+  return saveCancelPin(organizationId, parsedInput.data.pin);
+}
+
+export async function removeCancelPin(
+  organizationId: OrganizationId,
+): Promise<ActionResult> {
+  return saveCancelPin(organizationId, "");
 }

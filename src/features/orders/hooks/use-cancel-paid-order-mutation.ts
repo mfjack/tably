@@ -7,6 +7,11 @@ import { cancelPaidOrder } from "../tab-actions";
 import type { OrderId } from "../types";
 import { useInvalidateOrders } from "./use-invalidate-orders";
 
+type CancelPaidOrderVariables = {
+  orderId: OrderId;
+  pin: string | null;
+};
+
 export function getCancelPaidOrderMutationKey(organizationId: OrganizationId) {
   return ["organizations", organizationId, "orders", "cancel-paid"] as const;
 }
@@ -18,8 +23,8 @@ export function useCancelPaidOrderMutation(organizationId: OrganizationId) {
 
   return useMutation({
     mutationKey: getCancelPaidOrderMutationKey(organizationId),
-    mutationFn: async (orderId: OrderId) =>
-      unwrapActionResult(await cancelPaidOrder(orderId)),
+    mutationFn: async ({ orderId, pin }: CancelPaidOrderVariables) =>
+      unwrapActionResult(await cancelPaidOrder(orderId, pin)),
     onSuccess: () => {
       invalidateOrders();
       return Promise.all([invalidateCatalog(), invalidateFinance()]);

@@ -26,6 +26,7 @@ import {
   databaseFailure,
 } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
+import { getCancelAuthorizationError } from "./cancel-authorization";
 import { getOrderErrorMessage } from "./messages";
 import {
   hasLoyaltyReward,
@@ -356,13 +357,17 @@ export async function payOrder(
   return actionSuccess();
 }
 
-export async function reopenOrder(orderId: OrderId): Promise<ActionResult> {
+export async function reopenOrder(
+  orderId: OrderId,
+  pin: string | null,
+): Promise<ActionResult> {
   const supabase = await createClient();
   if (!(await hasModuleAccessToRow("orders", orderId, "order_tabs"))) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }
-  const { error } = await supabase.rpc("reopen_order", {
+  const { data, error } = await supabase.rpc("reopen_order", {
     p_order_id: orderId,
+    p_pin: pin ?? "",
   });
 
   if (error) {
@@ -370,16 +375,22 @@ export async function reopenOrder(orderId: OrderId): Promise<ActionResult> {
       getOrderErrorMessage(error, "Não foi possível reabrir a comanda."),
     );
   }
+  const authorizationError = getCancelAuthorizationError(data);
+  if (authorizationError) return actionFailure(authorizationError);
   return actionSuccess();
 }
 
-export async function cancelPaidOrder(orderId: OrderId): Promise<ActionResult> {
+export async function cancelPaidOrder(
+  orderId: OrderId,
+  pin: string | null,
+): Promise<ActionResult> {
   const supabase = await createClient();
   if (!(await hasModuleAccessToRow("orders", orderId, "order_tabs"))) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }
-  const { error } = await supabase.rpc("cancel_paid_order", {
+  const { data, error } = await supabase.rpc("cancel_paid_order", {
     p_order_id: orderId,
+    p_pin: pin ?? "",
   });
 
   if (error) {
@@ -387,6 +398,8 @@ export async function cancelPaidOrder(orderId: OrderId): Promise<ActionResult> {
       getOrderErrorMessage(error, "Não foi possível cancelar a venda."),
     );
   }
+  const authorizationError = getCancelAuthorizationError(data);
+  if (authorizationError) return actionFailure(authorizationError);
   return actionSuccess();
 }
 

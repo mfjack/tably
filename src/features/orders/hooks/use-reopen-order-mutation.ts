@@ -5,6 +5,11 @@ import { reopenOrder } from "../tab-actions";
 import type { OrderId } from "../types";
 import { useInvalidateOrders } from "./use-invalidate-orders";
 
+type ReopenOrderVariables = {
+  orderId: OrderId;
+  pin: string | null;
+};
+
 export function getReopenOrderMutationKey(organizationId: OrganizationId) {
   return ["organizations", organizationId, "orders", "reopen"] as const;
 }
@@ -14,8 +19,8 @@ export function useReopenOrderMutation(organizationId: OrganizationId) {
 
   return useMutation({
     mutationKey: getReopenOrderMutationKey(organizationId),
-    mutationFn: async (orderId: OrderId) =>
-      unwrapActionResult(await reopenOrder(orderId)),
+    mutationFn: async ({ orderId, pin }: ReopenOrderVariables) =>
+      unwrapActionResult(await reopenOrder(orderId, pin)),
     onSuccess: invalidateOrders,
   });
 }

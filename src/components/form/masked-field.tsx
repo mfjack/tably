@@ -37,12 +37,14 @@ const MASK_PRESETS = {
 type MaskedFieldProps<TFieldValues extends FieldValues> =
   FormFieldProps<TFieldValues> & {
     mask: keyof typeof MASK_PRESETS;
+    isSecret?: boolean;
   };
 
 export function MaskedField<TFieldValues extends FieldValues>({
   placeholder,
   autoComplete,
   mask,
+  isSecret = false,
   ...fieldProps
 }: MaskedFieldProps<TFieldValues>) {
   const preset = MASK_PRESETS[mask];
@@ -72,6 +74,7 @@ export function MaskedField<TFieldValues extends FieldValues>({
           }
           onValueChange={({ value }) => field.onChange(value)}
           onBlur={field.onBlur}
+          type={isSecret ? "password" : "text"}
           inputMode={preset.inputMode}
           autoComplete={autoComplete}
           placeholder={placeholder}

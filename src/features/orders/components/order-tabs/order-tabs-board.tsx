@@ -2,10 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import {
-  ConfirmDialog,
-  IRREVERSIBLE_ACTION_MESSAGE,
-} from "@/components/dialog/confirm-dialog";
+import { IRREVERSIBLE_ACTION_MESSAGE } from "@/components/dialog/confirm-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCancelPaidOrderMutation } from "@/features/orders/hooks/use-cancel-paid-order-mutation";
 import { useOpenTabs } from "@/features/orders/hooks/use-open-tabs";
@@ -22,6 +19,7 @@ import type {
   OrganizationId,
 } from "@/features/organizations/types";
 import { formatCurrency } from "@/lib/format";
+import { AuthorizedConfirmDialog } from "./authorized-confirm-dialog";
 import { OpenOrderTabsPanel } from "./open-order-tabs-panel";
 import { PaidOrderDialog } from "./paid-order-dialog";
 import { PaidOrdersTable } from "./paid-orders-table";
@@ -64,31 +62,37 @@ export function OrderTabsBoard({
     printOrderTicket(buildOrderDetailsTicket(order, ticketBusiness));
   }
 
-  function confirmReopen() {
+  function confirmReopen(pin: string | null) {
     if (paidOrderState.step !== "reopen") return;
     const reopenedOrder = paidOrderState.order;
 
-    reopenOrderMutation.mutate(reopenedOrder.id, {
-      onSuccess: () => {
-        setPaidOrderState({ step: "closed" });
-        setSection("open");
-        toast.success(`Comanda de ${reopenedOrder.customerName} reaberta.`);
+    reopenOrderMutation.mutate(
+      { orderId: reopenedOrder.id, pin },
+      {
+        onSuccess: () => {
+          setPaidOrderState({ step: "closed" });
+          setSection("open");
+          toast.success(`Comanda de ${reopenedOrder.customerName} reaberta.`);
+        },
+        onError: (error) => toast.error(error.message),
       },
-      onError: (error) => toast.error(error.message),
-    });
+    );
   }
 
-  function confirmPaidOrderCancel() {
+  function confirmPaidOrderCancel(pin: string | null) {
     if (paidOrderState.step !== "cancel") return;
     const canceledOrder = paidOrderState.order;
 
-    cancelPaidOrderMutation.mutate(canceledOrder.id, {
-      onSuccess: () => {
-        setPaidOrderState({ step: "closed" });
-        toast.success("Venda cancelada.");
+    cancelPaidOrderMutation.mutate(
+      { orderId: canceledOrder.id, pin },
+      {
+        onSuccess: () => {
+          setPaidOrderState({ step: "closed" });
+          toast.success("Venda cancelada.");
+        },
+        onError: (error) => toast.error(error.message),
       },
-      onError: (error) => toast.error(error.message),
-    });
+    );
   }
 
   function backToPaidOrderDetails(isDialogOpen: boolean) {
@@ -166,7 +170,8 @@ export function OrderTabsBoard({
         }
         onCancel={(order) => setPaidOrderState({ step: "cancel", order })}
       />
-      <ConfirmDialog
+      <AuthorizedConfirmDialog
+        isPinRequired={checkoutSettings.isCancelPinRequired}
         isOpen={paidOrderState.step === "cancel"}
         onOpenChange={backToPaidOrderDetails}
         title="Cancelar venda?"
@@ -175,7 +180,8 @@ export function OrderTabsBoard({
         isConfirming={cancelPaidOrderMutation.isPending}
         onConfirm={confirmPaidOrderCancel}
       />
-      <ConfirmDialog
+      <AuthorizedConfirmDialog
+        isPinRequired={checkoutSettings.isCancelPinRequired}
         isOpen={paidOrderState.step === "reopen"}
         onOpenChange={backToPaidOrderDetails}
         title="Reabrir comanda?"
