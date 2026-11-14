@@ -19,12 +19,21 @@ const pageAccessShape = {
 function hasAnyPage(access: {
   allowedModules: readonly string[];
   canAccessSettings: boolean;
+  hasOwnerAccess?: boolean;
 }) {
-  return access.allowedModules.length > 0 || access.canAccessSettings;
+  return (
+    access.hasOwnerAccess === true ||
+    access.allowedModules.length > 0 ||
+    access.canAccessSettings
+  );
 }
 
 export const memberAccessSchema = z
-  .object({ fullName: personNameSchema, ...pageAccessShape })
+  .object({
+    fullName: personNameSchema,
+    hasOwnerAccess: z.boolean(),
+    ...pageAccessShape,
+  })
   .refine(hasAnyPage, {
     message: PAGE_REQUIRED_MESSAGE,
     path: ["allowedModules"],
@@ -40,5 +49,17 @@ export const invitationSchema = z
     path: ["allowedModules"],
   });
 
+export const teamAccessFormSchema = z
+  .object({
+    inviteeName: personNameSchema,
+    hasOwnerAccess: z.boolean(),
+    ...pageAccessShape,
+  })
+  .refine(hasAnyPage, {
+    message: PAGE_REQUIRED_MESSAGE,
+    path: ["allowedModules"],
+  });
+
 export type MemberAccessInput = z.infer<typeof memberAccessSchema>;
+export type TeamAccessFormInput = z.infer<typeof teamAccessFormSchema>;
 export type InvitationInput = z.infer<typeof invitationSchema>;

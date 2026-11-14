@@ -2,9 +2,15 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
-import { type DefaultValues, useController, useForm } from "react-hook-form";
+import {
+  type DefaultValues,
+  useController,
+  useForm,
+  useWatch,
+} from "react-hook-form";
 import { toast } from "sonner";
 import { FormDialog } from "@/components/dialog/form-dialog";
+import { SwitchField } from "@/components/form/switch-field";
 import { TextField } from "@/components/form/text-field";
 import { FieldGroup } from "@/components/ui/field";
 import type {
@@ -14,8 +20,8 @@ import type {
 import { useCreateInvitationMutation } from "@/features/team/hooks/use-create-invitation-mutation";
 import { useUpdateMemberAccessMutation } from "@/features/team/hooks/use-update-member-access-mutation";
 import {
-  type InvitationInput,
-  invitationSchema,
+  type TeamAccessFormInput,
+  teamAccessFormSchema,
 } from "@/features/team/schemas";
 import type { TeamMember } from "@/features/team/types";
 import { PageAccessField } from "../../components/page-access-field";
@@ -25,8 +31,9 @@ export type TeamAccessDialogState =
   | { mode: "invite" }
   | { mode: "edit"; member: TeamMember };
 
-const EMPTY_INVITATION_FORM: DefaultValues<InvitationInput> = {
+const EMPTY_INVITATION_FORM: DefaultValues<TeamAccessFormInput> = {
   inviteeName: "",
+  hasOwnerAccess: false,
   allowedModules: [],
   canAccessSettings: false,
 };
@@ -42,10 +49,11 @@ type TeamAccessDialogProps = {
 function toFormValues(
   state: TeamAccessDialogState,
   visibleModuleIds: readonly AppModuleId[],
-): DefaultValues<InvitationInput> {
+): DefaultValues<TeamAccessFormInput> {
   if (state.mode !== "edit") return EMPTY_INVITATION_FORM;
   return {
     inviteeName: state.member.name,
+    hasOwnerAccess: state.member.hasOwnerAccess,
     allowedModules: state.member.allowedModules ?? [...visibleModuleIds],
     canAccessSettings: state.member.canAccessSettings,
   };
@@ -60,8 +68,8 @@ export function TeamAccessDialog({
 }: TeamAccessDialogProps) {
   const createInvitationMutation = useCreateInvitationMutation(organizationId);
   const updateAccessMutation = useUpdateMemberAccessMutation(organizationId);
-  const form = useForm<InvitationInput>({
-    resolver: zodResolver(invitationSchema),
+  const form = useForm<TeamAccessFormInput>({
+    resolver: zodResolver(teamAccessFormSchema),
     defaultValues: EMPTY_INVITATION_FORM,
   });
   const allowedModulesField = useController({
@@ -74,6 +82,10 @@ export function TeamAccessDialog({
   });
   const isOpen = state.mode !== "closed";
   const isEditing = state.mode === "edit";
+  const hasOwnerAccess = useWatch({
+    control: form.control,
+    name: "hasOwnerAccess",
+  });
 
   useEffect(() => {
     if (!isOpen) return;
@@ -87,6 +99,7 @@ export function TeamAccessDialog({
           userId: state.member.userId,
           input: {
             fullName: values.inviteeName,
+            hasOwnerAccess: values.hasOwnerAccess,
             allowedModules: values.allowedModules,
             canAccessSettings: values.canAccessSettings,
           },
@@ -101,7 +114,8 @@ export function TeamAccessDialog({
       );
       return;
     }
-    createInvitationMutation.mutate(values, {
+    const { hasOwnerAccess: _ignoredOwnerAccess, ...invitation } = values;
+    createInvitationMutation.mutate(invitation, {
       onSuccess: ({ token }) => onInvited(values.inviteeName, token),
       onError: (error) => toast.error(error.message),
     });
@@ -136,14 +150,24 @@ export function TeamAccessDialog({
           placeholder="Ex.: João, contador"
           autoComplete="off"
         />
-        <PageAccessField
-          allowedModules={allowedModulesField.field.value}
-          canAccessSettings={settingsField.field.value}
-          visibleModuleIds={visibleModuleIds}
-          errorMessage={allowedModulesField.fieldState.error?.message}
-          onAllowedModulesChange={allowedModulesField.field.onChange}
-          onCanAccessSettingsChange={settingsField.field.onChange}
-        />
+        {isEditing && (
+          <SwitchField
+            control={form.control}
+            name="hasOwnerAccess"
+            label="Acesso de dono"
+            description="Para sócios. Vê e faz tudo o que o dono faz, inclusive equipe e assinatura. Só não exclui o estabelecimento."
+          />
+        )}
+        {!hasOwnerAccess && (
+          <PageAccessField
+            allowedModules={allowedModulesField.field.value}
+            canAccessSettings={settingsField.field.value}
+            visibleModuleIds={visibleModuleIds}
+            errorMessage={allowedModulesField.fieldState.error?.message}
+            onAllowedModulesChange={allowedModulesField.field.onChange}
+            onCanAccessSettingsChange={settingsField.field.onChange}
+          />
+        )}
       </FieldGroup>
     </FormDialog>
   );

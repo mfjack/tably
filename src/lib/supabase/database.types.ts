@@ -1309,6 +1309,7 @@ export type Database = {
           allowed_modules: Database["public"]["Enums"]["app_module"][] | null
           can_access_settings: boolean
           created_at: string
+          has_owner_access: boolean
           organization_id: string
           role: Database["public"]["Enums"]["member_role"]
           user_id: string
@@ -1317,6 +1318,7 @@ export type Database = {
           allowed_modules?: Database["public"]["Enums"]["app_module"][] | null
           can_access_settings?: boolean
           created_at?: string
+          has_owner_access?: boolean
           organization_id: string
           role: Database["public"]["Enums"]["member_role"]
           user_id: string
@@ -1325,6 +1327,7 @@ export type Database = {
           allowed_modules?: Database["public"]["Enums"]["app_module"][] | null
           can_access_settings?: boolean
           created_at?: string
+          has_owner_access?: boolean
           organization_id?: string
           role?: Database["public"]["Enums"]["member_role"]
           user_id?: string
@@ -4102,6 +4105,7 @@ export type Database = {
       }
       is_member: { Args: { org_id: string }; Returns: boolean }
       is_platform_admin: { Args: never; Returns: boolean }
+      is_primary_owner: { Args: { org_id: string }; Returns: boolean }
       list_cash_sessions: {
         Args: {
           p_end_date: string
@@ -4138,6 +4142,7 @@ export type Database = {
           created_at: string
           email: string
           full_name: string
+          has_owner_access: boolean
           role: Database["public"]["Enums"]["member_role"]
           user_id: string
         }[]
@@ -4531,6 +4536,7 @@ export type Database = {
           p_allowed_modules: Database["public"]["Enums"]["app_module"][]
           p_can_access_settings: boolean
           p_full_name: string
+          p_has_owner_access?: boolean
           p_organization_id: string
           p_user_id: string
         }

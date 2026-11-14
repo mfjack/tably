@@ -11,6 +11,7 @@ export type TeamMember = {
   name: string;
   email: string;
   isOwner: boolean;
+  hasOwnerAccess: boolean;
   allowedModules: AppModuleId[] | null;
   canAccessSettings: boolean;
   joinedAt: string;

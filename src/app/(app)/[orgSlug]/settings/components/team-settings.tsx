@@ -157,11 +157,17 @@ export function TeamSettings({
                     </div>
                   )}
                 </div>
-                {!member.isOwner && (
-                  <PageBadges
-                    allowedModules={member.allowedModules}
-                    canAccessSettings={member.canAccessSettings}
-                  />
+                {member.hasOwnerAccess ? (
+                  <div>
+                    <Badge variant="secondary">Acesso de dono</Badge>
+                  </div>
+                ) : (
+                  !member.isOwner && (
+                    <PageBadges
+                      allowedModules={member.allowedModules}
+                      canAccessSettings={member.canAccessSettings}
+                    />
+                  )
                 )}
               </li>
             ))}

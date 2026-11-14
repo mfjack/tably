@@ -80,6 +80,7 @@ export async function getTeam(
       name: member.full_name ?? member.email,
       email: member.email,
       isOwner: member.role === "owner",
+      hasOwnerAccess: member.has_owner_access,
       allowedModules: member.allowed_modules,
       canAccessSettings: member.can_access_settings,
       joinedAt: member.created_at,
@@ -167,6 +168,7 @@ export async function updateMemberAccess(
     p_organization_id: organizationId,
     p_user_id: userId,
     p_full_name: parsedInput.data.fullName,
+    p_has_owner_access: parsedInput.data.hasOwnerAccess,
     p_allowed_modules: parsedInput.data.allowedModules,
     p_can_access_settings: parsedInput.data.canAccessSettings,
   });
