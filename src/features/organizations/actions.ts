@@ -10,7 +10,6 @@ import type {
   SubscriptionPlan,
 } from "@/features/subscriptions/plans";
 import {
-  hasModuleAccess,
   isOrganizationOwner,
   MODULE_ACCESS_DENIED_MESSAGE,
 } from "@/features/team/module-access";
@@ -197,7 +196,7 @@ export async function updateCheckoutSettings(
   organizationId: OrganizationId,
   input: CheckoutSettingsInput,
 ): Promise<ActionResult> {
-  if (!(await hasModuleAccess(organizationId, "settings"))) {
+  if (!(await isOrganizationOwner(organizationId))) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }
 
@@ -248,7 +247,7 @@ export async function updatePaymentFees(
   organizationId: OrganizationId,
   input: PaymentFeesInput,
 ): Promise<ActionResult> {
-  if (!(await hasModuleAccess(organizationId, "settings"))) {
+  if (!(await isOrganizationOwner(organizationId))) {
     return actionFailure(MODULE_ACCESS_DENIED_MESSAGE);
   }
 

@@ -22,11 +22,12 @@ import { SubscriptionSettings } from "./subscription-settings";
 import { TeamSettings } from "./team-settings";
 import { ThermalPrinterSettings } from "./thermal-printer-settings";
 
-const ESTABLISHMENT_TABS = ["checkout", "menu"] as const;
+const ESTABLISHMENT_TABS = ["menu"] as const;
 
 const OWNER_TABS = [
   "organization",
   "modules",
+  "checkout",
   "loyalty",
   "subscription",
   "team",
@@ -57,7 +58,7 @@ export function SettingsView({
   const defaultTab = isOwner
     ? "organization"
     : canManageEstablishment
-      ? "checkout"
+      ? "menu"
       : "printer";
   const availableTabs: readonly string[] = [
     ...(canManageEstablishment ? ESTABLISHMENT_TABS : []),
@@ -90,13 +91,15 @@ export function SettingsView({
             )}
             {canManageEstablishment && (
               <>
-                <TabsTrigger value="checkout" className="shrink-0 px-4">
-                  Vendas
-                </TabsTrigger>
                 {isOwner && (
-                  <TabsTrigger value="loyalty" className="shrink-0 px-4">
-                    Fidelidade
-                  </TabsTrigger>
+                  <>
+                    <TabsTrigger value="checkout" className="shrink-0 px-4">
+                      Vendas
+                    </TabsTrigger>
+                    <TabsTrigger value="loyalty" className="shrink-0 px-4">
+                      Fidelidade
+                    </TabsTrigger>
+                  </>
                 )}
                 <TabsTrigger value="menu" className="shrink-0 px-4">
                   Cardápio
@@ -151,25 +154,25 @@ export function SettingsView({
           )}
           {canManageEstablishment && (
             <>
-              <TabsContent
-                value="checkout"
-                className="flex min-h-0 flex-col gap-6 overflow-y-auto *:shrink-0"
-              >
-                <CheckoutSettingsForm
-                  key={organization.id}
-                  organization={organization}
-                />
-                <PaymentFeesForm
-                  key={`${organization.id}-payment-fees`}
-                  organization={organization}
-                />
-                {isOwner && (
+              {isOwner && (
+                <TabsContent
+                  value="checkout"
+                  className="flex min-h-0 flex-col gap-6 overflow-y-auto *:shrink-0"
+                >
+                  <CheckoutSettingsForm
+                    key={organization.id}
+                    organization={organization}
+                  />
+                  <PaymentFeesForm
+                    key={`${organization.id}-payment-fees`}
+                    organization={organization}
+                  />
                   <CancelPinForm
                     organizationId={organization.id}
                     isEnabled={organization.checkout.isCancelPinEnabled}
                   />
-                )}
-              </TabsContent>
+                </TabsContent>
+              )}
               {isOwner && (
                 <TabsContent
                   value="loyalty"
