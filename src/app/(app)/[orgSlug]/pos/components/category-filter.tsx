@@ -2,14 +2,14 @@ import type { CategoryId } from "@/features/categories/types";
 import { cn } from "@/lib/utils";
 
 export type CategoryFilterOption = {
-  id: CategoryId | null;
+  id: CategoryId;
   label: string;
 };
 
 type CategoryFilterProps = {
   options: readonly CategoryFilterOption[];
   selectedCategoryId: CategoryId | null;
-  onSelect: (categoryId: CategoryId | null) => void;
+  onSelect: (categoryId: CategoryId) => void;
 };
 
 export function CategoryFilter({
@@ -26,7 +26,7 @@ export function CategoryFilter({
         const isSelected = option.id === selectedCategoryId;
         return (
           <button
-            key={option.id ?? "all"}
+            key={option.id}
             type="button"
             aria-pressed={isSelected}
             onClick={() => onSelect(option.id)}

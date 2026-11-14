@@ -193,8 +193,9 @@ export function PosView({
   const [addonPickerProduct, setAddonPickerProduct] = useState<Product | null>(
     null,
   );
-  const [selectedCategoryId, setSelectedCategoryId] =
-    useState<CategoryId | null>(null);
+  const [chosenCategoryId, setSelectedCategoryId] = useState<
+    CategoryId | null | undefined
+  >(undefined);
 
   const isKitchenPayment = checkout.checkoutStep.step === "kitchen-payment";
   const isQuickPayment = checkout.checkoutStep.step === "quick-payment";
@@ -206,30 +207,32 @@ export function PosView({
       ),
     );
 
-    return [
-      { id: null, label: "Todos" },
-      ...(categories ?? [])
-        .filter((category) => categoryIdsWithProducts.has(category.id))
-        .map((category) => ({ id: category.id, label: category.name })),
-    ];
+    return (categories ?? [])
+      .filter((category) => categoryIdsWithProducts.has(category.id))
+      .map((category) => ({ id: category.id, label: category.name }));
   }, [categories, posProducts]);
+  const selectedCategoryId =
+    chosenCategoryId === undefined
+      ? (categoryOptions[0]?.id ?? null)
+      : chosenCategoryId;
 
   const productOrganizer = useProductOrganizer(organizationId, posProducts);
   const { isOrganizing, organizedProducts } = productOrganizer;
   const canDragProducts =
-    selectedCategoryId !== null || categoryOptions.length === 1;
+    selectedCategoryId !== null || categoryOptions.length === 0;
 
   const visibleProducts = useMemo(() => {
     const normalizedSearch = isOrganizing
       ? ""
       : searchTerm.trim().toLocaleLowerCase("pt-BR");
+    const categoryFilterId = normalizedSearch ? null : selectedCategoryId;
     const filteredProducts = organizedProducts.filter(
       (product) =>
-        (selectedCategoryId === null ||
-          product.categoryId === selectedCategoryId) &&
+        (categoryFilterId === null ||
+          product.categoryId === categoryFilterId) &&
         (normalizedSearch === "" || matchesSearch(product, normalizedSearch)),
     );
-    return selectedCategoryId === null
+    return categoryFilterId === null
       ? sortByCategoryOrder(
           filteredProducts,
           (product) => product.categoryId,
@@ -263,7 +266,7 @@ export function PosView({
     (productId: ProductId) => {
       const product = posProducts.find(({ id }) => id === productId);
       if (product && product.expiredIngredientNames.length > 0) {
-        toast.error(`${product.name} usa insumo vencido.`, {
+        toast.error(`${product.name} usa item vencido do estoque.`, {
           description: product.expiredIngredientNames.join(", "),
         });
         return;
