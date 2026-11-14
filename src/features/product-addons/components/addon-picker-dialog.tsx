@@ -84,9 +84,7 @@ export function AddonPickerDialog({
       }
     >
       <div className="flex flex-col gap-3">
-        <p className="text-muted-foreground text-sm">
-          Quer algum adicional?
-        </p>
+        <p className="text-muted-foreground text-sm">Quer algum adicional?</p>
         <div className="grid grid-cols-2 gap-2">
           {addons.map((addon) => (
             <AddonQuantityChip
