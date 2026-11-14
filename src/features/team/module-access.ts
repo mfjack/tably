@@ -1,9 +1,13 @@
 import "server-only";
 
-import { getUserOrganizationById } from "@/features/organizations/queries";
+import {
+  getUserOrganizationById,
+  getUserOrganizations,
+} from "@/features/organizations/queries";
 import type {
   AppModuleId,
   OrganizationId,
+  UserOrganization,
 } from "@/features/organizations/types";
 import { createClient } from "@/lib/supabase/server";
 import { canAccessSettings, isModuleAllowed } from "./access";
@@ -25,24 +29,43 @@ type OrganizationRecordTable =
 export const MODULE_ACCESS_DENIED_MESSAGE =
   "Você não tem acesso a essa página. Peça a liberação ao dono.";
 
+type ModuleAccessTarget = AppModuleId | "settings";
+
+function toModuleList<TModule extends ModuleAccessTarget>(
+  moduleIds: TModule | readonly TModule[],
+): readonly TModule[] {
+  return typeof moduleIds === "string" ? [moduleIds] : moduleIds;
+}
+
+function canAccessAnyModule(
+  organization: UserOrganization | null | undefined,
+  moduleIds: readonly ModuleAccessTarget[],
+): boolean {
+  if (!organization) return false;
+  return moduleIds.some((moduleId) =>
+    moduleId === "settings"
+      ? canAccessSettings(organization)
+      : isModuleAllowed(organization, moduleId),
+  );
+}
+
 export async function hasModuleAccess(
   organizationId: OrganizationId,
-  moduleId: AppModuleId | "settings",
+  moduleId: ModuleAccessTarget,
 ): Promise<boolean> {
-  const organization = await getUserOrganizationById(organizationId);
-  if (!organization) return false;
-  if (moduleId === "settings") return canAccessSettings(organization);
-  return isModuleAllowed(organization, moduleId);
+  return canAccessAnyModule(await getUserOrganizationById(organizationId), [
+    moduleId,
+  ]);
 }
 
 export async function hasAnyModuleAccess(
   organizationId: OrganizationId,
   moduleIds: readonly AppModuleId[],
 ): Promise<boolean> {
-  for (const moduleId of moduleIds) {
-    if (await hasModuleAccess(organizationId, moduleId)) return true;
-  }
-  return false;
+  return canAccessAnyModule(
+    await getUserOrganizationById(organizationId),
+    moduleIds,
+  );
 }
 
 export async function hasModuleAccessToRecord(
@@ -52,7 +75,7 @@ export async function hasModuleAccessToRecord(
   if (!organizationId) return false;
   return hasAnyModuleAccess(
     organizationId as OrganizationId,
-    typeof moduleIds === "string" ? [moduleIds] : moduleIds,
+    toModuleList(moduleIds),
   );
 }
 
@@ -62,12 +85,14 @@ export async function hasModuleAccessToRow(
   moduleIds: AppModuleId | readonly AppModuleId[],
 ): Promise<boolean> {
   const supabase = await createClient();
-  const { data } = await supabase
-    .from(table)
-    .select("organization_id")
-    .eq("id", id)
-    .maybeSingle();
-  return hasModuleAccessToRecord(data?.organization_id, moduleIds);
+  const [{ data }, organizations] = await Promise.all([
+    supabase.from(table).select("organization_id").eq("id", id).maybeSingle(),
+    getUserOrganizations(),
+  ]);
+  const organization = organizations.find(
+    ({ id: organizationId }) => organizationId === data?.organization_id,
+  );
+  return canAccessAnyModule(organization, toModuleList(moduleIds));
 }
 
 export async function isOrganizationOwner(
