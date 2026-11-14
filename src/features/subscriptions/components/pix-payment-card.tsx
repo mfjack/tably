@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import type { OrganizationId } from "@/features/organizations/types";
 import { copyToClipboard } from "@/lib/copy-to-clipboard";
+import { formatBrazilianCurrency } from "@/lib/format";
 import { createQrCodeDataUrl } from "@/lib/qr-code";
 import { useReportSubscriptionPaymentMutation } from "../hooks/use-report-subscription-payment-mutation";
 import { buildPixPayload, PIX_RECEIVER } from "../pix-payment";
@@ -18,10 +19,6 @@ type PixPaymentCardProps = {
   amount: number;
   isPaymentReported: boolean;
 };
-
-function formatAmount(amount: number) {
-  return `R$ ${amount.toFixed(2).replace(".", ",")}`;
-}
 
 export function PixPaymentCard({
   organizationId,
@@ -70,14 +67,14 @@ export function PixPaymentCard({
         // biome-ignore lint/performance/noImgElement: QR Code gerado no navegador como data URL.
         <img
           src={qrCodeUrl}
-          alt={`QR Code Pix de ${formatAmount(amount)}`}
+          alt={`QR Code Pix de ${formatBrazilianCurrency(amount)}`}
           className="size-44 shrink-0 self-center rounded-lg border"
         />
       )}
       <div className="flex min-w-0 flex-col gap-3">
         <div className="flex flex-col gap-1">
           <span className="font-semibold text-lg">
-            Pague {formatAmount(amount)} com Pix
+            Pague {formatBrazilianCurrency(amount)} com Pix
           </span>
           <span className="text-muted-foreground text-sm">
             Aponte a câmera do app do banco para o QR Code ou use o Pix copia e

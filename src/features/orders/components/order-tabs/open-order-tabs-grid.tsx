@@ -22,7 +22,7 @@ const GRID_CLASS_NAME =
   "grid grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] gap-4";
 
 type OpenOrderTabsGridProps = {
-  orders: OrderDetails[] | undefined;
+  orders: readonly OrderDetails[] | undefined;
   isLoading: boolean;
   errorMessage?: string;
   posHref?: string;

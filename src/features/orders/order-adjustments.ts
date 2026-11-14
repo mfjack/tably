@@ -1,5 +1,6 @@
 import * as z from "zod";
 import { loyaltyCheckoutSchema } from "@/features/loyalty/schemas";
+import { toCents } from "@/lib/money";
 
 export const DISCOUNT_TYPES = ["percent", "amount"] as const;
 
@@ -36,10 +37,6 @@ export type OrderTotals = {
   total: number;
   isDiscountValid: boolean;
 };
-
-function toCents(value: number) {
-  return Math.round(value * 100);
-}
 
 function toTenths(percent: number) {
   return Math.round(percent * 10);

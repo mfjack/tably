@@ -19,6 +19,7 @@ import {
   type SubscriptionStatus,
 } from "@/features/subscriptions/subscription-state";
 import type { AdminSubscription } from "@/features/subscriptions/types";
+import { formatBrazilianCurrency } from "@/lib/format";
 import { AdminSubscriptionDialog } from "./admin-subscription-dialog";
 import { DeleteOrganizationDialog } from "./delete-organization-dialog";
 import { RecordPaymentDialog } from "./record-payment-dialog";
@@ -43,10 +44,6 @@ const STATUS_BADGE_VARIANTS = {
   SubscriptionStatus,
   "default" | "secondary" | "outline" | "destructive"
 >;
-
-function formatMoney(amount: number) {
-  return `R$ ${amount.toFixed(2).replace(".", ",")}`;
-}
 
 export function AdminSubscriptionsView({
   subscriptions,
@@ -76,7 +73,10 @@ export function AdminSubscriptionsView({
       label: "Vencidos ou bloqueados",
       value: String(countByStatus("grace") + countByStatus("blocked")),
     },
-    { label: "Receita mensal", value: formatMoney(monthlyRevenue) },
+    {
+      label: "Receita mensal",
+      value: formatBrazilianCurrency(monthlyRevenue),
+    },
   ];
 
   return (
@@ -129,7 +129,7 @@ export function AdminSubscriptionsView({
                   {PLAN_DETAILS[subscription.plan].label}
                 </span>
                 <span className="text-muted-foreground text-sm tabular-nums">
-                  {formatMoney(state.chargeAmount)}
+                  {formatBrazilianCurrency(state.chargeAmount)}
                   {subscription.billingCycle === "yearly" ? "/ano" : "/mês"}
                 </span>
                 {subscription.payments.length > 0 && (

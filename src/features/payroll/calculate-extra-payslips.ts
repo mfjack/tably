@@ -1,6 +1,7 @@
 import { differenceInCalendarDays, getDaysInMonth, parseISO } from "date-fns";
 import type { Employee } from "@/features/employees/types";
 import { formatPercent } from "@/lib/format";
+import { roundCurrency } from "@/lib/money";
 import { calculateInss, calculateIrrf } from "./calculate-payslip";
 import type { PayrollSettings, PayslipItem, PayslipTotals } from "./types";
 
@@ -26,10 +27,6 @@ type ExtraPayslipEmployee = Pick<
   | "admissionDate"
   | "terminationDate"
 >;
-
-function roundCurrency(value: number): number {
-  return Math.round((value + Number.EPSILON) * 100) / 100;
-}
 
 function sumItems(items: readonly PayslipItem[], kind: PayslipItem["kind"]) {
   return roundCurrency(

@@ -23,6 +23,7 @@ import type {
   TimeClockEmployee,
 } from "@/features/time-clock/types";
 import { getInitials } from "@/lib/get-initials";
+import { filterBySearch } from "@/lib/search";
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
 import { PinPad } from "../../components/pin-pad";
@@ -82,13 +83,12 @@ export function TimeClockView({
   const [search, setSearch] = useState("");
 
   const employees = employeesQuery.data;
-  const visibleEmployees = useMemo(() => {
-    const normalizedSearch = search.trim().toLocaleLowerCase("pt-BR");
-    if (!employees || !normalizedSearch) return employees;
-    return employees.filter((employee) =>
-      employee.name.toLocaleLowerCase("pt-BR").includes(normalizedSearch),
-    );
-  }, [employees, search]);
+  const visibleEmployees = useMemo(
+    () =>
+      employees &&
+      filterBySearch(employees, search, (employee) => [employee.name]),
+    [employees, search],
+  );
 
   const updatePin = useCallback((nextPin: string) => {
     pinRef.current = nextPin;

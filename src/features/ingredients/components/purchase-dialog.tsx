@@ -37,6 +37,7 @@ import type { OrganizationId } from "@/features/organizations/types";
 import { useSupplierOptions } from "@/features/suppliers/hooks/use-supplier-options";
 import { formatCurrency } from "@/lib/format";
 import { toSelectFieldValue } from "@/lib/optional-select-value";
+import { normalizeText } from "@/lib/search";
 import { LastPurchaseNote } from "./last-purchase-note";
 import { StockEntryProjectionSummary } from "./stock-entry-projection-summary";
 
@@ -59,10 +60,6 @@ function buildDefaultValues(
 
 function toAmount(value: number | undefined): number {
   return Number.isFinite(value) ? (value ?? 0) : 0;
-}
-
-function normalizeIngredientName(name: string): string {
-  return name.trim().toLocaleLowerCase("pt-BR");
 }
 
 type NewIngredientFieldsProps = {
@@ -93,9 +90,7 @@ function NewIngredientFields({
       `ingredients.${index}.totalCost`,
     ],
   });
-  const existingIngredient = ingredientsByName.get(
-    normalizeIngredientName(name ?? ""),
-  );
+  const existingIngredient = ingredientsByName.get(normalizeText(name ?? ""));
   const unitSymbol = existingIngredient
     ? getUnitSymbol(existingIngredient.unit)
     : unit
@@ -244,7 +239,7 @@ export function PurchaseDialog({
     () =>
       new Map(
         purchasableIngredients.map((ingredient) => [
-          normalizeIngredientName(ingredient.name),
+          normalizeText(ingredient.name),
           ingredient,
         ]),
       ),

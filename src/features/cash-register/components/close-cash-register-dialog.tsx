@@ -19,6 +19,7 @@ import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
 import type { OrganizationId } from "@/features/organizations/types";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { getCashDifferenceCents } from "../cash-difference";
 
 const CLOSED_TOAST_DURATION_IN_MS = 15_000;
 
@@ -57,7 +58,7 @@ export function CloseCashRegisterDialog({
   const differenceCents =
     countedCash === undefined
       ? null
-      : Math.round(countedCash * 100) - Math.round(expectedCash * 100);
+      : getCashDifferenceCents(countedCash, expectedCash);
 
   useEffect(() => {
     if (isOpen) form.reset(EMPTY_CLOSE_FORM);

@@ -11,6 +11,7 @@ import { useCheckCustomerNameMutation } from "@/features/orders/hooks/use-check-
 import { CUSTOMER_NAME_IN_USE_MESSAGE } from "@/features/orders/messages";
 import type { OrganizationId } from "@/features/organizations/types";
 import { CART_TAB_NAME_MAX_LENGTH } from "@/features/pos/cart-store";
+import { normalizeText } from "@/lib/search";
 
 const cartTabNameSchema = z.object({
   name: z.string().trim().max(CART_TAB_NAME_MAX_LENGTH, "Nome muito longo."),
@@ -32,10 +33,6 @@ type CartTabNameDialogProps = {
 };
 
 const DUPLICATE_TAB_NAME_MESSAGE = "Já existe um pedido com esse nome.";
-
-function normalizeName(name: string) {
-  return name.trim().toLocaleLowerCase("pt-BR");
-}
 
 export function CartTabNameDialog({
   state,
@@ -70,7 +67,7 @@ export function CartTabNameDialog({
     }
 
     const isDuplicateTab = otherTabNames.some(
-      (otherName) => normalizeName(otherName) === normalizeName(name),
+      (otherName) => normalizeText(otherName) === normalizeText(name),
     );
     if (isDuplicateTab) {
       form.setError("name", { message: DUPLICATE_TAB_NAME_MESSAGE });
@@ -79,7 +76,7 @@ export function CartTabNameDialog({
 
     if (
       state.mode === "rename" &&
-      normalizeName(state.currentName) === normalizeName(name)
+      normalizeText(state.currentName) === normalizeText(name)
     ) {
       saveName(name);
       return;

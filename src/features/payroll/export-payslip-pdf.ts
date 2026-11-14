@@ -2,7 +2,11 @@ import { EMPLOYMENT_TYPE_LABELS } from "@/features/employees/labels";
 import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
 import { formatMonthLabel } from "@/features/time-clock/time-utils";
 import { downloadFile } from "@/lib/download-file";
-import { formatCurrency, formatDateKey } from "@/lib/format";
+import {
+  formatCurrency,
+  formatCurrencyAmount,
+  formatDateKey,
+} from "@/lib/format";
 import { formatCbo, formatCnpj, formatCpf, formatPis } from "@/lib/masks";
 import { createA4PdfDocument, PDF_MUTED_TEXT_COLOR } from "@/lib/pdf-document";
 import { describePayslipPeriod, PAYSLIP_KIND_TITLES } from "./payslip-labels";
@@ -15,10 +19,6 @@ const SIGNATURE_LINE_WIDTH_IN_MM = 90;
 type DocumentWithLastTable = {
   lastAutoTable?: { finalY?: number };
 };
-
-function formatAmount(value: number): string {
-  return formatCurrency(value).replace(/^\$ /, "");
-}
 
 export async function exportPayslipPdf(
   payslip: Payslip,
@@ -98,15 +98,15 @@ export async function exportPayslipPdf(
     body: payslip.items.map((item) => [
       item.description,
       item.reference,
-      item.kind === "earning" ? formatAmount(item.amount) : "",
-      item.kind === "deduction" ? formatAmount(item.amount) : "",
+      item.kind === "earning" ? formatCurrencyAmount(item.amount) : "",
+      item.kind === "deduction" ? formatCurrencyAmount(item.amount) : "",
     ]),
     foot: [
       [
         "Totais",
         "",
-        formatAmount(payslip.grossAmount),
-        formatAmount(payslip.deductionAmount),
+        formatCurrencyAmount(payslip.grossAmount),
+        formatCurrencyAmount(payslip.deductionAmount),
       ],
       [
         { content: "Valor líquido a receber", colSpan: 3 },
@@ -135,11 +135,11 @@ export async function exportPayslipPdf(
     ],
     body: [
       [
-        formatAmount(employee.salary),
-        formatAmount(payslip.inssBase),
-        formatAmount(payslip.fgtsBase),
-        formatAmount(payslip.fgtsAmount),
-        formatAmount(payslip.irrfBase),
+        formatCurrencyAmount(employee.salary),
+        formatCurrencyAmount(payslip.inssBase),
+        formatCurrencyAmount(payslip.fgtsBase),
+        formatCurrencyAmount(payslip.fgtsAmount),
+        formatCurrencyAmount(payslip.irrfBase),
       ],
     ],
     theme: "grid",

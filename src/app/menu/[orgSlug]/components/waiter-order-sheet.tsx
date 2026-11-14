@@ -26,6 +26,7 @@ import {
 } from "@/features/online-orders/schemas";
 import { useAddOrderItemsMutation } from "@/features/orders/hooks/use-add-order-items-mutation";
 import { useOpenOrderTabsQuery } from "@/features/orders/hooks/use-open-order-tabs-query";
+import { filterOrdersBySearch } from "@/features/orders/order-search";
 import type { OrderDetails, OrderId } from "@/features/orders/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import { formatCurrency } from "@/lib/format";
@@ -56,14 +57,7 @@ export function WaiterOrderSheet({
   const [selectedOrderId, setSelectedOrderId] = useState<OrderId | null>(null);
   const [tabSearch, setTabSearch] = useState("");
   const openTabs = openTabsQuery.data ?? [];
-  const normalizedTabSearch = tabSearch.trim().toLocaleLowerCase("pt-BR");
-  const visibleTabs = normalizedTabSearch
-    ? openTabs.filter((order) =>
-        (order.customerName ?? "")
-          .toLocaleLowerCase("pt-BR")
-          .includes(normalizedTabSearch),
-      )
-    : openTabs;
+  const visibleTabs = filterOrdersBySearch(openTabs, tabSearch);
   const selectedOrder =
     openTabs.find((order) => order.id === selectedOrderId) ?? null;
   const isSending =

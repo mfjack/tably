@@ -2,6 +2,8 @@ const LOCALE = "pt-BR";
 
 export const CURRENCY_SYMBOL = "$";
 
+const BRAZILIAN_CURRENCY_SYMBOL = "R$";
+
 const currencyFormatter = new Intl.NumberFormat(LOCALE, {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
@@ -31,13 +33,26 @@ const precisePercentFormatter = new Intl.NumberFormat(LOCALE, {
 function formatWithCurrencySymbol(
   value: number,
   formatter: Intl.NumberFormat,
+  symbol: string = CURRENCY_SYMBOL,
 ): string {
   const sign = value < 0 ? "-" : "";
-  return `${sign}${CURRENCY_SYMBOL} ${formatter.format(Math.abs(value))}`;
+  return `${sign}${symbol} ${formatter.format(Math.abs(value))}`;
 }
 
 export function formatCurrency(value: number): string {
   return formatWithCurrencySymbol(value, currencyFormatter);
+}
+
+export function formatCurrencyAmount(value: number): string {
+  return currencyFormatter.format(value);
+}
+
+export function formatBrazilianCurrency(value: number): string {
+  return formatWithCurrencySymbol(
+    value,
+    currencyFormatter,
+    BRAZILIAN_CURRENCY_SYMBOL,
+  );
 }
 
 export function formatUnitCost(value: number): string {

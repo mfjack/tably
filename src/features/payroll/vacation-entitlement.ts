@@ -2,9 +2,9 @@ import {
   addDays,
   addMonths,
   differenceInCalendarMonths,
-  format,
   parseISO,
 } from "date-fns";
+import { toDateKey } from "@/lib/date-key";
 
 const FULL_VACATION_DAYS = 30;
 const MONTHS_PER_PERIOD = 12;
@@ -27,10 +27,6 @@ export type UsedVacation = {
   days: number;
   soldDays: number;
 };
-
-function toDateKey(date: Date): string {
-  return format(date, "yyyy-MM-dd");
-}
 
 export function getVacationEntitlement(
   admissionDate: string,

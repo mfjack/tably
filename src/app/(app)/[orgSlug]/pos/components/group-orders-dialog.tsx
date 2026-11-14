@@ -13,6 +13,7 @@ import { CUSTOMER_NAME_IN_USE_MESSAGE } from "@/features/orders/messages";
 import type { OrganizationId } from "@/features/organizations/types";
 import type { CartTabId } from "@/features/pos/cart-store";
 import { formatCurrency } from "@/lib/format";
+import { normalizeText } from "@/lib/search";
 import type { GroupCheckoutMode } from "../hooks/use-group-checkout";
 
 export type GroupOrderEntry = {
@@ -40,9 +41,7 @@ const groupOrdersSchema = z
   .superRefine(({ orders }, context) => {
     const seenNames = new Set<string>();
     orders.forEach((order, index) => {
-      const normalizedName = order.customerName
-        .trim()
-        .toLocaleLowerCase("pt-BR");
+      const normalizedName = normalizeText(order.customerName);
       if (normalizedName && seenNames.has(normalizedName)) {
         context.addIssue({
           code: "custom",

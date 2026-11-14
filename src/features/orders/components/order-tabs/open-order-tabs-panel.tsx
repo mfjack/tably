@@ -40,6 +40,8 @@ import {
   useOfflineOrderQueue,
 } from "@/features/pos/offline-order-queue";
 import { isNetworkError } from "@/lib/network-error";
+import { normalizeText } from "@/lib/search";
+import { filterOrdersBySearch } from "../../order-search";
 import { ChangeTableDialog } from "./change-table-dialog";
 import { OpenOrderTabDialog } from "./open-order-tab-dialog";
 import { OpenOrderTabsGrid } from "./open-order-tabs-grid";
@@ -75,14 +77,8 @@ export function OpenOrderTabsPanel({
 }: OpenOrderTabsPanelProps) {
   const { openTabs, isLoading, errorMessage } = useOpenTabs(organizationId);
   const [searchTerm, setSearchTerm] = useState("");
-  const normalizedSearch = searchTerm.trim().toLocaleLowerCase("pt-BR");
-  const visibleTabs = normalizedSearch
-    ? openTabs?.filter((order) =>
-        `${order.customerName ?? ""} ${order.tableNumber ?? ""}`
-          .toLocaleLowerCase("pt-BR")
-          .includes(normalizedSearch),
-      )
-    : openTabs;
+  const normalizedSearch = normalizeText(searchTerm);
+  const visibleTabs = openTabs && filterOrdersBySearch(openTabs, searchTerm);
   const removeOrderItemMutation = useRemoveOrderItemMutation(organizationId);
   const payOrderMutation = usePayOrderMutation(organizationId);
   const cancelOrderMutation = useCancelOrderMutation(organizationId);

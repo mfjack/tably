@@ -1,4 +1,5 @@
 import * as z from "zod";
+import { toCents } from "@/lib/money";
 import { toTitleCase } from "@/lib/title-case";
 import {
   type OrderAdjustmentsInput,
@@ -67,10 +68,6 @@ export type OrderPaymentConfirmation = {
   adjustments: OrderAdjustmentsInput;
   total: number;
 };
-
-function toCents(value: number) {
-  return Math.round(value * 100);
-}
 
 export function createPaymentFormSchema(orderTotal: number) {
   return z

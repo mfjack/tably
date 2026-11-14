@@ -7,6 +7,7 @@ import {
 } from "@/features/time-clock/time-utils";
 import type { TimesheetSummary } from "@/features/time-clock/timesheet";
 import { formatPercent } from "@/lib/format";
+import { roundCurrency } from "@/lib/money";
 import type {
   InssBracket,
   IrrfBracket,
@@ -37,10 +38,6 @@ type CalculatePayslipInput = {
   manualItems: readonly ManualPayslipItem[];
   previousHourBankMinutes: number;
 };
-
-function roundCurrency(value: number): number {
-  return Math.round((value + Number.EPSILON) * 100) / 100;
-}
 
 function getDayOfMonth(date: string): number {
   return Number(date.slice(8, 10));

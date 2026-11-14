@@ -17,6 +17,7 @@ import {
   databaseFailure,
 } from "@/lib/action-result";
 import { isUniqueViolation } from "@/lib/database-errors";
+import { toDateKey } from "@/lib/date-key";
 import type { Json } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -82,10 +83,6 @@ const THIRTEENTH_KINDS = {
 
 async function canUsePayroll(organizationId: OrganizationId) {
   return hasModuleAccess(organizationId, "payroll");
-}
-
-function toDateKey(date: Date): string {
-  return format(date, "yyyy-MM-dd");
 }
 
 function toMonthStart(date: Date): string {

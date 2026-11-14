@@ -1,4 +1,5 @@
 import * as z from "zod";
+import { normalizeText } from "@/lib/search";
 import { toTitleCase } from "@/lib/title-case";
 import { MEASURE_UNIT_VALUES } from "./measure-units";
 
@@ -60,7 +61,7 @@ export const ingredientsCreateFormSchema = z.object({
     .superRefine((ingredients, context) => {
       const seenNames = new Set<string>();
       ingredients.forEach((ingredient, index) => {
-        const normalizedName = ingredient.name.toLocaleLowerCase("pt-BR");
+        const normalizedName = normalizeText(ingredient.name);
         if (!normalizedName) return;
         if (seenNames.has(normalizedName)) {
           context.addIssue({

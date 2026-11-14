@@ -13,6 +13,7 @@ import { useFinancialOverviewQuery } from "@/features/finance/hooks/use-financia
 import type { EntryTotals, FinancialEntry } from "@/features/finance/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import { formatCurrency } from "@/lib/format";
+import { includesSearch, normalizeText } from "@/lib/search";
 import { cn } from "@/lib/utils";
 import { EntryRow } from "./entry-row";
 
@@ -56,13 +57,9 @@ function groupOpenEntries(entries: readonly FinancialEntry[], today: string) {
   })).filter((group) => group.entries.length > 0);
 }
 
-function normalizeSearch(value: string) {
-  return value.trim().toLocaleLowerCase("pt-BR");
-}
-
 function matchesSearch(entry: FinancialEntry, normalizedSearch: string) {
   return [entry.description, entry.categoryName, entry.supplierName].some(
-    (text) => text !== null && normalizeSearch(text).includes(normalizedSearch),
+    (text) => includesSearch(text, normalizedSearch),
   );
 }
 
@@ -120,7 +117,7 @@ export function FinanceOverview({
   const totalBalance =
     overview.salesBalance +
     activeAccounts.reduce((sum, account) => sum + account.balance, 0);
-  const normalizedSearch = normalizeSearch(searchTerm);
+  const normalizedSearch = normalizeText(searchTerm);
   const visibleEntries = normalizedSearch
     ? overview.monthEntries.filter((entry) =>
         matchesSearch(entry, normalizedSearch),

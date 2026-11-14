@@ -11,18 +11,15 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Skeleton } from "@/components/ui/skeleton";
-import { OpenOrderTabCard } from "@/features/orders/components/order-tabs/open-order-tab-card";
+import { OpenOrderTabsGrid } from "@/features/orders/components/order-tabs/open-order-tabs-grid";
 import { OrderItemsList } from "@/features/orders/components/order-tabs/order-items-list";
 import { useOpenOrderTabsQuery } from "@/features/orders/hooks/use-open-order-tabs-query";
 import { useOrdersRealtime } from "@/features/orders/hooks/use-orders-realtime";
+import { filterOrdersBySearch } from "@/features/orders/order-search";
 import type { OrderId } from "@/features/orders/types";
 import type { OrganizationId } from "@/features/organizations/types";
-import { useNow } from "@/hooks/use-now";
 import { formatCurrency } from "@/lib/format";
-
-const CLOCK_REFRESH_IN_MS = 30 * 1000;
-const LOADING_CARD_COUNT = 3;
+import { normalizeText } from "@/lib/search";
 
 type WaiterTabsSheetProps = {
   organizationId: OrganizationId;
@@ -34,16 +31,9 @@ export function WaiterTabsSheet({ organizationId }: WaiterTabsSheetProps) {
   const [selectedOrderId, setSelectedOrderId] = useState<OrderId | null>(null);
   const openTabsQuery = useOpenOrderTabsQuery(organizationId, isOpen);
   useOrdersRealtime(organizationId);
-  const now = useNow(CLOCK_REFRESH_IN_MS);
   const openTabs = openTabsQuery.data ?? [];
-  const normalizedSearch = searchTerm.trim().toLocaleLowerCase("pt-BR");
-  const visibleTabs = normalizedSearch
-    ? openTabs.filter((order) =>
-        (order.customerName ?? "")
-          .toLocaleLowerCase("pt-BR")
-          .includes(normalizedSearch),
-      )
-    : openTabs;
+  const normalizedSearch = normalizeText(searchTerm);
+  const visibleTabs = filterOrdersBySearch(openTabs, searchTerm);
   const selectedOrder =
     openTabs.find((order) => order.id === selectedOrderId) ?? null;
 
@@ -105,29 +95,17 @@ export function WaiterTabsSheet({ organizationId }: WaiterTabsSheetProps) {
                     onValueChange={setSearchTerm}
                   />
                 )}
-                {openTabsQuery.isPending ? (
-                  Array.from({ length: LOADING_CARD_COUNT }, (_, index) => (
-                    <Skeleton
-                      key={`loading-${index.toString()}`}
-                      className="h-28 rounded-2xl"
-                    />
-                  ))
-                ) : visibleTabs.length === 0 ? (
-                  <p className="py-8 text-center text-muted-foreground text-sm">
-                    {normalizedSearch
+                <OpenOrderTabsGrid
+                  orders={visibleTabs}
+                  isLoading={openTabsQuery.isPending}
+                  errorMessage={openTabsQuery.error?.message}
+                  emptyMessage={
+                    normalizedSearch
                       ? "Nenhuma comanda com esse nome."
-                      : "Nenhuma comanda aberta."}
-                  </p>
-                ) : (
-                  visibleTabs.map((order) => (
-                    <OpenOrderTabCard
-                      key={order.id}
-                      order={order}
-                      now={now}
-                      onSelect={setSelectedOrderId}
-                    />
-                  ))
-                )}
+                      : "Nenhuma comanda aberta."
+                  }
+                  onSelect={setSelectedOrderId}
+                />
               </div>
             </>
           )}

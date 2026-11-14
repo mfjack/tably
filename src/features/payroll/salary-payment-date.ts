@@ -1,18 +1,15 @@
-import { addDays, format, parseISO } from "date-fns";
+import { addDays, parseISO } from "date-fns";
 import {
   getIsoWeekday,
   getMonthEnd,
   getMonthStart,
   shiftMonthKey,
 } from "@/features/time-clock/time-utils";
+import { toDateKey } from "@/lib/date-key";
 import type { SalaryPaymentSchedule } from "./types";
 
 const WEEKEND_DAYS: readonly number[] = [6, 7];
 const BUSINESS_DAY_LIMIT = 5;
-
-function toDateKey(date: Date): string {
-  return format(date, "yyyy-MM-dd");
-}
 
 function isBusinessDay(date: string, holidays: ReadonlySet<string>): boolean {
   return !WEEKEND_DAYS.includes(getIsoWeekday(date)) && !holidays.has(date);

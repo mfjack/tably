@@ -17,6 +17,7 @@ import {
 } from "@/features/subscriptions/schemas";
 import { getSubscriptionChargeAmount } from "@/features/subscriptions/subscription-state";
 import type { AdminSubscription } from "@/features/subscriptions/types";
+import { formatCurrency } from "@/lib/format";
 
 const EMPTY_PAYMENT_FORM: DefaultValues<SubscriptionPaymentInput> = {
   note: "",
@@ -79,7 +80,7 @@ export function RecordPaymentDialog({
           format="currency"
           placeholder={
             subscription
-              ? `Ex.: $ ${getSubscriptionChargeAmount(subscription).toFixed(2).replace(".", ",")}`
+              ? `Ex.: ${formatCurrency(getSubscriptionChargeAmount(subscription))}`
               : undefined
           }
         />

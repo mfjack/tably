@@ -1,3 +1,4 @@
+import { toCents } from "@/lib/money";
 import type { OrderSummaryLine } from "./components/order-summary";
 
 export const SPLIT_MODES = ["equal", "items", "custom"] as const;
@@ -20,10 +21,6 @@ export type UnitAssignments = Readonly<Record<string, number>>;
 
 export function isSplitMode(value: string): value is SplitMode {
   return SPLIT_MODES.some((mode) => mode === value);
-}
-
-function toCents(value: number) {
-  return Math.round(value * 100);
 }
 
 export function splitAmountEqually(total: number, parts: number): number[] {

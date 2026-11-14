@@ -1,4 +1,7 @@
 import type { SubscriptionPlan } from "@/features/subscriptions/plans";
+import { formatBrazilianCurrency } from "@/lib/format";
+
+const MONTHS_PER_YEAR = 12;
 
 export const LANDING_INFO = {
   whatsappNumber: "22997823207",
@@ -70,7 +73,7 @@ export function formatPlanPrice(price: number) {
 }
 
 export function formatMonthlyEquivalent(yearlyPrice: number) {
-  return `R$ ${(yearlyPrice / 12).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return formatBrazilianCurrency(yearlyPrice / MONTHS_PER_YEAR);
 }
 
 export function buildWhatsAppUrl(phoneNumber: string, message: string) {
