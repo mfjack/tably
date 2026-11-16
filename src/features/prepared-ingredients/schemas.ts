@@ -46,6 +46,7 @@ export const preparationFormSchema = z
   .object({
     name: ingredientNameSchema,
     unit: measureUnitSchema,
+    currentStock: z.number().min(0, "Não pode ser negativo.").optional(),
     minimumStock: z.number().min(0, "Não pode ser negativo.").optional(),
     ...preparedRecipeShape,
   })

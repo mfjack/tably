@@ -72,7 +72,8 @@ export async function updatePreparation(
     return actionFailure("Confira o preparo e tente novamente.");
   }
 
-  const { name, minimumStock, yieldQuantity, recipe, steps } = parsedInput.data;
+  const { name, currentStock, minimumStock, yieldQuantity, recipe, steps } =
+    parsedInput.data;
   const supabase = await createClient();
   const { error } = await supabase.rpc("update_preparation", {
     p_ingredient_id: preparationId,
@@ -86,7 +87,20 @@ export async function updatePreparation(
   if (error?.code === DUPLICATE_NAME_ERROR_CODE) {
     return actionFailure(`Já existe um item chamado "${error.message}".`);
   }
-  return toRecipeResult(error, "Não foi possível salvar o preparo.");
+  const result = toRecipeResult(error, "Não foi possível salvar o preparo.");
+  if (result.status === "error" || currentStock === undefined) return result;
+
+  const { error: adjustError } = await supabase.rpc("adjust_ingredient_stock", {
+    p_ingredient_id: preparationId,
+    p_quantity: currentStock,
+  });
+  if (adjustError) {
+    return databaseFailure(
+      "O preparo foi salvo, mas não foi possível corrigir o estoque.",
+      adjustError,
+    );
+  }
+  return actionSuccess();
 }
 
 function toComponentsPayload(recipe: PreparedRecipeFormInput["recipe"]) {

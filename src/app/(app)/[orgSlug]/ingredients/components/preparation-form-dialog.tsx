@@ -22,6 +22,7 @@ import {
   type PreparationFormInput,
   preparationFormSchema,
 } from "@/features/prepared-ingredients/schemas";
+import { cn } from "@/lib/utils";
 import { PreparedRecipeFields } from "./prepared-recipe-fields";
 
 const EMPTY_PREPARATION: DefaultValues<PreparationFormInput> = {
@@ -37,6 +38,8 @@ function toFormValues(
   return {
     name: preparation.name,
     unit: toSelectableMeasureUnit(preparation.unit) ?? "unit",
+    currentStock:
+      preparation.currentStock >= 0 ? preparation.currentStock : undefined,
     minimumStock: preparation.minimumStock || undefined,
     yieldQuantity: preparation.yieldQuantity ?? undefined,
     recipe: preparation.components.map((component) => ({
@@ -119,7 +122,22 @@ export function PreparationFormDialog({
           placeholder="Ex.: Calda de caramelo"
           autoComplete="off"
         />
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div
+          className={cn(
+            "grid gap-5 sm:grid-cols-2",
+            isEditing && "sm:grid-cols-3",
+          )}
+        >
+          {isEditing && (
+            <NumberField
+              control={form.control}
+              name="currentStock"
+              label="Estoque atual"
+              format="quantity"
+              suffix={unitSymbol}
+              placeholder="Ex.: 400"
+            />
+          )}
           <SelectField
             control={form.control}
             name="unit"
@@ -141,7 +159,10 @@ export function PreparationFormDialog({
           control={form.control}
           componentOptions={componentOptions}
           unitSymbol={unitSymbol}
-          recipeError={form.formState.errors.recipe?.message}
+          recipeError={
+            form.formState.errors.recipe?.root?.message ??
+            form.formState.errors.recipe?.message
+          }
         />
       </FieldGroup>
     </FormDialog>
