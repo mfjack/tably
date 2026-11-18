@@ -1,7 +1,7 @@
 "use server";
 
 import * as z from "zod";
-import { getPublicMenu } from "@/features/menu/queries";
+import { getFullPublicMenu } from "@/features/menu/queries";
 import type { OrderId } from "@/features/orders/types";
 import type { OrganizationId } from "@/features/organizations/types";
 import {
@@ -81,7 +81,7 @@ async function findStockShortage(
   menuSlug: string,
   items: PlaceOnlineOrderInput["items"],
 ): Promise<string | null> {
-  const menu = await getPublicMenu(menuSlug);
+  const menu = await getFullPublicMenu(menuSlug);
   if (!menu) return null;
 
   const requestedQuantities = new Map<string, number>();

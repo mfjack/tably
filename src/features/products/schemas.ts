@@ -76,10 +76,6 @@ export const productStockSettingsSchema = z
   .refine((values) => !values.totalCost || Boolean(values.quantity), {
     message: "Informe a quantidade comprada.",
     path: ["quantity"],
-  })
-  .refine((values) => !values.totalCost || Boolean(values.paymentDate), {
-    message: "Informe a data de pagamento.",
-    path: ["paymentDate"],
   });
 
 export type ProductStockSettingsInput = z.infer<

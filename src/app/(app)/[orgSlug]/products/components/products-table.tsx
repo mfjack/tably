@@ -2,7 +2,7 @@
 
 import { Package, TriangleAlert } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { type ReactNode, useMemo } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import { DataTable } from "@/components/data-table/data-table";
 import { createDataTableColumnHelper } from "@/components/data-table/data-table-features";
 import { DataTableFilterTabs } from "@/components/data-table/data-table-filter-tabs";
@@ -11,6 +11,10 @@ import { DataTableRowActions } from "@/components/data-table/data-table-row-acti
 import { ALERT_ROW_CLASS_NAME } from "@/components/data-table/data-table-row-styles";
 import { useCountedRowFilter } from "@/components/data-table/use-counted-row-filter";
 import { useDataTable } from "@/components/data-table/use-data-table";
+import {
+  OptionSelect,
+  type OptionSelectOption,
+} from "@/components/option-select";
 import { Badge } from "@/components/ui/badge";
 import type { Ingredient } from "@/features/ingredients/types";
 import {
@@ -39,6 +43,32 @@ const STOCK_FILTERS = [
 ] as const;
 
 type StockFilter = (typeof STOCK_FILTERS)[number]["value"];
+
+const ALL_CATEGORIES = "all";
+const WITHOUT_CATEGORY = "none";
+
+function getCategoryFilterValue(product: Product): string {
+  return product.categoryId ?? WITHOUT_CATEGORY;
+}
+
+function buildCategoryOptions(
+  products: readonly Product[],
+): OptionSelectOption[] {
+  const labelsByValue = new Map<string, string>();
+  for (const product of products) {
+    labelsByValue.set(
+      getCategoryFilterValue(product),
+      product.categoryName ?? "Sem categoria",
+    );
+  }
+  const categoryOptions = [...labelsByValue]
+    .map(([value, label]) => ({ value, label }))
+    .sort((first, second) => first.label.localeCompare(second.label, "pt-BR"));
+  return [
+    { value: ALL_CATEGORIES, label: "Todas as categorias" },
+    ...categoryOptions,
+  ];
+}
 
 type ProductRow = Product &
   Pick<ProductPricing, "costRatio" | "margin"> & {
@@ -118,9 +148,23 @@ export function ProductsTable({
       }),
     [products, ingredientsById],
   );
+  const [categoryFilter, setCategoryFilter] = useState(ALL_CATEGORIES);
+  const categoryOptions = useMemo(
+    () => buildCategoryOptions(products ?? EMPTY_PRODUCTS),
+    [products],
+  );
+  const categoryRows = useMemo(
+    () =>
+      categoryFilter === ALL_CATEGORIES
+        ? productRows
+        : productRows.filter(
+            (product) => getCategoryFilterValue(product) === categoryFilter,
+          ),
+    [productRows, categoryFilter],
+  );
   const { filteredRows: filteredProductRows, filterTabs } = useCountedRowFilter(
     {
-      rows: productRows,
+      rows: categoryRows,
       filters: STOCK_FILTERS,
       allValue: "all",
       classify: getStockFilter,
@@ -139,7 +183,7 @@ export function ProductsTable({
                 imageUrl={row.original.imageUrl}
                 productName={row.original.name}
               />
-              <div className="flex flex-col">
+              <div className="flex min-w-0 flex-col">
                 <span className="flex items-center gap-2 font-medium">
                   {row.original.name}
                   {row.original.expiredIngredientNames.length > 0 && (
@@ -152,6 +196,11 @@ export function ProductsTable({
                     </Badge>
                   )}
                 </span>
+                {row.original.menuDescription && (
+                  <span className="line-clamp-2 max-w-96 text-muted-foreground text-xs">
+                    {row.original.menuDescription}
+                  </span>
+                )}
                 <span className="text-muted-foreground text-xs">
                   {row.original.expiredIngredientNames.length > 0
                     ? `Vencido: ${row.original.expiredIngredientNames.join(", ")}`
@@ -232,6 +281,18 @@ export function ProductsTable({
       errorMessage={errorMessage}
       searchPlaceholder="Buscar produto ou categoria"
       emptyState={emptyState}
+      searchFilters={
+        categoryOptions.length > 2 && (
+          <OptionSelect
+            label="Filtrar por categoria"
+            placeholder="Todas as categorias"
+            options={categoryOptions}
+            value={categoryFilter}
+            className="sm:w-56"
+            onValueChange={setCategoryFilter}
+          />
+        )
+      }
       toolbarActions={
         filterTabs && (
           <DataTableFilterTabs label="Filtrar por estoque" {...filterTabs} />

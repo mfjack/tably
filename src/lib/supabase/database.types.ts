@@ -2447,6 +2447,7 @@ export type Database = {
           organization_id: string
           position: number | null
           price: number
+          purchase_unit_cost: number | null
           stock_quantity: number | null
           supplier_id: string | null
           updated_at: string
@@ -2466,6 +2467,7 @@ export type Database = {
           organization_id: string
           position?: number | null
           price: number
+          purchase_unit_cost?: number | null
           stock_quantity?: number | null
           supplier_id?: string | null
           updated_at?: string
@@ -2485,6 +2487,7 @@ export type Database = {
           organization_id?: string
           position?: number | null
           price?: number
+          purchase_unit_cost?: number | null
           stock_quantity?: number | null
           supplier_id?: string | null
           updated_at?: string

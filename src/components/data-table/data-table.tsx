@@ -26,6 +26,7 @@ type DataTableProps<TData extends RowData> = {
   errorMessage?: string;
   emptyState: ReactNode;
   toolbarActions?: ReactNode;
+  searchFilters?: ReactNode;
   getRowClassName?: (row: TData) => string | undefined;
 };
 
@@ -37,6 +38,7 @@ export function DataTable<TData extends RowData>({
   emptyState,
   getRowClassName,
   toolbarActions,
+  searchFilters,
 }: DataTableProps<TData>) {
   const rows = table.getRowModel().rows;
   const filteredRowCount = table.getFilteredRowModel().rows.length;
@@ -65,15 +67,18 @@ export function DataTable<TData extends RowData>({
   return (
     <div className="flex min-h-0 flex-col gap-4">
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
-        <SearchInput
-          label={searchPlaceholder}
-          value={table.state.globalFilter ?? ""}
-          onValueChange={(value) => {
-            table.setGlobalFilter(value);
-            table.setPageIndex(0);
-          }}
-          className="sm:max-w-xs"
-        />
+        <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto sm:flex-1 sm:flex-nowrap">
+          <SearchInput
+            label={searchPlaceholder}
+            value={table.state.globalFilter ?? ""}
+            onValueChange={(value) => {
+              table.setGlobalFilter(value);
+              table.setPageIndex(0);
+            }}
+            className="sm:max-w-xs"
+          />
+          {searchFilters}
+        </div>
         {toolbarActions}
       </div>
 

@@ -50,7 +50,19 @@ const publicMenuSchema = z.object({
   ),
 });
 
-export const getPublicMenu = cache(
+function withoutSoldOutItems(menu: PublicMenu): PublicMenu {
+  return {
+    ...menu,
+    sections: menu.sections
+      .map((section) => ({
+        ...section,
+        items: section.items.filter((item) => item.isAvailable),
+      }))
+      .filter((section) => section.items.length > 0),
+  };
+}
+
+export const getFullPublicMenu = cache(
   async (organizationSlug: string): Promise<PublicMenu | null> => {
     const supabase = await createClient();
     const { data, error } = await supabase.rpc("get_public_menu", {
@@ -62,6 +74,13 @@ export const getPublicMenu = cache(
     return parsedMenu.success ? parsedMenu.data : null;
   },
 );
+
+export async function getPublicMenu(
+  organizationSlug: string,
+): Promise<PublicMenu | null> {
+  const menu = await getFullPublicMenu(organizationSlug);
+  return menu && withoutSoldOutItems(menu);
+}
 
 const publicLoyaltyProgramSchema = z.object({
   stamps_required: z.number(),

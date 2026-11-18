@@ -21,6 +21,27 @@ import { useSupplierOptions } from "@/features/suppliers/hooks/use-supplier-opti
 import { formatQuantity } from "@/lib/format";
 import { toSelectFieldValue } from "@/lib/optional-select-value";
 
+type StockPreviewInput = {
+  currentStock: number | null;
+  countedQuantity: number | undefined;
+  purchasedQuantity: number | undefined;
+};
+
+function getStockPreview({
+  currentStock,
+  countedQuantity,
+  purchasedQuantity,
+}: StockPreviewInput): string | null {
+  if (countedQuantity === undefined && !purchasedQuantity) return null;
+  const baseQuantity = countedQuantity ?? currentStock ?? 0;
+  const finalQuantity = baseQuantity + (purchasedQuantity ?? 0);
+  const breakdown =
+    countedQuantity !== undefined && purchasedQuantity
+      ? ` (${formatQuantity(countedQuantity)} da correção + ${formatQuantity(purchasedQuantity)} comprados)`
+      : "";
+  return `O estoque vai ficar com ${formatQuantity(finalQuantity)} un${breakdown}.`;
+}
+
 type ProductStockDialogProps = {
   organizationId: OrganizationId;
   product: Product | null;
@@ -57,6 +78,15 @@ export function ProductStockDialog({
     name: "isStockTracked",
   });
   const currentStock = product?.stockQuantity ?? null;
+  const [countedQuantity, purchasedQuantity] = useWatch({
+    control: form.control,
+    name: ["countedQuantity", "quantity"],
+  });
+  const stockPreview = getStockPreview({
+    currentStock,
+    countedQuantity,
+    purchasedQuantity,
+  });
 
   useEffect(() => {
     if (!product) return;
@@ -145,8 +175,16 @@ export function ProductStockDialog({
               control={form.control}
               name="paymentDate"
               label="Data de pagamento"
-              placeholder="Escolha a data"
+              placeholder="Opcional"
             />
+            {stockPreview && (
+              <p
+                aria-live="polite"
+                className="rounded-lg bg-muted px-4 py-3 font-medium text-sm sm:col-span-2"
+              >
+                {stockPreview}
+              </p>
+            )}
             <div className="sm:col-span-2">
               <SelectField
                 control={form.control}
