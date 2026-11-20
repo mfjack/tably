@@ -71,7 +71,7 @@ export function MenuItemOrderControl({
         <Button
           type="button"
           variant="outline"
-          size="icon-lg"
+          size="icon"
           className="shrink-0 rounded-full"
           aria-label={`Adicionar ${productName}`}
           onClick={addItem}
@@ -89,7 +89,7 @@ export function MenuItemOrderControl({
         <Button
           type="button"
           variant="outline"
-          size="icon-lg"
+          size="icon"
           className="rounded-full"
           aria-label={`Remover um ${productName}`}
           onClick={removeItem}
@@ -97,12 +97,12 @@ export function MenuItemOrderControl({
           <Minus aria-hidden />
         </Button>
       )}
-      <span className="w-5 text-center font-semibold tabular-nums">
+      <span className="w-5 text-center font-semibold text-sm tabular-nums">
         {quantity}
       </span>
       <Button
         type="button"
-        size="icon-lg"
+        size="icon"
         className="rounded-full"
         aria-label={
           hasReachedRemaining
