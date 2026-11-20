@@ -8,6 +8,11 @@ const THUMBNAIL_SIZES = {
     className: "size-10 rounded-lg",
     iconClassName: "size-4",
   },
+  large: {
+    pixels: 64,
+    className: "size-16 rounded-xl",
+    iconClassName: "size-6",
+  },
 } as const;
 
 type ProductThumbnailProps = {

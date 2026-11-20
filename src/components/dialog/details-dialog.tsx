@@ -28,7 +28,7 @@ type DetailsDialogProps = {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   title: string;
-  footer: ReactNode;
+  footer?: ReactNode;
   size?: keyof typeof DIALOG_SIZE_CLASS_NAMES;
   children: ReactNode;
 };
@@ -57,9 +57,11 @@ export function DetailsDialog({
 
         <div className="-m-1 min-h-0 overflow-y-auto p-1">{children}</div>
 
-        <DialogFooter className={DIALOG_FOOTER_CLASS_NAME}>
-          {footer}
-        </DialogFooter>
+        {footer && (
+          <DialogFooter className={DIALOG_FOOTER_CLASS_NAME}>
+            {footer}
+          </DialogFooter>
+        )}
 
         <DialogClose
           render={

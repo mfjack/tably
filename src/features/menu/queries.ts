@@ -30,6 +30,7 @@ const publicMenuSchema = z.object({
           name: z.string(),
           detail: z.string().nullable(),
           description: z.string().nullable().default(null),
+          imageUrl: z.string().nullable().default(null),
           isDailyLuck: z.boolean().default(false),
           price: z.number(),
           isAvailable: z.boolean(),

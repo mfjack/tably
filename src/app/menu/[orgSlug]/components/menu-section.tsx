@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatMenuPrice } from "@/features/menu/format-menu-price";
 import type { PublicMenuSection } from "@/features/menu/types";
 import { cn } from "@/lib/utils";
+import { MenuItemImage } from "./menu-item-image";
 import { MenuItemOrderControl } from "./menu-item-order-control";
 import { buildMenuSectionAnchor } from "./menu-section-anchor";
 
@@ -33,6 +34,13 @@ export function MenuSection({
               !item.isAvailable && "text-muted-foreground",
             )}
           >
+            {item.imageUrl && (
+              <MenuItemImage
+                imageUrl={item.imageUrl}
+                productName={item.name}
+                description={item.description}
+              />
+            )}
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
               {item.isDailyLuck && (
                 <Badge variant="outline" className="mb-0.5 gap-1 self-start">
@@ -40,7 +48,7 @@ export function MenuSection({
                   Sorte do Dia
                 </Badge>
               )}
-              <span className="font-medium">
+              <span className="font-medium text-sm">
                 {item.name}
                 {item.detail && (
                   <span className="ml-1.5 font-normal text-muted-foreground text-xs">
@@ -55,7 +63,7 @@ export function MenuSection({
               )}
             </div>
             {item.isAvailable ? (
-              <span className="shrink-0 font-semibold tabular-nums">
+              <span className="shrink-0 font-semibold text-sm tabular-nums">
                 {formatMenuPrice(item.price)}
               </span>
             ) : (

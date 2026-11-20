@@ -15,6 +15,7 @@ export type PublicMenuItem = {
   name: string;
   detail: string | null;
   description: string | null;
+  imageUrl: string | null;
   isDailyLuck: boolean;
   price: number;
   isAvailable: boolean;
