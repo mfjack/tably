@@ -262,6 +262,7 @@ export function PosView({
   }
 
   const hasItemsInAnyTab = cartTabs.some((tab) => tab.items.length > 0);
+  const isCartVisible = hasItemsInAnyTab || tabTarget !== null;
   const tabsWithItems = cartTabs.filter((tab) => tab.items.length > 0);
   const hasManyOrders = tabsWithItems.length > 1;
   const groupOrderEntries = buildGroupOrderEntries(
@@ -406,11 +407,13 @@ export function PosView({
                 </Alert>
               ) : isOrganizing && productFilter.canDragProducts ? (
                 <SortableProductGrid
+                  isCartVisible={isCartVisible}
                   products={productFilter.visibleProducts}
                   onMove={productOrganizer.moveProduct}
                 />
               ) : (
                 <ProductGrid
+                  isCartVisible={isCartVisible}
                   products={productFilter.visibleProducts}
                   isLoading={isLoading || !isCartHydrated}
                   onAdd={handleAddProduct}
@@ -427,7 +430,7 @@ export function PosView({
         )}
       </div>
 
-      <CartPanel variant="sidebar" {...cartPanelProps} />
+      {isCartVisible && <CartPanel variant="sidebar" {...cartPanelProps} />}
       <MobileCartSheet hasOpenOrders={hasItemsInAnyTab} {...cartPanelProps} />
 
       <OpenCashRegisterDialog

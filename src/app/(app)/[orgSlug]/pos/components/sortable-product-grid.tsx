@@ -21,7 +21,7 @@ import type { ProductId } from "@/features/products/types";
 import { cn } from "@/lib/utils";
 import type { PosProduct } from "../hooks/use-pos-catalog";
 import { ProductCard } from "./product-card";
-import { PRODUCT_GRID_CLASS_NAME } from "./product-grid";
+import { getProductGridClassName } from "./product-grid";
 
 const DRAG_ACTIVATION_DISTANCE_IN_PX = 6;
 const TOUCH_DRAG_DELAY_IN_MS = 200;
@@ -30,6 +30,7 @@ const TOUCH_DRAG_TOLERANCE_IN_PX = 8;
 type SortableProductGridProps = {
   products: readonly PosProduct[];
   onMove: (activeProductId: ProductId, overProductId: ProductId) => void;
+  isCartVisible: boolean;
 };
 
 function ignoreAdd() {}
@@ -70,6 +71,7 @@ function SortableProductCard({ product }: { product: PosProduct }) {
 export function SortableProductGrid({
   products,
   onMove,
+  isCartVisible,
 }: SortableProductGridProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -101,7 +103,7 @@ export function SortableProductGrid({
         items={products.map((product) => product.id)}
         strategy={rectSortingStrategy}
       >
-        <div className={PRODUCT_GRID_CLASS_NAME}>
+        <div className={getProductGridClassName(isCartVisible)}>
           {products.map((product) => (
             <SortableProductCard key={product.id} product={product} />
           ))}

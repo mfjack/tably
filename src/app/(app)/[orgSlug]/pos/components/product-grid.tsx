@@ -8,12 +8,26 @@ import {
 } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ProductId } from "@/features/products/types";
+import { cn } from "@/lib/utils";
 import type { PosProduct } from "../hooks/use-pos-catalog";
 import type { StockLinks } from "../stock-links";
 import { ProductCard } from "./product-card";
 
-export const PRODUCT_GRID_CLASS_NAME =
-  "grid grid-cols-3 gap-3 md:grid-cols-4 md:gap-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7";
+const PRODUCT_GRID_BASE_CLASS_NAME = "grid grid-cols-3 gap-3 md:gap-4";
+
+const PRODUCT_GRID_COLUMNS_CLASS_NAMES = {
+  withCart: "md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7",
+  withoutCart: "md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 2xl:grid-cols-9",
+} as const;
+
+export function getProductGridClassName(isCartVisible: boolean): string {
+  return cn(
+    PRODUCT_GRID_BASE_CLASS_NAME,
+    PRODUCT_GRID_COLUMNS_CLASS_NAMES[
+      isCartVisible ? "withCart" : "withoutCart"
+    ],
+  );
+}
 
 const LOADING_CARD_COUNT = 10;
 
@@ -23,6 +37,7 @@ type ProductGridProps = {
   onAdd: (productId: ProductId) => void;
   stockLinks?: StockLinks;
   onLongPress?: (productId: ProductId) => void;
+  isCartVisible: boolean;
 };
 
 export function ProductGrid({
@@ -31,10 +46,13 @@ export function ProductGrid({
   onAdd,
   stockLinks,
   onLongPress,
+  isCartVisible,
 }: ProductGridProps) {
+  const gridClassName = getProductGridClassName(isCartVisible);
+
   if (isLoading) {
     return (
-      <div className={PRODUCT_GRID_CLASS_NAME}>
+      <div className={gridClassName}>
         {Array.from({ length: LOADING_CARD_COUNT }, (_, index) => (
           <Skeleton
             key={`loading-${index.toString()}`}
@@ -63,7 +81,7 @@ export function ProductGrid({
   }
 
   return (
-    <div className={PRODUCT_GRID_CLASS_NAME}>
+    <div className={gridClassName}>
       {products.map((product) => (
         <ProductCard
           key={product.id}
