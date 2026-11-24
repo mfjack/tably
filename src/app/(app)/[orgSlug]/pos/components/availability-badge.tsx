@@ -33,6 +33,7 @@ export function AvailabilityBadge({
 }: AvailabilityBadgeProps) {
   if (availability.status === "unlimited") return null;
   const isOut = availability.status === "out";
+  const isLow = availability.status === "low";
   const { stockLevels } = availability;
   const singleStockLevel = stockLevels.length === 1 ? stockLevels[0] : null;
   const productsHref = stockLinks?.productsHref ?? null;
@@ -58,13 +59,14 @@ export function AvailabilityBadge({
             className={cn(
               "pointer-events-auto relative z-10 inline-flex h-5 max-w-full shrink-0 items-center overflow-hidden rounded px-1.5 font-semibold text-[0.625rem] leading-none underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
               isOut && "bg-destructive/15 text-destructive",
-              !isOut &&
+              isLow && "bg-amber-500/15 text-amber-700 dark:text-amber-400",
+              availability.status === "available" &&
                 "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
             )}
           />
         }
       >
-        {isOut && <Info className="mr-1 size-3" aria-hidden />}
+        {(isOut || isLow) && <Info className="mr-1 size-3" aria-hidden />}
         {label}
       </PopoverTrigger>
       <PopoverContent
@@ -75,7 +77,9 @@ export function AvailabilityBadge({
           <p className="font-semibold text-sm">
             {isOut
               ? getOutOfStockTitle(availability.remaining)
-              : `Restam ${label}`}
+              : isLow
+                ? `Restam ${label}, abaixo do mínimo`
+                : `Restam ${label}`}
           </p>
           {productStockHref && (
             <StockLinkButton itemName={productName} href={productStockHref} />
