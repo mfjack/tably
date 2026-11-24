@@ -31,7 +31,7 @@ export function CategoryFilter({
             aria-pressed={isSelected}
             onClick={() => onSelect(option.id)}
             className={cn(
-              "flex h-9 shrink-0 items-center whitespace-nowrap rounded-lg border px-3 font-medium text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/40",
+              "flex h-9 shrink-0 items-center whitespace-nowrap rounded-lg border px-3 font-medium text-[0.8125rem] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/40",
               isSelected
                 ? "border-foreground bg-foreground text-background"
                 : "bg-background hover:bg-muted",
