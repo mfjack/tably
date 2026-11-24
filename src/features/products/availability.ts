@@ -35,7 +35,7 @@ export type ProductAvailability =
   | { status: "unlimited" }
   | ({ status: "available" } & LimitedAvailability)
   | ({ status: "low" } & LimitedAvailability)
-  | ({ status: "out" } & IngredientShortages);
+  | ({ status: "out" } & LimitedAvailability);
 
 type IngredientCapacity = {
   ingredient: Ingredient | undefined;
@@ -59,10 +59,7 @@ function calculateIngredientCapacities(
     return {
       ingredient,
       freeStock,
-      producibleQuantity: Math.max(
-        0,
-        Math.floor(freeStock / recipeItem.quantity),
-      ),
+      producibleQuantity: Math.floor(freeStock / recipeItem.quantity),
     };
   });
 }
@@ -72,7 +69,7 @@ function isRunningLow({
   freeStock,
   producibleQuantity,
 }: IngredientCapacity) {
-  if (!ingredient || producibleQuantity === 0) return false;
+  if (!ingredient || producibleQuantity <= 0) return false;
   return freeStock <= ingredient.minimumStock;
 }
 
@@ -122,7 +119,7 @@ function getIngredientShortages(
   return {
     stockLevels: getStockLevels(capacities),
     outOfStockIngredientNames: getIngredientNames(
-      capacities.filter((capacity) => capacity.producibleQuantity === 0),
+      capacities.filter((capacity) => capacity.producibleQuantity <= 0),
     ),
     runningLowIngredientNames: getIngredientNames(
       capacities.filter(isRunningLow),
@@ -139,7 +136,7 @@ export function getProductAvailability(
   const manualRemaining =
     product.stockQuantity === null
       ? Number.POSITIVE_INFINITY
-      : Math.max(product.stockQuantity - reservedProductQuantity, 0);
+      : product.stockQuantity - reservedProductQuantity;
 
   const isManualStockLow =
     product.stockQuantity !== null &&
@@ -148,7 +145,9 @@ export function getProductAvailability(
 
   if (product.recipe.length === 0) {
     if (product.stockQuantity === null) return { status: "unlimited" };
-    if (manualRemaining === 0) return { status: "out", ...NO_SHORTAGES };
+    if (manualRemaining <= 0) {
+      return { status: "out", remaining: manualRemaining, ...NO_SHORTAGES };
+    }
     return {
       status: isManualStockLow ? "low" : "available",
       remaining: manualRemaining,
@@ -167,8 +166,8 @@ export function getProductAvailability(
   );
   const shortages = getIngredientShortages(capacities);
 
-  if (remaining === 0) return { status: "out", ...shortages };
   const limitedAvailability = { remaining, ...shortages };
+  if (remaining <= 0) return { status: "out", ...limitedAvailability };
   if (isManualStockLow || shortages.runningLowIngredientNames.length > 0) {
     return { status: "low", ...limitedAvailability };
   }

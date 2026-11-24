@@ -23,7 +23,6 @@ function getAvailabilityLabel(
   availability: ProductAvailability,
 ): string | null {
   if (availability.status === "unlimited") return null;
-  if (availability.status === "out") return "Esgotado";
   return `${availability.remaining}`;
 }
 
@@ -53,35 +52,35 @@ function ProductCardComponent({
   );
   const { availability, cartQuantity } = product;
   const isOut = availability.status === "out";
-  const isLow = availability.status === "low";
+  const isStocked =
+    availability.status === "available" || availability.status === "low";
   const isInCart = cartQuantity > 0;
   const availabilityLabel = getAvailabilityLabel(availability);
 
   return (
     <div
       className={cn(
-        "relative flex min-w-0 flex-col gap-2 rounded-xl border bg-card p-2 text-left transition-colors hover:border-primary/40 has-[button:disabled]:cursor-not-allowed",
-        isInCart && !isLow && !isOut && "border-primary bg-primary/5",
-        isLow && "border-destructive/25 bg-destructive/5",
-        isOut && "border-dashed hover:border-border",
+        "relative flex min-w-0 flex-col gap-2 rounded-xl border bg-card p-2 text-left transition-colors hover:border-primary/40",
+        isInCart && !isStocked && !isOut && "border-primary bg-primary/5",
+        isStocked && "border-emerald-500/10 bg-emerald-500/2",
+        isOut && "border-destructive/10 bg-destructive/2",
       )}
     >
       <button
         type="button"
-        disabled={isOut}
         aria-label={getAccessibleLabel(product, availabilityLabel)}
         onClick={() => {
           if (longPress.shouldIgnoreClick()) return;
           onAdd(product.id);
         }}
         {...longPress.handlers}
-        className="absolute inset-0 select-none rounded-xl outline-none [-webkit-touch-callout:none] focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed"
+        className="absolute inset-0 select-none rounded-xl outline-none [-webkit-touch-callout:none] focus-visible:ring-2 focus-visible:ring-ring/40"
       />
       <div
         className={cn(
           "pointer-events-none relative flex aspect-video items-center justify-center overflow-hidden rounded-lg bg-foreground/5 text-muted-foreground/70",
-          isLow && "bg-destructive/10",
-          isOut && "text-muted-foreground/40",
+          isStocked && "bg-emerald-500/4",
+          isOut && "bg-destructive/4",
         )}
       >
         {product.imageUrl ? (
@@ -98,21 +97,9 @@ function ProductCardComponent({
       </div>
 
       <div className="pointer-events-none flex min-w-0 flex-col gap-0.5 px-1 pb-0.5">
-        <span
-          className={cn(
-            "truncate font-semibold text-xs",
-            isOut && "text-muted-foreground/80",
-          )}
-        >
-          {product.name}
-        </span>
+        <span className="truncate font-semibold text-xs">{product.name}</span>
         <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-2 gap-y-1">
-          <span
-            className={cn(
-              "whitespace-nowrap text-muted-foreground text-xs tabular-nums",
-              isOut && "text-muted-foreground/60",
-            )}
-          >
+          <span className="whitespace-nowrap text-muted-foreground text-xs tabular-nums">
             {formatCurrency(product.price)}
           </span>
           {availabilityLabel && (

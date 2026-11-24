@@ -155,6 +155,7 @@ export function usePosCatalog(organizationId: OrganizationId, cart: Cart) {
           expiredIngredientNames.length > 0
             ? {
                 status: "out",
+                remaining: 0,
                 outOfStockIngredientNames: expiredIngredientNames,
                 runningLowIngredientNames: [],
                 stockLevels: [],

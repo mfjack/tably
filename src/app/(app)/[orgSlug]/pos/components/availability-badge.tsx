@@ -10,6 +10,12 @@ import { IngredientStockLevels } from "@/features/products/components/ingredient
 import { cn } from "@/lib/utils";
 import { buildStockSearchHref, type StockLinks } from "../stock-links";
 
+function getOutOfStockTitle(remaining: number): string {
+  return remaining === 0
+    ? "Acabou no estoque"
+    : `Vendido ${Math.abs(remaining)} além do estoque`;
+}
+
 type AvailabilityBadgeProps = {
   productName: string;
   label: string;
@@ -27,7 +33,6 @@ export function AvailabilityBadge({
 }: AvailabilityBadgeProps) {
   if (availability.status === "unlimited") return null;
   const isOut = availability.status === "out";
-  const isLow = availability.status === "low";
   const { stockLevels } = availability;
   const singleStockLevel = stockLevels.length === 1 ? stockLevels[0] : null;
   const productsHref = stockLinks?.productsHref ?? null;
@@ -52,15 +57,14 @@ export function AvailabilityBadge({
             aria-label={`${label} · ver o que falta para ${productName}`}
             className={cn(
               "pointer-events-auto relative z-10 inline-flex h-5 max-w-full shrink-0 items-center overflow-hidden rounded px-1.5 font-semibold text-[0.625rem] leading-none underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
-              isOut && "bg-muted-foreground text-background",
-              isLow && "bg-destructive/15 text-destructive",
-              availability.status === "available" &&
-                "bg-muted text-muted-foreground",
+              isOut && "bg-destructive/15 text-destructive",
+              !isOut &&
+                "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
             )}
           />
         }
       >
-        {isLow && <Info className="mr-1 size-3" aria-hidden />}
+        {isOut && <Info className="mr-1 size-3" aria-hidden />}
         {label}
       </PopoverTrigger>
       <PopoverContent
@@ -69,7 +73,9 @@ export function AvailabilityBadge({
       >
         <div className="flex items-center justify-between gap-4">
           <p className="font-semibold text-sm">
-            {isOut ? label : `Restam ${label}`}
+            {isOut
+              ? getOutOfStockTitle(availability.remaining)
+              : `Restam ${label}`}
           </p>
           {productStockHref && (
             <StockLinkButton itemName={productName} href={productStockHref} />
