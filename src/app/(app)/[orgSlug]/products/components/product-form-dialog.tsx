@@ -10,6 +10,7 @@ import { SelectField } from "@/components/form/select-field";
 import { SwitchField } from "@/components/form/switch-field";
 import { TextField } from "@/components/form/text-field";
 import { TextareaField } from "@/components/form/textarea-field";
+import { WeekdayChipsField } from "@/components/form/weekday-chips-field";
 import {
   FieldDescription,
   FieldGroup,
@@ -38,6 +39,7 @@ const EMPTY_PRODUCT_FORM: DefaultValues<ProductFormInput> = {
   isActive: true,
   isOnMenu: true,
   isDailyLuck: false,
+  dailyLuckWeekdays: [],
   menuDetail: "",
   menuDescription: "",
   imageUrl: "",
@@ -53,6 +55,7 @@ function toFormValues(product: Product): DefaultValues<ProductFormInput> {
     isActive: product.isActive,
     isOnMenu: product.isOnMenu,
     isDailyLuck: product.isDailyLuck,
+    dailyLuckWeekdays: product.dailyLuckWeekdays,
     menuDetail: product.menuDetail ?? "",
     menuDescription: product.menuDescription ?? "",
     imageUrl: product.imageUrl ?? "",
@@ -83,9 +86,9 @@ export function ProductFormDialog({
     resolver: zodResolver(productFormSchema),
     defaultValues: EMPTY_PRODUCT_FORM,
   });
-  const [productName, price, recipe, isOnMenu] = useWatch({
+  const [productName, price, recipe, isOnMenu, isDailyLuck] = useWatch({
     control: form.control,
-    name: ["name", "price", "recipe", "isOnMenu"],
+    name: ["name", "price", "recipe", "isOnMenu", "isDailyLuck"],
   });
   const isEditing = Boolean(product);
 
@@ -187,6 +190,14 @@ export function ProductFormDialog({
             label="Sorte do Dia"
             description="Destaca o produto no cardápio como item especial do dia."
           />
+          {isDailyLuck && (
+            <WeekdayChipsField
+              control={form.control}
+              name="dailyLuckWeekdays"
+              label="Dias da Sorte do Dia"
+              description="Só nesses dias o produto aparece no PDV e no cardápio."
+            />
+          )}
           {isOnMenu && (
             <>
               <TextField

@@ -27,6 +27,7 @@ export const productFormSchema = z
     isActive: z.boolean(),
     isOnMenu: z.boolean(),
     isDailyLuck: z.boolean(),
+    dailyLuckWeekdays: z.array(z.number().int().min(1).max(7)),
     menuDetail: z.string().trim().max(40, "Detalhe muito longo.").optional(),
     menuDescription: z
       .string()
@@ -38,6 +39,14 @@ export const productFormSchema = z
     addonIds: z.array(z.string()),
   })
   .superRefine((values, context) => {
+    if (values.isDailyLuck && values.dailyLuckWeekdays.length === 0) {
+      context.addIssue({
+        code: "custom",
+        message: "Escolha pelo menos um dia.",
+        path: ["dailyLuckWeekdays"],
+      });
+    }
+
     const seenIngredientIds = new Set<string>();
 
     values.recipe.forEach((recipeItem, index) => {

@@ -1,3 +1,4 @@
+import { getISODay } from "date-fns";
 import { useCallback, useMemo } from "react";
 import { useCategoriesQuery } from "@/features/categories/hooks/use-categories-query";
 import { useIngredientsMap } from "@/features/ingredients/hooks/use-ingredients-map";
@@ -23,6 +24,17 @@ import { useProductsQuery } from "@/features/products/hooks/use-products-query";
 import type { Product, ProductId } from "@/features/products/types";
 
 const EMPTY_PRODUCTS: Product[] = [];
+
+function isAvailableToday(
+  product: Pick<Product, "isDailyLuck" | "dailyLuckWeekdays">,
+  todayWeekday: number,
+): boolean {
+  return (
+    !product.isDailyLuck ||
+    product.dailyLuckWeekdays.length === 0 ||
+    product.dailyLuckWeekdays.includes(todayWeekday)
+  );
+}
 
 export type PosProduct = Product & {
   availability: ProductAvailability;
@@ -86,7 +98,8 @@ export function usePosCatalog(organizationId: OrganizationId, cart: Cart) {
   const activeProducts = useMemo(
     () =>
       (productsQuery.data ?? EMPTY_PRODUCTS).filter(
-        (product) => product.isActive,
+        (product) =>
+          product.isActive && isAvailableToday(product, getISODay(new Date())),
       ),
     [productsQuery.data],
   );

@@ -2435,6 +2435,7 @@ export type Database = {
         Row: {
           category_id: string | null
           created_at: string
+          daily_luck_weekdays: number[]
           id: string
           image_url: string | null
           is_active: boolean
@@ -2455,6 +2456,7 @@ export type Database = {
         Insert: {
           category_id?: string | null
           created_at?: string
+          daily_luck_weekdays?: number[]
           id?: string
           image_url?: string | null
           is_active?: boolean
@@ -2475,6 +2477,7 @@ export type Database = {
         Update: {
           category_id?: string | null
           created_at?: string
+          daily_luck_weekdays?: number[]
           id?: string
           image_url?: string | null
           is_active?: boolean
@@ -4458,6 +4461,7 @@ export type Database = {
         Args: {
           p_addon_ids: string[]
           p_category_id?: string
+          p_daily_luck_weekdays?: number[]
           p_image_url?: string
           p_initial_payment_date?: string
           p_initial_total_cost?: number
