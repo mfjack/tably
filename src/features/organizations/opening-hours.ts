@@ -83,27 +83,37 @@ function toDate(moment: string | null | undefined): Date | null {
   return moment ? new Date(moment) : null;
 }
 
+function formatHour(time: string): string {
+  const [hours, minutes] = time.split(":");
+  return minutes && minutes !== "00" ? `${hours}h${minutes}` : `${hours}h`;
+}
+
+function formatHourRange(opensAt: string, closesAt: string): string {
+  return `${formatHour(opensAt)} - ${formatHour(closesAt)}`;
+}
+
 function describeNextOpening(
   nextOpening: NonNullable<OpeningStatus["nextOpening"]>,
 ): string {
-  if (nextOpening.daysAhead === 0) return `abre às ${nextOpening.opensAt}`;
-  if (nextOpening.daysAhead === 1) {
-    return `abre amanhã às ${nextOpening.opensAt}`;
-  }
-  return `abre ${getWeekdayLabel(nextOpening.weekday).toLocaleLowerCase("pt-BR")} às ${nextOpening.opensAt}`;
+  const opensAt = formatHour(nextOpening.opensAt);
+  if (nextOpening.daysAhead === 0) return `abre às ${opensAt}`;
+  if (nextOpening.daysAhead === 1) return `abre amanhã às ${opensAt}`;
+  return `abre ${getWeekdayLabel(nextOpening.weekday).toLocaleLowerCase("pt-BR")} às ${opensAt}`;
 }
 
 export function describeOpeningStatus(status: OpeningStatus): string | null {
   if (!status.isConfigured) return null;
-  if (status.isOpen) return status.closesAt ? `até ${status.closesAt}` : null;
+  if (status.isOpen) {
+    return status.closesAt ? `até ${formatHour(status.closesAt)}` : null;
+  }
   return status.nextOpening ? describeNextOpening(status.nextOpening) : null;
 }
 
 export function formatOpeningDay(day: OpeningDay): string {
   if (!day.isOpen) return "Fechado";
   return day.breakStartsAt && day.breakEndsAt
-    ? `${day.opensAt}–${day.breakStartsAt} · ${day.breakEndsAt}–${day.closesAt}`
-    : `${day.opensAt}–${day.closesAt}`;
+    ? `${formatHourRange(day.opensAt, day.breakStartsAt)} / ${formatHourRange(day.breakEndsAt, day.closesAt)}`
+    : formatHourRange(day.opensAt, day.closesAt);
 }
 
 export function summarizeOpeningStatus(
