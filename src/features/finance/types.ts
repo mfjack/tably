@@ -56,6 +56,7 @@ export type FinancialEntry = {
   accountId: FinancialAccountId | null;
   accountName: string | null;
   paidAt: string | null;
+  paidRecordedAt: string | null;
   paidAmount: number | null;
   recurrenceId: FinancialRecurrenceId | null;
   recurrenceFrequency: RecurrenceFrequency | null;

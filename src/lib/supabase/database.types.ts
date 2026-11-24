@@ -617,6 +617,7 @@ export type Database = {
           paid_amount: number | null
           paid_at: string | null
           paid_by_name: string | null
+          paid_recorded_at: string | null
           recurrence_id: string | null
           source: Database["public"]["Enums"]["financial_entry_source"]
           source_date: string | null
@@ -644,6 +645,7 @@ export type Database = {
           paid_amount?: number | null
           paid_at?: string | null
           paid_by_name?: string | null
+          paid_recorded_at?: string | null
           recurrence_id?: string | null
           source?: Database["public"]["Enums"]["financial_entry_source"]
           source_date?: string | null
@@ -671,6 +673,7 @@ export type Database = {
           paid_amount?: number | null
           paid_at?: string | null
           paid_by_name?: string | null
+          paid_recorded_at?: string | null
           recurrence_id?: string | null
           source?: Database["public"]["Enums"]["financial_entry_source"]
           source_date?: string | null

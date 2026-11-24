@@ -15,7 +15,7 @@ export const PURCHASE_ORDER_SOURCE_PREFIX = "purchase-order:";
 export const INVOICE_SOURCE_PREFIX = "nfe:";
 
 export const ENTRY_COLUMNS =
-  "id, kind, description, amount, due_date, category_id, supplier_id, account_id, paid_at, paid_amount, recurrence_id, installment_group_id, installment_number, installment_count, barcode, notes, created_by_name, paid_by_name, source, category:financial_categories(name), supplier:suppliers(name), account:financial_accounts(name), recurrence:financial_recurrences(frequency, end_date), attachments:financial_entry_attachments(id, path, file_name, created_at), source_key, stock_entries(quantity, total_cost, ingredient:ingredients(name, unit))";
+  "id, kind, description, amount, due_date, category_id, supplier_id, account_id, paid_at, paid_amount, paid_recorded_at, recurrence_id, installment_group_id, installment_number, installment_count, barcode, notes, created_by_name, paid_by_name, source, category:financial_categories(name), supplier:suppliers(name), account:financial_accounts(name), recurrence:financial_recurrences(frequency, end_date), attachments:financial_entry_attachments(id, path, file_name, created_at), source_key, stock_entries(quantity, total_cost, ingredient:ingredients(name, unit))";
 
 export type EntryRow = {
   id: string;
@@ -36,6 +36,7 @@ export type EntryRow = {
   notes: string | null;
   created_by_name: string | null;
   paid_by_name: string | null;
+  paid_recorded_at: string | null;
   source: FinancialEntry["source"];
   source_key: string | null;
   stock_entries: {
@@ -72,6 +73,7 @@ export function toFinancialEntry(row: EntryRow): FinancialEntry {
     accountId: row.account_id as FinancialAccountId | null,
     accountName: row.account?.name ?? null,
     paidAt: row.paid_at,
+    paidRecordedAt: row.paid_recorded_at,
     paidAmount: row.paid_amount,
     recurrenceId: row.recurrence_id as FinancialRecurrenceId | null,
     recurrenceFrequency: row.recurrence?.frequency ?? null,

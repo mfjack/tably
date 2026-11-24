@@ -1,5 +1,6 @@
 "use client";
 
+import { format } from "date-fns";
 import {
   Copy,
   MessageSquareText,
@@ -38,6 +39,16 @@ import { formatCurrency, formatDateKey } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { getWeekdayShortLabel } from "@/lib/weekdays";
 import { EntryAttachmentsDialog } from "./entry-attachments-dialog";
+
+function getPaidTime(
+  entry: Pick<FinancialEntry, "paidAt" | "paidRecordedAt">,
+): string | null {
+  if (!entry.paidAt || !entry.paidRecordedAt) return null;
+  const recordedAt = new Date(entry.paidRecordedAt);
+  return format(recordedAt, "yyyy-MM-dd") === entry.paidAt
+    ? format(recordedAt, "HH:mm")
+    : null;
+}
 
 const STATUS_BADGE_VARIANTS = {
   overdue: "destructive",
@@ -181,6 +192,7 @@ export function EntryRow({
         {entry.paidAt && (
           <span className="text-muted-foreground text-xs">
             {isExpense ? "Paga" : "Recebida"} em {formatDateKey(entry.paidAt)}
+            {getPaidTime(entry) && ` às ${getPaidTime(entry)}`}
             {entry.paidByName ? ` · ${entry.paidByName}` : ""}
           </span>
         )}
