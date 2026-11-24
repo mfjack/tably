@@ -62,7 +62,7 @@ function ProductCardComponent({
       className={cn(
         "relative flex min-w-0 flex-col gap-2 rounded-xl border bg-card p-2 text-left transition-colors hover:border-primary/40",
         isInCart && !isStocked && !isOut && "border-primary bg-primary/5",
-        isStocked && "border-emerald-500/10 bg-emerald-500/2",
+        isStocked && "border-emerald-500/10 bg-emerald-500/1",
         isOut && "border-destructive/10 bg-destructive/2",
       )}
     >
@@ -79,7 +79,7 @@ function ProductCardComponent({
       <div
         className={cn(
           "pointer-events-none relative flex aspect-video items-center justify-center overflow-hidden rounded-lg bg-foreground/5 text-muted-foreground/70",
-          isStocked && "bg-emerald-500/4",
+          isStocked && "bg-emerald-500/2",
           isOut && "bg-destructive/4",
         )}
       >
