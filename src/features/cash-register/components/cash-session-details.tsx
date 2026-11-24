@@ -6,12 +6,8 @@ import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { getCashDifference } from "../cash-difference";
 import { getNetPaymentAmount, sumPayments } from "../cash-payment-totals";
-import type { CashMovementKind, CashSessionSummary } from "../types";
-
-const MOVEMENT_LABELS = {
-  withdrawal: "Retirada",
-  supply: "Reforço",
-} as const satisfies Record<CashMovementKind, string>;
+import { describeCashMovement } from "../movement-labels";
+import type { CashSessionSummary } from "../types";
 
 const DATE_TIME_FORMAT = "dd/MM, HH:mm";
 
@@ -74,7 +70,7 @@ function buildStatementLines(summary: CashSessionSummary): StatementLine[] {
     ...summary.cashEntries.map((entry) => ({ ...entry, isOutflow: false })),
     ...summary.movements.map((movement) => ({
       id: movement.id,
-      label: `${MOVEMENT_LABELS[movement.kind]}${movement.note ? ` · ${movement.note}` : ""}`,
+      label: describeCashMovement(movement),
       amount: movement.amount,
       createdAt: movement.createdAt,
       createdByName: movement.createdByName,

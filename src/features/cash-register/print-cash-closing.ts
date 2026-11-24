@@ -11,9 +11,11 @@ import { escapeHtml } from "@/lib/print-html";
 import { printReceipt } from "@/lib/print-receipt";
 import { getCashDifference } from "./cash-difference";
 import { sumPayments } from "./cash-payment-totals";
+import { describeCashMovement } from "./movement-labels";
 import type { CashSessionSummary } from "./types";
 
 const DATE_TIME_FORMAT = "dd/MM/yyyy, HH:mm";
+const MOVEMENT_TIME_FORMAT = "HH:mm";
 
 type ClosingRow = [label: string, value: string];
 
@@ -21,8 +23,16 @@ function formatDateTime(value: string | null) {
   return value ? format(new Date(value), DATE_TIME_FORMAT) : "-";
 }
 
+function buildMovementRows(summary: CashSessionSummary): ClosingRow[] {
+  return summary.movements.map((movement) => [
+    `${format(new Date(movement.createdAt), MOVEMENT_TIME_FORMAT)} ${describeCashMovement(movement)}`,
+    `${movement.kind === "withdrawal" ? "-" : "+"} ${formatCurrency(movement.amount)}`,
+  ]);
+}
+
 function buildSections(summary: CashSessionSummary): ClosingRow[][] {
   const difference = getCashDifference(summary);
+  const movementRows = buildMovementRows(summary);
 
   return [
     [
@@ -69,6 +79,9 @@ function buildSections(summary: CashSessionSummary): ClosingRow[][] {
         ? [[difference.label, formatCurrency(difference.amount)] as ClosingRow]
         : []),
     ],
+    ...(movementRows.length > 0
+      ? [[["Reforços e retiradas", ""] as ClosingRow, ...movementRows]]
+      : []),
   ];
 }
 
