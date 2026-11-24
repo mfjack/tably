@@ -3,7 +3,10 @@ import "server-only";
 import { cache } from "react";
 import * as z from "zod";
 import type { CategoryId } from "@/features/categories/types";
-import { openingStatusSchema } from "@/features/organizations/opening-hours";
+import {
+  openingHourSchema,
+  openingStatusSchema,
+} from "@/features/organizations/opening-hours";
 import type { ProductAddonId } from "@/features/product-addons/types";
 import type { ProductId } from "@/features/products/types";
 import { createClient } from "@/lib/supabase/server";
@@ -20,6 +23,7 @@ const publicMenuSchema = z.object({
     isConfigured: false,
     isOpen: true,
   }),
+  openingHours: z.array(openingHourSchema).catch([]),
   sections: z.array(
     z.object({
       id: z.string().transform((id) => id as CategoryId),

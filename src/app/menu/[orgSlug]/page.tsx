@@ -56,7 +56,10 @@ export default async function PublicMenuPage({
           )}
           {!waiterOrganizationId && (
             <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
-              <MenuOpeningStatus status={menu.openingStatus} />
+              <MenuOpeningStatus
+                status={menu.openingStatus}
+                hours={menu.openingHours}
+              />
               {menu.instagram && <InstagramLink handle={menu.instagram} />}
             </div>
           )}

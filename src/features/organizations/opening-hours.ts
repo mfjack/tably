@@ -1,6 +1,6 @@
 import * as z from "zod";
 import { TIME_OF_DAY_PATTERN } from "@/lib/time-of-day";
-import { ISO_WEEKDAYS } from "@/lib/weekdays";
+import { getWeekdayLabel, ISO_WEEKDAYS } from "@/lib/weekdays";
 
 export const openingHourSchema = z.object({
   weekday: z.number().int().min(1).max(7),
@@ -81,6 +81,29 @@ export type OpeningStatusSummary = {
 
 function toDate(moment: string | null | undefined): Date | null {
   return moment ? new Date(moment) : null;
+}
+
+function describeNextOpening(
+  nextOpening: NonNullable<OpeningStatus["nextOpening"]>,
+): string {
+  if (nextOpening.daysAhead === 0) return `abre às ${nextOpening.opensAt}`;
+  if (nextOpening.daysAhead === 1) {
+    return `abre amanhã às ${nextOpening.opensAt}`;
+  }
+  return `abre ${getWeekdayLabel(nextOpening.weekday).toLocaleLowerCase("pt-BR")} às ${nextOpening.opensAt}`;
+}
+
+export function describeOpeningStatus(status: OpeningStatus): string | null {
+  if (!status.isConfigured) return null;
+  if (status.isOpen) return status.closesAt ? `até ${status.closesAt}` : null;
+  return status.nextOpening ? describeNextOpening(status.nextOpening) : null;
+}
+
+export function formatOpeningDay(day: OpeningDay): string {
+  if (!day.isOpen) return "Fechado";
+  return day.breakStartsAt && day.breakEndsAt
+    ? `${day.opensAt}–${day.breakStartsAt} · ${day.breakEndsAt}–${day.closesAt}`
+    : `${day.opensAt}–${day.closesAt}`;
 }
 
 export function summarizeOpeningStatus(

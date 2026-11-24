@@ -1,5 +1,8 @@
 import type { CategoryId } from "@/features/categories/types";
-import type { OpeningStatus } from "@/features/organizations/opening-hours";
+import type {
+  OpeningHour,
+  OpeningStatus,
+} from "@/features/organizations/opening-hours";
 import type { ProductAddonId } from "@/features/product-addons/types";
 import type { ProductId } from "@/features/products/types";
 
@@ -37,6 +40,7 @@ export type PublicMenu = {
   acceptsOrders: boolean;
   isWaiterOrdering: boolean;
   openingStatus: OpeningStatus;
+  openingHours: OpeningHour[];
   sections: PublicMenuSection[];
 };
 
