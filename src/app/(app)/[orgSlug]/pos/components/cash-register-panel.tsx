@@ -110,6 +110,7 @@ export function CashRegisterPanel({
       <CashMovementDialog
         organizationId={organizationId}
         kind={dialogState.step === "movement" ? dialogState.kind : null}
+        cashInDrawer={summary?.expectedCash}
         onClose={backToSummary}
       />
 

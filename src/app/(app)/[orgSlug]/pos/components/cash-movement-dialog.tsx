@@ -15,6 +15,7 @@ import {
 } from "@/features/cash-register/schemas";
 import type { CashMovementKind } from "@/features/cash-register/types";
 import type { OrganizationId } from "@/features/organizations/types";
+import { formatCurrency } from "@/lib/format";
 
 const MOVEMENT_TEXTS = {
   withdrawal: {
@@ -48,12 +49,14 @@ const EMPTY_MOVEMENT_FORM: DefaultValues<CashMovementInput> = { note: "" };
 type CashMovementDialogProps = {
   organizationId: OrganizationId;
   kind: CashMovementKind | null;
+  cashInDrawer: number | undefined;
   onClose: () => void;
 };
 
 export function CashMovementDialog({
   organizationId,
   kind,
+  cashInDrawer,
   onClose,
 }: CashMovementDialogProps) {
   const movementMutation = useAddCashMovementMutation(organizationId);
@@ -62,6 +65,8 @@ export function CashMovementDialog({
     defaultValues: EMPTY_MOVEMENT_FORM,
   });
   const texts = MOVEMENT_TEXTS[kind ?? "withdrawal"];
+  const isWithdrawal = kind === "withdrawal";
+  const availableCash = Math.max(cashInDrawer ?? 0, 0);
 
   useEffect(() => {
     if (kind) form.reset(EMPTY_MOVEMENT_FORM);
@@ -69,6 +74,16 @@ export function CashMovementDialog({
 
   const handleSubmit = form.handleSubmit((input) => {
     if (!kind) return;
+    if (
+      isWithdrawal &&
+      cashInDrawer !== undefined &&
+      input.amount > availableCash
+    ) {
+      form.setError("amount", {
+        message: `Tem só ${formatCurrency(availableCash)} na gaveta.`,
+      });
+      return;
+    }
     movementMutation.mutate(
       { kind, input },
       {
@@ -96,6 +111,11 @@ export function CashMovementDialog({
           control={form.control}
           name="amount"
           label="Valor"
+          description={
+            isWithdrawal && cashInDrawer !== undefined
+              ? `Na gaveta agora: ${formatCurrency(availableCash)}.`
+              : undefined
+          }
           format="currency"
           placeholder="Ex.: $ 50,00"
         />

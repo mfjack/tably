@@ -5,6 +5,7 @@ export const CASH_REGISTER_CLOSED_MESSAGE =
 const CASH_REGISTER_ERROR_MESSAGES: Readonly<Record<string, string>> = {
   TB017: CASH_REGISTER_CLOSED_MESSAGE,
   TB018: "Já existe um caixa aberto. Atualize a tela.",
+  TB050: "Não tem esse dinheiro na gaveta. Confira o valor da retirada.",
   "42501": "Você não tem permissão para mexer no caixa.",
 };
 
