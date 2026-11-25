@@ -17,6 +17,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { FieldError, FieldGroup } from "@/components/ui/field";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { isCardTerminalMethod } from "@/features/card-terminal/charge-status";
+import { CardTerminalCharge } from "@/features/card-terminal/components/card-terminal-charge";
+import type { CardTerminalMethod } from "@/features/card-terminal/types";
 import { useOpenCashSessionQuery } from "@/features/cash-register/hooks/use-open-cash-session-query";
 import { CustomerAccountFormDialog } from "@/features/customer-accounts/components/customer-account-form-dialog";
 import { useCustomerAccountsQuery } from "@/features/customer-accounts/hooks/use-customer-accounts-query";
@@ -26,6 +29,7 @@ import {
   type OrderPaymentInput,
   type PaymentFormInput,
 } from "@/features/orders/schemas";
+import { getPaymentSurcharge } from "@/features/organizations/payment-fees";
 import type {
   OrganizationCheckoutSettings,
   OrganizationId,
@@ -39,7 +43,7 @@ import {
   type OrderAdjustmentsInput,
 } from "../order-adjustments";
 import { getPaymentsChange, isCustomerAccountOnly } from "../order-payments";
-import { sortPaymentMethods } from "../payment-methods";
+import { getPaymentMethodLabel, sortPaymentMethods } from "../payment-methods";
 import {
   countUnassignedUnits,
   distributeAdjustment,
@@ -79,6 +83,10 @@ type PaymentDialogProps = {
   secondaryAction?: FormDialogSecondaryAction;
   orderPicker?: ReactNode;
 };
+
+type SubmitReadiness =
+  | { status: "blocked"; message: string }
+  | { status: "ready"; loyaltyInput: OrderAdjustmentsInput["loyalty"] };
 
 const MAX_PEOPLE = 10;
 const UNASSIGNED_ITEMS_MESSAGE = "Escolha quem paga cada item.";
@@ -192,6 +200,8 @@ export function PaymentDialog({
   const [splitMode, setSplitMode] = useState<SplitMode>("equal");
   const [assignments, setAssignments] = useState<UnitAssignments>({});
   const [assignmentError, setAssignmentError] = useState<string | null>(null);
+  const [terminalPaidMethod, setTerminalPaidMethod] =
+    useState<CardTerminalMethod | null>(null);
   const [accountFormLineIndex, setAccountFormLineIndex] = useState<
     number | null
   >(null);
@@ -250,6 +260,22 @@ export function PaymentDialog({
     cashInDrawer !== undefined && toCents(change) > toCents(cashInDrawer);
   const paymentsError =
     form.formState.errors.payments?.root?.message ?? assignmentError;
+  const singlePaymentMethod = payments?.[0]?.method;
+  const terminalMethod =
+    checkoutSettings.isCardTerminalEnabled &&
+    !isSplit &&
+    !isPaidByReward &&
+    isCardTerminalMethod(singlePaymentMethod)
+      ? singlePaymentMethod
+      : null;
+  const terminalAmount = terminalMethod
+    ? orderTotal +
+      getPaymentSurcharge(
+        checkoutSettings.paymentFees,
+        terminalMethod,
+        orderTotal,
+      )
+    : 0;
 
   const resetLoyalty = loyalty.reset;
 
@@ -266,6 +292,7 @@ export function PaymentDialog({
     setSplitMode("equal");
     setAssignments({});
     setAssignmentError(null);
+    setTerminalPaidMethod(null);
   }, [
     isOpen,
     form,
@@ -282,37 +309,56 @@ export function PaymentDialog({
     });
   }, [computedAmountsKey, form]);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function getSubmitReadiness(): SubmitReadiness {
     const loyaltyCheckout = loyalty.getLoyaltyCheckout();
     if (loyaltyCheckout.status === "invalid") {
-      event.preventDefault();
-      setAssignmentError(loyaltyCheckout.message);
-      return;
+      return { status: "blocked", message: loyaltyCheckout.message };
     }
     if (isDiscountIncomplete) {
-      event.preventDefault();
-      setAssignmentError(INVALID_DISCOUNT_MESSAGE);
-      return;
+      return { status: "blocked", message: INVALID_DISCOUNT_MESSAGE };
     }
     if (unassignedCount > 0) {
-      event.preventDefault();
-      setAssignmentError(UNASSIGNED_ITEMS_MESSAGE);
+      return { status: "blocked", message: UNASSIGNED_ITEMS_MESSAGE };
+    }
+    return { status: "ready", loyaltyInput: loyaltyCheckout.input };
+  }
+
+  function handleSubmit(event?: FormEvent<HTMLFormElement>) {
+    const readiness = getSubmitReadiness();
+    if (readiness.status === "blocked") {
+      event?.preventDefault();
+      setAssignmentError(readiness.message);
       return;
     }
+    const confirmedAdjustments = {
+      ...adjustments,
+      loyalty: readiness.loyaltyInput,
+    };
     if (isPaidByReward) {
-      event.preventDefault();
-      onConfirm([], { ...adjustments, loyalty: loyaltyCheckout.input }, 0);
+      event?.preventDefault();
+      onConfirm([], confirmedAdjustments, 0);
       return;
     }
     const submitPayments = form.handleSubmit(
       ({ payments: submittedPayments }) =>
-        onConfirm(
-          submittedPayments,
-          { ...adjustments, loyalty: loyaltyCheckout.input },
-          orderTotal,
-        ),
+        onConfirm(submittedPayments, confirmedAdjustments, orderTotal),
     );
     void submitPayments(event);
+  }
+
+  async function canStartTerminalCharge(): Promise<boolean> {
+    const readiness = getSubmitReadiness();
+    if (readiness.status === "blocked") {
+      setAssignmentError(readiness.message);
+      return false;
+    }
+    return form.trigger();
+  }
+
+  function confirmTerminalPayment(method: CardTerminalMethod) {
+    setTerminalPaidMethod(method);
+    form.setValue("payments.0.method", method);
+    handleSubmit();
   }
 
   function addPaymentLine() {
@@ -427,6 +473,25 @@ export function PaymentDialog({
                 onCreateAccount={setAccountFormLineIndex}
               />
             ))}
+          {terminalPaidMethod ? (
+            <p
+              role="status"
+              className="rounded-lg bg-primary/10 px-4 py-3 font-medium text-primary text-sm"
+            >
+              Pago na maquininha · {getPaymentMethodLabel(terminalPaidMethod)}
+            </p>
+          ) : (
+            terminalMethod && (
+              <CardTerminalCharge
+                key={`${terminalMethod}-${toCents(terminalAmount)}`}
+                organizationId={organizationId}
+                method={terminalMethod}
+                amount={terminalAmount}
+                canStart={canStartTerminalCharge}
+                onPaid={confirmTerminalPayment}
+              />
+            )
+          )}
           {isPaidByReward && (
             <p className="rounded-lg bg-primary/10 px-4 py-3 font-medium text-primary text-sm">
               O prêmio cobre o pedido. Não precisa escolher forma de pagamento.

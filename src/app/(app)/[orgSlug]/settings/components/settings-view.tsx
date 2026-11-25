@@ -9,6 +9,7 @@ import { getPlanHiddenModules } from "@/features/subscriptions/subscription-stat
 import { PageContent } from "../../components/page-content";
 import { PageHeader } from "../../components/page-header";
 import { CancelPinForm } from "./cancel-pin-form";
+import { CardTerminalSettingsForm } from "./card-terminal-settings-form";
 import { CheckoutSettingsForm } from "./checkout-settings-form";
 import { DeleteAccountSection } from "./delete-account-section";
 import { LoyaltySettingsForm } from "./loyalty-settings-form";
@@ -170,6 +171,10 @@ export function SettingsView({
                   <CancelPinForm
                     organizationId={organization.id}
                     isEnabled={organization.checkout.isCancelPinEnabled}
+                  />
+                  <CardTerminalSettingsForm
+                    key={`${organization.id}-card-terminal`}
+                    organization={organization}
                   />
                 </TabsContent>
               )}

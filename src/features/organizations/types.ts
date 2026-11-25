@@ -32,6 +32,7 @@ export type UserOrganization = {
   taxId: string | null;
   phone: string | null;
   address: string | null;
+  cieloMerchantId: string | null;
   openingHours: OpeningHour[];
   menu: OrganizationMenuSettings;
   checkout: OrganizationCheckoutSettings;
@@ -52,6 +53,7 @@ export type OrganizationCheckoutSettings = {
   isTableServiceEnabled: boolean;
   isCancelPinEnabled: boolean;
   isCancelPinRequired: boolean;
+  isCardTerminalEnabled: boolean;
   loyaltyProgram: LoyaltyProgram | null;
   paymentFees: OrganizationPaymentFees;
   acceptedPaymentMethods: PaymentMethod[];
