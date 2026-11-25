@@ -66,9 +66,9 @@ function ProductCardComponent({
           !isLow &&
           !isOut &&
           "border-primary bg-primary/5",
-        isStocked && "border-emerald-500/10 bg-emerald-500/1",
-        isLow && "border-amber-500/10 bg-amber-500/1",
-        isOut && "border-destructive/10 bg-destructive/2",
+        isStocked && "border-emerald-500/20 bg-emerald-500/3",
+        isLow && "border-amber-500/20 bg-amber-500/3",
+        isOut && "border-destructive/20 bg-destructive/3",
       )}
     >
       <button
@@ -84,9 +84,9 @@ function ProductCardComponent({
       <div
         className={cn(
           "pointer-events-none relative flex aspect-video items-center justify-center overflow-hidden rounded-lg bg-foreground/5 text-muted-foreground/70",
-          isStocked && "bg-emerald-500/2",
-          isLow && "bg-amber-500/2",
-          isOut && "bg-destructive/4",
+          isStocked && "bg-emerald-500/5",
+          isLow && "bg-amber-500/5",
+          isOut && "bg-destructive/5",
         )}
       >
         {product.imageUrl ? (
