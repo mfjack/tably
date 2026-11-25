@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Trash2 } from "lucide-react";
-import { useEffect, useMemo } from "react";
+import { type ReactNode, useEffect, useMemo } from "react";
 import {
   type Control,
   type DefaultValues,
@@ -38,6 +38,7 @@ import { useSupplierOptions } from "@/features/suppliers/hooks/use-supplier-opti
 import { formatCurrency } from "@/lib/format";
 import { toSelectFieldValue } from "@/lib/optional-select-value";
 import { normalizeText } from "@/lib/search";
+import { cn } from "@/lib/utils";
 import { LastPurchaseNote } from "./last-purchase-note";
 import { StockEntryProjectionSummary } from "./stock-entry-projection-summary";
 
@@ -69,6 +70,7 @@ type NewIngredientFieldsProps = {
   ingredientNames: readonly string[];
   ingredientsByName: ReadonlyMap<string, Ingredient>;
   isOnlyIngredient: boolean;
+  supplierField?: ReactNode;
   onRemove: () => void;
 };
 
@@ -79,6 +81,7 @@ function NewIngredientFields({
   ingredientNames,
   ingredientsByName,
   isOnlyIngredient,
+  supplierField,
   onRemove,
 }: NewIngredientFieldsProps) {
   const [name, unit, quantity, totalCost] = useWatch({
@@ -111,20 +114,25 @@ function NewIngredientFields({
   return (
     <li className="flex flex-col gap-3 px-4 py-3">
       <div className="flex items-start gap-2">
-        <div className="min-w-0 flex-1">
-          <AutocompleteField
-            control={control}
-            name={`ingredients.${index}.name`}
-            label={`Item ${ingredientNumber}`}
-            isLabelHidden
-            placeholder="Nome do item. Ex.: Leite integral"
-            suggestions={ingredientNames}
-            description={
-              existingIngredient
-                ? "Já cadastrado: a compra entra no estoque dele."
-                : undefined
-            }
-          />
+        <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-start">
+          <div className="min-w-0 flex-1">
+            <AutocompleteField
+              control={control}
+              name={`ingredients.${index}.name`}
+              label={`Item ${ingredientNumber}`}
+              isLabelHidden
+              placeholder="Nome do item. Ex.: Leite integral"
+              suggestions={ingredientNames}
+              description={
+                existingIngredient
+                  ? "Já cadastrado: a compra entra no estoque dele."
+                  : undefined
+              }
+            />
+          </div>
+          {supplierField && (
+            <div className="sm:w-80 sm:shrink-0">{supplierField}</div>
+          )}
         </div>
         <Button
           type="button"
@@ -138,7 +146,14 @@ function NewIngredientFields({
           <Trash2 aria-hidden />
         </Button>
       </div>
-      <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+      <div
+        className={cn(
+          "grid gap-3 sm:grid-cols-2",
+          existingIngredient
+            ? "md:grid-cols-4"
+            : "md:grid-cols-6 md:*:col-span-2 md:[&>*:nth-child(n+4)]:col-span-3",
+        )}
+      >
         <NumberField
           control={control}
           name={`ingredients.${index}.quantity`}
@@ -158,7 +173,7 @@ function NewIngredientFields({
         <NumberField
           control={control}
           name={`ingredients.${index}.totalCost`}
-          label="Valor pago (opcional)"
+          label="Valor pago"
           format="currency"
           placeholder="Ex.: $ 60,00"
         />
@@ -166,7 +181,7 @@ function NewIngredientFields({
           <NumberField
             control={control}
             name={`ingredients.${index}.minimumStock`}
-            label="Estoque mínimo (opcional)"
+            label="Estoque mínimo"
             format="quantity"
             suffix={unitSymbol}
             placeholder="Ex.: 4"
@@ -175,7 +190,7 @@ function NewIngredientFields({
         <DateField
           control={control}
           name={`ingredients.${index}.expiresAt`}
-          label="Validade (opcional)"
+          label="Validade"
           placeholder="Escolha a data"
         />
       </div>
@@ -317,35 +332,6 @@ export function PurchaseDialog({
       size="extraLarge"
     >
       <FieldGroup>
-        <div className="grid items-start gap-5 sm:grid-cols-2 md:grid-cols-3">
-          <SelectField
-            control={form.control}
-            name="supplierId"
-            label="Fornecedor"
-            options={supplierOptions}
-            description={
-              hasSuppliers
-                ? undefined
-                : "Cadastre fornecedores no módulo Fornecedores para vinculá-los."
-            }
-          />
-          <DateField
-            control={form.control}
-            name="paymentDueDate"
-            label="Data de pagamento (opcional)"
-            placeholder="Escolha a data"
-          />
-          <FilePickerField
-            label="Boleto, nota ou comprovante (opcional)"
-            files={pendingAttachments.files}
-            error={pendingAttachments.fileError}
-            maxSizeInMegabytes={MAX_FINANCIAL_DOCUMENT_SIZE_IN_MEGABYTES}
-            isLabelVisible
-            isMultiple
-            isCompact
-            onFilesChange={pendingAttachments.selectFiles}
-          />
-        </div>
         <div className="flex flex-col gap-3">
           <ul className="flex flex-col divide-y rounded-xl border">
             {fields.map((field, index) => (
@@ -357,6 +343,18 @@ export function PurchaseDialog({
                 ingredientNames={ingredientNames}
                 ingredientsByName={ingredientsByName}
                 isOnlyIngredient={!hasManyIngredients}
+                supplierField={
+                  index === 0 && (
+                    <SelectField
+                      control={form.control}
+                      name="supplierId"
+                      label="Fornecedor"
+                      isLabelHidden
+                      options={supplierOptions}
+                      isDisabled={!hasSuppliers}
+                    />
+                  )
+                }
                 onRemove={() => remove(index)}
               />
             ))}
@@ -371,12 +369,38 @@ export function PurchaseDialog({
             Adicionar item
           </Button>
         </div>
-        <div className="flex items-baseline justify-between rounded-xl bg-muted/50 px-4 py-3">
-          <span className="text-muted-foreground text-sm">Total da compra</span>
-          <span className="font-semibold tabular-nums">
-            {formatCurrency(total)}
-          </span>
-        </div>
+        <section
+          aria-label="Pagamento"
+          className="grid items-start gap-4 rounded-xl border p-4 sm:grid-cols-3"
+        >
+          <div className="flex flex-col gap-2">
+            <span className="flex h-5 items-center font-medium text-sm">
+              Total da compra
+            </span>
+            <output
+              aria-live="polite"
+              className="flex h-12 items-center font-semibold text-xl tabular-nums"
+            >
+              {formatCurrency(total)}
+            </output>
+          </div>
+          <DateField
+            control={form.control}
+            name="paymentDueDate"
+            label="Data de pagamento"
+            placeholder="Escolha a data"
+          />
+          <FilePickerField
+            label="Boleto ou nota"
+            files={pendingAttachments.files}
+            error={pendingAttachments.fileError}
+            maxSizeInMegabytes={MAX_FINANCIAL_DOCUMENT_SIZE_IN_MEGABYTES}
+            isLabelVisible
+            isMultiple
+            isCompact
+            onFilesChange={pendingAttachments.selectFiles}
+          />
+        </section>
       </FieldGroup>
     </FormDialog>
   );
