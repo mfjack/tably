@@ -43,7 +43,7 @@ export async function listPendingPurchaseOrders(
   const { data, error } = await supabase
     .from("purchase_orders")
     .select(
-      "id, supplier_id, created_at, created_by_name, supplier:suppliers(name), purchase_order_items(ingredient_id, product_id, quantity, ingredient:ingredients(name, unit, unit_cost), product:products(name))",
+      "id, supplier_id, created_at, created_by_name, supplier:suppliers(name), purchase_order_items(ingredient_id, product_id, quantity, requested_text, ingredient:ingredients(name, unit, unit_cost), product:products(name))",
     )
     .eq("organization_id", organizationId)
     .eq("status", "pending")
@@ -71,6 +71,7 @@ export async function listPendingPurchaseOrders(
                 name: item.ingredient.name,
                 unit: item.ingredient.unit,
                 quantity: item.quantity,
+                requestedText: item.requested_text,
                 unitCost: item.ingredient.unit_cost,
               },
             ];
@@ -84,6 +85,7 @@ export async function listPendingPurchaseOrders(
                 name: item.product.name,
                 unit: "unit",
                 quantity: item.quantity,
+                requestedText: item.requested_text,
                 unitCost: 0,
               },
             ];
@@ -106,7 +108,7 @@ export async function createPurchaseOrder(
   }
   const parsedInput = createPurchaseOrderSchema.safeParse(input);
   if (!parsedInput.success) {
-    return actionFailure("Informe a quantidade de pelo menos um item.");
+    return actionFailure("Escreva quanto pedir de pelo menos um item.");
   }
 
   const supabase = await createClient();
@@ -114,7 +116,7 @@ export async function createPurchaseOrder(
     p_organization_id: organizationId,
     p_items: parsedInput.data.items.map((item) => ({
       ...toItemReferenceColumns(item.kind, item.id),
-      quantity: item.quantity,
+      requested_text: item.requestedText,
     })),
     p_supplier_id: parsedInput.data.supplierId ?? undefined,
   });

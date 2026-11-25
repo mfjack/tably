@@ -35,7 +35,17 @@ export type ShoppingListGroup = {
   items: PurchasableItem[];
 };
 
-export type OrderedItem = PurchasableItem & { quantity: number };
+export type OrderedItem = PurchasableItem & { request: string };
+
+export type ShoppingListEntry = PurchasableItem & { request: string | null };
+
+export type ShoppingListSection = {
+  supplierName: string | null;
+  items: readonly ShoppingListEntry[];
+};
+
+const BLANK_QUANTITY = "______";
+const NO_SUPPLIER_SECTION_LABEL = "Sem fornecedor definido";
 
 export function isRunningLow(
   item: Pick<Ingredient, "currentStock" | "minimumStock">,
@@ -150,7 +160,7 @@ export function formatItemQuantity(
 }
 
 function describeItem(item: OrderedItem): string {
-  return `${formatItemQuantity(item.quantity, item.unit)} de ${item.name}`;
+  return `${item.request} de ${item.name}`;
 }
 
 export function buildSupplierMessage(
@@ -170,21 +180,38 @@ export function buildSupplierMessage(
   ].join("\n");
 }
 
+function formatEntryQuantity(entry: ShoppingListEntry): string {
+  return entry.request ?? BLANK_QUANTITY;
+}
+
+function describeEntry(entry: ShoppingListEntry): string {
+  return entry.request ? `${entry.request} de ${entry.name}` : entry.name;
+}
+
+export function buildShoppingListMessage(
+  businessName: string,
+  sections: readonly ShoppingListSection[],
+): string {
+  return [
+    `Lista de compras · ${businessName}`,
+    ...sections.flatMap((section) => [
+      "",
+      `*${section.supplierName ?? NO_SUPPLIER_SECTION_LABEL}*`,
+      ...section.items.map((item) => `• ${describeEntry(item)}`),
+    ]),
+  ].join("\n");
+}
+
 export function printShoppingList(
   business: OrderTicketBusiness,
-  groups: readonly {
-    supplierName: string | null;
-    items: readonly OrderedItem[];
-  }[],
+  groups: readonly ShoppingListSection[],
   printedAt: Date,
 ): void {
   const sections = groups
     .map(
       (group) =>
         `<section>${group.supplierName ? `<p class="strong">${escapeHtml(group.supplierName)}</p>` : ""}${group.items
-          .map((item) =>
-            buildRow(item.name, formatItemQuantity(item.quantity, item.unit)),
-          )
+          .map((item) => buildRow(item.name, formatEntryQuantity(item)))
           .join("")}</section>`,
     )
     .join("");

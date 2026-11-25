@@ -7,16 +7,11 @@ export const createPurchaseOrderSchema = z.object({
   supplierId: z.string().nullable(),
   items: z
     .array(
-      z
-        .object({
-          kind: purchasableItemKindSchema,
-          id: z.string().min(1),
-          quantity: z.number().positive(),
-        })
-        .refine(
-          (item) => item.kind !== "product" || Number.isInteger(item.quantity),
-          "Use um número inteiro.",
-        ),
+      z.object({
+        kind: purchasableItemKindSchema,
+        id: z.string().min(1),
+        requestedText: z.string().trim().min(1).max(40),
+      }),
     )
     .min(1),
 });

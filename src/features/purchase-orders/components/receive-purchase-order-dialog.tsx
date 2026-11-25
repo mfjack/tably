@@ -8,7 +8,6 @@ import { DateField } from "@/components/form/date-field";
 import { NumberField } from "@/components/form/number-field";
 import { FieldGroup } from "@/components/ui/field";
 import { getUnitSymbol } from "@/features/ingredients/measure-units";
-import { formatItemQuantity } from "@/features/ingredients/shopping-list";
 import type { OrganizationId } from "@/features/organizations/types";
 import { useReceivePurchaseOrderMutation } from "@/features/purchase-orders/hooks/use-receive-purchase-order-mutation";
 import {
@@ -20,6 +19,7 @@ import type {
   PurchaseOrderItem,
 } from "@/features/purchase-orders/types";
 import { formatCurrency } from "@/lib/format";
+import { describeRequestedQuantity } from "../requested-quantity";
 
 const CENTS_PER_UNIT = 100;
 
@@ -57,7 +57,7 @@ function ReceiveItemFields({ control, index, item }: ReceiveItemFieldsProps) {
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <span className="font-medium text-sm">{item.name}</span>
         <span className="text-muted-foreground text-xs tabular-nums">
-          Pedido: {formatItemQuantity(item.quantity, item.unit)}
+          Pedido: {describeRequestedQuantity(item)}
         </span>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
@@ -98,7 +98,7 @@ export function ReceivePurchaseOrderDialog({
     defaultValues: {
       items: order.items.map((item) => ({
         kind: item.kind,
-        quantity: item.quantity,
+        quantity: item.quantity ?? undefined,
         totalCost: undefined,
       })),
       paymentDueDate: "",

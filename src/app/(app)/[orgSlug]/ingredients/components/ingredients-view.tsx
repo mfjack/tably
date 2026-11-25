@@ -1,9 +1,7 @@
 "use client";
 
 import {
-  ChevronDown,
   CookingPot,
-  FileUp,
   Package,
   PackageMinus,
   Plus,
@@ -11,12 +9,6 @@ import {
 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PurchaseDialog } from "@/features/ingredients/components/purchase-dialog";
 import { ShoppingListDialog } from "@/features/ingredients/components/shopping-list-dialog";
@@ -44,7 +36,6 @@ import { DeleteIngredientDialog } from "./delete-ingredient-dialog";
 import { FoodLabelDialog } from "./food-label-dialog";
 import { IngredientFormDialog } from "./ingredient-form-dialog";
 import { IngredientsTable } from "./ingredients-table";
-import { InvoiceImportDialog } from "./invoice-import-dialog";
 import { PreparationFormDialog } from "./preparation-form-dialog";
 import { ProductionDialog } from "./production-dialog";
 import { StockLossFormDialog } from "./stock-loss-form-dialog";
@@ -91,7 +82,6 @@ export function IngredientsView({
   const suppliersQuery = useSuppliersQuery(organizationId);
   const productsQuery = useProductsQuery(organizationId);
   const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
-  const [isInvoiceImportOpen, setIsInvoiceImportOpen] = useState(false);
   const [isLossesOpen, setIsLossesOpen] = useState(false);
   const hasStockLossesQuery = useHasStockLossesQuery(organizationId);
   const [ingredientForProduction, setIngredientForProduction] =
@@ -199,40 +189,20 @@ export function IngredientsView({
             )
           ) : (
             <>
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <Button
-                      variant="outline"
-                      className="h-10"
-                      disabled={!ingredientsQuery.data}
-                    />
-                  }
-                >
-                  <ShoppingCart aria-hidden />
-                  <span className="max-sm:sr-only">Compras</span>
-                  {lowStockCount > 0 && (
-                    <span className="rounded-full bg-destructive px-1.5 font-semibold text-white text-xs tabular-nums">
-                      {lowStockCount}
-                    </span>
-                  )}
-                  <ChevronDown aria-hidden />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="min-w-56">
-                  <DropdownMenuItem onClick={() => setIsShoppingListOpen(true)}>
-                    <ShoppingCart aria-hidden />
-                    Lista de compras e pedidos
-                  </DropdownMenuItem>
-                  {canManage && (
-                    <DropdownMenuItem
-                      onClick={() => setIsInvoiceImportOpen(true)}
-                    >
-                      <FileUp aria-hidden />
-                      Importar nota fiscal (XML)
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <Button
+                variant="outline"
+                className="h-10"
+                disabled={!ingredientsQuery.data}
+                onClick={() => setIsShoppingListOpen(true)}
+              >
+                <ShoppingCart aria-hidden />
+                <span className="max-sm:sr-only">Compras</span>
+                {lowStockCount > 0 && (
+                  <span className="rounded-full bg-destructive px-1.5 font-semibold text-white text-xs tabular-nums">
+                    {lowStockCount}
+                  </span>
+                )}
+              </Button>
               {hasStockLossesQuery.data && (
                 <Button
                   variant="outline"
@@ -379,12 +349,6 @@ export function IngredientsView({
         organizationId={organizationId}
         ingredient={ingredientToDelete}
         onClose={() => setIngredientToDelete(null)}
-      />
-      <InvoiceImportDialog
-        organizationId={organizationId}
-        isOpen={isInvoiceImportOpen}
-        ingredients={ingredientsQuery.data ?? EMPTY_INGREDIENTS}
-        onClose={() => setIsInvoiceImportOpen(false)}
       />
     </>
   );

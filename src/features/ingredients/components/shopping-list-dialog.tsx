@@ -15,15 +15,18 @@ import { toast } from "sonner";
 import * as z from "zod";
 import { DetailsDialog } from "@/components/dialog/details-dialog";
 import { DIALOG_ACTION_BUTTON_CLASS_NAME } from "@/components/dialog/dialog-styles";
-import { NumberField } from "@/components/form/number-field";
+import { TextField } from "@/components/form/text-field";
 import { OptionSelect } from "@/components/option-select";
 import { Button } from "@/components/ui/button";
 import { DialogClose } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getWhatsAppUrl } from "@/components/whatsapp-link";
-import { getUnitSymbol } from "@/features/ingredients/measure-units";
+import {
+  getWhatsAppShareUrl,
+  getWhatsAppUrl,
+} from "@/components/whatsapp-link";
 import {
   buildShoppingList,
+  buildShoppingListMessage,
   buildSupplierMessage,
   formatItemQuantity,
   getInitialShoppingLines,
@@ -33,6 +36,7 @@ import {
   printShoppingList,
   type ShoppingLine,
   type ShoppingListGroup,
+  type ShoppingListSection,
   toShoppingLine,
 } from "@/features/ingredients/shopping-list";
 import type { OrderTicketBusiness } from "@/features/orders/print-order-ticket";
@@ -41,6 +45,7 @@ import { ReceivePurchaseOrderDialog } from "@/features/purchase-orders/component
 import { useCancelPurchaseOrderMutation } from "@/features/purchase-orders/hooks/use-cancel-purchase-order-mutation";
 import { useCreatePurchaseOrderMutation } from "@/features/purchase-orders/hooks/use-create-purchase-order-mutation";
 import { usePendingPurchaseOrdersQuery } from "@/features/purchase-orders/hooks/use-pending-purchase-orders-query";
+import { describeRequestedQuantity } from "@/features/purchase-orders/requested-quantity";
 import type { PurchaseOrder } from "@/features/purchase-orders/types";
 import type { Supplier, SupplierId } from "@/features/suppliers/types";
 import { cn } from "@/lib/utils";
@@ -51,8 +56,13 @@ const SHOPPING_TABS = ["buy", "pending"] as const;
 
 type ShoppingTab = (typeof SHOPPING_TABS)[number];
 
+const REQUEST_MAX_LENGTH = 40;
+
 const shoppingListSchema = z.object({
-  quantities: z.record(z.string(), z.number().min(0).optional()),
+  requests: z.record(
+    z.string(),
+    z.string().max(REQUEST_MAX_LENGTH, "Texto muito longo.").optional(),
+  ),
 });
 
 type ShoppingListInput = z.infer<typeof shoppingListSchema>;
@@ -71,28 +81,32 @@ function isShoppingTab(value: string): value is ShoppingTab {
   return SHOPPING_TABS.some((tab) => tab === value);
 }
 
+function getRequest(
+  requests: ShoppingListInput["requests"],
+  itemKey: string,
+): string | null {
+  return requests[itemKey]?.trim() || null;
+}
+
 function getOrderedItems(
   group: ShoppingListGroup,
-  quantities: ShoppingListInput["quantities"],
+  requests: ShoppingListInput["requests"],
 ): OrderedItem[] {
   return group.items.flatMap((item) => {
-    const quantity = quantities[item.key];
-    return quantity && quantity > 0 ? [{ ...item, quantity }] : [];
+    const request = getRequest(requests, item.key);
+    return request ? [{ ...item, request }] : [];
   });
 }
 
 function describeGroupProgress(itemCount: number, orderedCount: number) {
   const itemsLabel = itemCount === 1 ? "1 item" : `${itemCount} itens`;
-  if (orderedCount === 0) return `${itemsLabel} · digite as quantidades`;
+  if (orderedCount === 0) return `${itemsLabel} · escreva quanto pedir`;
   return `${itemsLabel} · ${orderedCount} para pedir`;
 }
 
 function describeOrderItems(order: PurchaseOrder): string {
   return order.items
-    .map(
-      (item) =>
-        `${formatItemQuantity(item.quantity, item.unit)} de ${item.name}`,
-    )
+    .map((item) => `${describeRequestedQuantity(item)} de ${item.name}`)
     .join(" · ");
 }
 
@@ -115,9 +129,9 @@ export function ShoppingListDialog({
   const cancelOrderMutation = useCancelPurchaseOrderMutation(organizationId);
   const form = useForm<ShoppingListInput>({
     resolver: zodResolver(shoppingListSchema),
-    defaultValues: { quantities: {} },
+    defaultValues: { requests: {} },
   });
-  const quantities = useWatch({ control: form.control, name: "quantities" });
+  const requests = useWatch({ control: form.control, name: "requests" });
 
   const wasOpenRef = useRef(false);
 
@@ -127,7 +141,7 @@ export function ShoppingListDialog({
     if (!isOpening) return;
     setTab("buy");
     setLines(getInitialShoppingLines(items));
-    form.reset({ quantities: {} });
+    form.reset({ requests: {} });
   }, [isOpen, items, form]);
 
   const pendingItemKeys = useMemo(
@@ -151,9 +165,16 @@ export function ShoppingListDialog({
   const orderedGroups = groups.map((group) => ({
     group,
     groupKey: getShoppingGroupKey(group.supplier?.id ?? null),
-    items: getOrderedItems(group, quantities ?? {}),
+    items: getOrderedItems(group, requests ?? {}),
   }));
-  const hasOrderedItems = orderedGroups.some(({ items }) => items.length > 0);
+  const listSections: ShoppingListSection[] = groups.map((group) => ({
+    supplierName: group.supplier?.name ?? null,
+    items: group.items.map((item) => ({
+      ...item,
+      request: getRequest(requests ?? {}, item.key),
+    })),
+  }));
+  const hasListItems = listSections.length > 0;
   const pendingOrders = ordersQuery.data ?? [];
 
   const addableItemOptions = useMemo(() => {
@@ -184,7 +205,7 @@ export function ShoppingListDialog({
     setLines((currentLines) =>
       currentLines.filter((line) => line.itemKey !== itemKey),
     );
-    form.setValue(`quantities.${itemKey}`, undefined);
+    form.setValue(`requests.${itemKey}`, undefined);
   }
 
   function assignSupplier(itemKey: string, supplierId: string) {
@@ -208,7 +229,7 @@ export function ShoppingListDialog({
         items: orderedItems.map((item) => ({
           kind: item.kind,
           id: item.id,
-          quantity: item.quantity,
+          requestedText: item.request,
         })),
       },
       {
@@ -220,16 +241,7 @@ export function ShoppingListDialog({
   }
 
   function printList() {
-    printShoppingList(
-      business,
-      orderedGroups
-        .filter(({ items }) => items.length > 0)
-        .map(({ group, items }) => ({
-          supplierName: group.supplier?.name ?? null,
-          items,
-        })),
-      new Date(),
-    );
+    printShoppingList(business, listSections, new Date());
   }
 
   if (isOpen && receivingOrder) {
@@ -266,7 +278,7 @@ export function ShoppingListDialog({
           {tab === "buy" && (
             <Button
               className={DIALOG_ACTION_BUTTON_CLASS_NAME}
-              disabled={!hasOrderedItems}
+              disabled={!hasListItems}
               onClick={printList}
             >
               <Printer aria-hidden />
@@ -312,6 +324,25 @@ export function ShoppingListDialog({
                 value={null}
                 onValueChange={addItem}
               />
+            )}
+            {hasListItems && (
+              <Button
+                variant="outline"
+                className="h-10 self-start"
+                nativeButton={false}
+                render={
+                  <a
+                    href={getWhatsAppShareUrl(
+                      buildShoppingListMessage(business.name, listSections),
+                    )}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  />
+                }
+              >
+                <MessageCircle aria-hidden />
+                Enviar lista pelo WhatsApp
+              </Button>
             )}
             {groups.length === 0 ? (
               <p className="py-6 text-center text-muted-foreground text-sm">
@@ -451,19 +482,14 @@ export function ShoppingListDialog({
                                   }
                                 />
                               )}
-                              <div className="ml-auto w-28 shrink-0">
-                                <NumberField
+                              <div className="ml-auto w-40 shrink-0">
+                                <TextField
                                   control={form.control}
-                                  name={`quantities.${item.key}`}
-                                  label={`Quantidade de ${item.name}`}
+                                  name={`requests.${item.key}`}
+                                  label={`Quanto pedir de ${item.name}`}
                                   isLabelHidden
-                                  format={
-                                    item.kind === "product"
-                                      ? "integer"
-                                      : "quantity"
-                                  }
-                                  suffix={getUnitSymbol(item.unit)}
-                                  placeholder="Qtd."
+                                  placeholder="Ex.: 3 garrafas"
+                                  autoComplete="off"
                                   size="dense"
                                 />
                               </div>

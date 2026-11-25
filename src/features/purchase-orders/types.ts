@@ -17,7 +17,8 @@ export type PurchaseOrderItem = PurchasableItemReference & {
   key: string;
   name: string;
   unit: MeasureUnit;
-  quantity: number;
+  quantity: number | null;
+  requestedText: string | null;
   unitCost: number;
 };
 

@@ -1857,6 +1857,7 @@ export type Database = {
           accepted_payment_methods: Database["public"]["Enums"]["payment_method"][]
           address: string | null
           balance_started_at: string | null
+          cielo_merchant_id: string | null
           created_at: string
           created_by: string | null
           credit_card_fee_percent: number
@@ -1902,6 +1903,7 @@ export type Database = {
           accepted_payment_methods?: Database["public"]["Enums"]["payment_method"][]
           address?: string | null
           balance_started_at?: string | null
+          cielo_merchant_id?: string | null
           created_at?: string
           created_by?: string | null
           credit_card_fee_percent?: number
@@ -1947,6 +1949,7 @@ export type Database = {
           accepted_payment_methods?: Database["public"]["Enums"]["payment_method"][]
           address?: string | null
           balance_started_at?: string | null
+          cielo_merchant_id?: string | null
           created_at?: string
           created_by?: string | null
           credit_card_fee_percent?: number
@@ -2618,9 +2621,10 @@ export type Database = {
           order_id: string
           organization_id: string
           product_id: string | null
-          quantity: number
+          quantity: number | null
           received_cost: number | null
           received_quantity: number | null
+          requested_text: string | null
         }
         Insert: {
           id?: string
@@ -2628,9 +2632,10 @@ export type Database = {
           order_id: string
           organization_id: string
           product_id?: string | null
-          quantity: number
+          quantity?: number | null
           received_cost?: number | null
           received_quantity?: number | null
+          requested_text?: string | null
         }
         Update: {
           id?: string
@@ -2638,9 +2643,10 @@ export type Database = {
           order_id?: string
           organization_id?: string
           product_id?: string | null
-          quantity?: number
+          quantity?: number | null
           received_cost?: number | null
           received_quantity?: number | null
+          requested_text?: string | null
         }
         Relationships: [
           {
@@ -3852,6 +3858,7 @@ export type Database = {
           accepted_payment_methods: Database["public"]["Enums"]["payment_method"][]
           address: string | null
           balance_started_at: string | null
+          cielo_merchant_id: string | null
           created_at: string
           created_by: string | null
           credit_card_fee_percent: number
