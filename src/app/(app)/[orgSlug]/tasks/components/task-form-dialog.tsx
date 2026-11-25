@@ -147,7 +147,7 @@ export function TaskFormDialog({
         <TextareaField
           control={form.control}
           name="instructions"
-          label="Como fazer (opcional)"
+          label="Como fazer"
           placeholder="Ex.: Use o cesto cego com detergente próprio e faça ciclos de 10 segundos."
         />
         <SelectField

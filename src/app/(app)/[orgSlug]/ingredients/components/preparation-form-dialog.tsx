@@ -149,7 +149,7 @@ export function PreparationFormDialog({
           <NumberField
             control={form.control}
             name="minimumStock"
-            label="Estoque mínimo (opcional)"
+            label="Estoque mínimo"
             format="quantity"
             suffix={unitSymbol}
             placeholder="Ex.: 200"

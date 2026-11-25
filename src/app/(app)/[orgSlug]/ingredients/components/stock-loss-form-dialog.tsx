@@ -184,7 +184,7 @@ export function StockLossFormDialog({
         <NumberField
           control={form.control}
           name="totalValue"
-          label="Valor da perda (opcional)"
+          label="Valor da perda"
           format="currency"
           placeholder="Ex.: $ 28,00"
           description="Vazio: calcula pelo custo do item."
@@ -209,7 +209,7 @@ export function StockLossFormDialog({
         <TextField
           control={form.control}
           name="note"
-          label="Observação (opcional)"
+          label="Observação"
           placeholder="Ex.: leite azedou na geladeira"
           autoComplete="off"
         />

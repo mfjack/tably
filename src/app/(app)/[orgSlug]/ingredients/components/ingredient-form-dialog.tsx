@@ -134,7 +134,7 @@ export function IngredientFormDialog({
             <NumberField
               control={form.control}
               name="currentStockCost"
-              label="Valor pago pelo estoque (opcional)"
+              label="Valor pago pelo estoque"
               format="currency"
               placeholder="Ex.: $ 60,00"
               description="Quanto custou o estoque atual. Recalcula o custo por unidade."

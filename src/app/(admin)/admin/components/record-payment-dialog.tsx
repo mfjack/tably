@@ -94,7 +94,7 @@ export function RecordPaymentDialog({
         <TextField
           control={form.control}
           name="note"
-          label="Observação (opcional)"
+          label="Observação"
           placeholder="Ex.: Pix de 05/10"
           autoComplete="off"
         />

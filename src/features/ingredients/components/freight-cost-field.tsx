@@ -15,7 +15,7 @@ export function FreightCostField<TFieldValues extends FieldValues>({
     <NumberField
       control={control}
       name={name}
-      label="Frete (opcional)"
+      label="Frete"
       format="currency"
       placeholder="Ex.: $ 15,00"
       description="Somado ao valor pago no custo do item."

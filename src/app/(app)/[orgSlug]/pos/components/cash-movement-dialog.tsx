@@ -29,7 +29,7 @@ const MOVEMENT_TEXTS = {
   supply: {
     title: "Reforço",
     description: "Entrada de dinheiro na gaveta, como mais troco.",
-    noteLabel: "Motivo (opcional)",
+    noteLabel: "Motivo",
     placeholder: "Ex.: Troco extra",
     success: "Reforço registrado.",
   },

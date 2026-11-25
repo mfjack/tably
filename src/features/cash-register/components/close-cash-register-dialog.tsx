@@ -122,7 +122,7 @@ export function CloseCashRegisterDialog({
         <TextareaField
           control={form.control}
           name="note"
-          label="Observação (opcional)"
+          label="Observação"
           placeholder="Ex.: Faltou troco de moedas"
         />
       </FieldGroup>

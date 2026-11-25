@@ -122,7 +122,7 @@ export function PaymentLineFields({
     <NumberField
       control={control}
       name={`payments.${index}.amountReceived`}
-      label={isSplit ? "Valor recebido (opcional)" : "Valor recebido"}
+      label="Valor recebido"
       format="currency"
       placeholder={`Ex.: ${amountExample}`}
     />

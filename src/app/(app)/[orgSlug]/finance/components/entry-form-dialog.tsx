@@ -222,11 +222,7 @@ export function EntryFormDialog({
 
   const filePicker = !editingEntry && (
     <FilePickerField
-      label={
-        kind === "expense"
-          ? "Boleto, nota ou comprovante (opcional)"
-          : "Documentos (opcional)"
-      }
+      label={kind === "expense" ? "Boleto, nota ou comprovante" : "Documentos"}
       files={pendingAttachments.files}
       error={pendingAttachments.fileError}
       maxSizeInMegabytes={MAX_FINANCIAL_DOCUMENT_SIZE_IN_MEGABYTES}
@@ -350,7 +346,7 @@ export function EntryFormDialog({
                   <DateField
                     control={form.control}
                     name="endDate"
-                    label="Até (opcional)"
+                    label="Até"
                     description="Vazio: repete sem data para acabar."
                   />
                 )}
@@ -434,7 +430,7 @@ export function EntryFormDialog({
                 <DateField
                   control={form.control}
                   name="endDate"
-                  label="Até (opcional)"
+                  label="Até"
                   description="Vazio: repete sem data para acabar."
                 />
               </div>

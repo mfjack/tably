@@ -18,7 +18,7 @@ export function PreparationStepsEditor({
 
   return (
     <FieldSet>
-      <FieldLegend>Modo de preparo (opcional)</FieldLegend>
+      <FieldLegend>Modo de preparo</FieldLegend>
       <FieldDescription>
         Aparece na hora de produzir, para quem for fazer.
       </FieldDescription>

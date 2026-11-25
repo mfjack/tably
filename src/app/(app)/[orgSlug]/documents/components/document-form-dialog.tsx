@@ -149,7 +149,7 @@ export function DocumentFormDialog({
         <DateField
           control={form.control}
           name="expiresOn"
-          label="Validade (opcional)"
+          label="Validade"
           placeholder="Escolha a data"
           description="Deixe em branco se o documento não vence."
         />

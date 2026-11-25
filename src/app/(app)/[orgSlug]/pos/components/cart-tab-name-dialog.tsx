@@ -112,7 +112,7 @@ export function CartTabNameDialog({
         <TextField
           control={form.control}
           name="name"
-          label="Nome do cliente (opcional)"
+          label="Nome do cliente"
           placeholder="Ex.: Diego"
           autoComplete="off"
         />
