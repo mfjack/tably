@@ -13,6 +13,17 @@ export class CieloError extends Error {
   }
 }
 
+const DIACRITICS_PATTERN = /[̀-ͯ]/g;
+const NON_PRINTABLE_ASCII_PATTERN = /[^ -~]/g;
+
+export function toCieloText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(DIACRITICS_PATTERN, "")
+    .replace(NON_PRINTABLE_ASCII_PATTERN, "")
+    .trim();
+}
+
 type CieloErrorBody = { detail?: string; error?: string }[] | null;
 
 type CieloRequestInit = {
@@ -58,6 +69,7 @@ export async function createCieloOrder(
   merchantId: string,
   { number, reference, amountInCents, paymentCode }: CreateCieloOrderInput,
 ): Promise<string> {
+  const orderName = toCieloText(reference) || "Pedido";
   const createdOrder = await cieloRequest<{ id: string }>(
     merchantId,
     "/orders",
@@ -65,13 +77,13 @@ export async function createCieloOrder(
       method: "POST",
       body: {
         number,
-        reference,
+        reference: orderName,
         status: "DRAFT",
         payment_code: paymentCode,
         items: [
           {
             sku: "TABLY",
-            name: reference,
+            name: orderName,
             unit_price: amountInCents,
             quantity: 1,
             unit_of_measure: "EACH",

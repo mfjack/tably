@@ -80,7 +80,8 @@ export async function startCardTerminalCharge(
       paymentCode: toCieloPaymentCode(parsedInput.data.method),
     });
     return actionSuccess(chargeId as CardTerminalChargeId);
-  } catch {
+  } catch (error) {
+    console.error("Cielo charge failed", error);
     return actionFailure(TERMINAL_UNAVAILABLE_MESSAGE);
   }
 }
