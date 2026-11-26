@@ -114,11 +114,13 @@ export async function getCieloOrder(
   return order;
 }
 
-export async function deleteCieloOrder(
+export async function closeCieloOrder(
   merchantId: string,
   orderId: string,
 ): Promise<void> {
-  await cieloRequest(merchantId, `/orders/${encodeURIComponent(orderId)}`, {
-    method: "DELETE",
-  });
+  await cieloRequest(
+    merchantId,
+    `/orders/${encodeURIComponent(orderId)}?operation=CLOSE`,
+    { method: "PUT" },
+  );
 }

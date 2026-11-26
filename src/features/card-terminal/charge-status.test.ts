@@ -58,6 +58,21 @@ describe("getCardTerminalCharge", () => {
     ).toEqual({ status: "paid", method: "credit_card" });
   });
 
+  it("treats an unpaid closed order as canceled", () => {
+    expect(
+      getCardTerminalCharge({ ...buildOrder([]), status: "CLOSED" }),
+    ).toEqual({ status: "canceled" });
+  });
+
+  it("keeps a closed order paid when the payment was confirmed", () => {
+    expect(
+      getCardTerminalCharge({
+        ...buildOrder([buildTransaction({})]),
+        status: "CLOSED",
+      }),
+    ).toEqual({ status: "paid", method: "debit_card" });
+  });
+
   it("ignores payments that were cancelled afterwards", () => {
     expect(
       getCardTerminalCharge(

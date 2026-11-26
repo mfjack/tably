@@ -1,9 +1,5 @@
 import type { PaymentMethod } from "@/features/orders/types";
-import type {
-  CieloOrder,
-  CieloOrderStatus,
-  CieloPaymentCode,
-} from "@/lib/cielo/types";
+import type { CieloOrder, CieloPaymentCode } from "@/lib/cielo/types";
 import {
   CARD_TERMINAL_METHODS,
   type CardTerminalCharge,
@@ -15,8 +11,6 @@ const PAYMENT_CODE_BY_METHOD = {
   debit_card: "DEBITO_AVISTA",
   pix: "PIX",
 } as const satisfies Record<CardTerminalMethod, CieloPaymentCode>;
-
-const SETTLED_ORDER_STATUSES: readonly CieloOrderStatus[] = ["PAID", "CLOSED"];
 
 const METHOD_BY_PRODUCT_NAME: Readonly<Record<string, CardTerminalMethod>> = {
   CREDITO: "credit_card",
@@ -57,8 +51,12 @@ export function getCardTerminalCharge(order: CieloOrder): CardTerminalCharge {
         : total - transaction.amount,
     0,
   );
-  const isSettled = SETTLED_ORDER_STATUSES.includes(order.status);
-  if (paidInCents < order.price && !isSettled) return { status: "pending" };
+  const isFullyPaid = paidInCents >= order.price || order.status === "PAID";
+  if (!isFullyPaid) {
+    return order.status === "CLOSED"
+      ? { status: "canceled" }
+      : { status: "pending" };
+  }
 
   const productName = confirmedTransactions
     .findLast((transaction) => transaction.transaction_type === "PAYMENT")

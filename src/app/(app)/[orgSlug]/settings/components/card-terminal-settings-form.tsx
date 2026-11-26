@@ -58,8 +58,8 @@ export function CardTerminalSettingsForm({
           control={form.control}
           name="cieloMerchantId"
           label="Merchant ID da Cielo"
-          description="A Cielo envia esse código depois de liberar a integração pelo e-mail integracaosmart@cielo.com.br."
-          placeholder="Ex.: 1234567890123456"
+          description="Fica no Portal Desenvolvedor Cielo, em Minhas credenciais, na credencial de produção. Não é o número do EC."
+          placeholder="Ex.: 7d03e0fb-8b29-457c-917a-4463b8bc5373"
           autoComplete="off"
         />
       </FieldGroup>

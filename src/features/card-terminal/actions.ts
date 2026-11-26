@@ -18,8 +18,8 @@ import {
 } from "@/lib/action-result";
 import {
   CieloError,
+  closeCieloOrder,
   createCieloOrder,
-  deleteCieloOrder,
   getCieloOrder,
 } from "@/lib/cielo/client";
 import { toCents } from "@/lib/money";
@@ -114,8 +114,8 @@ export async function cancelCardTerminalCharge(
   try {
     const order = await getCieloOrder(context.data.merchantId, chargeId);
     const charge = getCardTerminalCharge(order);
-    if (charge.status === "paid") return actionSuccess(charge);
-    await deleteCieloOrder(context.data.merchantId, chargeId);
+    if (charge.status !== "pending") return actionSuccess(charge);
+    await closeCieloOrder(context.data.merchantId, chargeId);
     return actionSuccess({ status: "canceled" });
   } catch (error) {
     if (error instanceof CieloError && error.status === NOT_FOUND_STATUS) {
